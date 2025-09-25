@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/setup")
+@RequestMapping("/setup")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

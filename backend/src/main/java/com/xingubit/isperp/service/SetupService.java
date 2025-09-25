@@ -114,8 +114,6 @@ public class SetupService {
                 .siteDescription(request.getSiteDescription())
                 .primaryColor(request.getPrimaryColor() != null ? request.getPrimaryColor() : "#1976d2")
                 .secondaryColor(request.getSecondaryColor() != null ? request.getSecondaryColor() : "#dc004e")
-                .logoUrl(request.getLogoUrl())
-                .faviconUrl(request.getFaviconUrl())
                 .build();
         
         siteSettingsRepository.save(siteSettings);

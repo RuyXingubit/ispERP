@@ -29,16 +29,12 @@ CREATE TABLE companies (
 -- Create site_settings table
 CREATE TABLE site_settings (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    company_id BIGINT NOT NULL,
-    site_name VARCHAR(255) NOT NULL,
+    site_title VARCHAR(255) NOT NULL,
     site_description TEXT,
     primary_color VARCHAR(7) NOT NULL DEFAULT '#1976d2',
     secondary_color VARCHAR(7) NOT NULL DEFAULT '#dc004e',
-    logo_url VARCHAR(500),
-    favicon_url VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Create setup_status table
@@ -58,4 +54,3 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_active ON users(active);
 CREATE INDEX idx_companies_document ON companies(document);
 CREATE INDEX idx_companies_active ON companies(active);
-CREATE INDEX idx_site_settings_company_id ON site_settings(company_id);

@@ -27,7 +27,7 @@ services:
       dockerfile: docker/Dockerfile.backend
     container_name: isperp-backend
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SPRING_PROFILES_ACTIVE: docker
       DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-isperp}
@@ -39,16 +39,17 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    restart: on-failure
     networks:
       - isperp-network
     volumes:
       - ./backend/logs:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 90s
 
   frontend:
     build:

@@ -62,10 +62,4 @@ public class SetupRequest {
     
     @Size(max = 7, message = "Cor secundária deve ter no máximo 7 caracteres")
     private String secondaryColor;
-    
-    @Size(max = 255, message = "Logo deve ter no máximo 255 caracteres")
-    private String logoUrl;
-    
-    @Size(max = 255, message = "Favicon deve ter no máximo 255 caracteres")
-    private String faviconUrl;
 }

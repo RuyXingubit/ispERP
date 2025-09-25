@@ -16,10 +16,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.and())
+            .cors(cors -> cors.disable())
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/api/setup/**").permitAll()
-                .requestMatchers("/api/actuator/**").permitAll()
+                .requestMatchers("/setup/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic(httpBasic -> httpBasic.disable())

@@ -39,14 +39,6 @@ public class SiteSettings {
     @Column(name = "secondary_color")
     private String secondaryColor = "#dc004e";
     
-    @Size(max = 255, message = "Logo deve ter no máximo 255 caracteres")
-    @Column(name = "logo_url")
-    private String logoUrl;
-    
-    @Size(max = 255, message = "Favicon deve ter no máximo 255 caracteres")
-    @Column(name = "favicon_url")
-    private String faviconUrl;
-    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

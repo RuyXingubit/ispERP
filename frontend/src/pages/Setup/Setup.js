@@ -49,9 +49,7 @@ const validationSchemas = [
     siteTitle: Yup.string().required('Título do site é obrigatório'),
     siteDescription: Yup.string(),
     primaryColor: Yup.string(),
-    secondaryColor: Yup.string(),
-    logoUrl: Yup.string().url('URL inválida'),
-    faviconUrl: Yup.string().url('URL inválida')
+    secondaryColor: Yup.string()
   })
 ];
 
@@ -72,9 +70,7 @@ const initialValues = {
   siteTitle: '',
   siteDescription: '',
   primaryColor: '#1976d2',
-  secondaryColor: '#dc004e',
-  logoUrl: '',
-  faviconUrl: ''
+  secondaryColor: '#dc004e'
 };
 
 const Setup = () => {
@@ -124,9 +120,7 @@ const Setup = () => {
         siteTitle: values.siteTitle,
         siteDescription: values.siteDescription,
         primaryColor: values.primaryColor,
-        secondaryColor: values.secondaryColor,
-        logoUrl: values.logoUrl,
-        faviconUrl: values.faviconUrl
+        secondaryColor: values.secondaryColor
       };
 
       const response = await setupService.performSetup(setupData);
@@ -330,26 +324,6 @@ const Setup = () => {
                   fullWidth
                   error={touched.secondaryColor && !!errors.secondaryColor}
                   helperText={touched.secondaryColor && errors.secondaryColor}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Field
-                  as={TextField}
-                  name="logoUrl"
-                  label="URL do Logo"
-                  fullWidth
-                  error={touched.logoUrl && !!errors.logoUrl}
-                  helperText={touched.logoUrl && errors.logoUrl}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Field
-                  as={TextField}
-                  name="faviconUrl"
-                  label="URL do Favicon"
-                  fullWidth
-                  error={touched.faviconUrl && !!errors.faviconUrl}
-                  helperText={touched.faviconUrl && errors.faviconUrl}
                 />
               </Grid>
             </Grid>

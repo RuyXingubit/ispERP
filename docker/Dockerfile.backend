@@ -2,11 +2,15 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Install curl, mysql-client and bash for health checks and database connectivity tests
+RUN apk add --no-cache curl mysql-client bash
 
 # Copy the jar file
 COPY backend/build/libs/*.jar app.jar
+
+# Copy wait script
+COPY docker/wait-for-mysql.sh wait-for-mysql.sh
+RUN chmod +x wait-for-mysql.sh
 
 # Expose port
 EXPOSE 8080
@@ -15,5 +19,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/api/actuator/health || exit 1
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application with wait script and Docker profile
+ENTRYPOINT ["./wait-for-mysql.sh", "java", "-Dspring.profiles.active=docker", "-jar", "app.jar"]
