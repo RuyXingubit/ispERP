@@ -18,12 +18,10 @@ import {
   TrendingUp,
   ExitToApp,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { toast } from 'react-toastify';
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const user = authService.getUser();
 
   const handleLogout = () => {

@@ -11,7 +11,7 @@ import Home from './pages/Home/Home';
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
 import { setupService } from './services/setupService';
-import { authService } from './services/authService';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const theme = createTheme({
   palette: {
@@ -24,26 +24,12 @@ const theme = createTheme({
   },
 });
 
-function App() {
+function AppContent() {
   const [isSetupCompleted, setIsSetupCompleted] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
     checkSetupStatus();
-    checkAuthStatus();
-    
-    // Listener para mudanças no localStorage (logout)
-    const handleStorageChange = () => {
-      checkAuthStatus();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
 
   const checkSetupStatus = async () => {
@@ -56,84 +42,83 @@ function App() {
     }
   };
 
-  const checkAuthStatus = () => {
-    const authenticated = authService.isAuthenticated();
-    setIsAuthenticated(authenticated);
-    setLoading(false);
-  };
-
-  if (loading) {
+  if (loading || isSetupCompleted === null) {
     return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box 
-          display="flex" 
-          justifyContent="center" 
-          alignItems="center" 
-          minHeight="100vh"
-        >
-          <CircularProgress />
-        </Box>
-      </ThemeProvider>
+      <Box 
+        display="flex" 
+        justifyContent="center" 
+        alignItems="center" 
+        minHeight="100vh"
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route 
+            path="/setup" 
+            element={isSetupCompleted ? <Navigate to="/" replace /> : <Setup />} 
+          />
+          <Route 
+            path="/home" 
+            element={!isSetupCompleted ? <Navigate to="/setup" replace /> : <Home />} 
+          />
+          <Route 
+            path="/login" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : 
+              <Login />
+            } 
+          />
+          <Route 
+            path="/dashboard" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <Dashboard />
+            } 
+          />
+          <Route 
+            path="/" 
+            element={
+              <Navigate 
+                to={
+                  !isSetupCompleted ? "/setup" : 
+                  "/home"
+                } 
+                replace 
+              />
+            } 
+          />
+        </Routes>
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+      </div>
+    </Router>
+  );
+}
+
+function App() {
+  return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <div className="App">
-          <Routes>
-            <Route 
-              path="/setup" 
-              element={isSetupCompleted ? <Navigate to="/" replace /> : <Setup />} 
-            />
-            <Route 
-              path="/home" 
-              element={!isSetupCompleted ? <Navigate to="/setup" replace /> : <Home />} 
-            />
-            <Route 
-              path="/login" 
-              element={
-                !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-                isAuthenticated ? <Navigate to="/dashboard" replace /> : 
-                <Login />
-              } 
-            />
-            <Route 
-              path="/dashboard" 
-              element={
-                !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-                !isAuthenticated ? <Navigate to="/login" replace /> : 
-                <Dashboard />
-              } 
-            />
-            <Route 
-              path="/" 
-              element={
-                <Navigate 
-                  to={
-                    !isSetupCompleted ? "/setup" : 
-                    "/home"
-                  } 
-                  replace 
-                />
-              } 
-            />
-          </Routes>
-          <ToastContainer
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
-        </div>
-      </Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

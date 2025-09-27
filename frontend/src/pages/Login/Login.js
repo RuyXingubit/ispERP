@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -14,7 +13,8 @@ import { LockOutlined } from '@mui/icons-material';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
-import { authService } from '../../services/authService';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const validationSchema = Yup.object({
   email: Yup.string().email('Email inválido').required('Email é obrigatório'),
@@ -23,17 +23,18 @@ const validationSchema = Yup.object({
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      const response = await authService.login(values);
+      const response = await login(values);
       
       if (response.success) {
         toast.success('Login realizado com sucesso!');
         // Aguardar um pouco para o toast aparecer e depois redirecionar
         setTimeout(() => {
-          // Forçar recarregamento da página para atualizar o estado de autenticação
-          window.location.href = '/dashboard';
+          // Usar navigate para redirecionar - o contexto já atualizou o estado
+          navigate('/dashboard');
         }, 1000);
       } else {
         toast.error(response.message || 'Erro ao fazer login');

@@ -10,14 +10,8 @@ import {
   Box,
   TextField,
   Grid,
-  Card,
-  CardContent,
-  Avatar,
-  IconButton,
-  Alert,
   CircularProgress,
 } from '@mui/material';
-import { Business, Person, Palette, PhotoCamera } from '@mui/icons-material';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
