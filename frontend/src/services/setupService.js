@@ -4,7 +4,7 @@ export const setupService = {
   // Verificar status do setup
   getSetupStatus: async () => {
     try {
-      const response = await api.get('/setup/status');
+      const response = await api.get('/initial-setup/status');
       return response.data;
     } catch (error) {
       console.error('Erro ao verificar status do setup:', error);
@@ -15,7 +15,7 @@ export const setupService = {
   // Realizar setup inicial
   performSetup: async (setupData) => {
     try {
-      const response = await api.post('/setup', setupData);
+      const response = await api.post('/initial-setup', setupData);
       return response.data;
     } catch (error) {
       console.error('Erro ao realizar setup:', error);

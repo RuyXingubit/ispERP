@@ -3,12 +3,10 @@ set -e
 
 host="mysql"
 port="3306"
-user="isperp"
-password="root"
 
 echo "Aguardando MySQL estar disponível..."
 
-until mysql -h"$host" -P"$port" -u"$user" -p"$password" --skip-ssl -e "SELECT 1;" > /dev/null 2>&1; do
+until timeout 1 bash -c "echo > /dev/tcp/$host/$port" 2>/dev/null; do
   echo "MySQL não está pronto - aguardando..."
   sleep 2
 done

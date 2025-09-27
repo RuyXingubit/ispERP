@@ -37,18 +37,6 @@ CREATE TABLE site_settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Create setup_status table
-CREATE TABLE setup_status (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    is_setup_completed BOOLEAN NOT NULL DEFAULT FALSE,
-    setup_completed_at TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- Insert initial setup status
-INSERT INTO setup_status (is_setup_completed) VALUES (FALSE);
-
 -- Create indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_active ON users(active);

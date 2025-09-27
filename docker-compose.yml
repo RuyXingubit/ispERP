@@ -13,7 +13,6 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - isperp-network
     healthcheck:
@@ -27,13 +26,13 @@ services:
       dockerfile: docker/Dockerfile.backend
     container_name: isperp-backend
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: dev
       DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-isperp}
       DB_USERNAME: ${DB_USERNAME:-isperp}
       DB_PASSWORD: ${DB_PASSWORD:-root}
-      JWT_SECRET: ${JWT_SECRET:-mySecretKey}
+      JWT_SECRET: ${JWT_SECRET:-myVerySecureSecretKeyThatIsAtLeast256BitsLongForJWTSecurityAndMustBeAtLeast32CharactersLongToMeetTheRequirements}
     ports:
       - "8080:8080"
     depends_on:

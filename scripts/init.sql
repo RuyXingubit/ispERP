@@ -9,6 +9,3 @@ GRANT ALL PRIVILEGES ON isperp.* TO 'isperp'@'%';
 
 -- Flush privileges
 FLUSH PRIVILEGES;
-
--- Use the database
-USE isperp;

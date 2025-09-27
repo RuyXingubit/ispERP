@@ -28,8 +28,8 @@ public class Company {
     private String name;
     
     @Size(max = 20, message = "CNPJ deve ter no máximo 20 caracteres")
-    @Column(name = "cnpj")
-    private String cnpj;
+    @Column(name = "document")
+    private String document;
     
     @Size(max = 500, message = "Endereço deve ter no máximo 500 caracteres")
     @Column(name = "address")

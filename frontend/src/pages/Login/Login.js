@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -13,6 +14,7 @@ import { LockOutlined } from '@mui/icons-material';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
+import { authService } from '../../services/authService';
 
 const validationSchema = Yup.object({
   email: Yup.string().email('Email inválido').required('Email é obrigatório'),
@@ -20,14 +22,22 @@ const validationSchema = Yup.object({
 });
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      // TODO: Implementar autenticação
-      console.log('Login data:', values);
-      toast.success('Login realizado com sucesso!');
-      // Redirect to dashboard
+      const response = await authService.login(values);
+      
+      if (response.success) {
+        toast.success('Login realizado com sucesso!');
+        // Redirecionar para o dashboard
+        navigate('/dashboard');
+      } else {
+        toast.error(response.message || 'Erro ao fazer login');
+      }
     } catch (error) {
-      toast.error('Erro ao fazer login');
+      console.error('Erro no login:', error);
+      toast.error('Credenciais inválidas ou erro no servidor');
     } finally {
       setSubmitting(false);
     }

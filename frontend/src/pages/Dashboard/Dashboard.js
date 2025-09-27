@@ -7,15 +7,30 @@ import {
   CardContent,
   Box,
   Avatar,
+  Button,
+  AppBar,
+  Toolbar,
 } from '@mui/material';
 import {
   People,
   Business,
   AttachMoney,
   TrendingUp,
+  ExitToApp,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '../../services/authService';
+import { toast } from 'react-toastify';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const user = authService.getUser();
+
+  const handleLogout = () => {
+    authService.logout();
+    toast.success('Logout realizado com sucesso!');
+    navigate('/login');
+  };
   const stats = [
     {
       title: 'Clientes Ativos',
@@ -44,13 +59,32 @@ const Dashboard = () => {
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
-      <Typography variant="body1" color="textSecondary" paragraph>
-        Bem-vindo ao painel de controle do ISP ERP
-      </Typography>
+    <Box>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            ISP ERP - Dashboard
+          </Typography>
+          <Typography variant="body2" sx={{ mr: 2 }}>
+            Bem-vindo, {user?.username || 'Usuário'}
+          </Typography>
+          <Button 
+            color="inherit" 
+            onClick={handleLogout}
+            startIcon={<ExitToApp />}
+          >
+            Sair
+          </Button>
+        </Toolbar>
+      </AppBar>
+      
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Dashboard Administrativo
+        </Typography>
+        <Typography variant="body1" color="textSecondary" paragraph>
+          Painel de controle do sistema ISP ERP
+        </Typography>
 
       <Grid container spacing={3}>
         {stats.map((stat, index) => (
@@ -95,7 +129,8 @@ const Dashboard = () => {
           </Card>
         </Grid>
       </Grid>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

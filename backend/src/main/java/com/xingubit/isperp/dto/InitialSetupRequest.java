@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SetupRequest {
+public class InitialSetupRequest {
     
     // Dados do usuário administrador
     @NotBlank(message = "Nome do administrador é obrigatório")
