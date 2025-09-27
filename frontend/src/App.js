@@ -7,6 +7,7 @@ import { CircularProgress, Box } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
 
 import Setup from './pages/Setup/Setup';
+import Home from './pages/Home/Home';
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
 import { setupService } from './services/setupService';
@@ -31,6 +32,18 @@ function App() {
   useEffect(() => {
     checkSetupStatus();
     checkAuthStatus();
+    
+    // Listener para mudanças no localStorage (logout)
+    const handleStorageChange = () => {
+      checkAuthStatus();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const checkSetupStatus = async () => {
@@ -73,7 +86,11 @@ function App() {
           <Routes>
             <Route 
               path="/setup" 
-              element={isSetupCompleted ? <Navigate to="/login" replace /> : <Setup />} 
+              element={isSetupCompleted ? <Navigate to="/" replace /> : <Setup />} 
+            />
+            <Route 
+              path="/home" 
+              element={!isSetupCompleted ? <Navigate to="/setup" replace /> : <Home />} 
             />
             <Route 
               path="/login" 
@@ -97,8 +114,7 @@ function App() {
                 <Navigate 
                   to={
                     !isSetupCompleted ? "/setup" : 
-                    !isAuthenticated ? "/login" : 
-                    "/dashboard"
+                    "/home"
                   } 
                   replace 
                 />

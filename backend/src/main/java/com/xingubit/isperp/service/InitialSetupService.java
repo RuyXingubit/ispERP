@@ -27,7 +27,13 @@ public class InitialSetupService {
     private SiteSettingsRepository siteSettingsRepository;
 
     public boolean isSetupCompleted() {
-        return userRepository.count() > 0;
+        // Verificar se todas as etapas do setup foram concluídas:
+        // 1. Pelo menos um usuário administrador existe
+        // 2. Pelo menos uma empresa foi cadastrada
+        // 3. Configurações do site foram definidas
+        return userRepository.count() > 0 && 
+               companyRepository.count() > 0 && 
+               siteSettingsRepository.count() > 0;
     }
 
     @Transactional

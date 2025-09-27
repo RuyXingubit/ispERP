@@ -30,8 +30,11 @@ const Login = () => {
       
       if (response.success) {
         toast.success('Login realizado com sucesso!');
-        // Redirecionar para o dashboard
-        navigate('/dashboard');
+        // Aguardar um pouco para o toast aparecer e depois redirecionar
+        setTimeout(() => {
+          // Forçar recarregamento da página para atualizar o estado de autenticação
+          window.location.href = '/dashboard';
+        }, 1000);
       } else {
         toast.error(response.message || 'Erro ao fazer login');
       }

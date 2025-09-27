@@ -29,7 +29,8 @@ const Dashboard = () => {
   const handleLogout = () => {
     authService.logout();
     toast.success('Logout realizado com sucesso!');
-    navigate('/login');
+    // Forçar recarregamento da página para atualizar o estado de autenticação
+    window.location.href = '/home';
   };
   const stats = [
     {
