@@ -22,7 +22,7 @@ Sistema ERP web com:
 #### Configuração Inicial
 1. Clone o repositório:
 ```bash
-git clone ${repo_url}
+git clone https://github.com/RuyXingubit/ispERP.git
 ```
 
 2. Configure as variáveis de ambiente:

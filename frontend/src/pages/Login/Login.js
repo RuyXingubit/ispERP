@@ -8,6 +8,8 @@ import {
   Box,
   Avatar,
   Link,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
 import { Formik, Form, Field } from 'formik';
@@ -24,6 +26,9 @@ const validationSchema = Yup.object({
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
@@ -48,16 +53,40 @@ const Login = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <Container 
+      component="main" 
+      maxWidth={isMobile ? 'xs' : isTablet ? 'sm' : 'xs'}
+      sx={{
+        px: { xs: 2, sm: 3 },
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       <Box
         sx={{
-          marginTop: 8,
+          width: '100%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          py: { xs: 2, sm: 4 },
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
+        <Paper 
+          elevation={isMobile ? 1 : 3} 
+          sx={{ 
+            p: { xs: 3, sm: 4, md: 5 }, 
+            width: '100%',
+            maxWidth: { xs: '100%', sm: 400, md: 450 },
+            borderRadius: { xs: 2, sm: 3 },
+            boxShadow: {
+              xs: theme.shadows[1],
+              sm: theme.shadows[3],
+              md: theme.shadows[8],
+            },
+          }}
+        >
           <Box
             sx={{
               display: 'flex',
@@ -65,10 +94,25 @@ const Login = () => {
               alignItems: 'center',
             }}
           >
-            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-              <LockOutlined />
+            <Avatar 
+              sx={{ 
+                m: { xs: 1, sm: 2 }, 
+                bgcolor: 'secondary.main',
+                width: { xs: 40, sm: 48, md: 56 },
+                height: { xs: 40, sm: 48, md: 56 },
+              }}
+            >
+              <LockOutlined sx={{ fontSize: { xs: 20, sm: 24, md: 28 } }} />
             </Avatar>
-            <Typography component="h1" variant="h5">
+            <Typography 
+              component="h1" 
+              variant={isMobile ? "h6" : "h5"}
+              sx={{
+                mb: { xs: 2, sm: 3 },
+                textAlign: 'center',
+                fontWeight: 'medium',
+              }}
+            >
               Entrar no Sistema
             </Typography>
             <Formik
@@ -80,7 +124,7 @@ const Login = () => {
               onSubmit={handleSubmit}
             >
               {({ errors, touched, isSubmitting }) => (
-                <Form style={{ width: '100%', marginTop: '1rem' }}>
+                <Form style={{ width: '100%' }}>
                   <Field
                     as={TextField}
                     variant="outlined"
@@ -94,6 +138,15 @@ const Login = () => {
                     autoFocus
                     error={touched.email && !!errors.email}
                     helperText={touched.email && errors.email}
+                    sx={{
+                      mb: { xs: 2, sm: 2.5 },
+                      '& .MuiInputBase-root': {
+                        fontSize: { xs: '0.875rem', sm: '1rem' },
+                      },
+                      '& .MuiInputLabel-root': {
+                        fontSize: { xs: '0.875rem', sm: '1rem' },
+                      },
+                    }}
                   />
                   <Field
                     as={TextField}
@@ -108,18 +161,52 @@ const Login = () => {
                     autoComplete="current-password"
                     error={touched.password && !!errors.password}
                     helperText={touched.password && errors.password}
+                    sx={{
+                      mb: { xs: 2, sm: 3 },
+                      '& .MuiInputBase-root': {
+                        fontSize: { xs: '0.875rem', sm: '1rem' },
+                      },
+                      '& .MuiInputLabel-root': {
+                        fontSize: { xs: '0.875rem', sm: '1rem' },
+                      },
+                    }}
                   />
                   <Button
                     type="submit"
                     fullWidth
                     variant="contained"
-                    sx={{ mt: 3, mb: 2 }}
                     disabled={isSubmitting}
+                    sx={{ 
+                      mt: { xs: 2, sm: 3 }, 
+                      mb: { xs: 2, sm: 3 },
+                      py: { xs: 1.5, sm: 2 },
+                      fontSize: { xs: '0.875rem', sm: '1rem' },
+                      fontWeight: 'medium',
+                      borderRadius: { xs: 1.5, sm: 2 },
+                      textTransform: 'none',
+                      boxShadow: theme.shadows[2],
+                      '&:hover': {
+                        boxShadow: theme.shadows[4],
+                      },
+                    }}
                   >
-                    Entrar
+                    {isSubmitting ? 'Entrando...' : 'Entrar'}
                   </Button>
-                  <Box textAlign="center">
-                    <Link href="#" variant="body2">
+                  <Box 
+                    textAlign="center"
+                    sx={{ mt: { xs: 1, sm: 2 } }}
+                  >
+                    <Link 
+                      href="#" 
+                      variant="body2"
+                      sx={{
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        textDecoration: 'none',
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
                       Esqueceu sua senha?
                     </Link>
                   </Box>

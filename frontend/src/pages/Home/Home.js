@@ -18,6 +18,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Wifi,
@@ -34,10 +36,14 @@ import {
   Business,
   Schedule,
   Star,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
 
 const Home = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg'));
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -121,27 +127,66 @@ const Home = () => {
   return (
     <Box>
       {/* Header */}
-      <AppBar position="static" elevation={1} sx={{ bgcolor: 'white', color: 'text.primary' }}>
-        <Toolbar>
+      <AppBar 
+        position="static" 
+        elevation={1} 
+        sx={{ 
+          bgcolor: 'white', 
+          color: 'text.primary',
+        }}
+      >
+        <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-            <Wifi sx={{ mr: 1, color: 'primary.main' }} />
-            <Typography variant="h6" component="div" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+            <Wifi sx={{ mr: 1, color: 'primary.main', fontSize: { xs: 20, sm: 24 } }} />
+            <Typography 
+              variant={isMobile ? "subtitle1" : "h6"} 
+              component="div" 
+              sx={{ 
+                color: 'primary.main', 
+                fontWeight: 'bold',
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              }}
+            >
               ISP Connect
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Button color="inherit">Planos</Button>
-            <Button color="inherit">Cobertura</Button>
-            <Button color="inherit">Suporte</Button>
-            <Button color="inherit">Contato</Button>
+          <Box sx={{ 
+            display: { xs: 'none', md: 'flex' }, 
+            gap: 2, 
+            alignItems: 'center' 
+          }}>
+            <Button color="inherit" sx={{ fontSize: '0.875rem' }}>Planos</Button>
+            <Button color="inherit" sx={{ fontSize: '0.875rem' }}>Cobertura</Button>
+            <Button color="inherit" sx={{ fontSize: '0.875rem' }}>Suporte</Button>
+            <Button color="inherit" sx={{ fontSize: '0.875rem' }}>Contato</Button>
             <Divider orientation="vertical" flexItem />
             <Button 
               variant="contained"
               onClick={handleLoginClick}
-              startIcon={<LoginIcon />}
-              sx={{ ml: 1 }}
+              startIcon={<LoginIcon sx={{ fontSize: { xs: 16, sm: 20 } }} />}
+              sx={{ 
+                ml: 1,
+                fontSize: '0.875rem',
+                py: 1,
+                px: 2,
+              }}
             >
               Área do Cliente
+            </Button>
+          </Box>
+          {/* Mobile Menu Button */}
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+            <Button 
+              variant="contained"
+              onClick={handleLoginClick}
+              size="small"
+              sx={{ 
+                fontSize: '0.75rem',
+                py: 0.5,
+                px: 1.5,
+              }}
+            >
+              Login
             </Button>
           </Box>
         </Toolbar>
@@ -152,34 +197,66 @@ const Home = () => {
         sx={{
           background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
           color: 'white',
-          py: 10,
+          py: { xs: 6, sm: 8, md: 10 },
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        <Container maxWidth="lg">
-          <Grid container spacing={6} alignItems="center">
+        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
             <Grid item xs={12} md={6}>
-              <Typography variant="h2" component="h1" gutterBottom fontWeight="bold">
+              <Typography 
+                variant={isMobile ? "h3" : "h2"} 
+                component="h1" 
+                gutterBottom 
+                fontWeight="bold"
+                sx={{
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem' },
+                  lineHeight: { xs: 1.2, sm: 1.3 },
+                }}
+              >
                 Internet de Fibra Óptica
               </Typography>
-              <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
+              <Typography 
+                variant={isMobile ? "h6" : "h5"} 
+                component="h2" 
+                gutterBottom 
+                sx={{ 
+                  mb: { xs: 2, sm: 3 },
+                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' },
+                }}
+              >
                 Velocidade real, sem oscilação
               </Typography>
-              <Typography variant="body1" paragraph sx={{ fontSize: '1.2rem', mb: 4, opacity: 0.9 }}>
+              <Typography 
+                variant="body1" 
+                paragraph 
+                sx={{ 
+                  fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' }, 
+                  mb: { xs: 3, sm: 4 }, 
+                  opacity: 0.9,
+                  lineHeight: { xs: 1.5, sm: 1.6 },
+                }}
+              >
                 Conecte-se com a internet mais rápida e estável da região. 
                 Planos a partir de R$ 79,90 com instalação gratuita e Wi-Fi incluso.
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: { xs: 1.5, sm: 2 }, 
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'stretch', sm: 'center' },
+              }}>
                 <Button
                   variant="contained"
                   size="large"
                   sx={{
                     bgcolor: 'white',
                     color: 'primary.main',
-                    px: 4,
-                    py: 1.5,
-                    fontSize: '1.1rem',
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    py: { xs: 1.5, sm: 2 },
+                    px: { xs: 3, sm: 4 },
+                    fontWeight: 'bold',
                     '&:hover': {
                       bgcolor: 'grey.100',
                     },
@@ -193,9 +270,9 @@ const Home = () => {
                   sx={{
                     borderColor: 'white',
                     color: 'white',
-                    px: 4,
-                    py: 1.5,
-                    fontSize: '1.1rem',
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    py: { xs: 1.5, sm: 2 },
+                    px: { xs: 3, sm: 4 },
                     '&:hover': {
                       borderColor: 'white',
                       bgcolor: 'rgba(255, 255, 255, 0.1)',
@@ -209,34 +286,13 @@ const Home = () => {
             <Grid item xs={12} md={6}>
               <Box
                 sx={{
-                  display: 'flex',
+                  display: { xs: 'none', md: 'flex' },
                   justifyContent: 'center',
                   alignItems: 'center',
-                  height: '400px',
+                  height: 400,
                 }}
               >
-                <Paper
-                  elevation={8}
-                  sx={{
-                    p: 4,
-                    borderRadius: 4,
-                    bgcolor: 'rgba(255, 255, 255, 0.95)',
-                    color: 'text.primary',
-                    textAlign: 'center',
-                    minWidth: '280px',
-                  }}
-                >
-                  <Speed sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                  <Typography variant="h4" gutterBottom color="primary.main" fontWeight="bold">
-                    600 MB
-                  </Typography>
-                  <Typography variant="h6" gutterBottom>
-                    Velocidade máxima
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    Download e upload simétrico
-                  </Typography>
-                </Paper>
+                <Speed sx={{ fontSize: 200, opacity: 0.3 }} />
               </Box>
             </Grid>
           </Grid>
@@ -244,8 +300,17 @@ const Home = () => {
       </Box>
 
       {/* Plans Section */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Typography variant="h3" component="h2" align="center" gutterBottom>
+      <Container maxWidth="lg" sx={{ py: { xs: 6, sm: 8 }, px: { xs: 2, sm: 3 } }}>
+        <Typography 
+          variant={isMobile ? "h4" : "h3"} 
+          component="h2" 
+          align="center" 
+          gutterBottom
+          sx={{
+            fontSize: { xs: '1.75rem', sm: '2.125rem', md: '3rem' },
+            fontWeight: 'bold',
+          }}
+        >
           Nossos Planos
         </Typography>
         <Typography 
@@ -253,12 +318,15 @@ const Home = () => {
           align="center" 
           color="textSecondary" 
           paragraph
-          sx={{ mb: 6, fontSize: '1.1rem' }}
+          sx={{ 
+            mb: { xs: 4, sm: 6 }, 
+            fontSize: { xs: '1rem', sm: '1.1rem' },
+          }}
         >
-          Escolha o plano ideal para sua casa ou empresa
+          Escolha o plano ideal para sua necessidade
         </Typography>
 
-        <Grid container spacing={4} justifyContent="center">
+        <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} justifyContent="center">
           {plans.map((plan, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>
               <Card
@@ -288,32 +356,65 @@ const Home = () => {
                       left: '50%',
                       transform: 'translateX(-50%)',
                       fontWeight: 'bold',
+                      fontSize: { xs: '0.7rem', sm: '0.75rem' },
                     }}
                   />
                 )}
-                <CardContent sx={{ flexGrow: 1, textAlign: 'center', pt: plan.popular ? 4 : 3 }}>
-                  <Typography variant="h5" component="h3" gutterBottom fontWeight="bold">
+                <CardContent sx={{ 
+                  flexGrow: 1, 
+                  textAlign: 'center', 
+                  pt: plan.popular ? { xs: 3, sm: 4 } : { xs: 2, sm: 3 },
+                  p: { xs: 2, sm: 3 },
+                }}>
+                  <Typography 
+                    variant={isMobile ? "h6" : "h5"} 
+                    component="h3" 
+                    gutterBottom 
+                    fontWeight="bold"
+                    sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+                  >
                     {plan.name}
                   </Typography>
-                  <Typography variant="h3" color="primary" gutterBottom fontWeight="bold">
+                  <Typography 
+                    variant={isMobile ? "h4" : "h3"} 
+                    color="primary" 
+                    gutterBottom 
+                    fontWeight="bold"
+                    sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}
+                  >
                     {plan.speed}
                   </Typography>
-                  <Typography variant="h4" gutterBottom>
+                  <Typography 
+                    variant={isMobile ? "h5" : "h4"} 
+                    gutterBottom
+                    sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
+                  >
                     {plan.price}
-                    <Typography component="span" variant="body2" color="textSecondary">
+                    <Typography 
+                      component="span" 
+                      variant="body2" 
+                      color="textSecondary"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
                       /mês
                     </Typography>
                   </Typography>
                   
-                  <List sx={{ mt: 2 }}>
-                    {plan.features.map((feature, idx) => (
-                      <ListItem key={idx} sx={{ py: 0.5 }}>
-                        <ListItemIcon sx={{ minWidth: 36 }}>
-                          <CheckCircle color="success" fontSize="small" />
+                  <List sx={{ py: { xs: 1, sm: 2 } }}>
+                    {plan.features.map((feature, featureIndex) => (
+                      <ListItem key={featureIndex} sx={{ py: { xs: 0.25, sm: 0.5 } }}>
+                        <ListItemIcon sx={{ minWidth: { xs: 32, sm: 40 } }}>
+                          <CheckCircle 
+                            color="primary" 
+                            sx={{ fontSize: { xs: 16, sm: 20 } }} 
+                          />
                         </ListItemIcon>
                         <ListItemText 
                           primary={feature} 
-                          primaryTypographyProps={{ variant: 'body2' }}
+                          primaryTypographyProps={{ 
+                            variant: 'body2',
+                            fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                          }}
                         />
                       </ListItem>
                     ))}
@@ -323,7 +424,12 @@ const Home = () => {
                     variant={plan.popular ? "contained" : "outlined"}
                     fullWidth
                     size="large"
-                    sx={{ mt: 3 }}
+                    sx={{ 
+                      mt: { xs: 2, sm: 3 },
+                      py: { xs: 1.5, sm: 2 },
+                      fontSize: { xs: '0.875rem', sm: '1rem' },
+                      fontWeight: 'medium',
+                    }}
                   >
                     Contratar Agora
                   </Button>
@@ -335,9 +441,18 @@ const Home = () => {
       </Container>
 
       {/* Services Section */}
-      <Box sx={{ bgcolor: 'grey.50', py: 8 }}>
-        <Container maxWidth="lg">
-          <Typography variant="h3" component="h2" align="center" gutterBottom>
+      <Box sx={{ bgcolor: 'grey.50', py: { xs: 6, sm: 8 } }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+          <Typography 
+            variant={isMobile ? "h4" : "h3"} 
+            component="h2" 
+            align="center" 
+            gutterBottom
+            sx={{
+              fontSize: { xs: '1.75rem', sm: '2.125rem', md: '3rem' },
+              fontWeight: 'bold',
+            }}
+          >
             Nossos Serviços
           </Typography>
           <Typography 
@@ -345,12 +460,15 @@ const Home = () => {
             align="center" 
             color="textSecondary" 
             paragraph
-            sx={{ mb: 6, fontSize: '1.1rem' }}
+            sx={{ 
+              mb: { xs: 4, sm: 6 }, 
+              fontSize: { xs: '1rem', sm: '1.1rem' },
+            }}
           >
             Tecnologia de ponta para sua conectividade
           </Typography>
 
-          <Grid container spacing={4}>
+          <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
             {services.map((service, index) => (
               <Grid item xs={12} sm={6} md={3} key={index}>
                 <Card
@@ -364,22 +482,37 @@ const Home = () => {
                     },
                   }}
                 >
-                  <CardContent>
+                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     <Avatar
                       sx={{
                         bgcolor: service.color,
-                        width: 64,
-                        height: 64,
+                        width: { xs: 48, sm: 56, md: 64 },
+                        height: { xs: 48, sm: 56, md: 64 },
                         mx: 'auto',
-                        mb: 2,
+                        mb: { xs: 1.5, sm: 2 },
                       }}
                     >
-                      {service.icon}
+                      {React.cloneElement(service.icon, { 
+                        sx: { fontSize: { xs: 24, sm: 28, md: 32 } } 
+                      })}
                     </Avatar>
-                    <Typography variant="h6" component="h3" gutterBottom>
+                    <Typography 
+                      variant={isMobile ? "subtitle1" : "h6"} 
+                      component="h3" 
+                      gutterBottom 
+                      fontWeight="bold"
+                      sx={{ fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' } }}
+                    >
                       {service.title}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary">
+                    <Typography 
+                      variant="body2" 
+                      color="textSecondary"
+                      sx={{ 
+                        fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                        lineHeight: { xs: 1.4, sm: 1.5 },
+                      }}
+                    >
                       {service.description}
                     </Typography>
                   </CardContent>
@@ -390,153 +523,468 @@ const Home = () => {
         </Container>
       </Box>
 
-      {/* About Section */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Grid container spacing={6} alignItems="center">
+      {/* Contact Section */}
+      <Container maxWidth="lg" sx={{ py: { xs: 6, sm: 8 }, px: { xs: 2, sm: 3 } }}>
+        <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
           <Grid item xs={12} md={6}>
-            <Typography variant="h3" component="h2" gutterBottom>
-              Por que escolher a ISP Connect?
-            </Typography>
-            <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', mb: 3 }}>
-              Somos uma empresa especializada em telecomunicações com mais de 10 anos 
-              de experiência no mercado. Nossa missão é levar internet de qualidade 
-              para todos os cantos da cidade.
-            </Typography>
-            <List>
-              <ListItem sx={{ px: 0 }}>
-                <ListItemIcon>
-                  <Star color="primary" />
-                </ListItemIcon>
-                <ListItemText primary="Mais de 50.000 clientes satisfeitos" />
-              </ListItem>
-              <ListItem sx={{ px: 0 }}>
-                <ListItemIcon>
-                  <Schedule color="primary" />
-                </ListItemIcon>
-                <ListItemText primary="Instalação em até 24 horas" />
-              </ListItem>
-              <ListItem sx={{ px: 0 }}>
-                <ListItemIcon>
-                  <TrendingUp color="primary" />
-                </ListItemIcon>
-                <ListItemText primary="99,9% de disponibilidade da rede" />
-              </ListItem>
-            </List>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Paper
-              elevation={4}
+            <Typography 
+              variant={isMobile ? "h4" : "h3"} 
+              component="h2" 
+              gutterBottom
               sx={{
-                p: 4,
-                textAlign: 'center',
-                bgcolor: 'primary.main',
-                color: 'white',
+                fontSize: { xs: '1.75rem', sm: '2.125rem', md: '3rem' },
+                fontWeight: 'bold',
               }}
             >
-              <Business sx={{ fontSize: 60, mb: 2 }} />
-              <Typography variant="h4" gutterBottom>
-                Área do Cliente
+              Entre em Contato
+            </Typography>
+            <Typography 
+              variant="body1" 
+              paragraph 
+              color="textSecondary"
+              sx={{ 
+                mb: { xs: 3, sm: 4 }, 
+                fontSize: { xs: '1rem', sm: '1.1rem' },
+                lineHeight: { xs: 1.5, sm: 1.6 },
+              }}
+            >
+              Nossa equipe está pronta para atender você e esclarecer todas as suas dúvidas. 
+              Entre em contato conosco através dos canais abaixo.
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+                <Avatar sx={{ bgcolor: 'primary.main', width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 } }}>
+                  <Phone sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                </Avatar>
+                <Box>
+                  <Typography 
+                    variant="subtitle1" 
+                    fontWeight="bold"
+                    sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+                  >
+                    Telefone
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    color="textSecondary"
+                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                  >
+                    (11) 9999-9999
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+                <Avatar sx={{ bgcolor: 'success.main', width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 } }}>
+                  <Email sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                </Avatar>
+                <Box>
+                  <Typography 
+                    variant="subtitle1" 
+                    fontWeight="bold"
+                    sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+                  >
+                    E-mail
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    color="textSecondary"
+                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                  >
+                    contato@ispconnect.com.br
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 } }}>
+                <Avatar sx={{ bgcolor: 'warning.main', width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 } }}>
+                  <LocationOn sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                </Avatar>
+                <Box>
+                  <Typography 
+                    variant="subtitle1" 
+                    fontWeight="bold"
+                    sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+                  >
+                    Endereço
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    color="textSecondary"
+                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                  >
+                    Rua das Fibras, 123 - Centro
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper 
+              elevation={3} 
+              sx={{ 
+                p: { xs: 3, sm: 4 }, 
+                borderRadius: { xs: 2, sm: 3 },
+              }}
+            >
+              <Typography 
+                variant={isMobile ? "h6" : "h5"} 
+                component="h3" 
+                gutterBottom 
+                fontWeight="bold"
+                sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+              >
+                Solicite um Orçamento
               </Typography>
-              <Typography variant="body1" paragraph>
-                Acesse sua conta, consulte faturas, solicite suporte técnico 
-                e gerencie seus serviços online.
-              </Typography>
-              <Button
-                variant="contained"
-                size="large"
-                onClick={handleLoginClick}
-                sx={{
-                  bgcolor: 'white',
-                  color: 'primary.main',
-                  '&:hover': {
-                    bgcolor: 'grey.100',
-                  },
+              <Typography 
+                variant="body2" 
+                color="textSecondary" 
+                paragraph
+                sx={{ 
+                  mb: { xs: 2, sm: 3 }, 
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 }}
               >
-                Acessar Agora
-              </Button>
+                Preencha o formulário e nossa equipe entrará em contato
+              </Typography>
+
+              <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
+                <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        mb: 0.5, 
+                        fontWeight: 'medium',
+                        fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                      }}
+                    >
+                      Nome
+                    </Typography>
+                    <Box
+                      sx={{
+                        border: '1px solid',
+                        borderColor: 'grey.300',
+                        borderRadius: 1,
+                        p: { xs: 1, sm: 1.5 },
+                        fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                        '&:focus-within': {
+                          borderColor: 'primary.main',
+                        },
+                      }}
+                    >
+                      <input
+                        type="text"
+                        placeholder="Seu nome completo"
+                        style={{
+                          border: 'none',
+                          outline: 'none',
+                          width: '100%',
+                          fontSize: 'inherit',
+                          fontFamily: 'inherit',
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        mb: 0.5, 
+                        fontWeight: 'medium',
+                        fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                      }}
+                    >
+                      Telefone
+                    </Typography>
+                    <Box
+                      sx={{
+                        border: '1px solid',
+                        borderColor: 'grey.300',
+                        borderRadius: 1,
+                        p: { xs: 1, sm: 1.5 },
+                        fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                        '&:focus-within': {
+                          borderColor: 'primary.main',
+                        },
+                      }}
+                    >
+                      <input
+                        type="tel"
+                        placeholder="(11) 99999-9999"
+                        style={{
+                          border: 'none',
+                          outline: 'none',
+                          width: '100%',
+                          fontSize: 'inherit',
+                          fontFamily: 'inherit',
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                </Grid>
+
+                <Box>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      mb: 0.5, 
+                      fontWeight: 'medium',
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                    }}
+                  >
+                    E-mail
+                  </Typography>
+                  <Box
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'grey.300',
+                      borderRadius: 1,
+                      p: { xs: 1, sm: 1.5 },
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                      '&:focus-within': {
+                        borderColor: 'primary.main',
+                      },
+                    }}
+                  >
+                    <input
+                      type="email"
+                      placeholder="seu@email.com"
+                      style={{
+                        border: 'none',
+                        outline: 'none',
+                        width: '100%',
+                        fontSize: 'inherit',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                <Box>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      mb: 0.5, 
+                      fontWeight: 'medium',
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                    }}
+                  >
+                    Mensagem
+                  </Typography>
+                  <Box
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'grey.300',
+                      borderRadius: 1,
+                      p: { xs: 1, sm: 1.5 },
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                      '&:focus-within': {
+                        borderColor: 'primary.main',
+                      },
+                    }}
+                  >
+                    <textarea
+                      rows={4}
+                      placeholder="Conte-nos sobre suas necessidades..."
+                      style={{
+                        border: 'none',
+                        outline: 'none',
+                        width: '100%',
+                        resize: 'vertical',
+                        fontSize: 'inherit',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                <Button
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  sx={{ 
+                    py: { xs: 1.5, sm: 2 },
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    fontWeight: 'medium',
+                  }}
+                >
+                  Enviar Solicitação
+                </Button>
+              </Box>
             </Paper>
           </Grid>
         </Grid>
       </Container>
 
-      {/* Contact Section */}
-      <Box sx={{ bgcolor: 'grey.100', py: 6 }}>
-        <Container maxWidth="lg">
-          <Typography variant="h4" component="h2" align="center" gutterBottom>
-            Entre em Contato
-          </Typography>
-          <Grid container spacing={4} sx={{ mt: 2 }}>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Phone sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                <Typography variant="h6" gutterBottom>
-                  Telefone
-                </Typography>
-                <Typography variant="body1">
-                  (11) 3000-0000
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Atendimento 24h
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Email sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                <Typography variant="h6" gutterBottom>
-                  E-mail
-                </Typography>
-                <Typography variant="body1">
-                  contato@ispconnect.com.br
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Resposta em até 2h
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ textAlign: 'center' }}>
-                <LocationOn sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                <Typography variant="h6" gutterBottom>
-                  Endereço
-                </Typography>
-                <Typography variant="body1">
-                  Rua das Telecomunicações, 123
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Centro - São Paulo/SP
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-
       {/* Footer */}
-      <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 4 }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Wifi sx={{ mr: 1 }} />
-                <Typography variant="h6" fontWeight="bold">
+      <Box sx={{ bgcolor: 'grey.900', color: 'white', py: { xs: 4, sm: 6 } }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+          <Grid container spacing={{ xs: 3, sm: 4 }}>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 3 } }}>
+                <Wifi sx={{ mr: 1, color: 'primary.main', fontSize: { xs: 24, sm: 28 } }} />
+                <Typography 
+                  variant={isMobile ? "h6" : "h5"} 
+                  component="div" 
+                  sx={{ 
+                    color: 'primary.main', 
+                    fontWeight: 'bold',
+                    fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                  }}
+                >
                   ISP Connect
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                Conectando você ao futuro com internet de fibra óptica de alta qualidade.
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  mb: { xs: 2, sm: 3 }, 
+                  opacity: 0.8,
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  lineHeight: { xs: 1.4, sm: 1.5 },
+                }}
+              >
+                Conectando você ao futuro com a melhor internet de fibra óptica da região. 
+                Velocidade, estabilidade e suporte de qualidade.
               </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {[1, 2, 3, 4].map((item) => (
+                  <Avatar 
+                    key={item}
+                    sx={{ 
+                      bgcolor: 'primary.main', 
+                      width: { xs: 32, sm: 36 }, 
+                      height: { xs: 32, sm: 36 },
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: 'primary.dark' },
+                    }}
+                  >
+                    <Star sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                  </Avatar>
+                ))}
+              </Box>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" align="right">
-                © 2024 ISP Connect. Todos os direitos reservados.
+
+            <Grid item xs={12} sm={6} md={4}>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                fontWeight="bold"
+                sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}
+              >
+                Links Rápidos
               </Typography>
-              <Typography variant="body2" align="right" sx={{ opacity: 0.8, mt: 1 }}>
-                CNPJ: 00.000.000/0001-00 | Anatel: 000000
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.5, sm: 1 } }}>
+                {['Planos', 'Cobertura', 'Suporte', 'Sobre Nós', 'Contato'].map((link) => (
+                  <Typography 
+                    key={link}
+                    variant="body2" 
+                    sx={{ 
+                      opacity: 0.8, 
+                      cursor: 'pointer',
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                      '&:hover': { opacity: 1, color: 'primary.main' },
+                    }}
+                  >
+                    {link}
+                  </Typography>
+                ))}
+              </Box>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                fontWeight="bold"
+                sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}
+              >
+                Contato
               </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, sm: 1.5 } }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    opacity: 0.8,
+                    fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  }}
+                >
+                  📞 (11) 9999-9999
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    opacity: 0.8,
+                    fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  }}
+                >
+                  ✉️ contato@ispconnect.com.br
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    opacity: 0.8,
+                    fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  }}
+                >
+                  📍 Rua das Fibras, 123 - Centro
+                </Typography>
+              </Box>
             </Grid>
           </Grid>
+
+          <Divider sx={{ my: { xs: 3, sm: 4 }, bgcolor: 'grey.700' }} />
+          
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'center', sm: 'center' },
+            gap: { xs: 2, sm: 0 },
+          }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                opacity: 0.6,
+                fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                textAlign: { xs: 'center', sm: 'left' },
+              }}
+            >
+              © 2024 ISP Connect. Todos os direitos reservados.
+            </Typography>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: { xs: 2, sm: 3 },
+              flexWrap: 'wrap',
+              justifyContent: { xs: 'center', sm: 'flex-end' },
+            }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  opacity: 0.6, 
+                  cursor: 'pointer',
+                  fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                  '&:hover': { opacity: 1 },
+                }}
+              >
+                Política de Privacidade
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  opacity: 0.6, 
+                  cursor: 'pointer',
+                  fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                  '&:hover': { opacity: 1 },
+                }}
+              >
+                Termos de Uso
+              </Typography>
+            </Box>
+          </Box>
         </Container>
       </Box>
     </Box>

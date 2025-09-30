@@ -10,6 +10,11 @@ import Setup from './pages/Setup/Setup';
 import Home from './pages/Home/Home';
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
+import UserList from './pages/Users/UserList';
+import CompanyList from './pages/Companies/CompanyList';
+import SiteSettings from './pages/SiteSettings/SiteSettings';
+import CustomerList from './pages/CustomerList';
+import CustomerForm from './pages/CustomerForm';
 import { setupService } from './services/setupService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -81,6 +86,54 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               !isAuthenticated ? <Navigate to="/login" replace /> : 
               <Dashboard />
+            } 
+          />
+          <Route 
+            path="/dashboard/usuarios" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <UserList />
+            } 
+          />
+          <Route 
+            path="/dashboard/empresas" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <CompanyList />
+            } 
+          />
+          <Route 
+            path="/dashboard/configuracoes" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <SiteSettings />
+            } 
+          />
+          <Route 
+            path="/customers" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <CustomerList />
+            } 
+          />
+          <Route 
+            path="/customers/new" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <CustomerForm />
+            } 
+          />
+          <Route 
+            path="/customers/edit/:id" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <CustomerForm />
             } 
           />
           <Route 
