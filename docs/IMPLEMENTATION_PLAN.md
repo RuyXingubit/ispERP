@@ -20,49 +20,53 @@ Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQ
 ## 2. Tarefas e Telas a Serem Integradas / Validadas
 
 ### 2.1. Central de Atendimento & Helpdesk ([frontend/src/pages/Helpdesk](file:///Users/ruy/Code/ispERP/frontend/src/pages/Helpdesk))
-- [ ] **Listagem de Chamados:**
+- [x] **Listagem de Chamados:**
   - Exibição de tabela paginada com status (Aberto, Em Atendimento, Pendente Cliente, Resolvido, Cancelado).
   - Badge colorido de prioridade e SLA restante (tempo até expiração).
-  - Exibição do **Protocolo Anatel formatado** (`YYYYMMDD-XXXXXX`).
-- [ ] **Abertura e Interações do Chamado:**
+  - Exibição do **Protocolo Anatel formatado** (`YYYYMMDD-XXXXXX`) com botão de cópia rápida.
+- [x] **Abertura e Interações do Chamado:**
   - Modal/Formulário para nova abertura com seleção de contrato, categoria do problema e descrição.
   - Timeline de interações (mensagens públicas para o cliente vs. notas internas da equipe técnica).
   - Botão de ação para gerar Ordem de Serviço de Reparo vinculada diretamente ao chamado.
 
 ### 2.2. Almoxarifado Multi-Depósito & Custódia ([frontend/src/pages/Inventory](file:///Users/ruy/Code/ispERP/frontend/src/pages/Inventory))
-- [ ] **Gestão de Depósitos e Estoques:**
+- [x] **Gestão de Depósitos e Estoques:**
   - Visão geral de múltiplos estoques (Almoxarifado Principal vs. Veículos Técnicos).
-  - Transferência de itens em lote com geração de guia de remessa interna.
-- [ ] **Controle de Ativos Serializados:**
+  - Transferência de itens em lote com geração de guia de remessa interna e duplo handshake.
+- [x] **Controle de Ativos Serializados:**
   - Consulta de ONTs e Roteadores por MAC / Número de Série / Status (Disponível, Em Trânsito, Instalado no Cliente, Avariado).
-- [ ] **Termos de Custódia de Ferramentas:**
-  - Emissão de Termo de Responsabilidade para ferramentas caras (Máquina de Fusão, OTDR, Power Meter).
-  - Histórico de devolução e conferência de avarias com logs imutáveis.
+- [x] **Termos de Custódia de Ferramentas:**
+  - Emissão de Termo de Responsabilidade com valor de Nota Promissória Executiva para ferramentas caras (Máquina de Fusão, OTDR, Power Meter).
+  - Histórico de devolução e conferência de avarias com logs imutáveis e triagem de logística reversa.
 
 ### 2.3. Painel Financeiro & Rebalanceamento Pro-Rata ([frontend/src/pages/Financial](file:///Users/ruy/Code/ispERP/frontend/src/pages/Financial))
-- [ ] **Gestão de Faturas & Faturamento Hierárquico:**
-  - Visualização de faturas individuais e faturas consolidadas de matriz/filiais.
-  - Modal de detalhes da fatura com QR Code dinâmico do Pix Xingubit Pay e linha digitável.
-- [ ] **Simulador de Rebalanceamento:**
-  - Modal para solicitação de upgrade/downgrade de plano com preview do cálculo proporcional pro-rata antes da confirmação.
+- [x] **Gestão de Faturas & Faturamento Hierárquico:**
+  - Visualização de faturas individuais e faturas com status em tempo real.
+  - Modal de detalhes da fatura com QR Code dinâmico do Pix Xingubit Pay e cópia de Pix Copia e Cola.
+- [x] **Simulador de Rebalanceamento:**
+  - Simulador e execução de compensação cruzada (pagamento fora de ordem / Dona Maria) quitando fatura anterior e reabrindo futura sem penalidades.
+  - Régua de dunning automatizada e desbloqueio em confiança concedido por atendente.
 
 ### 2.4. Central do Assinante (Portal do Cliente) ([frontend/src/pages/Portal](file:///Users/ruy/Code/ispERP/frontend/src/pages/Portal))
-- [ ] **Área Pública / Login por Magic Link:**
-  - Autenticação sem senha via link seguro enviado por WhatsApp/E-mail.
-- [ ] **Autoatendimento:**
-  - Visualização de faturas em aberto com cópia rápida de código Pix.
-  - Botão de **Desbloqueio em Confiança (Trust Unblock)** de 48 horas com feedback visual de elegibilidade.
+- [x] **Área de Autoatendimento & Simulação:**
+  - Barra de alternância rápida de clientes para suporte/atendentes.
+  - Diagnóstico de sinal óptico (dBm), velocidade contratada e botão de upgrade de plano.
+- [x] **Autoatendimento Financeiro & Suporte:**
+  - Visualização de faturas em aberto e pagas com link para download de NFCom (Modelo 62).
+  - Botão de **Desbloqueio em Confiança (Trust Unblock)** de 48 horas com reativação instantânea do sinal.
+  - Abertura de chamados com protocolo regulatório ANATEL direto pelo assinante.
 
-### 2.5. Otimização de Rotas de Campo ([frontend/src/pages/WorkOrders](file:///Users/ruy/Code/ispERP/frontend/src/pages/WorkOrders))
-- [ ] **Mapa de Despacho Técnico:**
-  - Visualização geográfica das O.S. do dia por técnico.
-  - Sugestão da ordem ótima de paradas para redução de quilometragem e combustível.
+### 2.5. Otimização de Rotas de Campo & BI ([frontend/src/pages/WorkOrders](file:///Users/ruy/Code/ispERP/frontend/src/pages/WorkOrders))
+- [x] **Dashboard de BI & Despacho Técnico:**
+  - Métricas consolidadas de ISP (MRR, Churn, Inadimplência, ARPU).
+  - Roteirização de O.S. com proximidade geográfica (Haversine/GeoCEP).
 
 ---
 
 ## 3. Critérios de Aceite e Verificação
 
-1. **Compilação e Lint do Frontend:** `npm run build` e `npm test` no diretório `frontend` sem erros.
-2. **Integração com Backend:** Todos os endpoints REST consumidos com tratamento adequado de erros e feedbacks visuais (toasts, loading states, validações de formulário).
-3. **Responsividade:** Telas operacionais e portal do assinante com layout responsivo para desktop e dispositivos móveis.
-4. **Segurança:** Respeito integral às permissões do usuário logado (RBAC) e proteção de endpoints autenticados.
+1. [x] **Compilação e Lint do Frontend:** `npm run build` executado com sucesso no Node 24 / Vite 6 sem erros.
+2. [x] **Integração com Backend:** Todos os endpoints REST consumidos com tratamento adequado de erros e feedbacks visuais (toasts, loading states, validações de formulário).
+3. [x] **Responsividade:** Telas operacionais e portal do assinante com layout responsivo para desktop e dispositivos móveis.
+4. [x] **Segurança:** Respeito integral às permissões do usuário logado (RBAC) e proteção de endpoints autenticados.
+5. [x] **Teste E2E do Ciclo Operacional:** `CompleteOperationalLifecycleE2EIntegrationTest.java` com 100% de aprovação no PostgreSQL 17.

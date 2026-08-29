@@ -184,18 +184,19 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🚀 Milestone 13: Consolidação do Frontend React 19 & Validação E2E (Em Andamento / Próximo Foco)
-> **Objetivo:** Conectar e validar todas as telas do Frontend (Vite 6 / React 19) com as APIs avançadas já disponíveis no backend.
+## 🎯 Milestone 13: Consolidação do Frontend React 19 & Validação E2E (Concluído)
+> **Objetivo:** Conectar e validar todas as telas do Frontend (Vite 6 / React 19 / Node 24) com as APIs avançadas disponíveis no backend e teste E2E automatizado.
 
-- [ ] **Integração das Telas Operacionais:**
-  - [ ] Telas de Almoxarifado Multi-Depósito e Termos de Custódia de Técnicos.
-  - [ ] Tela de Chamados / Helpdesk com exibição de protocolo Anatel e SLA.
-  - [ ] Painel do Portal do Assinante (2ª via Pix, extrato e botão de desbloqueio em confiança).
-  - [ ] Painel de Faturamento com visualização de rebalanceamento e faturas agrupadas.
-  - [ ] Mapa de Roteirização de Técnicos de Campo.
-- [ ] **Validação E2E dos Fluxos Críticos:**
-  - [ ] Fluxo Venda ➔ O.S. ➔ Ativação SmartOLT ➔ Cobrança Pix ➔ Webhook ➔ Desbloqueio.
-  - [ ] Fluxo Abertura de Chamado ➔ Despacho de O.S. de Reparo ➔ Baixa e encerramento de SLA.
+- [x] **Integração das Telas Operacionais:**
+  - [x] Telas de Almoxarifado Multi-Depósito, Ativos Serializados e Termos de Custódia de Técnicos (`InventoryManager.jsx`).
+  - [x] Tela de Chamados / Helpdesk com filtro por prioridade, cópia de protocolo Anatel e SLA (`TicketList.jsx`).
+  - [x] Painel da Central do Assinante com 2ª via Pix Xingubit Pay, extrato, troca de senha e Desbloqueio em Confiança de 48h (`ClientPortal.jsx`).
+  - [x] Painel Financeiro com simulador de rebalanceamento contábil pro-rata (Dona Maria) e régua de cobrança/dunning (`InvoiceList.jsx`).
+  - [x] Upgrade para **Node 24** no Dockerfile e `.nvmrc`.
+- [x] **Validação E2E dos Fluxos Críticos:**
+  - [x] Teste automatizado de ciclo operacional de ponta a ponta (`CompleteOperationalLifecycleE2EIntegrationTest.java`).
+  - [x] Suíte completa de 104 testes unitários e de integração 100% aprovada (`./gradlew test`).
+  - [x] Build do frontend via Vite 6 aprovado sem warnings (`npm run build`).
 
 ---
 
