@@ -57,6 +57,9 @@ public class Contract {
     @Builder.Default
     private Integer dueDay = 10;
 
+    @Column(name = "custom_suspension_days")
+    private Integer customSuspensionDays;
+
     @NotBlank(message = "Endereço de instalação é obrigatório")
     @Column(name = "installation_address", nullable = false)
     private String installationAddress;

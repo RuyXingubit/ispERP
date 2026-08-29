@@ -256,6 +256,17 @@ const InvoiceList = () => {
                           size="small"
                           icon={conf.icon}
                         />
+                        {inv.paidByCrossCreditId && (
+                          <Chip label="Compensação" size="small" color="primary" variant="outlined" sx={{ ml: 0.5 }} />
+                        )}
+                        {inv.protectedAgainstSuspension && (
+                          <Chip label="Protegido" size="small" color="info" sx={{ ml: 0.5 }} />
+                        )}
+                        {inv.rebalanceNotice && (
+                          <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+                            ℹ️ {inv.rebalanceNotice}
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight="500">

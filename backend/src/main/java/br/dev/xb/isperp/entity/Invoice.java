@@ -92,6 +92,16 @@ public class Invoice {
     @Column(name = "payment_method", length = 30)
     private String paymentMethod;
 
+    @Column(name = "paid_by_cross_credit_id")
+    private UUID paidByCrossCreditId;
+
+    @Column(name = "protected_against_suspension", nullable = false)
+    @Builder.Default
+    private Boolean protectedAgainstSuspension = false;
+
+    @Column(name = "rebalance_notice", columnDefinition = "text")
+    private String rebalanceNotice;
+
     @Column(name = "pdf_url", columnDefinition = "text")
     private String pdfUrl;
 

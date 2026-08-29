@@ -57,8 +57,11 @@ class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private SerializedAssetRepository serializedAssetRepository;
 
+    @Autowired
+    private ServiceRouteRepository serviceRouteRepository;
+
     @Test
-    @DisplayName("Deve validar a execução das migrações Flyway V1 a V10 no PostgreSQL 17 real")
+    @DisplayName("Deve validar a execução das migrações Flyway V1 a V11 no PostgreSQL 17 real")
     void shouldVerifyPostgres17DatabaseConnectionAndFlyway() {
         assertTrue(postgres.isRunning());
         assertEquals("isperp_test", postgres.getDatabaseName());

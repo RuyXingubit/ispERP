@@ -52,6 +52,14 @@ public class Plan {
     @Column(name = "sva_included", length = 255)
     private String svaIncluded;
 
+    @Column(name = "suspension_days")
+    @Builder.Default
+    private Integer suspensionDays = 5;
+
+    @Column(name = "always_issue_nfcom", nullable = false)
+    @Builder.Default
+    private Boolean alwaysIssueNfcom = false;
+
     @Column(name = "active", nullable = false)
     @Builder.Default
     private Boolean active = true;

@@ -68,6 +68,14 @@ public class Customer {
     
     @Column(name = "longitude", precision = 11, scale = 8)
     private java.math.BigDecimal longitude;
+
+    @Column(name = "is_government", nullable = false)
+    @Builder.Default
+    private Boolean isGovernment = false;
+
+    @Column(name = "always_issue_nfcom", nullable = false)
+    @Builder.Default
+    private Boolean alwaysIssueNfcom = false;
     
     @Column(name = "active", nullable = false)
     @Builder.Default

@@ -486,6 +486,12 @@ const ClientPortal = () => {
                         Vencimento: <strong>{new Date(inv.dueDate).toLocaleDateString('pt-BR')}</strong>
                       </Typography>
 
+                      {inv.rebalanceNotice && (
+                        <Alert severity="info" sx={{ mt: 1.5, borderRadius: 2, fontSize: '0.8rem' }}>
+                          ℹ️ {inv.rebalanceNotice}
+                        </Alert>
+                      )}
+
                       <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                         <Button
                           variant="contained"
@@ -532,7 +538,12 @@ const ClientPortal = () => {
                         <Typography variant="subtitle1" fontWeight="bold" color="error">
                           Fatura Vencida
                         </Typography>
-                        <Chip label="Atrasada" color="error" size="small" />
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          {inv.protectedAgainstSuspension && (
+                            <Chip label="Protegido contra Corte" color="info" size="small" />
+                          )}
+                          <Chip label="Atrasada" color="error" size="small" />
+                        </Box>
                       </Box>
 
                       <Typography variant="h4" fontWeight="bold" color="error" sx={{ my: 1 }}>
@@ -542,6 +553,12 @@ const ClientPortal = () => {
                       <Typography variant="body2" color="error">
                         Venceu em: <strong>{new Date(inv.dueDate).toLocaleDateString('pt-BR')}</strong>
                       </Typography>
+
+                      {inv.protectedAgainstSuspension && (
+                        <Alert severity="success" sx={{ mt: 1.5, borderRadius: 2, fontSize: '0.8rem' }}>
+                          🛡️ <strong>Pagamento Identificado:</strong> Sua conexão está protegida contra bloqueios enquanto realizamos a compensação.
+                        </Alert>
+                      )}
 
                       <Button
                         variant="contained"
@@ -579,7 +596,12 @@ const ClientPortal = () => {
                         <Typography variant="subtitle1" fontWeight="bold">
                           Fatura Liquidada
                         </Typography>
-                        <Chip icon={<CheckCircleIcon />} label="Pago" color="success" size="small" />
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          {inv.paidByCrossCreditId && (
+                            <Chip label="Compensação Cruzada" color="primary" size="small" variant="outlined" />
+                          )}
+                          <Chip icon={<CheckCircleIcon />} label="Pago" color="success" size="small" />
+                        </Box>
                       </Box>
 
                       <Typography variant="h5" fontWeight="bold" color="success.main" sx={{ my: 1 }}>
@@ -589,6 +611,12 @@ const ClientPortal = () => {
                       <Typography variant="body2" color="text.secondary">
                         Vencimento: {new Date(inv.dueDate).toLocaleDateString('pt-BR')}
                       </Typography>
+
+                      {inv.rebalanceNotice && (
+                        <Alert severity="success" sx={{ mt: 1.5, borderRadius: 2, fontSize: '0.8rem' }}>
+                          🟢 {inv.rebalanceNotice}
+                        </Alert>
+                      )}
                       {inv.paidAt && (
                         <Typography variant="caption" color="text.secondary" display="block">
                           Pago em: {new Date(inv.paidAt).toLocaleDateString('pt-BR')}

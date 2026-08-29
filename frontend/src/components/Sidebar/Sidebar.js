@@ -121,6 +121,11 @@ const Sidebar = ({ open, onClose, onToggle }) => {
       path: '/work-orders',
     },
     {
+      text: 'Roteirizador de O.S. (GeoCEP)',
+      icon: <OperationsIcon />,
+      path: '/routes/planner',
+    },
+    {
       text: 'Almoxarifado & Estoque',
       icon: <OperationsIcon />,
       path: '/inventory',

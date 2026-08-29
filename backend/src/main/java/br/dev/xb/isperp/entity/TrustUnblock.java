@@ -34,6 +34,16 @@ public class TrustUnblock {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
+    @Column(name = "unblock_type", length = 30)
+    @Builder.Default
+    private String unblockType = "BOT_AUTO"; // BOT_AUTO, ATTENDANT_MANUAL
+
+    @Column(name = "granted_by_user_id")
+    private UUID grantedByUserId;
+
+    @Column(name = "invoice_id")
+    private UUID invoiceId;
+
     @Column(name = "status", nullable = false, length = 30)
     @Builder.Default
     private String status = "ACTIVE"; // ACTIVE, EXPIRED, CANCELLED
