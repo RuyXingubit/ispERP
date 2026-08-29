@@ -61,12 +61,18 @@ O **ispERP** é uma plataforma moderna, aberta e altamente escalável para gest�
 - Criação de credenciais PPPoE/IPoE no servidor Radius / MikroTik.
 - Bloqueio automático: redirecionamento para página de aviso de corte ou corte total de pacotes caso a fatura atinja a tolerância de dias de atraso.
 
-### 4.6. Módulo Financeiro & Cobrança (Billing)
+### 4.6. Módulo Financeiro, Cobrança & Multi-Gateway de Pagamentos
 - Geração de cobranças automáticas vinculadas ao dia de vencimento escolhido (ex: dias 5, 10, 15, 20, 25).
-- Suporte a múltiplos gateways de pagamento:
-  - **PIX Dinâmico com Webhook:** Baixa instantânea e reativação automática da conexão em menos de 10 segundos.
-  - **Boleto Bancário:** Emissão registrada com leitura de retorno/webhook.
-  - **Cartão de Crédito Recorrente.**
+- **Arquitetura Multi-Gateway Plugável (Strategy & Router Pattern):**
+  - O sistema permite plugar múltiplos gateways simultaneamente e definir regras flexíveis de roteamento.
+  - **Roteamento Hierárquico:** Contrato específico ➡️ Plano de assinatura ➡️ Gateway padrão da Empresa (`Company`).
+  - **Troca Transparente de Gateway:** Alterar o gateway de um plano ou da empresa não impacta faturas passadas (cada fatura é imutável e vinculada ao seu gateway de origem).
+- **Gateway Primário: Xingubit Pay (`https://pay.xingubit.com.br/doc`):**
+  - **Pix Imediato (COB):** Para pagamentos instantâneos e ativação imediata.
+  - **Pix com Vencimento (COBV):** Para faturas mensais com cálculo diário de juros, multas por atraso e validade pós-vencimento.
+  - **Carnês Pix:** Emissão parcelada de 2x a 24x com QR Codes individuais.
+  - **Webhooks de Confirmação em Tempo Real (`POST /api/webhooks/payments/xingubit`):** Baixa instantânea e emissão do `PaymentConfirmedEvent` (desbloqueio automático de rede em < 10 segundos).
+  - **Integração Fiscal Unificada:** Emissão automática de NFCom (telecom) vinculada à cobrança.
 - **Desbloqueio em Confiança:** Permite ao cliente reativar a conexão por 48 horas enquanto o pagamento é processado.
 
 ### 4.7. Módulo de Notificações Multicanal

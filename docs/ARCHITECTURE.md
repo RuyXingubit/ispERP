@@ -38,7 +38,13 @@ graph TD
     Outbox --> OutboxTable
     
     Network -->|API / SSH| MikroTik[MikroTik / OLTs / Radius]
-    Billing -->|Webhook / REST| Gateways[PIX / Gateway de Pagamento]
+    
+    subgraph Payment Gateways [Multi-Gateway Plugável com Roteamento Hierárquico]
+        Billing --> Router[PaymentGatewayRouter]
+        Router --> XingubitPay[Xingubit Pay - Pix COB/COBV & NFCom]
+        Router --> Asaas[Asaas / Gateways Secundários]
+        Router --> Efi[Efí / Gerencianet]
+    end
     
     subgraph Notification Adapters [Estratégia Multicanal WhatsApp & E-mail]
         Notify --> Evolution[Evolution API - Open Source]
@@ -110,3 +116,21 @@ graph TD
   - **Unitários:** JUnit 5 + Mockito + AssertJ.
   - **Integração:** `@DataJpaTest` com **Testcontainers PostgreSQL** (testando migrações reais do Flyway e queries nativas).
   - **Frontend:** React Testing Library + Jest.
+
+---
+
+### ADR 007: Arquitetura de Multi-Gateways de Pagamento com Roteamento Hierárquico
+- **Contexto:** Provedores de internet frequentemente operam com múltiplos gateways de pagamento para contingência, divisão de taxas ou acordos corporativos específicos. É necessário poder trocar de gateway sem quebrar faturas emitidas no passado, além de suportar gateways diferentes por plano ou cliente simultaneamente.
+- **Decisão:** Implementar o padrão **Strategy + Hierarchical Router Pattern** via interface `PaymentGateway`:
+  1. **Hierarquia de Roteamento Dinâmico:**
+     - **Nível 1 (Contrato/Cliente):** Se o contrato possuir `gateway_config_id` específico (ex: cliente corporativo negociado), usa este gateway.
+     - **Nível 2 (Plano):** Se o plano possuir `gateway_config_id` configurado (ex: plano de alta velocidade em promoção via Pix), usa este gateway.
+     - **Nível 3 (Padrão da Empresa):** Se nenhum dos níveis acima estiver definido, usa o gateway padrão ativo da `Company`.
+  2. **Primeiro Gateway Suportado: Xingubit Pay (`https://pay.xingubit.com.br/doc`):**
+     - Autenticação OAuth 2.0 (`/v1/oauth/token` com `client_id` e `client_secret`).
+     - Emissão de Pix Imediato (COB) e Pix com Vencimento (COBV com juros e multa diária).
+     - Geração de Carnês Pix parcelados.
+     - Webhooks em tempo real (`POST /api/webhooks/payments/xingubit`) para confirmação instantânea de pagamento (`PaymentConfirmedEvent`).
+     - Integração com emissão fiscal unificada (NFCom).
+  3. **Imutabilidade e Rastreabilidade da Fatura:**
+     - Cada registro de `Invoice` armazena o `gateway_type`, `gateway_tx_id` e `gateway_payload` original. Se a empresa alterar o gateway padrão para cobranças futuras, faturas passadas continuam funcionando e recebendo webhooks normalmente.

@@ -52,13 +52,23 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 5: Faturamento Recorrente & Cobrança (Billing)
-> **Objetivo:** Geração automatizada da 1ª fatura e mensalidades recorrentes.
+## 🎯 Milestone 5: Faturamento Recorrente, Cobrança & Multi-Gateway de Pagamentos
+> **Objetivo:** Geração automatizada de cobranças com suporte a múltiplos gateways simultâneos e integração primária com Xingubit Pay (Pix COB, COBV e NFCom).
 
-- [ ] Entidades `Invoice` e `PaymentTransaction` com UUIDv7.
-- [ ] Consumidor que gera fatura a partir do `ContractActivatedEvent`.
-- [ ] Integração com PIX Dinâmico (QR Code + Copia e Cola) e Webhook de confirmação instantânea.
-- [ ] Emissão do `InvoiceGeneratedEvent` para o módulo de notificações.
+- [ ] **Entidades & Modelo de Dados:**
+  - `Invoice` e `PaymentTransaction` com UUIDv7.
+  - `PaymentGatewayConfig` (armazenando credenciais OAuth, chaves de API, webhook secrets por gateway/empresa).
+  - Vínculo hierárquico de gateway: `Contract.gateway_config_id` -> `Plan.gateway_config_id` -> `Company.default_gateway_config_id`.
+- [ ] **Interface de Gateway & Roteamento (`PaymentGateway`):**
+  - Implementação do `PaymentGatewayRouter` que seleciona dinamicamente o gateway correto.
+  - Adaptador Primário: `XingubitPaymentGatewayAdapter` (OAuth 2.0, Pix Imediato COB, Pix com Vencimento COBV e Carnês).
+  - Estrutura para adaptadores secundários plugáveis (Asaas, Efí/Gerencianet).
+- [ ] **Webhooks Unificados de Pagamento:**
+  - Endpoint `/api/webhooks/payments/xingubit` para recebimento de notificações em tempo real.
+  - Emissão do `PaymentConfirmedEvent` para acionamento de desbloqueio de rede e notificação de agradecimento.
+- [ ] **Consumidor de Ativação:**
+  - Consumidor que gera fatura a partir do `ContractActivatedEvent`.
+  - Emissão do `InvoiceGeneratedEvent` para o módulo de notificações multicanal.
 
 ---
 
