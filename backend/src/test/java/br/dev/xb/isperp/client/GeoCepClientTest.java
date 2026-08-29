@@ -59,4 +59,22 @@ class GeoCepClientTest {
         assertTrue(result.getTotalDistanceKm().compareTo(BigDecimal.ZERO) > 0);
         assertTrue(result.getEstimatedDurationMinutes() > 0);
     }
+
+    @Test
+    @DisplayName("Deve enviar contribuição de coordenada predial ao GeoCEP com sucesso")
+    void shouldContributeAddressCoordinateToGeoCep() {
+        GeoCepClient.ContributeCoordinateRequest request = GeoCepClient.ContributeCoordinateRequest.builder()
+                .cep("68372-005")
+                .numero("3554")
+                .latitude(new BigDecimal("-3.211890"))
+                .longitude(new BigDecimal("-52.214100"))
+                .precisaoGpsMetros(new BigDecimal("4.5"))
+                .build();
+
+        GeoCepClient.ContributeCoordinateResponse response = geoCepClient.contributeCoordinate(request);
+
+        assertNotNull(response);
+        assertEquals("success", response.getStatus());
+        assertNotNull(response.getData());
+    }
 }

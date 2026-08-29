@@ -46,4 +46,10 @@ public class GeoCepController {
     public ResponseEntity<List<ServiceRouteStop>> getStopsByRouteId(@PathVariable UUID routeId) {
         return ResponseEntity.ok(routeOptimizationService.getStopsByRouteId(routeId));
     }
+
+    @PostMapping("/contribute")
+    public ResponseEntity<GeoCepClient.ContributeCoordinateResponse> contributeCoordinate(
+            @RequestBody GeoCepClient.ContributeCoordinateRequest request) {
+        return ResponseEntity.ok(geoCepClient.contributeCoordinate(request));
+    }
 }

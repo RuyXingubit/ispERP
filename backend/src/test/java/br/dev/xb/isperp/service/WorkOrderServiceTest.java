@@ -78,6 +78,8 @@ class WorkOrderServiceTest {
                 .onuMac("AA:BB:CC:DD:EE:FF")
                 .onuSerial("ZTEG12345678")
                 .fiberSignalDbm(new BigDecimal("-19.45"))
+                .digitalSignatureBase64("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...")
+                .customerSignatureName("João da Silva")
                 .notes("Instalação com sinal excelente e roteador configurado")
                 .build();
 
@@ -90,6 +92,8 @@ class WorkOrderServiceTest {
         assertEquals("AA:BB:CC:DD:EE:FF", completed.getOnuMac());
         assertEquals("ZTEG12345678", completed.getOnuSerial());
         assertEquals(new BigDecimal("-19.45"), completed.getFiberSignalDbm());
+        assertEquals("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...", completed.getDigitalSignatureBase64());
+        assertEquals("João da Silva", completed.getCustomerSignatureName());
         assertNotNull(completed.getCompletedAt());
 
         verify(domainEventPublisher, times(1)).publish(any(DomainEvent.class));

@@ -28,5 +28,8 @@ public class CompleteWorkOrderRequest {
     private BigDecimal technicianLongitude;
     private String installationPhotoUrl;
 
+    private String digitalSignatureBase64;
+    private String customerSignatureName;
+
     private String notes;
 }

@@ -122,6 +122,11 @@ const Sidebar = ({ open, onClose, onToggle }) => {
 
   const operacoesItems = [
     {
+      text: 'Modo Campo (Mobile)',
+      icon: <WorkOrderIcon />,
+      path: '/technician/field',
+    },
+    {
       text: 'Helpdesk (ANATEL)',
       icon: <SupportIcon />,
       path: '/helpdesk',

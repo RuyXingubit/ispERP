@@ -19,6 +19,7 @@ import PlanList from './pages/Plans/PlanList';
 import SaleForm from './pages/Sales/SaleForm';
 import ContractList from './pages/Contracts/ContractList';
 import WorkOrderList from './pages/WorkOrders/WorkOrderList';
+import TechnicianPortal from './pages/Technician/TechnicianPortal';
 import InvoiceList from './pages/Financial/InvoiceList';
 import GatewayConfig from './pages/Financial/GatewayConfig';
 import FiscalDashboard from './pages/Financial/FiscalDashboard';
@@ -191,6 +192,15 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'TECHNICIAN', 'SUPPORT_ANALYST', 'SUPPORT_N2']}>
                 <WorkOrderList />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/technician/field" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'TECHNICIAN', 'SUPPORT_ANALYST', 'SUPPORT_N2']}>
+                <TechnicianPortal />
               </ProtectedRoute>
             } 
           />

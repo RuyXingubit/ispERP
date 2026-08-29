@@ -98,6 +98,12 @@ public class WorkOrderService {
         if (request.getInstallationPhotoUrl() != null) {
             workOrder.setInstallationPhotoUrl(request.getInstallationPhotoUrl());
         }
+        if (request.getDigitalSignatureBase64() != null) {
+            workOrder.setDigitalSignatureBase64(request.getDigitalSignatureBase64());
+        }
+        if (request.getCustomerSignatureName() != null) {
+            workOrder.setCustomerSignatureName(request.getCustomerSignatureName());
+        }
         workOrder.setCompletedAt(LocalDateTime.now());
         workOrder.setStatus(WorkOrder.WorkOrderStatus.COMPLETED);
 

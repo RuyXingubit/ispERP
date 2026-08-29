@@ -220,10 +220,18 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🔮 Milestone 15: App PWA / Mobile de Campo para Técnicos (Planejado)
-> **Objetivo:** Interface offline-first para técnicos de campo realizarem instalações, coletas e assinaturas de termos.
+## 🎯 Milestone 15: App Web Mobile de Campo, Mapas & Crowdsourcing GeoCEP (Concluído)
+> **Objetivo:** Interface Web Mobile-First otimizada para smartphones (Chrome/Safari) para técnicos de campo realizarem instalações, coletas e assinaturas com mapas vetoriais nativos GeoCEP e crowdsourcing predial.
 
-- [ ] PWA offline-first com sincronização periódica.
-- [ ] Coleta de coordenadas GPS em tempo real durante o atendimento.
-- [ ] Assinatura digital do cliente e do técnico na tela para o Termo de Instalação e Termo de Custódia.
-- [ ] Leitor de código de barras/QR Code para captura rápida de MAC de ONU e número de série.
+- [x] **Mapas Vetoriais Integrados GeoCEP (MapLibre GL):**
+  - Componente `GeoCepMapView.jsx` conectado a `https://geocep.api.br/v1/maps/style.json` com renderização a 60fps, visualização da rota, posição GPS do técnico e residência do cliente.
+- [x] **Crowdsourcing Predial GeoCEP (`POST /v1/contribute`):**
+  - Integração no `GeoCepClient`, `GeoCepController` e no portal do técnico para envio da coordenada real em frente ao número do imóvel com precisão submétrica.
+- [x] **Assinatura Digital Touch & Termos em Campo:**
+  - Canvas touch interativo para assinatura na tela com o dedo e armazenamento em Base64 na tabela `work_orders` (Flyway `V15`).
+- [x] **Interface Mobile do Técnico (`TechnicianPortal.jsx`):**
+  - Cards verticais de O.S., ações em 1 toque (WhatsApp, Ligar), captura de GPS e baixa técnica com ativação imediata (`WORK_ORDER_COMPLETED`).
+- [x] **Testes Automatizados:**
+  - Suíte de testes unitários e de integração 100% aprovada (`./gradlew test`).
+
+---

@@ -90,6 +90,14 @@ public class WorkOrder {
     private UUID toolAgreementId;
 
     @Nullable
+    @Column(name = "digital_signature_base64", columnDefinition = "text")
+    private String digitalSignatureBase64;
+
+    @Nullable
+    @Column(name = "customer_signature_name", length = 150)
+    private String customerSignatureName;
+
+    @Nullable
     @Column(name = "notes", columnDefinition = "text")
     private String notes;
 
