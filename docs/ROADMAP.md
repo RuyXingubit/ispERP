@@ -62,16 +62,21 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 6: Notificações Multicanal (3 Provedores WhatsApp)
-> **Objetivo:** Envio automático de cobranças e avisos pelo canal de preferência do assinante com provedor plugável.
+## 🎯 Milestone 6: Notificações Multicanal (WhatsApp & E-mail SMTP Dinâmico)
+> **Objetivo:** Envio automático de cobranças e avisos pelo canal de preferência do assinante com provedores de WhatsApp plugáveis e servidor SMTP customizável por empresa.
 
-- [ ] Consumidor de `InvoiceGeneratedEvent`.
-- [ ] Interface `WhatsAppProvider` (Strategy Pattern) e 3 Adaptadores:
-  - `EvolutionApiWhatsAppProvider` (Open-source / Self-hosted)
-  - `ZApiWhatsAppProvider` (SaaS ISP)
-  - `TwilioWhatsAppProvider` / `MetaOfficialWhatsAppProvider` (API Oficial)
-- [ ] Envio por E-mail (SMTP com templates HTML) e SMS.
-- [ ] Templates dinâmicos de mensagem com link de pagamento e código PIX.
+- [ ] **Consumidor de Eventos:**
+  - Consumidor assíncrono para `InvoiceGeneratedEvent`, `InvoiceOverdueEvent` e `PaymentConfirmedEvent`.
+- [ ] **Módulo de E-mail (SMTP Customizável):**
+  - Cadastro de credenciais SMTP na entidade `Company` (`smtp_host`, `smtp_port`, `smtp_username`, `smtp_password`, `smtp_use_tls`, `smtp_from_email`, `smtp_from_name`).
+  - Motor de templates HTML responsivos (Thymeleaf) para avisos de fatura, cobrança PIX com botão de cópia e anexação de boleto PDF.
+  - Teste de envio de e-mail integrado nas configurações da empresa.
+- [ ] **Módulo de WhatsApp (Strategy / Adapter Pattern):**
+  - Interface `WhatsAppProvider` e 3 Adaptadores:
+    - `EvolutionApiWhatsAppProvider` (Open-source / Self-hosted via Docker).
+    - `ZApiWhatsAppProvider` (SaaS popular em ISPs).
+    - `TwilioWhatsAppProvider` / `MetaOfficialWhatsAppProvider` (API Oficial Cloud da Meta).
+- [ ] Templates dinâmicos de mensagem de texto com link de pagamento e código PIX Copia-e-Cola.
 
 ---
 

@@ -40,10 +40,11 @@ graph TD
     Network -->|API / SSH| MikroTik[MikroTik / OLTs / Radius]
     Billing -->|Webhook / REST| Gateways[PIX / Gateway de Pagamento]
     
-    subgraph Notification Adapters [Estratégia Multicanal WhatsApp]
+    subgraph Notification Adapters [Estratégia Multicanal WhatsApp & E-mail]
         Notify --> Evolution[Evolution API - Open Source]
         Notify --> ZApi[Z-API - SaaS ISP]
         Notify --> Twilio[Twilio / Meta Official Cloud API]
+        Notify --> SMTP[Custom SMTP - E-mail com Templates HTML]
     end
 ```
 
@@ -81,12 +82,16 @@ graph TD
 
 ---
 
-### ADR 004: Provedores de WhatsApp Plugáveis (Adapter / Strategy Pattern)
-- **Contexto:** Diferentes provedores de internet possuem orçamentos e estruturas distintas: alguns preferem servidores próprios abertos (Evolution API), outros preferem facilidade SaaS (Z-API) e outros exigem a API Oficial da Meta (Twilio / Meta Cloud API).
-- **Decisão:** Criar a interface `WhatsAppProvider` com implementação de 3 adaptadores plugáveis selecionáveis por empresa (`Company`):
-  1. `EvolutionApiWhatsAppProvider` (Open Source, self-hosted).
-  2. `ZApiWhatsAppProvider` (SaaS comercial).
-  3. `TwilioWhatsAppProvider` / `MetaOfficialWhatsAppProvider` (API Oficial).
+### ADR 004: Notificações Multicanal Plugáveis (WhatsApp Adapters & E-mail SMTP Dinâmico)
+- **Contexto:** Provedores de internet precisam se comunicar com o assinante por múltiplos canais. O canal de WhatsApp varia de acordo com o porte do ISP (Evolution API open-source, Z-API ou Twilio/Meta Oficial), enquanto o canal de E-mail exige envio confiável via servidor **SMTP customizado por empresa** com templates HTML responsivos para faturas e lembretes.
+- **Decisão:** Criar interfaces desacopladas (`WhatsAppProvider` e `EmailNotificationProvider`) com suporte a:
+  1. **WhatsApp (Strategy Pattern):**
+     - `EvolutionApiWhatsAppProvider` (Open Source, self-hosted via Docker).
+     - `ZApiWhatsAppProvider` (SaaS especializado em ISPs).
+     - `TwilioWhatsAppProvider` / `MetaOfficialWhatsAppProvider` (API Oficial Cloud da Meta).
+  2. **E-mail (Custom SMTP Provider):**
+     - Configuração dinâmica por empresa (`smtp_host`, `smtp_port`, `smtp_username`, `smtp_password`, `smtp_use_tls`, `smtp_from_email`, `smtp_from_name`).
+     - Renderização de templates HTML modernos para faturas, avisos de vencimento, comprovantes de pagamento e carnês anexados em PDF.
 
 ---
 

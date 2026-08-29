@@ -75,7 +75,10 @@ O **ispERP** é uma plataforma moderna, aberta e altamente escalável para gest�
   1. **Evolution API:** Solução open-source self-hosted para provedores que desejam infraestrutura própria sem custo de licença.
   2. **Z-API:** Plataforma SaaS popular no ecossistema de ISPs brasileiros.
   3. **API Oficial Meta (Twilio / Meta Cloud API):** Canal corporativo com selo de verificação e conformidade oficial.
-- Canais adicionais: E-mail (SMTP com templates HTML) e SMS.
+- **Canal de E-mail (Servidor SMTP Dinâmico por Empresa):**
+  - Parametrização customizável por ISP (Host, Porta, Usuário, Senha, TLS/SSL, E-mail de remetente e Nome de exibição).
+  - Templates HTML responsivos (com código PIX Copia e Cola, botão para pagamento e anexo de boleto em PDF).
+- Canais adicionais: SMS / Webhooks de integração.
 - Gatilhos automáticos:
   - Fatura gerada (5 dias antes do vencimento).
   - Lembrete no dia do vencimento.
