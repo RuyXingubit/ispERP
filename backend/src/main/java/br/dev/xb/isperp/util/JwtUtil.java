@@ -34,7 +34,7 @@ public class JwtUtil {
     
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
-                .claims(claims)
+                .claims(Jwts.claims().add(claims).build())
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
