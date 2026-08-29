@@ -1,3 +1,19 @@
+-- Ensure pgcrypto extension and uuidv7 function exist
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE OR REPLACE FUNCTION uuidv7() RETURNS uuid AS $$
+DECLARE
+    unix_time_ms bytea;
+    uuid_bytes bytea;
+BEGIN
+    unix_time_ms := substring(int8send(floor(extract(epoch from clock_timestamp()) * 1000)::bigint) from 3);
+    uuid_bytes := unix_time_ms || gen_random_bytes(10);
+    uuid_bytes := set_byte(uuid_bytes, 6, (get_byte(uuid_bytes, 6) & 15) | 112); -- version 7 (0x70)
+    uuid_bytes := set_byte(uuid_bytes, 8, (get_byte(uuid_bytes, 8) & 63) | 128); -- variant 1 (0x80)
+    RETURN encode(uuid_bytes, 'hex')::uuid;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Create users table
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
