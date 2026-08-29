@@ -5,12 +5,14 @@
 Bem-vindo ao repositório do nosso ERP desenvolvido especialmente para Provedores de Internet. Este é um projeto de código aberto e estamos entusiasmados em tê-lo a bordo como contribuidor!
 
 ### Visão Geral
-Sistema ERP web com:
-- Backend em Java
-- Frontend em React
-- Banco de dados MySQL
-- Migrações com Flyway
-- Docker para desenvolvimento e produção
+Sistema ERP moderno para provedores de internet (ISPs) com:
+- **Backend:** Java 25 + Spring Boot 4.1.1 (Arquitetura Modular Orientada a Eventos - EDA)
+- **Frontend:** React 19 + Vite 6
+- **Banco de dados:** PostgreSQL 17+ com suporte nativo a `UUIDv7`
+- **Migrações:** Flyway
+- **Contêineres:** Docker e Docker Compose para desenvolvimento e produção
+
+Consulte a pasta [`docs/`](file:///Users/ruy/Code/ispERP/docs/) para a documentação detalhada de Arquitetura, PRD, Roadmap e Eventos.
 
 ### Como Usar
 

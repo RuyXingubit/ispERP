@@ -147,6 +147,25 @@ Disparado quando o contrato é promovido de `PENDING_INSTALLATION` para `ACTIVE`
 Disparado quando a fatura é calculada e os dados de pagamento (Chave PIX Copia-e-Cola, Link de Boleto) estão disponíveis.
 - **Efeito:** Consumidor de Notificações monta a mensagem personalizada e envia via WhatsApp/E-mail.
 
+### 2.6. `InvoicePaidEvent` / `PaymentConfirmedEvent`
+Disparado imediatamente após a confirmação do pagamento via Webhook do Gateway (ex: Xingubit Pay Pix).
+- **Efeitos em Paralelo:**
+  1. **Rede:** Desbloqueio e restauração instantânea de banda/porta na OLT/MikroTik em tempo real (< 10 segundos).
+  2. **Notificações:** Envio de mensagem de confirmação e recibo via WhatsApp/E-mail.
+  3. **Contratos:** Atualização de status de inadimplência para adimplente.
+
+### 2.7. `TrustUnblockRequestedEvent`
+Disparado quando o assinante solicita o desbloqueio em confiança de 48 horas pela Central do Assinante.
+- **Efeito:** Abertura temporária de acesso na rede com agendamento de verificação automática pós-período.
+
+### 2.8. `StockTransferCompletedEvent`
+Disparado quando uma remessa de insumos/ativos serializados é transferida entre depósitos ou para veículo técnico.
+- **Efeito:** Atualização de saldo em tempo real nos almoxarifados de origem e destino com log de custódia.
+
+### 2.9. `HelpdeskTicketOpenedEvent`
+Disparado na abertura de um chamado técnico com número de protocolo Anatel gerado.
+- **Efeito:** Inicialização do cronômetro de SLA e notificação da equipe de suporte / geração de O.S. de reparo se necessário.
+
 ---
 
 ## 3. Resiliência, Falhas & Idempotência

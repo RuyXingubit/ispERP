@@ -178,16 +178,51 @@ sequenceDiagram
 
 ### ADR 008: Provisionamento de Rede Desacoplado & Multi-Driver (SmartOLT, Microsserviço, MikroTik, Radius)
 - **Contexto:** Provedores de internet possuem topologias de rede heterogêneas. Pequenos ISPs utilizam concentradores MikroTik locais; médios e grandes provedores utilizam SmartOLT para gerenciar OLTs (Huawei, ZTE, Fiberhome); outros operam com servidores FreeRADIUS dedicados ou microsserviços de rede isolados para isolamento de carga e segurança de borda.
-- **Decisão:** Modelar a camada de rede 100% desacoplada orientada a eventos através da interface `NetworkProvisioningDriver` e do roteador `NetworkDriverRouter`:
+- **Decisão:** Modelar a camada de rede 100% desacoplada orientada a eventos através da interface `NetworkProvisioner` e do roteador `NetworkDriverResolver`:
   1. **Tipos de Drivers Suportados (Plugáveis):**
-     - `SmartOltDriver`: Integração com a API REST do SmartOLT para autorização de ONUs e alteração de profiles.
-     - `DedicatedMicroserviceDriver`: Comunicação assíncrona (gRPC ou REST) com um microsserviço externo especializado em automação de rede.
-     - `MikroTikRouterOsDriver`: Conexão direta via RouterOS API / SSH para criação de PPPoE Secrets e Queues.
-     - `RadiusCoAProvisioningDriver`: Envio de pacotes CoA (Change of Authorization / Disconnect) para servidores Radius.
-     - `NoOpNetworkDriver`: Driver passivo para homologação ou provedores com provisionamento manual.
+     - `SmartOltProvisioner`: Integração com a API REST do SmartOLT para autorização de ONUs e alteração de profiles.
+     - `ExternalMicroserviceProvisioner`: Comunicação assíncrona (gRPC ou REST) com um microsserviço externo especializado em automação de rede.
+     - `RadiusCoAProvisioner`: Envio de pacotes CoA (Change of Authorization / Disconnect) para servidores Radius.
+     - `MockNetworkProvisioner`: Driver passivo para homologação e testes unitários/integrados.
   2. **Gatilhos por Eventos de Domínio:**
-     - `ContractActivatedEvent` ➡️ `driver.provisionAccess(contract)`
-     - `ContractBlockedEvent` (Inadimplência) ➡️ `driver.suspendAccess(contract)`
-     - `PaymentConfirmedEvent` / `ContractReactivatedEvent` ➡️ `driver.restoreAccess(contract)`
-     - `ContractCanceledEvent` ➡️ `driver.deprovisionAccess(contract)`
+     - `WorkOrderCompletedEvent` ➡️ `driver.provisionOnu(onu)`
+     - `InvoicePaidEvent` ➡️ `driver.unblockSubscriber(subscriber)`
+     - `ContractBlockedEvent` (Inadimplência) ➡️ `driver.suspendSubscriber(subscriber)`
   3. **Associação Flexível:** Cada Ponto de Acesso / POP / Concentrador define qual `network_driver_type` e `network_driver_config_id` deve ser utilizado, permitindo ao ERP operar com múltiplos provedores de rede em paralelo.
+
+---
+
+### ADR 009: Almoxarifado Multi-Depósito, Ativos Serializados e Termos de Custódia de Técnicos
+- **Contexto:** ISPs enfrentam frequentes perdas de patrimônio, descontrole de insumos entre o depósito central e veículos técnicos, e extravio de ferramentas de alto valor (máquinas de fusão, OTDRs, clivadores).
+- **Decisão:** Implementar modelo de dados (`V10`) com controle multi-depósito (`warehouses`), transferências rastreadas (`stock_transfers`), rastreamento unitário por número de série/MAC (`serialized_assets`) e termos formais de custódia com log de auditoria imutável (`tool_custody_agreements`, `custody_logs`).
+- **Consequências:** 
+  - Todo ativo possui ciclo de vida rastreado: `AVAILABLE`, `IN_TRANSFER`, `IN_CUSTODY`, `INSTALLED`, `DAMAGED`, `RETIRED`.
+  - Técnicos assumem formalmente a responsabilidade por ferramentas caras mediante termo de custódia assinado.
+
+---
+
+### ADR 010: Faturamento Hierárquico Multi-Empresa e Rebalanceamento Pro-Rata
+- **Contexto:** Clientes corporativos com matriz e múltiplas filiais exigem faturamento centralizado (uma única fatura consolidada cobrindo múltiplos contratos). Além disso, trocas de plano no meio do ciclo de faturamento geram inconsistências contábeis se o cálculo pro-rata não for automatizado.
+- **Decisão:** Implementar entidades e serviços de faturamento hierárquico (`V11`, `HierarchicalBillingService`) e rebalanceamento inteligente (`InvoiceRebalanceService`).
+- **Consequências:**
+  - Suporte a faturas consolidadas ou segregadas por filial com rateio proporcional.
+  - Cálculo exato de dias utilizados no plano anterior vs. novo plano, gerando faturas complementares ou abatimentos no ciclo subsequente.
+
+---
+
+### ADR 011: Central de Atendimento (Helpdesk) com Protocolos Regulatórios Anatel e Classificação Fiscal NFCom
+- **Contexto:** Provedores de internet no Brasil são regulados pela Anatel (exigência de numeração única de protocolo de atendimento) e pela SEFAZ (obrigatoriedade da NFCom Modelo 62 com segregação precisa entre serviços de telecomunicação SCM e serviços de valor agregado SVA).
+- **Decisão:** Implementar módulo de Helpdesk (`V12`, `HelpdeskService`) com gerador de protocolos Anatel (`AnatelProtocolGenerator`), matriz de cálculo de SLA e motor de decisão fiscal (`NfcomDecisionService`).
+- **Consequências:**
+  - Todo chamado gera protocolo único no formato `YYYYMMDD-XXXXXX` rastreável em todas as interações.
+  - Cada item cobrado é classificado automaticamente para tributação correta (ICMS sobre SCM / ISS sobre SVA).
+
+---
+
+### ADR 012: Governança Estrita de Tipagem e Null-Safety com JSpecify no Java 25
+- **Contexto:** Falhas por `NullPointerException` (NPE) em tempo de execução são críticas para sistemas de missão crítica como ERPs de telecomunicações. Anotações legadas (@NonNullApi do Spring) causavam conflitos com Lombok e IDEs modernas.
+- **Decisão:** Adotar a especificação padrão da indústria **JSpecify** (`org.jspecify.annotations:jspecify`), anotando todos os pacotes com `@NullMarked` em `package-info.java` e sinalizando explicitamente campos e retornos opcionais com `@Nullable`.
+- **Consequências:**
+  - Análise estática em tempo de compilação sem falsos-positivos com Lombok.
+  - Código 100% autodocumentado quanto a contratos de nulidade.
+

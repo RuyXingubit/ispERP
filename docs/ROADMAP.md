@@ -1,6 +1,6 @@
 # Roadmap de Desenvolvimento (ispERP - Milestones)
 
-Este documento estabelece as etapas e marcos de desenvolvimento priorizados para a evolução do **ispERP**.
+Este documento estabelece as etapas e marcos de desenvolvimento priorizados para a evolução do **ispERP**, registrando o status de entrega e os próximos passos.
 
 ---
 
@@ -24,7 +24,7 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 ## 🎯 Milestone 2: Motor de Eventos (EDA) & Transactional Outbox (Concluído)
 > **Objetivo:** Criar o mecanismo desacoplado e confiável para disparo e consumo de eventos de domínio.
 
-- [x] Tabela `outbox_events` e `processed_events` via Flyway.
+- [x] Tabela `outbox_events` e `processed_events` via Flyway `V3`.
 - [x] Implementação do `DomainEventPublisher` com persistência na Outbox.
 - [x] Worker/Dispatcher assíncrono para entrega resiliente de eventos (`OutboxDispatcher`).
 - [x] Mecanismo de Idempotência (`IdempotencyService` / `ProcessedEvent`).
@@ -35,7 +35,7 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 ## 🎯 Milestone 3: Vendas, Clientes, Contratos & Planos (Concluído)
 > **Objetivo:** Implementar o fluxo de contratação e ciclo de vida do cliente.
 
-- [x] Módulo de Planos (Download, Upload, Preços, SVA) e endpoints REST.
+- [x] Módulo de Planos (Download, Upload, Preços, SVA) e endpoints REST via Flyway `V4`.
 - [x] Módulo de Vendas (Endpoint `/sales` para submissão com validação de CPF e emissão de `SaleSubmittedEvent`).
 - [x] Consumidor de Vendas: Cadastro/atualização de `Customer` e criação do `Contract` (Status `PENDING_INSTALLATION`) com disparo de `ContractCreatedEvent`.
 - [x] Telas no Frontend (Vite 6 / React 19): Catálogo de Planos, Formulário de Venda Rápida e Gestão de Contratos.
@@ -88,6 +88,7 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
   - Driver `SmartOltProvisioner` (integração SmartOLT API).
   - Driver `ExternalMicroserviceProvisioner` (preparado para microserviço de rede dedicado).
   - Driver `MockNetworkProvisioner` para testes e homologação.
+  - Driver `RadiusCoAProvisioner` (pacotes CoA / Disconnect).
 - [x] **Automação de Rede Orientada a Eventos (EDA):**
   - Consumidor `NetworkProvisioningConsumer`:
     - Ao receber `WORK_ORDER_COMPLETED` ➔ Provisiona automaticamente a ONU na OLT com perfis de download/upload do plano.
@@ -101,20 +102,118 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 7: Central do Assinante & Notificações Multicanal WhatsApp / SMTP
-> **Objetivo:** Portal self-service do assinante e disparo de faturas/avisos via WhatsApp (Evolution API / Z-API) e E-mail.
+## 🎯 Milestone 7: Central do Assinante, Autodesbloqueio & WhatsApp Multiprovedor (Concluído no Backend)
+> **Objetivo:** Portal do cliente com autoatendimento e mensageria WhatsApp conectada a múltiplos provedores (Evolution API, Z-API, Twilio).
 
-- [ ] **Interface & Roteador de Rede (`NetworkProvisioningDriver` & `NetworkDriverRouter`):**
-  - Definição do contrato unificado (`provisionAccess`, `suspendAccess`, `restoreAccess`, `deprovisionAccess`).
-  - Associação de driver por Ponto de Acesso / Concentrador / POP.
-- [ ] **Adaptadores de Rede Plugáveis:**
-  - `SmartOltDriver`: Integração com API REST do SmartOLT.
-  - `DedicatedMicroserviceDriver`: Cliente gRPC / REST para microsserviço de rede externo especializado.
-  - `MikroTikRouterOsDriver`: Conexão com concentradores RouterOS (PPPoE / Queues).
-  - `RadiusCoAProvisioningDriver`: Pacotes de desconexão e autorização Radius.
-  - `NoOpNetworkDriver`: Driver para homologação / ambiente local.
-- [ ] **Consumidores de Eventos de Rede:**
-  - Consumidor assíncrono para `ContractActivatedEvent` (libera sinal).
-  - Consumidor assíncrono para `ContractBlockedEvent` (bloqueia por atraso).
-  - Consumidor assíncrono para `PaymentConfirmedEvent` (desbloqueia instantaneamente).
-  - Consumidor assíncrono para `ContractCanceledEvent` (desprovisiona).
+- [x] **Modelo de Dados & Migração (`V8`):**
+  - Tabelas `whatsapp_configs`, `whatsapp_templates`, `notification_logs`, `client_portal_access_tokens`, `trust_unblocks`.
+- [x] **Mensageria WhatsApp (Strategy Pattern):**
+  - `WhatsAppProviderResolver` com drivers para `EvolutionApiWhatsAppProvider`, `ZApiWhatsAppProvider`, `TwilioWhatsAppProvider` e `MockWhatsAppProvider`.
+  - Envio automático de mensagens com chave Pix Copia-e-Cola e links de 2ª via.
+- [x] **Serviços da Central do Assinante (`ClientPortalService` & `TrustUnblockPolicyService`):**
+  - Autenticação por Magic Link / Token temporário.
+  - Consulta de faturas em aberto, histórico de pagamentos e consumo.
+  - Regra de **Desbloqueio em Confiança (Trust Unblock)** de 48h com validação de política de uso.
+- [x] Testes unitários com 100% de aprovação (`ClientPortalServiceTest`, `TrustUnblockPolicyServiceTest`, `TwilioWhatsAppProviderTest`).
+
+---
+
+## 🎯 Milestone 8: Roteirização Inteligente de Campo & Métricas de BI (Concluído no Backend)
+> **Objetivo:** Otimização logística de deslocamento dos técnicos e dashboard de Business Intelligence com métricas de ISP.
+
+- [x] **Modelo de Dados & Migração (`V9`):**
+  - Coordenadas geográficas (`latitude`, `longitude`) no endereço dos clientes e ordens de serviço.
+  - Tabelas `service_routes` e `service_route_stops`.
+- [x] **Algoritmo de Roteirização (`RouteOptimizationService`):**
+  - Agrupamento de O.S. por proximidade geográfica (Haversine/Nearest Neighbor) para redução de tempo de deslocamento técnico.
+- [x] **Dashboard de BI (`DashboardBiService`):**
+  - Cálculo de MRR (Receita Recorrente Mensal), Churn Rate, Taxa de Inadimplência, ARPU e tempo médio de atendimento de O.S.
+- [x] Testes unitários de BI e roteirização com 100% de aprovação.
+
+---
+
+## 🎯 Milestone 9: Almoxarifado Multi-Depósito, Ativos Serializados & Custódia de Técnicos (Concluído no Backend)
+> **Objetivo:** Rastreabilidade integral de equipamentos em trânsito, estoque central vs. veículos e termos de responsabilidade técnica.
+
+- [x] **Modelo de Dados & Migração (`V10`):**
+  - Tabelas `warehouses`, `stock_transfers`, `stock_transfer_items`, `serialized_assets`, `tool_custody_agreements`, `custody_logs`.
+- [x] **Serviços Especializados (`WarehouseService` & `AssetCustodyService`):**
+  - Transferência de itens e ativos serializados (ONTs, Roteadores Wi-Fi 6, Bobinas de Drop) entre almoxarifado central e veículos técnicos.
+  - Emissão e gestão de Termos de Custódia de Ferramentas (Máquinas de Fusão, OTDR, Power Meter, Clivador).
+  - Logs imutáveis de entrega, devolução e conferência de avarias.
+- [x] Testes unitários de estoque e custódia com 100% de aprovação (`AssetCustodyServiceTest`).
+
+---
+
+## 🎯 Milestone 10: Faturamento Hierárquico & Rebalanceamento Inteligente (Concluído no Backend)
+> **Objetivo:** Cobrança de clientes corporativos com matriz/filiais e rebalanceamento pro-rata de faturas em caso de alteração de plano ou data de corte.
+
+- [x] **Modelo de Dados & Migração (`V11`):**
+  - Hierarquia de faturamento corporativo (`parent_contract_id`, `billing_mode`).
+  - Histórico de rebalanceamentos e solicitações de upgrade (`plan_upgrade_requests`, `invoice_rebalance_logs`).
+- [x] **Serviços de Billing Avançado (`HierarchicalBillingService` & `InvoiceRebalanceService`):**
+  - Agrupamento de múltiplos pontos de acesso de uma empresa em uma única fatura consolidada.
+  - Cálculo proporcional exato (dias utilizados no plano antigo vs. plano novo) com emissão de fatura complementar ou crédito no ciclo seguinte.
+- [x] Testes unitários cobrindo faturamento hierárquico e rebalanceamento pro-rata (100% Green).
+
+---
+
+## 🎯 Milestone 11: Helpdesk com SLA, Protocolo Anatel & Motor Fiscal NFCom (Concluído no Backend)
+> **Objetivo:** Central de chamados com protocolo regulatório Anatel e compliance fiscal para decisão de modelo de tributação em telecom.
+
+- [x] **Modelo de Dados & Migração (`V12`):**
+  - Tabelas `helpdesk_tickets`, `helpdesk_interactions`, `nfcom_decisions`.
+- [x] **Gestão de Chamados (`HelpdeskService`):**
+  - Gerador de protocolos no padrão oficial Anatel (`YYYYMMDD-XXXXXX`).
+  - Matriz de prioridade (Crítica, Alta, Média, Baixa) com cálculo automático de SLA de atendimento e solução.
+  - Vinculação com O.S. de reparo em campo quando necessário.
+- [x] **Motor de Decisão Fiscal (`NfcomDecisionService`):**
+  - Classificação de itens da fatura entre SCM (Serviço de Comunicação Multimídia - NFCom Mod. 62) e SVA (Serviço de Valor Adicionado - NFS-e).
+- [x] Testes unitários de helpdesk, protocolo Anatel e decisão NFCom (100% Green).
+
+---
+
+## 🎯 Milestone 12: Modernização Java 25, Spring Boot 4.1.1 & Null-Safety JSpecify (Concluído)
+> **Objetivo:** Elevar a robustez e segurança do código com o ecossistema Java mais recente e análise estática de nulos rigorosa.
+
+- [x] Atualização da Toolchain para **Java 25** e Spring Boot **4.1.1**.
+- [x] Governança de nulos via **JSpecify (`@NullMarked` em package-info.java)** e anotações `@Nullable` explícitas em 100% do backend.
+- [x] Configuração centralizada do Jackson (`JacksonConfig`) com testes automatizados de serialização.
+- [x] Atualização da imagem Docker (`eclipse-temurin:25-jre-alpine`).
+- [x] Suíte completa de 103 testes unitários e de integração 100% aprovada.
+
+---
+
+## 🚀 Milestone 13: Consolidação do Frontend React 19 & Validação E2E (Em Andamento / Próximo Foco)
+> **Objetivo:** Conectar e validar todas as telas do Frontend (Vite 6 / React 19) com as APIs avançadas já disponíveis no backend.
+
+- [ ] **Integração das Telas Operacionais:**
+  - [ ] Telas de Almoxarifado Multi-Depósito e Termos de Custódia de Técnicos.
+  - [ ] Tela de Chamados / Helpdesk com exibição de protocolo Anatel e SLA.
+  - [ ] Painel do Portal do Assinante (2ª via Pix, extrato e botão de desbloqueio em confiança).
+  - [ ] Painel de Faturamento com visualização de rebalanceamento e faturas agrupadas.
+  - [ ] Mapa de Roteirização de Técnicos de Campo.
+- [ ] **Validação E2E dos Fluxos Críticos:**
+  - [ ] Fluxo Venda ➔ O.S. ➔ Ativação SmartOLT ➔ Cobrança Pix ➔ Webhook ➔ Desbloqueio.
+  - [ ] Fluxo Abertura de Chamado ➔ Despacho de O.S. de Reparo ➔ Baixa e encerramento de SLA.
+
+---
+
+## 🔮 Milestone 14: Emissão Fiscal NFCom (Modelo 62) & Convênio ICMS 115/03 (Planejado)
+> **Objetivo:** Automação fiscal completa com geração, assinatura digital (A1) e transmissão de lotes NFCom e arquivos do convênio 115/03.
+
+- [ ] Geração de XML no layout oficial da NFCom (Modelo 62).
+- [ ] Módulo de assinatura digital com certificado digital ICP-Brasil (A1 em PKCS#12).
+- [ ] Transmissão para a SEFAZ via Web Services com controle de recibos e autorização.
+- [ ] Geração de DANFE NFCom em PDF.
+- [ ] Exportação de arquivos magnéticos do Convênio ICMS 115/03 (Mestre, Item, Destinatário).
+
+---
+
+## 🔮 Milestone 15: App PWA / Mobile de Campo para Técnicos (Planejado)
+> **Objetivo:** Interface offline-first para técnicos de campo realizarem instalações, coletas e assinaturas de termos.
+
+- [ ] PWA offline-first com sincronização periódica.
+- [ ] Coleta de coordenadas GPS em tempo real durante o atendimento.
+- [ ] Assinatura digital do cliente e do técnico na tela para o Termo de Instalação e Termo de Custódia.
+- [ ] Leitor de código de barras/QR Code para captura rápida de MAC de ONU e número de série.
