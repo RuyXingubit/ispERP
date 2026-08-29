@@ -43,7 +43,7 @@ spring:
   
 logging:
   level:
-    com.xingubit.isperp: DEBUG
+    br.dev.xb.isperp: DEBUG
     org.flywaydb: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
