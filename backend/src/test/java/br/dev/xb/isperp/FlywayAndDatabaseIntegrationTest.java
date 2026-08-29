@@ -1,7 +1,6 @@
 package br.dev.xb.isperp;
 
 import br.dev.xb.isperp.entity.*;
-import br.dev.xb.isperp.gateway.PaymentGatewayType;
 import br.dev.xb.isperp.network.NetworkDriverType;
 import br.dev.xb.isperp.repository.*;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
@@ -16,6 +15,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("null")
 class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -67,6 +67,10 @@ class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
         assertEquals("isperp_test", postgres.getDatabaseName());
         assertFalse(notificationConfigRepository.findAll().isEmpty());
         assertFalse(warehouseRepository.findAll().isEmpty()); // Valida depósitos seedados na V10
+        assertNotNull(gatewayConfigRepository);
+        assertNotNull(planUpgradeRequestRepository);
+        assertNotNull(serializedAssetRepository);
+        assertNotNull(serviceRouteRepository);
     }
 
     @Test

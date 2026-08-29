@@ -13,6 +13,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class PaymentWebhookController {
 
     private final PaymentWebhookService paymentWebhookService;

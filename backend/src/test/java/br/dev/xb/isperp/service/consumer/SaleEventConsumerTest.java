@@ -3,7 +3,6 @@ package br.dev.xb.isperp.service.consumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Customer;
-import br.dev.xb.isperp.event.DomainEvent;
 import br.dev.xb.isperp.event.GenericDomainEvent;
 import br.dev.xb.isperp.repository.ContractRepository;
 import br.dev.xb.isperp.repository.CustomerRepository;
@@ -19,14 +18,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

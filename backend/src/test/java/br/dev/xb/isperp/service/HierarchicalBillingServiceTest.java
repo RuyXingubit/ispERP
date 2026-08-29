@@ -3,7 +3,6 @@ package br.dev.xb.isperp.service;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Customer;
 import br.dev.xb.isperp.entity.Plan;
-import br.dev.xb.isperp.event.DomainEvent;
 import br.dev.xb.isperp.repository.ContractRepository;
 import br.dev.xb.isperp.repository.CustomerRepository;
 import br.dev.xb.isperp.repository.InvoiceRepository;

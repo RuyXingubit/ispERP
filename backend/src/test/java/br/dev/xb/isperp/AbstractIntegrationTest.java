@@ -11,6 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @ActiveProfiles("test")
+@SuppressWarnings("resource")
 public abstract class AbstractIntegrationTest {
 
     @Container
