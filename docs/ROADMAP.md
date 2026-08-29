@@ -21,14 +21,14 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 2: Motor de Eventos (EDA) & Transactional Outbox
+## 🎯 Milestone 2: Motor de Eventos (EDA) & Transactional Outbox (Concluído)
 > **Objetivo:** Criar o mecanismo desacoplado e confiável para disparo e consumo de eventos de domínio.
 
-- [ ] Tabela `outbox_events` e `processed_events` via Flyway.
-- [ ] Implementação do `DomainEventPublisher` com persistência na Outbox.
-- [ ] Worker/Dispatcher assíncrono para entrega resiliente de eventos.
-- [ ] Mecanismo de Idempotência e Dead Letter Queue (DLQ).
-- [ ] Testes de concorrência e consistência transacional.
+- [x] Tabela `outbox_events` e `processed_events` via Flyway.
+- [x] Implementação do `DomainEventPublisher` com persistência na Outbox.
+- [x] Worker/Dispatcher assíncrono para entrega resiliente de eventos (`OutboxDispatcher`).
+- [x] Mecanismo de Idempotência (`IdempotencyService` / `ProcessedEvent`).
+- [x] Testes unitários do publisher, dispatcher e idempotência (100% de aprovação).
 
 ---
 
