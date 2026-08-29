@@ -52,9 +52,9 @@ public class DashboardBiService {
 
         // 2. MRR (Monthly Recurring Revenue) & ARR
         BigDecimal mrr = allContracts.stream()
-                .filter(c -> c.getStatus() == Contract.ContractStatus.ACTIVE)
+                .filter(c -> c.getStatus() == Contract.ContractStatus.ACTIVE && c.getMonthlyFee() != null)
                 .map(Contract::getMonthlyFee)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, (a, b) -> a != null && b != null ? a.add(b) : a != null ? a : BigDecimal.ZERO);
 
         BigDecimal arr = mrr.multiply(BigDecimal.valueOf(12));
 

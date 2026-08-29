@@ -108,7 +108,7 @@ public class ClientPortalController {
         // Fallback para o primeiro cliente cadastrado para demonstração/testes
         return customerRepository.findAll().stream()
                 .findFirst()
-                .map(Customer::getId)
+                .map(c -> c.getId())
                 .orElseThrow(() -> new RuntimeException("Nenhum cliente cadastrado no sistema"));
     }
 }

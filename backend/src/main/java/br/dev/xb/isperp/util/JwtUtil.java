@@ -46,20 +46,23 @@ public class JwtUtil {
     }
     
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        Claims claims = extractAllClaims(token);
+        return claims != null ? claims.getSubject() : null;
     }
     
     public String extractRole(String token) {
-        return extractClaim(token, claims -> (String) claims.get("role"));
+        Claims claims = extractAllClaims(token);
+        return claims != null ? (String) claims.get("role") : null;
     }
     
     public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+        Claims claims = extractAllClaims(token);
+        return claims != null ? claims.getExpiration() : null;
     }
     
     public <T> T extractClaim(String token, java.util.function.Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        return claims != null && claimsResolver != null ? claimsResolver.apply(claims) : null;
     }
     
     private Claims extractAllClaims(String token) {
@@ -71,11 +74,12 @@ public class JwtUtil {
     }
     
     public Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        Date expirationDate = extractExpiration(token);
+        return expirationDate == null || expirationDate.before(new Date());
     }
     
     public Boolean validateToken(String token, String username) {
         final String extractedUsername = extractUsername(token);
-        return (extractedUsername.equals(username) && !isTokenExpired(token));
+        return (extractedUsername != null && extractedUsername.equals(username) && !isTokenExpired(token));
     }
 }

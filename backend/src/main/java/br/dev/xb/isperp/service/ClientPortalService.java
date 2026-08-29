@@ -79,7 +79,7 @@ public class ClientPortalService {
                 .toList();
 
         boolean isBlocked = contract != null && contract.getStatus() == Contract.ContractStatus.SUSPENDED;
-        boolean canRequestTrustUnblock = isBlocked && canPerformTrustUnblock(contract.getId());
+        boolean canRequestTrustUnblock = isBlocked && contract != null && canPerformTrustUnblock(contract.getId());
 
         String statusMsg = isBlocked
                 ? "Sua conexão está temporariamente suspensa por pendência financeira."

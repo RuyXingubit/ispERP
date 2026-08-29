@@ -64,8 +64,8 @@ public class PaymentWebhookService {
             if (nfcomDecisionService.shouldIssueNfcom(invoice)) {
                 try {
                     var customerOpt = customerRepository.findById(invoice.getCustomerId());
-                    String customerName = customerOpt.map(br.dev.xb.isperp.entity.Customer::getName).orElse("Cliente");
-                    String customerCpfCnpj = customerOpt.map(br.dev.xb.isperp.entity.Customer::getCpf).orElse("00000000000");
+                    String customerName = customerOpt.map(c -> c.getName()).orElse("Cliente");
+                    String customerCpfCnpj = customerOpt.map(c -> c.getCpf()).orElse("00000000000");
 
                     var nfcomRes = xingubitPayGateway.issueNfcom(
                             txId, customerCpfCnpj, customerName, paidAmount, resolved.config());
