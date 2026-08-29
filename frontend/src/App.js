@@ -15,6 +15,9 @@ import CompanyList from './pages/Companies/CompanyList';
 import SiteSettings from './pages/SiteSettings/SiteSettings';
 import CustomerList from './pages/CustomerList';
 import CustomerForm from './pages/CustomerForm';
+import PlanList from './pages/Plans/PlanList';
+import SaleForm from './pages/Sales/SaleForm';
+import ContractList from './pages/Contracts/ContractList';
 import { setupService } from './services/setupService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -134,6 +137,30 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               !isAuthenticated ? <Navigate to="/login" replace /> : 
               <CustomerForm />
+            } 
+          />
+          <Route 
+            path="/plans" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <PlanList />
+            } 
+          />
+          <Route 
+            path="/sales/new" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <SaleForm />
+            } 
+          />
+          <Route 
+            path="/contracts" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <ContractList />
             } 
           />
           <Route 

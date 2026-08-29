@@ -16,19 +16,18 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   ExpandLess,
   ExpandMore,
-  PersonAdd as PersonAddIcon,
-  Assignment as AssignmentIcon,
-  RoomService as RoomServiceIcon,
-  Inventory as InventoryIcon,
   SupervisorAccount as SupervisorAccountIcon,
   AppRegistration as AppRegistrationIcon,
   Business as BusinessIcon,
   Settings as SettingsIcon,
   Person as PersonIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Speed as SpeedIcon,
+  Description as ContractIcon,
+  Storefront as CommercialIcon,
 } from '@mui/icons-material';
 
 const DRAWER_WIDTH = 280;
@@ -37,36 +36,20 @@ const DRAWER_WIDTH_MOBILE = 260;
 const Sidebar = ({ open, onClose, onToggle }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg'));
   const navigate = useNavigate();
   const [cadastroOpen, setCadastroOpen] = useState(false);
+  const [comercialOpen, setComercialOpen] = useState(true);
 
   const handleCadastroClick = () => {
     setCadastroOpen(!cadastroOpen);
   };
 
-  const handleMenuItemClick = (item) => {
-    console.log(`Navegando para: ${item}`);
-    
-    // Implementar navegação real
-    switch (item) {
-      case 'usuarios':
-        navigate('/dashboard/usuarios');
-        break;
-      case 'empresas':
-        navigate('/dashboard/empresas');
-        break;
-      case 'clientes':
-        navigate('/customers');
-        break;
-      case 'configuracoes':
-        navigate('/dashboard/configuracoes');
-        break;
-      default:
-        console.log(`Rota não implementada: ${item}`);
-    }
-    
-    // Recolher o menu automaticamente após seleção
+  const handleComercialClick = () => {
+    setComercialOpen(!comercialOpen);
+  };
+
+  const handleNavigate = (path) => {
+    navigate(path);
     if (isMobile) {
       onClose();
     }
@@ -74,28 +57,42 @@ const Sidebar = ({ open, onClose, onToggle }) => {
 
   const cadastroItems = [
     {
-      text: 'Cadastro de Usuários',
+      text: 'Usuários do Sistema',
       icon: <SupervisorAccountIcon />,
-      description: 'Usuários do Sistema',
-      action: 'usuarios'
+      path: '/dashboard/usuarios',
     },
     {
-      text: 'Cadastro de Empresas',
+      text: 'Empresas Parceiras',
       icon: <BusinessIcon />,
-      description: 'Empresas Parceiras',
-      action: 'empresas'
+      path: '/dashboard/empresas',
     },
     {
-      text: 'Cadastro de Clientes',
+      text: 'Clientes',
       icon: <PersonIcon />,
-      description: 'Clientes Pessoa Física',
-      action: 'clientes'
+      path: '/customers',
     },
     {
       text: 'Configurações do Site',
       icon: <SettingsIcon />,
-      description: 'Personalização do Site',
-      action: 'configuracoes'
+      path: '/dashboard/configuracoes',
+    },
+  ];
+
+  const comercialItems = [
+    {
+      text: 'Planos de Internet',
+      icon: <SpeedIcon />,
+      path: '/plans',
+    },
+    {
+      text: 'Venda Rápida',
+      icon: <ShoppingCartIcon />,
+      path: '/sales/new',
+    },
+    {
+      text: 'Contratos',
+      icon: <ContractIcon />,
+      path: '/contracts',
     },
   ];
 
@@ -147,90 +144,101 @@ const Sidebar = ({ open, onClose, onToggle }) => {
 
       {/* Menu Items */}
       <List sx={{ flexGrow: 1, py: { xs: 0.5, sm: 1 } }}>
-        {/* Item Cadastro */}
+        {/* Item Comercial & Vendas */}
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={handleComercialClick}
+            sx={{
+              minHeight: 48,
+              px: 2.5,
+              '&:hover': { bgcolor: 'action.hover' },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
+              <CommercialIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Comercial & Vendas"
+              primaryTypographyProps={{ fontSize: '0.95rem', fontWeight: 'bold' }}
+            />
+            {comercialOpen ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+        </ListItem>
+
+        <Collapse in={comercialOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {comercialItems.map((item, index) => (
+              <ListItem key={index} disablePadding>
+                <ListItemButton
+                  onClick={() => handleNavigate(item.path)}
+                  sx={{
+                    pl: 4,
+                    py: 1,
+                    '&:hover': {
+                      bgcolor: 'action.hover',
+                      transform: 'translateX(4px)',
+                      transition: 'all 0.2s',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{ fontSize: '0.875rem' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Collapse>
+
+        <Divider sx={{ my: 1 }} />
+
+        {/* Item Cadastros */}
         <ListItem disablePadding>
           <ListItemButton
             onClick={handleCadastroClick}
             sx={{
-              minHeight: { xs: 44, sm: 48 },
-              px: { xs: 2, sm: 2.5 },
-              py: { xs: 1, sm: 1.5 },
-              '&:hover': {
-                bgcolor: 'action.hover',
-              },
+              minHeight: 48,
+              px: 2.5,
+              '&:hover': { bgcolor: 'action.hover' },
             }}
-            aria-expanded={cadastroOpen}
-            aria-label="Menu Cadastro"
           >
-            <ListItemIcon
-              sx={{
-                minWidth: 0,
-                mr: { xs: 2, sm: 3 },
-                justifyContent: 'center',
-                color: 'primary.main',
-              }}
-            >
-              <AppRegistrationIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
+            <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
+              <AppRegistrationIcon />
             </ListItemIcon>
             <ListItemText
-              primary="Cadastro"
-              primaryTypographyProps={{
-                fontSize: { xs: '0.875rem', sm: '1rem' },
-                fontWeight: 'medium',
-              }}
+              primary="Cadastros Gerais"
+              primaryTypographyProps={{ fontSize: '0.95rem', fontWeight: 'medium' }}
             />
-            {cadastroOpen ? 
-              <ExpandLess sx={{ fontSize: { xs: 20, sm: 24 } }} /> : 
-              <ExpandMore sx={{ fontSize: { xs: 20, sm: 24 } }} />
-            }
+            {cadastroOpen ? <ExpandLess /> : <ExpandMore />}
           </ListItemButton>
         </ListItem>
 
-        {/* Submenu Cadastro */}
         <Collapse in={cadastroOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             {cadastroItems.map((item, index) => (
               <ListItem key={index} disablePadding>
                 <ListItemButton
-                  onClick={() => handleMenuItemClick(item.action)}
+                  onClick={() => handleNavigate(item.path)}
                   sx={{
-                    pl: { xs: 3, sm: 4 },
-                    pr: { xs: 1.5, sm: 2 },
-                    py: { xs: 0.75, sm: 1 },
-                    minHeight: { xs: 40, sm: 44 },
+                    pl: 4,
+                    py: 1,
                     '&:hover': {
                       bgcolor: 'action.hover',
                       transform: 'translateX(4px)',
-                      transition: 'all 0.2s ease-in-out',
+                      transition: 'all 0.2s',
                     },
-                    transition: 'all 0.2s ease-in-out',
                   }}
-                  aria-label={item.text}
                 >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: { xs: 1.5, sm: 2 },
-                      justifyContent: 'center',
-                      color: 'text.secondary',
-                    }}
-                  >
-                    {React.cloneElement(item.icon, { 
-                      sx: { fontSize: { xs: 18, sm: 20 } } 
-                    })}
+                  <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
+                    {item.icon}
                   </ListItemIcon>
                   <ListItemText
                     primary={item.text}
-                    secondary={!isMobile ? item.description : undefined}
-                    primaryTypographyProps={{
-                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                      fontWeight: 'regular',
-                      lineHeight: { xs: 1.2, sm: 1.4 },
-                    }}
-                    secondaryTypographyProps={{
-                      fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                      display: { xs: 'none', sm: 'block' },
-                    }}
+                    primaryTypographyProps={{ fontSize: '0.875rem' }}
                   />
                 </ListItemButton>
               </ListItem>
@@ -239,10 +247,10 @@ const Sidebar = ({ open, onClose, onToggle }) => {
         </Collapse>
       </List>
 
-      {/* Footer do Sidebar */}
+      {/* Footer */}
       <Box
         sx={{
-          p: { xs: 1.5, sm: 2 },
+          p: 1.5,
           borderTop: 1,
           borderColor: 'divider',
           bgcolor: 'grey.50',
@@ -252,12 +260,9 @@ const Sidebar = ({ open, onClose, onToggle }) => {
           variant="caption" 
           color="text.secondary" 
           align="center"
-          sx={{
-            fontSize: { xs: '0.7rem', sm: '0.75rem' },
-            display: 'block',
-          }}
+          sx={{ display: 'block' }}
         >
-          © 2025 ISP ERP System
+          © 2026 ISP ERP System
         </Typography>
       </Box>
     </Box>
@@ -282,7 +287,7 @@ const Sidebar = ({ open, onClose, onToggle }) => {
         },
       }}
       ModalProps={{
-        keepMounted: true, // Melhor performance em mobile
+        keepMounted: true,
       }}
     >
       {drawerContent}

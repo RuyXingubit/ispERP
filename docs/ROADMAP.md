@@ -32,13 +32,14 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 3: Vendas, Clientes, Contratos & Planos
+## 🎯 Milestone 3: Vendas, Clientes, Contratos & Planos (Concluído)
 > **Objetivo:** Implementar o fluxo de contratação e ciclo de vida do cliente.
 
-- [ ] Módulo de Planos (Download, Upload, Preços, SVA).
-- [ ] Módulo de Vendas (Endpoint para submissão de vendas com emissão de `SaleSubmittedEvent`).
-- [ ] Consumidor de Vendas: Cadastro/atualização de `Customer` e criação do `Contract` (Status `PENDING_INSTALLATION`).
-- [ ] Telas no Frontend: Formulário de Venda Rápida e Gestão de Contratos.
+- [x] Módulo de Planos (Download, Upload, Preços, SVA) e endpoints REST.
+- [x] Módulo de Vendas (Endpoint `/sales` para submissão com validação de CPF e emissão de `SaleSubmittedEvent`).
+- [x] Consumidor de Vendas: Cadastro/atualização de `Customer` e criação do `Contract` (Status `PENDING_INSTALLATION`) com disparo de `ContractCreatedEvent`.
+- [x] Telas no Frontend (Vite 6 / React 19): Catálogo de Planos, Formulário de Venda Rápida e Gestão de Contratos.
+- [x] Suíte de testes unitários automatizados cobrindo PlanService, SaleService, ContractService e SaleEventConsumer (100% Green).
 
 ---
 
