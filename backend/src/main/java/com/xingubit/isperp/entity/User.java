@@ -1,15 +1,17 @@
 package com.xingubit.isperp.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-
+import com.xingubit.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -20,8 +22,8 @@ import java.time.LocalDateTime;
 public class User {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", nullable = false, updatable = false)
+    private UUID id;
     
     @NotBlank(message = "Nome é obrigatório")
     @Size(max = 255, message = "Nome deve ter no máximo 255 caracteres")
@@ -41,9 +43,11 @@ public class User {
     
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
+    @Builder.Default
     private UserRole role = UserRole.USER;
     
     @Column(name = "active", nullable = false)
+    @Builder.Default
     private Boolean active = true;
     
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -54,13 +58,16 @@ public class User {
     
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        if (this.id == null) {
+            this.id = UuidCreatorUtils.generateUuidV7();
+        }
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
     
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
     
     public enum UserRole {

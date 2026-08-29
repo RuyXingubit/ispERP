@@ -1,14 +1,16 @@
 package com.xingubit.isperp.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-
+import com.xingubit.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "site_settings")
@@ -19,8 +21,8 @@ import java.time.LocalDateTime;
 public class SiteSettings {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", nullable = false, updatable = false)
+    private UUID id;
     
     @NotBlank(message = "Título do site é obrigatório")
     @Size(max = 255, message = "Título do site deve ter no máximo 255 caracteres")
@@ -33,10 +35,12 @@ public class SiteSettings {
     
     @Size(max = 7, message = "Cor primária deve ter no máximo 7 caracteres")
     @Column(name = "primary_color")
+    @Builder.Default
     private String primaryColor = "#1976d2";
     
     @Size(max = 7, message = "Cor secundária deve ter no máximo 7 caracteres")
     @Column(name = "secondary_color")
+    @Builder.Default
     private String secondaryColor = "#dc004e";
     
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -47,12 +51,15 @@ public class SiteSettings {
     
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        if (this.id == null) {
+            this.id = UuidCreatorUtils.generateUuidV7();
+        }
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
     
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

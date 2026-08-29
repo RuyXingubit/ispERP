@@ -26,13 +26,9 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         
-        log.info("Usuário encontrado: {}, senha no banco: {}", user.getEmail(), user.getPassword());
-        log.info("Senha fornecida: {}", request.getPassword());
-        
         boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
-        log.info("Senha confere: {}", passwordMatches);
-        
         if (!passwordMatches) {
+            log.warn("Falha de autenticação para usuário: {}", request.getUsername());
             throw new RuntimeException("Senha inválida");
         }
         

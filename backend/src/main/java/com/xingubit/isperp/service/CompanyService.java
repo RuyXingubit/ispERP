@@ -1,4 +1,4 @@
-package com.isperp.service;
+package com.xingubit.isperp.service;
 
 import com.xingubit.isperp.entity.Company;
 import com.xingubit.isperp.repository.CompanyRepository;
@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CompanyService {
@@ -18,15 +19,19 @@ public class CompanyService {
         return companyRepository.findAll();
     }
 
-    public Optional<Company> getCompanyById(Long id) {
+    public Optional<Company> getCompanyById(UUID id) {
         return companyRepository.findById(id);
+    }
+
+    public Optional<Company> getPrimaryCompany() {
+        return companyRepository.findFirstByOrderByCreatedAtAsc();
     }
 
     public Company createCompany(Company company) {
         return companyRepository.save(company);
     }
 
-    public Company updateCompany(Long id, Company companyDetails) {
+    public Company updateCompany(UUID id, Company companyDetails) {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Empresa não encontrada"));
 
@@ -36,11 +41,12 @@ public class CompanyService {
         company.setPhone(companyDetails.getPhone());
         company.setAddress(companyDetails.getAddress());
         company.setWebsite(companyDetails.getWebsite());
+        company.setActive(companyDetails.getActive());
 
         return companyRepository.save(company);
     }
 
-    public void deleteCompany(Long id) {
+    public void deleteCompany(UUID id) {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Empresa não encontrada"));
         

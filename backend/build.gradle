@@ -29,9 +29,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     
     // Database
-    runtimeOnly 'com.mysql:mysql-connector-j'
+    runtimeOnly 'org.postgresql:postgresql:42.7.2'
     implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-mysql'
+    
+    // UUID v7 Generator (RFC 9562)
+    implementation 'com.github.f4b6a3:uuid-creator:6.0.0'
     
     // JWT for authentication
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -49,7 +51,7 @@ dependencies {
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:mysql'
+    testImplementation 'org.testcontainers:postgresql'
 }
 
 tasks.named('test') {
@@ -58,8 +60,8 @@ tasks.named('test') {
 
 // Flyway configuration
 flyway {
-    url = 'jdbc:mysql://localhost:3306/isperp'
-    user = 'root'
-    password = 'root'
+    url = 'jdbc:postgresql://localhost:5432/isperp'
+    user = 'postgres'
+    password = 'password'
     locations = ['classpath:db/migration']
 }

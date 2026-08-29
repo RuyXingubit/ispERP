@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CustomerService {
@@ -23,7 +24,7 @@ public class CustomerService {
         return customerRepository.findByActiveTrue();
     }
 
-    public Optional<Customer> getCustomerById(Long id) {
+    public Optional<Customer> getCustomerById(UUID id) {
         return customerRepository.findById(id);
     }
 
@@ -66,7 +67,7 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    public Customer updateCustomer(Long id, Customer customerDetails) {
+    public Customer updateCustomer(UUID id, Customer customerDetails) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
@@ -103,14 +104,14 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    public void deleteCustomer(Long id) {
+    public void deleteCustomer(UUID id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
         
         customerRepository.delete(customer);
     }
 
-    public void deactivateCustomer(Long id) {
+    public void deactivateCustomer(UUID id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
         
@@ -118,7 +119,7 @@ public class CustomerService {
         customerRepository.save(customer);
     }
 
-    public void activateCustomer(Long id) {
+    public void activateCustomer(UUID id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
         

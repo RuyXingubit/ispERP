@@ -1,4 +1,4 @@
-package com.isperp.service;
+package com.xingubit.isperp.service;
 
 import com.xingubit.isperp.entity.User;
 import com.xingubit.isperp.repository.UserRepository;
@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -22,7 +23,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long id) {
+    public Optional<User> getUserById(UUID id) {
         return userRepository.findById(id);
     }
 
@@ -31,25 +32,21 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        // Verificar se o email já existe
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("Email já existe");
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email já cadastrado");
         }
-
-        // Criptografar a senha
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
         
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
-    public User updateUser(Long id, User userDetails) {
+    public User updateUser(UUID id, User userDetails) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        // Verificar se o email já existe (exceto para o próprio usuário)
-        Optional<User> existingUserByEmail = userRepository.findByEmail(userDetails.getEmail());
-        if (existingUserByEmail.isPresent() && !existingUserByEmail.get().getId().equals(id)) {
-            throw new RuntimeException("Email já existe");
+        if (!user.getEmail().equals(userDetails.getEmail()) && 
+            userRepository.existsByEmail(userDetails.getEmail())) {
+            throw new RuntimeException("Email já cadastrado");
         }
 
         user.setName(userDetails.getName());
@@ -57,7 +54,6 @@ public class UserService {
         user.setRole(userDetails.getRole());
         user.setActive(userDetails.getActive());
 
-        // Só atualizar a senha se uma nova foi fornecida
         if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
         }
@@ -65,7 +61,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void deleteUser(Long id) {
+    public void deleteUser(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         

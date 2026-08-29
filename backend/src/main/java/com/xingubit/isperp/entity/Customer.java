@@ -1,17 +1,19 @@
 package com.xingubit.isperp.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-
+import com.xingubit.isperp.util.UuidCreatorUtils;
+import com.xingubit.isperp.validation.ValidCpf;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
-import com.xingubit.isperp.validation.ValidCpf;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "customers")
@@ -22,8 +24,8 @@ import java.time.LocalDateTime;
 public class Customer {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", nullable = false, updatable = false)
+    private UUID id;
     
     @NotBlank(message = "Nome é obrigatório")
     @Size(max = 255, message = "Nome deve ter no máximo 255 caracteres")
@@ -62,6 +64,7 @@ public class Customer {
     private String zipCode;
     
     @Column(name = "active", nullable = false)
+    @Builder.Default
     private Boolean active = true;
     
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -72,12 +75,15 @@ public class Customer {
     
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        if (this.id == null) {
+            this.id = UuidCreatorUtils.generateUuidV7();
+        }
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
     
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

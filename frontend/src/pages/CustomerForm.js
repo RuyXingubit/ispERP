@@ -129,7 +129,7 @@ const CustomerForm = () => {
   const fetchCustomer = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/api/customers/${id}`);
+      const response = await api.get(`/customers/${id}`);
       setFormData(response.data);
       setError('');
     } catch (error) {
@@ -224,10 +224,10 @@ const CustomerForm = () => {
       };
 
       if (isEditing) {
-        await api.put(`/api/customers/${id}`, dataToSend);
+        await api.put(`/customers/${id}`, dataToSend);
         setSuccess('Cliente atualizado com sucesso!');
       } else {
-        await api.post('/api/customers', dataToSend);
+        await api.post('/customers', dataToSend);
         setSuccess('Cliente cadastrado com sucesso!');
       }
 

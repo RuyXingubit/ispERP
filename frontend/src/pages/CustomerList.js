@@ -109,7 +109,7 @@ const CustomerList = () => {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const endpoint = showInactive ? '/api/customers' : '/api/customers/active';
+      const endpoint = showInactive ? '/customers' : '/customers/active';
       const response = await api.get(endpoint);
       setCustomers(response.data);
       setError('');
@@ -130,7 +130,7 @@ const CustomerList = () => {
 
     try {
       setLoading(true);
-      const response = await api.get(`/api/customers/search/${searchType}`, {
+      const response = await api.get(`/customers/search/${searchType}`, {
         params: { [searchType]: searchTerm }
       });
       setCustomers(response.data);
@@ -158,7 +158,7 @@ const CustomerList = () => {
   const handleDeleteConfirm = async () => {
     const { customer } = deleteDialog;
     try {
-      await api.delete(`/api/customers/${customer.id}`);
+      await api.delete(`/customers/${customer.id}`);
       toast.success('Cliente excluído com sucesso!');
       fetchCustomers();
     } catch (error) {
@@ -176,7 +176,7 @@ const CustomerList = () => {
   const handleToggleActive = async (id, isActive) => {
     try {
       const endpoint = isActive ? 'deactivate' : 'activate';
-      await api.patch(`/api/customers/${id}/${endpoint}`);
+      await api.patch(`/customers/${id}/${endpoint}`);
       toast.success(`Cliente ${isActive ? 'desativado' : 'ativado'} com sucesso!`);
       fetchCustomers();
     } catch (error) {
