@@ -1,42 +1,10 @@
-# PDR.md (Product Development Roadmap)
+# PDR & Documentação do ispERP
 
-## Visão do Produto
-ERP completo para provedores de internet com:
-- Site institucional customizável
-- Gestão de clientes e serviços
-- Controle financeiro
-- Suporte técnico
+A documentação completa e atualizada do projeto foi migrada para a pasta [`docs/`](file:///Users/ruy/Code/ispERP/docs/):
 
-## Fase 1: Configuração Inicial
-- [ ] Tela de Setup inicial
-- [ ] Cadastro do primeiro admin
-- [ ] CRUD de informações da empresa
-- [ ] Customização do site institucional (logo, cores, conteúdo)
-
-## Arquitetura
-- Backend: Java Spring Boot
-- Frontend: React.js
-- Banco: MySQL com Flyway para migrações
-- Docker para todos os ambientes
-
-## Princípios de Desenvolvimento
-1. Código limpo e legível
-2. Orientação a objetos bem definida
-3. Facilidade de adição de novas funcionalidades
-4. Documentação completa
-5. Testes automatizados
-
-## Próximas Fases (a serem detalhadas)
-- Módulo de clientes
-- Gestão de planos e serviços
-- Sistema de cobrança
-- Suporte técnico
-- Relatórios gerenciais
-
-## Convenções
-- Padrão REST para APIs
-- Nomenclatura em inglês para código
-- Documentação em português
-- Commits seguindo Conventional Commits
-
-Atualize este documento conforme o desenvolvimento avança!
+- 📄 [PRD Completo (Product Requirements Document)](file:///Users/ruy/Code/ispERP/docs/PRD.md)
+- 🏗️ [Arquitetura e Decisões Técnicas (ADR)](file:///Users/ruy/Code/ispERP/docs/ARCHITECTURE.md)
+- ⚡ [Fluxo Orientado a Eventos (Event-Driven Workflow)](file:///Users/ruy/Code/ispERP/docs/EVENTS_WORKFLOW.md)
+- 🗺️ [Roadmap de Entregas & Milestones](file:///Users/ruy/Code/ispERP/docs/ROADMAP.md)
+- 📋 [Plano de Implementação - Milestone 1](file:///Users/ruy/Code/ispERP/docs/IMPLEMENTATION_PLAN.md)
+- 📜 [PDR Histórico Original](file:///Users/ruy/Code/ispERP/docs/PDR_LEGACY.md)
