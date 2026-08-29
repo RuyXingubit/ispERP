@@ -1,8 +1,7 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.0'
-    id 'io.spring.dependency-management' version '1.1.4'
-    id 'org.flywaydb.flyway' version '9.22.3'
+    id 'org.springframework.boot' version '3.4.3'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'br.dev.xb'
@@ -19,8 +18,6 @@ repositories {
     mavenCentral()
 }
 
-
-
 dependencies {
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -29,21 +26,22 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     
     // Database
-    runtimeOnly 'org.postgresql:postgresql:42.7.2'
+    runtimeOnly 'org.postgresql:postgresql:42.7.5'
     implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
     
     // UUID v7 Generator (RFC 9562)
     implementation 'com.github.f4b6a3:uuid-creator:6.0.0'
     
     // JWT for authentication
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
     
     // Utilities
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    implementation 'org.modelmapper:modelmapper:3.1.1'
+    implementation 'org.modelmapper:modelmapper:3.2.2'
     
     // Development
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -56,12 +54,4 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-// Flyway configuration
-flyway {
-    url = 'jdbc:postgresql://localhost:5432/isperp'
-    user = 'postgres'
-    password = 'password'
-    locations = ['classpath:db/migration']
 }
