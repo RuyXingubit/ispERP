@@ -21,6 +21,7 @@ import ContractList from './pages/Contracts/ContractList';
 import WorkOrderList from './pages/WorkOrders/WorkOrderList';
 import InvoiceList from './pages/Financial/InvoiceList';
 import GatewayConfig from './pages/Financial/GatewayConfig';
+import FiscalDashboard from './pages/Financial/FiscalDashboard';
 import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import ClientPortal from './pages/Portal/ClientPortal';
@@ -208,6 +209,15 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
                 <GatewayConfig />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/fiscal" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'ADMINISTRATIVE_ASSISTANT']}>
+                <FiscalDashboard />
               </ProtectedRoute>
             } 
           />

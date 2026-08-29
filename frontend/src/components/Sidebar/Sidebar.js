@@ -91,6 +91,11 @@ const Sidebar = ({ open, onClose, onToggle }) => {
       path: '/invoices',
     },
     {
+      text: 'Módulo Fiscal & NFCom',
+      icon: <InvoiceIcon />,
+      path: '/fiscal',
+    },
+    {
       text: 'Gateways de Pagamento',
       icon: <GatewayIcon />,
       path: '/payment-gateways',

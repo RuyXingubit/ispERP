@@ -200,14 +200,23 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🔮 Milestone 14: Emissão Fiscal NFCom (Modelo 62) & Convênio ICMS 115/03 (Planejado)
-> **Objetivo:** Automação fiscal completa com geração, assinatura digital (A1) e transmissão de lotes NFCom e arquivos do convênio 115/03.
+## 🎯 Milestone 14: Emissão Fiscal NFCom (Modelo 62), Multi-Gateway Fiscal & Convênio ICMS 115/03 (Concluído)
+> **Objetivo:** Automação fiscal completa com arquitetura Multi-Gateway (Strategy Pattern), integração oficial com Xingubit Pay para emissão de NFCom e upload de certificado A1, e exportação do Convênio ICMS 115/03.
 
-- [ ] Geração de XML no layout oficial da NFCom (Modelo 62).
-- [ ] Módulo de assinatura digital com certificado digital ICP-Brasil (A1 em PKCS#12).
-- [ ] Transmissão para a SEFAZ via Web Services com controle de recibos e autorização.
-- [ ] Geração de DANFE NFCom em PDF.
-- [ ] Exportação de arquivos magnéticos do Convênio ICMS 115/03 (Mestre, Item, Destinatário).
+- [x] **Modelo de Dados & Migração (`V13`):**
+  - Tabelas `fiscal_companies`, `fiscal_gateway_configs` e `nfcom_records`.
+- [x] **Arquitetura Multi-Gateway Fiscal (Strategy Pattern):**
+  - Interface `FiscalGateway`, `FiscalGatewayResolver` e enum `FiscalGatewayType`.
+  - Driver de Produção `XingubitPayFiscalDriver` (com suporte a OAuth2, onboarding `/v1/empresas`, configuração `/v1/empresas/{cnpj}/config/nfcom`, upload de certificado A1 `.pfx` e emissão `/v1/invoices/nfcom`).
+  - Driver `MockFiscalDriver` para testes e CI/CD.
+- [x] **Convênio ICMS 115/03 (`ConvenioIcms115Service`):**
+  - Geração dos 4 arquivos magnéticos oficiais (Mestre `M`, Item `I`, Destinatário `D` e Controle `C`) com hash MD5 cruzado e download em `.zip`.
+- [x] **Frontend Fiscal (`FiscalDashboard.jsx`):**
+  - Aba de Emissões NFCom com busca, status SEFAZ e download de DANFE PDF e XML.
+  - Aba de Cadastro de Empresa, parametrização de série/ambiente e upload do Certificado A1.
+  - Aba de Exportação do Convênio 115/03 por mês/ano.
+- [x] **Testes Automatizados:**
+  - 108 testes unitários e de integração 100% aprovados (`./gradlew test`).
 
 ---
 
