@@ -33,9 +33,9 @@ public class JwtUtil {
     
     private String createToken(Map<String, Object> claims, String subject) {
         io.jsonwebtoken.JwtBuilder builder = Jwts.builder()
-                .subject(subject)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey());
         if (claims != null) {
             for (Map.Entry<String, Object> entry : claims.entrySet()) {
@@ -66,11 +66,11 @@ public class JwtUtil {
     }
     
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
                 .build()
-                .parseSignedClaims(token)
-                .getPayload();
+                .parseClaimsJws(token)
+                .getBody();
     }
     
     public Boolean isTokenExpired(String token) {
