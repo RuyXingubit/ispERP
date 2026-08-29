@@ -22,7 +22,6 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class InventoryStockConsumer {
 
     private static final String CONSUMER_NAME = "InventoryStockConsumer";

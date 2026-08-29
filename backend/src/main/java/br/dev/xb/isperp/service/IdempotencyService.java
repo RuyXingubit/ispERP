@@ -15,7 +15,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class IdempotencyService {
 
     private final ProcessedEventRepository processedEventRepository;

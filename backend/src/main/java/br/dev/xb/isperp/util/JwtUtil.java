@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@SuppressWarnings("null")
 public class JwtUtil {
     
     @Value("${JWT_SECRET:myVerySecureSecretKeyThatIsAtLeast256BitsLongForJWTSecurityAndMustBeAtLeast32CharactersLongToMeetTheRequirements}")
@@ -33,13 +32,15 @@ public class JwtUtil {
     }
     
     private String createToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder()
-                .claims(Jwts.claims().add(claims).build())
+        var builder = Jwts.builder()
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey())
-                .compact();
+                .signWith(getSigningKey());
+        if (claims != null) {
+            claims.forEach(builder::claim);
+        }
+        return builder.compact();
     }
     
     public String extractUsername(String token) {
@@ -60,7 +61,8 @@ public class JwtUtil {
     }
     
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
+        io.jsonwebtoken.JwtParserBuilder parserBuilder = Jwts.parser();
+        return parserBuilder
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)

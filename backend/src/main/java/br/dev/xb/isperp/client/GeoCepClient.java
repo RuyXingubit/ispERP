@@ -17,7 +17,6 @@ import java.util.Map;
 
 @Component
 @Slf4j
-@SuppressWarnings("null")
 public class GeoCepClient {
 
     private final RestClient restClient;

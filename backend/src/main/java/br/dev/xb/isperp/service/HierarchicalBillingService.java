@@ -27,7 +27,6 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class HierarchicalBillingService {
 
     private final ContractRepository contractRepository;

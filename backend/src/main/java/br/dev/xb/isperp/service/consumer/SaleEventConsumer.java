@@ -25,7 +25,6 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class SaleEventConsumer {
 
     private static final String CONSUMER_NAME = "SaleToCustomerAndContractConsumer";

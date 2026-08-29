@@ -17,7 +17,6 @@ import java.util.UUID;
 @RequestMapping("/plans")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class PlanController {
 
     private final PlanService planService;

@@ -31,7 +31,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class NetworkProvisioningService {
 
     private final OnuProvisioningRepository onuRepository;

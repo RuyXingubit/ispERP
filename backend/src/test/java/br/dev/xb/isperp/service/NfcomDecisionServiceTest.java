@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("null")
 class NfcomDecisionServiceTest {
 
     @Mock

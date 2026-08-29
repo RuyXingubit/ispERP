@@ -19,7 +19,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
-@SuppressWarnings("null")
 public class GeoCepController {
 
     private final GeoCepClient geoCepClient;

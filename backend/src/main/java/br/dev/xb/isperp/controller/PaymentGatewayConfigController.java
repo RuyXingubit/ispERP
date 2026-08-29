@@ -16,7 +16,6 @@ import java.util.UUID;
 @RequestMapping("/payment-gateways")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class PaymentGatewayConfigController {
 
     private final PaymentGatewayConfigRepository configRepository;

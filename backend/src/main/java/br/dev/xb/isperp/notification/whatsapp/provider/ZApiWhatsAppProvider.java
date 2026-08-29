@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 
 @Component
 @Slf4j
-@SuppressWarnings("null")
 public class ZApiWhatsAppProvider implements WhatsAppProvider {
 
     @Override

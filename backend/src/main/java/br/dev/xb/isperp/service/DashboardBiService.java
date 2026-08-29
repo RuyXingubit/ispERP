@@ -21,7 +21,6 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class DashboardBiService {
 
     private final ContractRepository contractRepository;

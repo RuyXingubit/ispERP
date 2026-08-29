@@ -22,7 +22,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
-@SuppressWarnings("null")
 public class ClientPortalController {
 
     private final ClientPortalService clientPortalService;

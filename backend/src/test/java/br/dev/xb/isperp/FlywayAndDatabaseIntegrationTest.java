@@ -15,7 +15,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings("null")
 class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired

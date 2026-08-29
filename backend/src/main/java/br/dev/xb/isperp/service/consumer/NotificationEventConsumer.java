@@ -16,7 +16,6 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class NotificationEventConsumer {
 
     private static final String CONSUMER_NAME = "MultiChannelNotificationConsumer";

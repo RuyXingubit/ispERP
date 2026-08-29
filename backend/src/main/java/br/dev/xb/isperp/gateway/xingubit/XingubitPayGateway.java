@@ -19,7 +19,6 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-@SuppressWarnings("null")
 public class XingubitPayGateway implements PaymentGateway {
 
     @Override

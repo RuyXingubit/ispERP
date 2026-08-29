@@ -23,7 +23,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class TrustUnblockPolicyService {
 
     private final TrustUnblockRepository trustUnblockRepository;

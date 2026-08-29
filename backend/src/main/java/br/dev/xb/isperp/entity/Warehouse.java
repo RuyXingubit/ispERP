@@ -17,7 +17,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@SuppressWarnings("null")
 public class Warehouse {
 
     @Id

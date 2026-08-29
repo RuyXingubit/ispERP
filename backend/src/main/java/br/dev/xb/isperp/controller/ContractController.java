@@ -15,7 +15,6 @@ import java.util.UUID;
 @RequestMapping("/contracts")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class ContractController {
 
     private final ContractService contractService;

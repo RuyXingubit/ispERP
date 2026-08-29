@@ -19,7 +19,6 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class WorkOrderEventConsumer {
 
     private static final String CONSUMER_NAME_CONTRACT = "WorkOrderCreationConsumer";

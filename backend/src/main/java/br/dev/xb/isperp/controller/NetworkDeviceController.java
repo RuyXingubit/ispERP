@@ -16,7 +16,6 @@ import java.util.UUID;
 @RequestMapping("/network-devices")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class NetworkDeviceController {
 
     private final NetworkDeviceRepository deviceRepository;

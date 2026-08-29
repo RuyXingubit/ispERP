@@ -15,7 +15,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings("null")
 class XingubitPayGatewayTest {
 
     private XingubitPayGateway gateway;

@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class ContractService {
 
     private final ContractRepository contractRepository;

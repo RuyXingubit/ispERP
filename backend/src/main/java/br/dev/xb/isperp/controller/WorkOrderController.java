@@ -18,7 +18,6 @@ import java.util.UUID;
 @RequestMapping("/work-orders")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class WorkOrderController {
 
     private final WorkOrderService workOrderService;

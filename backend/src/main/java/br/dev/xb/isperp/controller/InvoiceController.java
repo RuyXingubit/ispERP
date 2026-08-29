@@ -22,7 +22,6 @@ import java.util.UUID;
 @RequestMapping("/invoices")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class InvoiceController {
 
     private final InvoiceService invoiceService;

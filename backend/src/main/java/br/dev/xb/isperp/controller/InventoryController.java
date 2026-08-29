@@ -12,7 +12,6 @@ import java.util.List;
 @RequestMapping("/inventory")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class InventoryController {
 
     private final InventoryService inventoryService;

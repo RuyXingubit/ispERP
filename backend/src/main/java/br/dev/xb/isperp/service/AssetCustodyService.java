@@ -20,7 +20,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class AssetCustodyService {
 
     private final SerializedAssetRepository assetRepository;

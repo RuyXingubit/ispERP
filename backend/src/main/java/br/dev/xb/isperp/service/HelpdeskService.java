@@ -25,7 +25,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class HelpdeskService {
 
     private final HelpdeskTicketRepository ticketRepository;

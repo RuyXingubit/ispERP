@@ -16,7 +16,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
 public class InventoryService {
 
     private final InventoryItemRepository inventoryItemRepository;
