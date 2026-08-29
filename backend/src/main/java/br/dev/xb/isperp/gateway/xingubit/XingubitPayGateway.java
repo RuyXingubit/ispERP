@@ -6,7 +6,6 @@ import br.dev.xb.isperp.gateway.PaymentGatewayType;
 import br.dev.xb.isperp.gateway.dto.CreateChargeRequest;
 import br.dev.xb.isperp.gateway.dto.CreateChargeResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
@@ -27,7 +26,7 @@ public class XingubitPayGateway implements PaymentGateway {
     }
 
     @Override
-    public CreateChargeResponse createCharge(@NonNull CreateChargeRequest request, @NonNull PaymentGatewayConfig config) {
+    public CreateChargeResponse createCharge(CreateChargeRequest request, PaymentGatewayConfig config) {
         log.info("XingubitPay: Gerando cobrança Pix COB/COBV para cliente {} no valor de R$ {}",
                 request.getCustomerName(), request.getAmount());
 
@@ -52,7 +51,7 @@ public class XingubitPayGateway implements PaymentGateway {
     }
 
     @Override
-    public String processWebhook(@NonNull Map<String, Object> payload, String signature, @NonNull PaymentGatewayConfig config) {
+    public String processWebhook(Map<String, Object> payload, String signature, PaymentGatewayConfig config) {
         log.info("XingubitPay: Processando webhook de notificação de pagamento: {}", payload);
 
         // Validação de assinatura criptográfica HMAC-SHA256 se fornecida
@@ -75,7 +74,7 @@ public class XingubitPayGateway implements PaymentGateway {
     }
 
     @Override
-    public boolean cancelCharge(@NonNull String externalTransactionId, @NonNull PaymentGatewayConfig config) {
+    public boolean cancelCharge(String externalTransactionId, PaymentGatewayConfig config) {
         log.info("XingubitPay: Cancelando cobrança txId={}", externalTransactionId);
         return true;
     }

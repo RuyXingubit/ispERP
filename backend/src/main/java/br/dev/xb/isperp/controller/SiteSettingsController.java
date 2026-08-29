@@ -5,7 +5,6 @@ import br.dev.xb.isperp.service.SiteSettingsService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -26,7 +25,7 @@ public class SiteSettingsController {
     }
 
     @PutMapping
-    public ResponseEntity<SiteSettings> updateSiteSettings(@Valid @NonNull @RequestBody SiteSettings siteSettings) {
+    public ResponseEntity<SiteSettings> updateSiteSettings(@Valid @RequestBody SiteSettings siteSettings) {
         try {
             SiteSettings updated = siteSettingsService.updateSiteSettings(siteSettings);
             return ResponseEntity.ok(updated);

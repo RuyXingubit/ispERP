@@ -5,7 +5,6 @@ import br.dev.xb.isperp.repository.PaymentGatewayConfigRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,14 +25,14 @@ public class PaymentGatewayConfigController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentGatewayConfig> getConfigById(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<PaymentGatewayConfig> getConfigById(@PathVariable UUID id) {
         Optional<PaymentGatewayConfig> config = configRepository.findById(id);
         return config.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<PaymentGatewayConfig> saveConfig(@Valid @NonNull @RequestBody PaymentGatewayConfig config) {
+    public ResponseEntity<PaymentGatewayConfig> saveConfig(@Valid @RequestBody PaymentGatewayConfig config) {
         PaymentGatewayConfig saved = configRepository.save(config);
         return ResponseEntity.ok(saved);
     }

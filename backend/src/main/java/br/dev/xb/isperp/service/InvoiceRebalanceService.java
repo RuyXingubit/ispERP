@@ -8,7 +8,6 @@ import br.dev.xb.isperp.repository.InvoiceRepository;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +31,7 @@ public class InvoiceRebalanceService {
      * Verifica se o pagamento recebido foi feito fora de ordem (pagou fatura futura com fatura anterior aberta).
      */
     @Transactional
-    public boolean checkAndHandleOutOfOrderPayment(@NonNull Invoice paidInvoice) {
+    public boolean checkAndHandleOutOfOrderPayment(Invoice paidInvoice) {
         if (paidInvoice.getStatus() != Invoice.InvoiceStatus.PAID) {
             return false;
         }
@@ -86,7 +85,7 @@ public class InvoiceRebalanceService {
      * - Grava os avisos fixos explicativos em ambas as faturas para a Central do Assinante.
      */
     @Transactional
-    public void executeCrossCreditRebalance(@NonNull UUID futurePaidInvoiceId, @NonNull UUID overdueUnpaidInvoiceId) {
+    public void executeCrossCreditRebalance(UUID futurePaidInvoiceId, UUID overdueUnpaidInvoiceId) {
         Invoice futureInvoice = invoiceRepository.findById(futurePaidInvoiceId)
                 .orElseThrow(() -> new RuntimeException("Fatura futura não encontrada"));
         Invoice overdueInvoice = invoiceRepository.findById(overdueUnpaidInvoiceId)

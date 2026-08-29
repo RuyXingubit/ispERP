@@ -4,7 +4,6 @@ import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.service.ContractService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,26 +24,26 @@ public class ContractController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Contract> getContractById(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<Contract> getContractById(@PathVariable UUID id) {
         Optional<Contract> contract = contractService.getContractById(id);
         return contract.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<Contract>> getContractsByCustomerId(@PathVariable @NonNull UUID customerId) {
+    public ResponseEntity<List<Contract>> getContractsByCustomerId(@PathVariable UUID customerId) {
         return ResponseEntity.ok(contractService.getContractsByCustomerId(customerId));
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Contract>> getContractsByStatus(@PathVariable @NonNull Contract.ContractStatus status) {
+    public ResponseEntity<List<Contract>> getContractsByStatus(@PathVariable Contract.ContractStatus status) {
         return ResponseEntity.ok(contractService.getContractsByStatus(status));
     }
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<?> updateContractStatus(
-            @PathVariable @NonNull UUID id,
-            @RequestParam @NonNull Contract.ContractStatus status) {
+            @PathVariable UUID id,
+            @RequestParam Contract.ContractStatus status) {
         try {
             Contract updated = contractService.updateStatus(id, status);
             return ResponseEntity.ok(updated);

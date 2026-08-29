@@ -10,7 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +41,7 @@ public class TrustUnblockPolicyService {
      * Solicitação de Desbloqueio Temporário pelo Bot do WhatsApp (Autoatendimento).
      */
     @Transactional
-    public UnblockEvaluationResult requestBotAutoUnblock(@NonNull UUID contractId) {
+    public UnblockEvaluationResult requestBotAutoUnblock(UUID contractId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new RuntimeException("Contrato não encontrado"));
 
@@ -103,7 +102,7 @@ public class TrustUnblockPolicyService {
      * Solicitação de Desbloqueio Temporário pelo Atendente de Suporte no ERP (Exclusivo 2ª Tentativa).
      */
     @Transactional
-    public UnblockEvaluationResult requestAttendantManualUnblock(@NonNull UUID contractId, UUID attendantUserId, String reason) {
+    public UnblockEvaluationResult requestAttendantManualUnblock(UUID contractId, UUID attendantUserId, String reason) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new RuntimeException("Contrato não encontrado"));
 

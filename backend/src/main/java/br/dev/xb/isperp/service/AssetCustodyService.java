@@ -7,7 +7,6 @@ import br.dev.xb.isperp.repository.*;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +31,11 @@ public class AssetCustodyService {
         return assetRepository.findAll();
     }
 
-    public List<SerializedAsset> getAssetsByWarehouse(@NonNull UUID warehouseId) {
+    public List<SerializedAsset> getAssetsByWarehouse(UUID warehouseId) {
         return assetRepository.findByCurrentWarehouseIdAndStatus(warehouseId, SerializedAsset.AssetStatus.DISPONIVEL_DEPOSITO);
     }
 
-    public List<SerializedAsset> getAssetsByHolder(@NonNull UUID holderUserId) {
+    public List<SerializedAsset> getAssetsByHolder(UUID holderUserId) {
         return assetRepository.findByCurrentHolderUserIdAndStatus(holderUserId, SerializedAsset.AssetStatus.CUSTODIA_COLABORADOR);
     }
 
@@ -49,7 +48,7 @@ public class AssetCustodyService {
     }
 
     @Transactional
-    public StockTransfer createTransfer(@NonNull CreateTransferRequest request) {
+    public StockTransfer createTransfer(CreateTransferRequest request) {
         String code = "TRF-" + System.currentTimeMillis() % 1000000;
         log.info("Criando guia de transferência {}: de {} para {}", code, request.getOriginWarehouseId(), request.getDestinationWarehouseId());
 
@@ -84,7 +83,7 @@ public class AssetCustodyService {
     }
 
     @Transactional
-    public StockTransfer dispatchTransfer(@NonNull UUID transferId, UUID dispatchedByUserId, String dispatchPhotoUrl) {
+    public StockTransfer dispatchTransfer(UUID transferId, UUID dispatchedByUserId, String dispatchPhotoUrl) {
         StockTransfer transfer = transferRepository.findById(transferId)
                 .orElseThrow(() -> new RuntimeException("Transferência não encontrada"));
 
@@ -126,7 +125,7 @@ public class AssetCustodyService {
     }
 
     @Transactional
-    public StockTransfer confirmReceiptTransfer(@NonNull UUID transferId, UUID receivedByUserId, String receiptPhotoUrl) {
+    public StockTransfer confirmReceiptTransfer(UUID transferId, UUID receivedByUserId, String receiptPhotoUrl) {
         StockTransfer transfer = transferRepository.findById(transferId)
                 .orElseThrow(() -> new RuntimeException("Transferência não encontrada"));
 
@@ -168,7 +167,7 @@ public class AssetCustodyService {
     }
 
     @Transactional
-    public ToolCustodyAgreement checkoutToolAgreement(@NonNull CheckoutToolRequest request) {
+    public ToolCustodyAgreement checkoutToolAgreement(CheckoutToolRequest request) {
         String code = "NOT-PROM-" + System.currentTimeMillis() % 1000000;
 
         BigDecimal totalValue = BigDecimal.ZERO;
@@ -239,7 +238,7 @@ public class AssetCustodyService {
     }
 
     @Transactional
-    public ToolCustodyAgreement returnToolAgreement(@NonNull UUID agreementId, UUID warehouseId, boolean isDamaged, String returnPhotoUrl, String notes) {
+    public ToolCustodyAgreement returnToolAgreement(UUID agreementId, UUID warehouseId, boolean isDamaged, String returnPhotoUrl, String notes) {
         ToolCustodyAgreement agreement = agreementRepository.findById(agreementId)
                 .orElseThrow(() -> new RuntimeException("Termo de cautela não encontrado"));
 
@@ -280,7 +279,7 @@ public class AssetCustodyService {
     }
 
     @Transactional
-    public SerializedAsset returnAssetFromWorkOrder(@NonNull UUID assetId, @NonNull UUID warehouseId, boolean isDamaged, String photoUrl, String notes) {
+    public SerializedAsset returnAssetFromWorkOrder(UUID assetId, UUID warehouseId, boolean isDamaged, String photoUrl, String notes) {
         SerializedAsset asset = assetRepository.findById(assetId)
                 .orElseThrow(() -> new RuntimeException("Ativo não encontrado"));
 

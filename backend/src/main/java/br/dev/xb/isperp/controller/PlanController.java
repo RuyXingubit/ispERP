@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,14 +31,14 @@ public class PlanController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Plan> getPlanById(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<Plan> getPlanById(@PathVariable UUID id) {
         Optional<Plan> plan = planService.getPlanById(id);
         return plan.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<?> createPlan(@Valid @NonNull @RequestBody Plan plan) {
+    public ResponseEntity<?> createPlan(@Valid @RequestBody Plan plan) {
         try {
             Plan created = planService.createPlan(plan);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -49,7 +48,7 @@ public class PlanController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePlan(@PathVariable @NonNull UUID id, @Valid @NonNull @RequestBody Plan planDetails) {
+    public ResponseEntity<?> updatePlan(@PathVariable UUID id, @Valid @RequestBody Plan planDetails) {
         try {
             Plan updated = planService.updatePlan(id, planDetails);
             return ResponseEntity.ok(updated);
@@ -59,7 +58,7 @@ public class PlanController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePlan(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<Void> deletePlan(@PathVariable UUID id) {
         try {
             planService.deletePlan(id);
             return ResponseEntity.noContent().build();

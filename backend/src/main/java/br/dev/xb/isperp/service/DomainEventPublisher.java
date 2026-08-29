@@ -7,7 +7,6 @@ import br.dev.xb.isperp.repository.OutboxEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +28,7 @@ public class DomainEventPublisher {
      * @return O registro persistido na Outbox
      */
     @Transactional
-    public OutboxEvent publish(@NonNull DomainEvent event) {
+    public OutboxEvent publish(DomainEvent event) {
         log.info("Publicando evento de domínio: type={}, id={}, aggregateId={}",
                 event.getEventType(), event.getEventId(), event.getAggregateId());
 

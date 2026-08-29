@@ -3,7 +3,6 @@ package br.dev.xb.isperp.gateway;
 import br.dev.xb.isperp.entity.PaymentGatewayConfig;
 import br.dev.xb.isperp.gateway.dto.CreateChargeRequest;
 import br.dev.xb.isperp.gateway.dto.CreateChargeResponse;
-import org.springframework.lang.NonNull;
 
 import java.util.Map;
 
@@ -21,7 +20,7 @@ public interface PaymentGateway {
      * @param config Configuração e credenciais do gateway
      * @return Dados de pagamento (Pix Copia e Cola, QR Code, txId)
      */
-    CreateChargeResponse createCharge(@NonNull CreateChargeRequest request, @NonNull PaymentGatewayConfig config);
+    CreateChargeResponse createCharge(CreateChargeRequest request, PaymentGatewayConfig config);
 
     /**
      * Processa e valida um webhook assíncrono recebido do gateway.
@@ -31,7 +30,7 @@ public interface PaymentGateway {
      * @param config Configuração do gateway contendo o webhookSecret
      * @return txId ou identificador da fatura confirmada
      */
-    String processWebhook(@NonNull Map<String, Object> payload, String signature, @NonNull PaymentGatewayConfig config);
+    String processWebhook(Map<String, Object> payload, String signature, PaymentGatewayConfig config);
 
     /**
      * Cancela uma cobrança no gateway.
@@ -40,5 +39,5 @@ public interface PaymentGateway {
      * @param config Configuração do gateway
      * @return true se cancelado com sucesso
      */
-    boolean cancelCharge(@NonNull String externalTransactionId, @NonNull PaymentGatewayConfig config);
+    boolean cancelCharge(String externalTransactionId, PaymentGatewayConfig config);
 }

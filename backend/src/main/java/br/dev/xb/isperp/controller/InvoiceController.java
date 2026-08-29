@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -38,25 +37,25 @@ public class InvoiceController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Invoice> getInvoiceById(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<Invoice> getInvoiceById(@PathVariable UUID id) {
         Optional<Invoice> invoice = invoiceService.getInvoiceById(id);
         return invoice.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<Invoice>> getInvoicesByCustomerId(@PathVariable @NonNull UUID customerId) {
+    public ResponseEntity<List<Invoice>> getInvoicesByCustomerId(@PathVariable UUID customerId) {
         return ResponseEntity.ok(invoiceService.getInvoicesByCustomerId(customerId));
     }
 
     @GetMapping("/contract/{contractId}")
-    public ResponseEntity<List<Invoice>> getInvoicesByContractId(@PathVariable @NonNull UUID contractId) {
+    public ResponseEntity<List<Invoice>> getInvoicesByContractId(@PathVariable UUID contractId) {
         return ResponseEntity.ok(invoiceService.getInvoicesByContractId(contractId));
     }
 
     @PostMapping("/generate/contract/{contractId}")
     public ResponseEntity<?> generateInvoiceManually(
-            @PathVariable @NonNull UUID contractId,
+            @PathVariable UUID contractId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
         try {
             Contract contract = contractService.getContractById(contractId)
@@ -72,7 +71,7 @@ public class InvoiceController {
 
     @PostMapping("/{id}/pay")
     public ResponseEntity<?> markAsPaid(
-            @PathVariable @NonNull UUID id,
+            @PathVariable UUID id,
             @RequestParam(required = false) BigDecimal paidAmount,
             @RequestParam(defaultValue = "PIX") String paymentMethod) {
         try {
@@ -84,7 +83,7 @@ public class InvoiceController {
     }
 
     @PostMapping("/{id}/cancel")
-    public ResponseEntity<?> cancelInvoice(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<?> cancelInvoice(@PathVariable UUID id) {
         try {
             Invoice canceled = invoiceService.cancelInvoice(id);
             return ResponseEntity.ok(canceled);

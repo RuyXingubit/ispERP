@@ -4,7 +4,6 @@ import br.dev.xb.isperp.entity.NotificationConfig;
 import br.dev.xb.isperp.notification.whatsapp.WhatsAppProvider;
 import br.dev.xb.isperp.notification.whatsapp.WhatsAppProviderType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -19,20 +18,20 @@ public class MockWhatsAppProvider implements WhatsAppProvider {
     }
 
     @Override
-    public boolean sendTextMessage(@NonNull String toPhone, @NonNull String message, @NonNull NotificationConfig config) {
+    public boolean sendTextMessage(String toPhone, String message, NotificationConfig config) {
         log.info("MockWhatsApp: Simulação de envio para {}: {}", toPhone, message);
         return true;
     }
 
     @Override
     public boolean sendPixInvoiceMessage(
-            @NonNull String toPhone,
-            @NonNull String customerName,
-            @NonNull BigDecimal amount,
-            @NonNull String dueDate,
-            @NonNull String pixCode,
+            String toPhone,
+            String customerName,
+            BigDecimal amount,
+            String dueDate,
+            String pixCode,
             String pixQrUrl,
-            @NonNull NotificationConfig config) {
+            NotificationConfig config) {
         log.info("MockWhatsApp: Simulação de envio de fatura Pix (R$ {}) para {}", amount, toPhone);
         return true;
     }

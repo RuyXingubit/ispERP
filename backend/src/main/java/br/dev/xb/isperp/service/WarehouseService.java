@@ -5,7 +5,6 @@ import br.dev.xb.isperp.repository.WarehouseRepository;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,12 +27,12 @@ public class WarehouseService {
         return warehouseRepository.findByActiveTrue();
     }
 
-    public Optional<Warehouse> getWarehouseById(@NonNull UUID id) {
+    public Optional<Warehouse> getWarehouseById(UUID id) {
         return warehouseRepository.findById(id);
     }
 
     @Transactional
-    public Warehouse createWarehouse(@NonNull Warehouse warehouse) {
+    public Warehouse createWarehouse(Warehouse warehouse) {
         if (warehouse.getId() == null) {
             warehouse.setId(UuidCreatorUtils.generateUuidV7());
         }

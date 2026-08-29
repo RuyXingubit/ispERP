@@ -16,7 +16,6 @@ import br.dev.xb.isperp.repository.PlanRepository;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,16 +42,16 @@ public class NetworkProvisioningService {
         return onuRepository.findAll();
     }
 
-    public Optional<OnuProvisioning> getProvisioningById(@NonNull UUID id) {
+    public Optional<OnuProvisioning> getProvisioningById(UUID id) {
         return onuRepository.findById(id);
     }
 
-    public Optional<OnuProvisioning> getProvisioningByContractId(@NonNull UUID contractId) {
+    public Optional<OnuProvisioning> getProvisioningByContractId(UUID contractId) {
         return onuRepository.findByContractId(contractId);
     }
 
     @Transactional
-    public OnuProvisioning provisionOnuForContract(@NonNull Contract contract, @NonNull String onuMac, @NonNull String onuSerial, BigDecimal rxPowerDbm) {
+    public OnuProvisioning provisionOnuForContract(Contract contract, String onuMac, String onuSerial, BigDecimal rxPowerDbm) {
         log.info("Iniciando provisionamento de rede para contrato {}: MAC={}, SN={}, dBm={}",
                 contract.getContractNumber(), onuMac, onuSerial, rxPowerDbm);
 
@@ -128,7 +127,7 @@ public class NetworkProvisioningService {
     }
 
     @Transactional
-    public OnuProvisioning blockInternetAccess(@NonNull UUID contractId, String reason) {
+    public OnuProvisioning blockInternetAccess(UUID contractId, String reason) {
         log.info("Bloqueando acesso de internet para contrato {}. Motivo: {}", contractId, reason);
 
         OnuProvisioning onu = onuRepository.findByContractId(contractId)
@@ -158,7 +157,7 @@ public class NetworkProvisioningService {
     }
 
     @Transactional
-    public OnuProvisioning unblockInternetAccess(@NonNull UUID contractId) {
+    public OnuProvisioning unblockInternetAccess(UUID contractId) {
         log.info("Desbloqueando acesso de internet para contrato {}", contractId);
 
         OnuProvisioning onu = onuRepository.findByContractId(contractId)
@@ -186,7 +185,7 @@ public class NetworkProvisioningService {
         return saved;
     }
 
-    public OnuStatusResponse diagnoseOnuSignal(@NonNull UUID onuId) {
+    public OnuStatusResponse diagnoseOnuSignal(UUID onuId) {
         OnuProvisioning onu = onuRepository.findById(onuId)
                 .orElseThrow(() -> new RuntimeException("ONU não encontrada"));
 

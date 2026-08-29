@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,37 +27,31 @@ public class GenericDomainEvent implements DomainEvent {
     private Object payload;
 
     @Override
-    @NonNull
     public UUID getEventId() {
         return eventId != null ? eventId : UuidCreatorUtils.generateUuidV7();
     }
 
     @Override
-    @NonNull
     public LocalDateTime getOccurredAt() {
         return occurredAt != null ? occurredAt : LocalDateTime.now();
     }
 
     @Override
-    @NonNull
     public String getEventType() {
         return eventType != null ? eventType : "UNKNOWN";
     }
 
     @Override
-    @NonNull
     public String getAggregateType() {
         return aggregateType != null ? aggregateType : "UNKNOWN";
     }
 
     @Override
-    @NonNull
     public String getAggregateId() {
         return aggregateId != null ? aggregateId : "";
     }
 
     @Override
-    @NonNull
     public Object getPayload() {
         return payload != null ? payload : "";
     }

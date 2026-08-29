@@ -9,7 +9,6 @@ import br.dev.xb.isperp.repository.NotificationLogRepository;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,11 +27,11 @@ public class WhatsAppNotificationService {
      */
     public boolean sendPixInvoice(
             UUID customerId,
-            @NonNull String toPhone,
-            @NonNull String customerName,
-            @NonNull BigDecimal amount,
-            @NonNull String dueDate,
-            @NonNull String pixCode,
+            String toPhone,
+            String customerName,
+            BigDecimal amount,
+            String dueDate,
+            String pixCode,
             String pixQrUrl) {
 
         log.info("WhatsAppNotification: Enviando Pix para {} (R$ {})", customerName, amount);
@@ -66,7 +65,7 @@ public class WhatsAppNotificationService {
     /**
      * Envia mensagem de texto genérica via WhatsApp.
      */
-    public boolean sendTextMessage(UUID customerId, @NonNull String toPhone, @NonNull String message, String messageType) {
+    public boolean sendTextMessage(UUID customerId, String toPhone, String message, String messageType) {
         WhatsAppProviderResolver.ResolvedWhatsAppProvider resolved = providerResolver.resolve(WhatsAppProviderType.TWILIO);
         WhatsAppProvider provider = resolved.provider();
         NotificationConfig config = resolved.config();

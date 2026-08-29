@@ -7,7 +7,6 @@ import br.dev.xb.isperp.service.WorkOrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,14 +31,14 @@ public class WorkOrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WorkOrder> getWorkOrderById(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<WorkOrder> getWorkOrderById(@PathVariable UUID id) {
         Optional<WorkOrder> workOrder = workOrderService.getWorkOrderById(id);
         return workOrder.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/contract/{contractId}")
-    public ResponseEntity<WorkOrder> getWorkOrderByContractId(@PathVariable @NonNull UUID contractId) {
+    public ResponseEntity<WorkOrder> getWorkOrderByContractId(@PathVariable UUID contractId) {
         Optional<WorkOrder> workOrder = workOrderService.getWorkOrderByContractId(contractId);
         return workOrder.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -47,8 +46,8 @@ public class WorkOrderController {
 
     @PostMapping("/{id}/schedule")
     public ResponseEntity<?> scheduleWorkOrder(
-            @PathVariable @NonNull UUID id,
-            @Valid @NonNull @RequestBody ScheduleWorkOrderRequest request) {
+            @PathVariable UUID id,
+            @Valid @RequestBody ScheduleWorkOrderRequest request) {
         try {
             WorkOrder scheduled = workOrderService.scheduleWorkOrder(id, request);
             return ResponseEntity.ok(scheduled);
@@ -59,8 +58,8 @@ public class WorkOrderController {
 
     @PostMapping("/{id}/complete")
     public ResponseEntity<?> completeWorkOrder(
-            @PathVariable @NonNull UUID id,
-            @Valid @NonNull @RequestBody CompleteWorkOrderRequest request) {
+            @PathVariable UUID id,
+            @Valid @RequestBody CompleteWorkOrderRequest request) {
         try {
             WorkOrder completed = workOrderService.completeWorkOrder(id, request);
             return ResponseEntity.ok(completed);

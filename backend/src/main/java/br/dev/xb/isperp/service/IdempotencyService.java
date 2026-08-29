@@ -4,7 +4,6 @@ import br.dev.xb.isperp.entity.ProcessedEvent;
 import br.dev.xb.isperp.repository.ProcessedEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,7 @@ public class IdempotencyService {
     /**
      * Verifica se o evento já foi processado pelo consumidor informado.
      */
-    public boolean isAlreadyProcessed(@NonNull UUID eventId, @NonNull String consumerName) {
+    public boolean isAlreadyProcessed(UUID eventId, String consumerName) {
         return processedEventRepository.existsByEventIdAndConsumerName(eventId, consumerName);
     }
 
@@ -30,7 +29,7 @@ public class IdempotencyService {
      * Marca o evento como processado com sucesso pelo consumidor informado.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markAsProcessed(@NonNull UUID eventId, @NonNull String consumerName) {
+    public void markAsProcessed(UUID eventId, String consumerName) {
         log.debug("Marcando evento como processado: eventId={}, consumer={}", eventId, consumerName);
 
         ProcessedEvent processedEvent = ProcessedEvent.builder()
@@ -50,7 +49,7 @@ public class IdempotencyService {
      * @param action Ação a ser executada
      * @return true se foi executado agora, false se foi ignorado por duplicidade
      */
-    public boolean executeIdempotent(@NonNull UUID eventId, @NonNull String consumerName, @NonNull Runnable action) {
+    public boolean executeIdempotent(UUID eventId, String consumerName, Runnable action) {
         if (isAlreadyProcessed(eventId, consumerName)) {
             log.info("Evento já processado anteriormente, ignorando: eventId={}, consumer={}", eventId, consumerName);
             return false;

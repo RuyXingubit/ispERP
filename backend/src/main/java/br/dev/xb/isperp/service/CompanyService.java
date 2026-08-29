@@ -3,7 +3,6 @@ package br.dev.xb.isperp.service;
 import br.dev.xb.isperp.entity.Company;
 import br.dev.xb.isperp.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +19,7 @@ public class CompanyService {
         return companyRepository.findAll();
     }
 
-    public Optional<Company> getCompanyById(@NonNull UUID id) {
+    public Optional<Company> getCompanyById(UUID id) {
         return companyRepository.findById(id);
     }
 
@@ -28,11 +27,11 @@ public class CompanyService {
         return companyRepository.findFirstByOrderByCreatedAtAsc();
     }
 
-    public Company createCompany(@NonNull Company company) {
+    public Company createCompany(Company company) {
         return companyRepository.save(company);
     }
 
-    public Company updateCompany(@NonNull UUID id, @NonNull Company companyDetails) {
+    public Company updateCompany(UUID id, Company companyDetails) {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Empresa não encontrada"));
 
@@ -47,7 +46,7 @@ public class CompanyService {
         return companyRepository.save(company);
     }
 
-    public void deleteCompany(@NonNull UUID id) {
+    public void deleteCompany(UUID id) {
         if (!companyRepository.existsById(id)) {
             throw new RuntimeException("Empresa não encontrada");
         }

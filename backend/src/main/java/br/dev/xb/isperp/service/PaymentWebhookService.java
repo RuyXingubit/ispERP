@@ -10,7 +10,6 @@ import br.dev.xb.isperp.repository.PaymentTransactionRepository;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +32,7 @@ public class PaymentWebhookService {
     private final br.dev.xb.isperp.repository.InvoiceRepository invoiceRepository;
 
     @Transactional
-    public void processPaymentWebhook(@NonNull String gatewayName, @NonNull Map<String, Object> payload, String signature) {
+    public void processPaymentWebhook(String gatewayName, Map<String, Object> payload, String signature) {
         log.info("Recebido webhook de pagamento do gateway: {}", gatewayName);
 
         PaymentGatewayType type;

@@ -16,7 +16,6 @@ import br.dev.xb.isperp.repository.PaymentTransactionRepository;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,28 +43,28 @@ public class InvoiceService {
         return invoiceRepository.findAll();
     }
 
-    public List<Invoice> getInvoicesByCustomerId(@NonNull UUID customerId) {
+    public List<Invoice> getInvoicesByCustomerId(UUID customerId) {
         return invoiceRepository.findByCustomerIdOrderByDueDateDesc(customerId);
     }
 
-    public List<Invoice> getInvoicesByContractId(@NonNull UUID contractId) {
+    public List<Invoice> getInvoicesByContractId(UUID contractId) {
         return invoiceRepository.findByContractIdOrderByDueDateDesc(contractId);
     }
 
-    public List<Invoice> getInvoicesByStatus(@NonNull Invoice.InvoiceStatus status) {
+    public List<Invoice> getInvoicesByStatus(Invoice.InvoiceStatus status) {
         return invoiceRepository.findByStatusOrderByDueDateAsc(status);
     }
 
-    public Optional<Invoice> getInvoiceById(@NonNull UUID id) {
+    public Optional<Invoice> getInvoiceById(UUID id) {
         return invoiceRepository.findById(id);
     }
 
-    public Optional<Invoice> getInvoiceByExternalTransactionId(@NonNull String txId) {
+    public Optional<Invoice> getInvoiceByExternalTransactionId(String txId) {
         return invoiceRepository.findByExternalTransactionId(txId);
     }
 
     @Transactional
-    public Invoice createInvoiceForContract(@NonNull Contract contract, @NonNull LocalDate dueDate) {
+    public Invoice createInvoiceForContract(Contract contract, LocalDate dueDate) {
         log.info("Gerando fatura para contrato {}: vencimento={}, valor={}",
                 contract.getContractNumber(), dueDate, contract.getMonthlyFee());
 
@@ -150,7 +149,7 @@ public class InvoiceService {
     }
 
     @Transactional
-    public Invoice markInvoiceAsPaid(@NonNull UUID invoiceId, BigDecimal paidAmount, String paymentMethod) {
+    public Invoice markInvoiceAsPaid(UUID invoiceId, BigDecimal paidAmount, String paymentMethod) {
         log.info("Marcando fatura {} como PAGA. Valor={}", invoiceId, paidAmount);
 
         Invoice invoice = invoiceRepository.findById(invoiceId)
@@ -187,7 +186,7 @@ public class InvoiceService {
     }
 
     @Transactional
-    public Invoice cancelInvoice(@NonNull UUID invoiceId) {
+    public Invoice cancelInvoice(UUID invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new RuntimeException("Fatura não encontrada"));
 

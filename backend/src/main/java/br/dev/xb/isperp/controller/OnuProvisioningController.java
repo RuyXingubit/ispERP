@@ -5,7 +5,6 @@ import br.dev.xb.isperp.network.dto.OnuStatusResponse;
 import br.dev.xb.isperp.service.NetworkProvisioningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,14 +25,14 @@ public class OnuProvisioningController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OnuProvisioning> getOnuById(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<OnuProvisioning> getOnuById(@PathVariable UUID id) {
         Optional<OnuProvisioning> onu = provisioningService.getProvisioningById(id);
         return onu.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/contract/{contractId}")
-    public ResponseEntity<OnuProvisioning> getOnuByContractId(@PathVariable @NonNull UUID contractId) {
+    public ResponseEntity<OnuProvisioning> getOnuByContractId(@PathVariable UUID contractId) {
         Optional<OnuProvisioning> onu = provisioningService.getProvisioningByContractId(contractId);
         return onu.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -41,7 +40,7 @@ public class OnuProvisioningController {
 
     @PostMapping("/contract/{contractId}/block")
     public ResponseEntity<?> blockOnu(
-            @PathVariable @NonNull UUID contractId,
+            @PathVariable UUID contractId,
             @RequestParam(defaultValue = "Inadimplência") String reason) {
         try {
             OnuProvisioning blocked = provisioningService.blockInternetAccess(contractId, reason);
@@ -52,7 +51,7 @@ public class OnuProvisioningController {
     }
 
     @PostMapping("/contract/{contractId}/unblock")
-    public ResponseEntity<?> unblockOnu(@PathVariable @NonNull UUID contractId) {
+    public ResponseEntity<?> unblockOnu(@PathVariable UUID contractId) {
         try {
             OnuProvisioning unblocked = provisioningService.unblockInternetAccess(contractId);
             return ResponseEntity.ok(unblocked);
@@ -62,7 +61,7 @@ public class OnuProvisioningController {
     }
 
     @GetMapping("/{id}/diagnose")
-    public ResponseEntity<OnuStatusResponse> diagnoseOnu(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<OnuStatusResponse> diagnoseOnu(@PathVariable UUID id) {
         try {
             OnuStatusResponse status = provisioningService.diagnoseOnuSignal(id);
             return ResponseEntity.ok(status);

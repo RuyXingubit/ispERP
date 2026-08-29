@@ -5,7 +5,6 @@ import br.dev.xb.isperp.repository.NetworkDeviceRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,14 +25,14 @@ public class NetworkDeviceController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<NetworkDevice> getDeviceById(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<NetworkDevice> getDeviceById(@PathVariable UUID id) {
         Optional<NetworkDevice> device = deviceRepository.findById(id);
         return device.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<NetworkDevice> saveDevice(@Valid @NonNull @RequestBody NetworkDevice device) {
+    public ResponseEntity<NetworkDevice> saveDevice(@Valid @RequestBody NetworkDevice device) {
         NetworkDevice saved = deviceRepository.save(device);
         return ResponseEntity.ok(saved);
     }

@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,14 +27,14 @@ public class SaleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Sale> getSaleById(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<Sale> getSaleById(@PathVariable UUID id) {
         Optional<Sale> sale = saleService.getSaleById(id);
         return sale.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<?> submitSale(@Valid @NonNull @RequestBody CreateSaleRequest request) {
+    public ResponseEntity<?> submitSale(@Valid @RequestBody CreateSaleRequest request) {
         try {
             Sale created = saleService.submitSale(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);

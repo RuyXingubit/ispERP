@@ -10,7 +10,6 @@ import br.dev.xb.isperp.util.CpfValidator;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,12 +32,12 @@ public class SaleService {
         return saleRepository.findAll();
     }
 
-    public Optional<Sale> getSaleById(@NonNull UUID id) {
+    public Optional<Sale> getSaleById(UUID id) {
         return saleRepository.findById(id);
     }
 
     @Transactional
-    public Sale submitSale(@NonNull CreateSaleRequest request) {
+    public Sale submitSale(CreateSaleRequest request) {
         log.info("Submetendo nova venda para cliente: {} (CPF: {})", request.getCustomerName(), request.getCustomerCpf());
 
         // 1. Validar e limpar CPF
