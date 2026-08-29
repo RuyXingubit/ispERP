@@ -32,13 +32,15 @@ public class JwtUtil {
     }
     
     private String createToken(Map<String, Object> claims, String subject) {
-        var builder = Jwts.builder()
+        io.jsonwebtoken.JwtBuilder builder = Jwts.builder()
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey());
         if (claims != null) {
-            claims.forEach(builder::claim);
+            for (Map.Entry<String, Object> entry : claims.entrySet()) {
+                builder.claim(entry.getKey(), entry.getValue());
+            }
         }
         return builder.compact();
     }
@@ -61,8 +63,7 @@ public class JwtUtil {
     }
     
     private Claims extractAllClaims(String token) {
-        io.jsonwebtoken.JwtParserBuilder parserBuilder = Jwts.parser();
-        return parserBuilder
+        return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
