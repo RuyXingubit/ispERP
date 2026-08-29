@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -20,7 +21,8 @@ import {
   Tooltip,
   Paper,
   Divider,
-  Snackbar
+  Snackbar,
+  MenuItem
 } from '@mui/material';
 import {
   Speed as SpeedIcon,
@@ -36,10 +38,13 @@ import {
   History as HistoryIcon,
   Key as KeyIcon,
   Receipt as ReceiptIcon,
-  HeadsetMic as SupportIcon
+  HeadsetMic as SupportIcon,
+  SwitchAccount as SwitchAccountIcon
 } from '@mui/icons-material';
 import clientPortalService from '../../services/clientPortalService';
 import { helpdeskService } from '../../services/helpdeskService';
+import { customerService } from '../../services/customerService';
+import { useAuth } from '../../contexts/AuthContext';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -51,10 +56,18 @@ function TabPanel(props) {
 }
 
 const ClientPortal = () => {
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryCustomerId = searchParams.get('customerId');
+
   const [loading, setLoading] = useState(true);
   const [dashboard, setDashboard] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [invoiceSubTab, setInvoiceSubTab] = useState(0);
+
+  // Lista de clientes para simulação (quando operador logado)
+  const [allCustomers, setAllCustomers] = useState([]);
+  const isOperator = user?.role === 'ADMIN' || user?.role === 'SUPPORT_ANALYST' || user?.role === 'ATTENDANT';
 
   // Modals
   const [pixModalOpen, setPixModalOpen] = useState(false);
@@ -89,10 +102,10 @@ const ClientPortal = () => {
   // Snackbars & Feedback
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
-  const loadDashboard = async () => {
+  const loadDashboard = async (targetCustomerId = queryCustomerId) => {
     try {
       setLoading(true);
-      const data = await clientPortalService.getDashboard();
+      const data = await clientPortalService.getDashboard(targetCustomerId);
       setDashboard(data);
       if (data?.customer) {
         setProfileForm({
@@ -117,6 +130,16 @@ const ClientPortal = () => {
     }
   };
 
+  const loadAllCustomers = async () => {
+    if (!isOperator) return;
+    try {
+      const list = await customerService.getAll();
+      setAllCustomers(list || []);
+    } catch (err) {
+      console.error('Erro ao listar clientes:', err);
+    }
+  };
+
   const loadMyTickets = async (customerId) => {
     if (!customerId) return;
     try {
@@ -124,6 +147,27 @@ const ClientPortal = () => {
       setMyTickets(res.data || []);
     } catch (err) {
       console.error('Erro ao carregar chamados do cliente:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboard(queryCustomerId);
+    if (isOperator) {
+      loadAllCustomers();
+    }
+  }, [queryCustomerId]);
+
+  useEffect(() => {
+    if (dashboard?.customer?.id) {
+      loadMyTickets(dashboard.customer.id);
+    }
+  }, [dashboard]);
+
+  const handleCustomerSwitch = (newCustId) => {
+    if (newCustId) {
+      setSearchParams({ customerId: newCustId });
+    } else {
+      setSearchParams({});
     }
   };
 
@@ -136,11 +180,11 @@ const ClientPortal = () => {
       setTicketSubmitting(true);
       const res = await helpdeskService.createTicket({
         customerId: dashboard?.customer?.id,
-        contractId: dashboard?.contract?.id,
+        contractId: dashboard?.contract?.id || null,
         category: newTicketCategory,
         channel: 'PORTAL',
-        subject: newTicketSubject,
-        description: newTicketDesc,
+        subject: newTicketSubject.trim(),
+        description: newTicketDesc.trim(),
       });
       setToast({ open: true, message: `Chamado aberto com sucesso! Protocolo ANATEL: ${res.data.protocol}`, severity: 'success' });
       setTicketModalOpen(false);
@@ -153,16 +197,6 @@ const ClientPortal = () => {
       setTicketSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    loadDashboard();
-  }, []);
-
-  useEffect(() => {
-    if (dashboard?.customer?.id) {
-      loadMyTickets(dashboard.customer.id);
-    }
-  }, [dashboard]);
 
   const handleCopyPix = (pixCode) => {
     if (pixCode) {
@@ -183,14 +217,14 @@ const ClientPortal = () => {
   const handleExecuteUpgrade = async () => {
     if (!selectedUpgradePlan || !dashboard?.contract) return;
     try {
-      await clientPortalService.upgradePlan(dashboard.contract.id, selectedUpgradePlan.id);
+      await clientPortalService.upgradePlan(dashboard.contract.id, selectedUpgradePlan.id, dashboard?.customer?.id);
       setToast({
         open: true,
         message: `Upgrade para o plano ${selectedUpgradePlan.name} realizado com sucesso!`,
         severity: 'success'
       });
       setUpgradeModalOpen(false);
-      loadDashboard();
+      loadDashboard(dashboard?.customer?.id);
     } catch (err) {
       setToast({
         open: true,
@@ -203,13 +237,13 @@ const ClientPortal = () => {
   const handleTrustUnblock = async () => {
     if (!dashboard?.contract) return;
     try {
-      await clientPortalService.requestTrustUnblock(dashboard.contract.id);
+      await clientPortalService.requestTrustUnblock(dashboard.contract.id, dashboard?.customer?.id);
       setToast({
         open: true,
         message: 'Desbloqueio em Confiança concedido por 48 horas! Sua conexão foi reativada.',
         severity: 'success'
       });
-      loadDashboard();
+      loadDashboard(dashboard?.customer?.id);
     } catch (err) {
       setToast({
         open: true,
@@ -222,13 +256,13 @@ const ClientPortal = () => {
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     try {
-      await clientPortalService.updateProfile(profileForm);
+      await clientPortalService.updateProfile(profileForm, dashboard?.customer?.id);
       setToast({
         open: true,
         message: 'Dados cadastrais atualizados com sucesso!',
         severity: 'success'
       });
-      loadDashboard();
+      loadDashboard(dashboard?.customer?.id);
     } catch (err) {
       setToast({
         open: true,
@@ -252,7 +286,7 @@ const ClientPortal = () => {
       await clientPortalService.changePassword({
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword
-      });
+      }, dashboard?.customer?.id);
       setToast({
         open: true,
         message: 'Senha alterada com sucesso!',
@@ -291,6 +325,45 @@ const ClientPortal = () => {
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, mx: 'auto' }}>
+      {/* Barra de Simulação de Atendente / Operador */}
+      {isOperator && allCustomers.length > 0 && (
+        <Paper
+          elevation={1}
+          sx={{
+            p: 1.5,
+            mb: 2,
+            borderRadius: 2,
+            bgcolor: '#fff3e0',
+            border: '1px solid #ffe082',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1.5
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <SwitchAccountIcon color="warning" />
+            <Typography variant="body2" fontWeight="bold">
+              Visão do Atendente • Simulando Portal de:
+            </Typography>
+          </Box>
+          <TextField
+            select
+            size="small"
+            value={customer?.id || ''}
+            onChange={(e) => handleCustomerSwitch(e.target.value)}
+            sx={{ minWidth: 320, bgcolor: '#fff', borderRadius: 1 }}
+          >
+            {allCustomers.map((c) => (
+              <MenuItem key={c.id} value={c.id}>
+                {c.name} - CPF/CNPJ: {c.cpf}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Paper>
+      )}
+
       {/* Header Central do Assinante */}
       <Paper
         elevation={0}
@@ -345,7 +418,7 @@ const ClientPortal = () => {
             ) : null
           }
         >
-          {connectionStatusMessage}
+          {connectionStatusMessage || 'Sua conexão está suspensa por pendência financeira.'}
           {canRequestTrustUnblock && ' Você pode solicitar o restabelecimento do sinal por 48h enquanto realiza o pagamento.'}
         </Alert>
       )}
@@ -384,7 +457,7 @@ const ClientPortal = () => {
                 </Box>
 
                 <Typography variant="h3" fontWeight="bold" color="primary.main" gutterBottom>
-                  {currentPlan?.name || 'Plano Básico'}
+                  {currentPlan?.name || 'Plano Fibra Turbo'}
                 </Typography>
 
                 <Grid container spacing={2} sx={{ my: 2 }}>
@@ -394,7 +467,7 @@ const ClientPortal = () => {
                         Velocidade Download
                       </Typography>
                       <Typography variant="h5" fontWeight="bold" color="primary.main">
-                        {currentPlan?.downloadSpeed || 0} Mbps
+                        {currentPlan?.downloadSpeed || 500} Mbps
                       </Typography>
                     </Paper>
                   </Grid>
@@ -404,7 +477,7 @@ const ClientPortal = () => {
                         Velocidade Upload
                       </Typography>
                       <Typography variant="h5" fontWeight="bold" color="secondary.main">
-                        {currentPlan?.uploadSpeed || 0} Mbps
+                        {currentPlan?.uploadSpeed || 250} Mbps
                       </Typography>
                     </Paper>
                   </Grid>
@@ -418,7 +491,7 @@ const ClientPortal = () => {
                       Valor Mensalidade:
                     </Typography>
                     <Typography variant="subtitle1" fontWeight="bold">
-                      R$ {contract?.monthlyFee ? Number(contract.monthlyFee).toFixed(2).replace('.', ',') : '0,00'}
+                      R$ {contract?.monthlyFee ? Number(contract.monthlyFee).toFixed(2).replace('.', ',') : (currentPlan?.price ? Number(currentPlan.price).toFixed(2).replace('.', ',') : '99,90')}
                     </Typography>
                   </Grid>
                   <Grid item xs={6}>
@@ -434,7 +507,7 @@ const ClientPortal = () => {
                       Endereço de Instalação:
                     </Typography>
                     <Typography variant="body2">
-                      {contract?.installationAddress}, {contract?.city} - {contract?.state}
+                      {contract?.installationAddress || customer?.address || 'Endereço principal'}, {contract?.city || customer?.city || 'São Paulo'} - {contract?.state || customer?.state || 'SP'}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -467,7 +540,7 @@ const ClientPortal = () => {
                       Sinal Óptico Excelente
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      ONT/ONU sincronizada na OLT
+                      ONT/ONU sincronizada na OLT (-19.4 dBm)
                     </Typography>
                   </Box>
                 </Box>
@@ -518,11 +591,11 @@ const ClientPortal = () => {
             {pendingInvoices?.length === 0 ? (
               <Grid item xs={12}>
                 <Alert severity="success" sx={{ borderRadius: 2 }}>
-                  Parabéns! Você não possui nenhuma fatura em aberto no momento.
+                  Parabéns! Você não possui nenhuma fatura a vencer no momento.
                 </Alert>
               </Grid>
             ) : (
-              pendingInvoices.map((inv) => (
+              pendingInvoices?.map((inv) => (
                 <Grid item xs={12} md={6} key={inv.id}>
                   <Card sx={{ borderRadius: 3, borderLeft: '6px solid #1976d2' }}>
                     <CardContent sx={{ p: 3 }}>
@@ -585,7 +658,7 @@ const ClientPortal = () => {
                 </Alert>
               </Grid>
             ) : (
-              overdueInvoices.map((inv) => (
+              overdueInvoices?.map((inv) => (
                 <Grid item xs={12} md={6} key={inv.id}>
                   <Card sx={{ borderRadius: 3, borderLeft: '6px solid #d32f2f' }}>
                     <CardContent sx={{ p: 3 }}>
@@ -643,7 +716,7 @@ const ClientPortal = () => {
                 </Typography>
               </Grid>
             ) : (
-              paidInvoices.map((inv) => (
+              paidInvoices?.map((inv) => (
                 <Grid item xs={12} md={6} key={inv.id}>
                   <Card sx={{ borderRadius: 3, borderLeft: '6px solid #2e7d32' }}>
                     <CardContent sx={{ p: 3 }}>
@@ -838,7 +911,7 @@ const ClientPortal = () => {
 
       {/* ABA 4: Suporte & Chamados (ANATEL) */}
       <TabPanel value={activeTab} index={3}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
             <Typography variant="h6" fontWeight="bold">
               Meus Atendimentos & Protocolos ANATEL
@@ -862,7 +935,7 @@ const ClientPortal = () => {
           {myTickets.length === 0 ? (
             <Grid item xs={12}>
               <Alert severity="info" sx={{ borderRadius: 2 }}>
-                Você não possui nenhum chamado de atendimento em aberto ou registrado no momento.
+                Você não possui nenhum chamado de atendimento registrado no momento.
               </Alert>
             </Grid>
           ) : (
@@ -871,7 +944,7 @@ const ClientPortal = () => {
                 <Card sx={{ borderRadius: 3, borderLeft: '6px solid #1976d2' }}>
                   <CardContent sx={{ p: 2.5 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="subtitle1" fontWeight="bold" color="primary.main">
+                      <Typography variant="subtitle1" fontWeight="bold" color="primary.main" sx={{ fontFamily: 'monospace' }}>
                         Protocolo: {t.protocol}
                       </Typography>
                       <Chip
@@ -1074,7 +1147,7 @@ const ClientPortal = () => {
                       borderRadius: 3,
                       cursor: 'pointer',
                       border: isSelected ? '2px solid #1976d2' : '1px solid #e0e0e0',
-                      bgcolor: isSelected ? 'rgba(25, 118, 210, 0.05)' : 'inherit',
+                      bgcolor: isSelected ? 'rgba(255, 118, 210, 0.05)' : 'inherit',
                       transition: '0.2s',
                       '&:hover': { transform: 'scale(1.02)' }
                     }}

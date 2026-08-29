@@ -12,6 +12,16 @@ export const customerService = {
     }
   },
 
+  getAllCustomers: async () => {
+    try {
+      const response = await api.get('/customers');
+      return response;
+    } catch (error) {
+      console.error('Erro ao buscar clientes:', error);
+      throw error;
+    }
+  },
+
   // Buscar cliente por ID
   getById: async (id) => {
     try {
@@ -56,3 +66,5 @@ export const customerService = {
     }
   }
 };
+
+export default customerService;
