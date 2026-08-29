@@ -127,6 +127,16 @@ const Sidebar = ({ open, onClose, onToggle }) => {
       path: '/customers',
     },
     {
+      text: 'Central do Assinante',
+      icon: <PersonIcon />,
+      path: '/portal/client',
+    },
+    {
+      text: 'Notificações & WhatsApp',
+      icon: <SettingsIcon />,
+      path: '/settings/notifications',
+    },
+    {
       text: 'Configurações do Site',
       icon: <SettingsIcon />,
       path: '/dashboard/configuracoes',

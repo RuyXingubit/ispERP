@@ -42,11 +42,21 @@ class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private OutboxEventRepository outboxEventRepository;
 
+    @Autowired
+    private NotificationConfigRepository notificationConfigRepository;
+
+    @Autowired
+    private TrustUnblockRepository trustUnblockRepository;
+
+    @Autowired
+    private PlanUpgradeRequestRepository planUpgradeRequestRepository;
+
     @Test
-    @DisplayName("Deve validar a execução das migrações Flyway V1 a V7 no PostgreSQL 17 real")
+    @DisplayName("Deve validar a execução das migrações Flyway V1 a V8 no PostgreSQL 17 real")
     void shouldVerifyPostgres17DatabaseConnectionAndFlyway() {
         assertTrue(postgres.isRunning());
         assertEquals("isperp_test", postgres.getDatabaseName());
+        assertFalse(notificationConfigRepository.findAll().isEmpty());
     }
 
     @Test
@@ -102,6 +112,17 @@ class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
                 .build();
         invoice = invoiceRepository.save(invoice);
 
+        // Testa persistência de TrustUnblock
+        UUID unblockId = UuidCreatorUtils.generateUuidV7();
+        TrustUnblock trustUnblock = TrustUnblock.builder()
+                .id(unblockId)
+                .contractId(contract.getId())
+                .requestedAt(java.time.LocalDateTime.now())
+                .expiresAt(java.time.LocalDateTime.now().plusHours(48))
+                .status("ACTIVE")
+                .build();
+        trustUnblock = trustUnblockRepository.save(trustUnblock);
+
         // Testa persistência de Network Device e ONU Provisioning
         UUID deviceId = UuidCreatorUtils.generateUuidV7();
         NetworkDevice device = NetworkDevice.builder()
@@ -147,6 +168,10 @@ class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
         Optional<Invoice> foundInvoice = invoiceRepository.findByExternalTransactionId("XB-REAL-TX-999");
         assertTrue(foundInvoice.isPresent());
         assertEquals(new BigDecimal("149.90"), foundInvoice.get().getAmount());
+
+        Optional<TrustUnblock> foundUnblock = trustUnblockRepository.findById(unblockId);
+        assertTrue(foundUnblock.isPresent());
+        assertEquals("ACTIVE", foundUnblock.get().getStatus());
 
         Optional<OnuProvisioning> foundOnu = onuRepository.findByOnuMac("00:11:22:33:44:55");
         assertTrue(foundOnu.isPresent());

@@ -23,6 +23,8 @@ import InvoiceList from './pages/Financial/InvoiceList';
 import GatewayConfig from './pages/Financial/GatewayConfig';
 import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
+import ClientPortal from './pages/Portal/ClientPortal';
+import NotificationConfigList from './pages/Settings/NotificationConfigList';
 import { setupService } from './services/setupService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -206,6 +208,21 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               !isAuthenticated ? <Navigate to="/login" replace /> : 
               <NetworkDeviceList />
+            } 
+          />
+          <Route 
+            path="/portal/client" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ClientPortal />
+            } 
+          />
+          <Route 
+            path="/settings/notifications" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <NotificationConfigList />
             } 
           />
           <Route 

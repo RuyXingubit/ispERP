@@ -13,6 +13,8 @@ public interface ContractRepository extends JpaRepository<Contract, UUID> {
 
     Optional<Contract> findByContractNumber(String contractNumber);
 
+    List<Contract> findByCustomerId(UUID customerId);
+
     List<Contract> findByCustomerIdOrderByCreatedAtDesc(UUID customerId);
 
     List<Contract> findByStatusOrderByCreatedAtDesc(Contract.ContractStatus status);

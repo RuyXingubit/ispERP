@@ -37,9 +37,30 @@ public class NetworkProvisioningConsumer {
 
         if ("WORK_ORDER_COMPLETED".equals(type)) {
             handleWorkOrderCompleted(event);
-        } else if ("INVOICE_PAID".equals(type)) {
+        } else if ("INVOICE_PAID".equals(type) || "INTERNET_ACCESS_UNBLOCKED".equals(type)) {
             handleInvoicePaid(event);
+        } else if ("PLAN_UPGRADED".equals(type)) {
+            handlePlanUpgraded(event);
         }
+    }
+
+    private void handlePlanUpgraded(DomainEvent event) {
+        idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "_PlanUpgradeOLT", () -> {
+            Map<String, Object> data = extractPayload(event.getPayload());
+            String contractIdStr = (String) data.get("contractId");
+            if (contractIdStr != null) {
+                UUID contractId = UUID.fromString(contractIdStr);
+                log.info("Reprovisionando velocidade na OLT para o contrato {} após upgrade", contractId);
+                try {
+                    Contract contract = contractService.getContractById(contractId).orElse(null);
+                    if (contract != null) {
+                        provisioningService.unblockInternetAccess(contractId);
+                    }
+                } catch (Exception e) {
+                    log.debug("Erro ao reprovisionar OLT após upgrade: {}", e.getMessage());
+                }
+            }
+        });
     }
 
     private void handleWorkOrderCompleted(DomainEvent event) {

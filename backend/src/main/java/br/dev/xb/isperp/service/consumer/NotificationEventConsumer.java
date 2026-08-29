@@ -19,9 +19,10 @@ import java.util.Map;
 @SuppressWarnings("null")
 public class NotificationEventConsumer {
 
-    private static final String CONSUMER_NAME = "NotificationEmailConsumer";
+    private static final String CONSUMER_NAME = "MultiChannelNotificationConsumer";
 
     private final EmailNotificationService emailService;
+    private final br.dev.xb.isperp.service.WhatsAppNotificationService whatsAppService;
     private final IdempotencyService idempotencyService;
     private final ObjectMapper objectMapper;
 
@@ -36,6 +37,8 @@ public class NotificationEventConsumer {
             handleInvoicePaid(event);
         } else if ("CLIENT_ACCESS_GENERATED".equals(type)) {
             handleClientAccessGenerated(event);
+        } else if ("PLAN_UPGRADED".equals(type)) {
+            handlePlanUpgraded(event);
         }
     }
 
@@ -43,16 +46,23 @@ public class NotificationEventConsumer {
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "_InvoiceGen", () -> {
             Map<String, Object> data = extractPayload(event.getPayload());
             String email = (String) data.get("customerEmail");
+            String phone = (String) data.get("customerPhone");
             String name = (String) data.get("customerName");
             String amount = (String) data.get("amount");
             String dueDate = (String) data.get("dueDate");
             String pixCode = (String) data.get("pixCopiaECola");
+            String pixQrUrl = (String) data.get("pixQrCodeUrl");
 
             if (email != null && !email.isEmpty()) {
                 String subject = "Sua Fatura de Internet chegou! Vencimento em " + dueDate;
                 String body = String.format("Olá %s,\nSua fatura no valor de R$ %s com vencimento em %s já está disponível.\n\nPague via Pix Copia e Cola:\n%s",
                         name, amount, dueDate, pixCode);
                 emailService.sendEmail(email, subject, body);
+            }
+
+            if (phone != null && !phone.isEmpty()) {
+                java.math.BigDecimal val = amount != null ? new java.math.BigDecimal(amount) : java.math.BigDecimal.ZERO;
+                whatsAppService.sendPixInvoice(null, phone, name != null ? name : "Cliente", val, dueDate != null ? dueDate : "", pixCode != null ? pixCode : "", pixQrUrl);
             }
         });
     }
@@ -62,7 +72,14 @@ public class NotificationEventConsumer {
             Map<String, Object> data = extractPayload(event.getPayload());
             String invoiceId = (String) data.get("invoiceId");
             String paidAmount = (String) data.get("paidAmount");
+            String phone = (String) data.get("customerPhone");
+
             log.info("Comprovante de pagamento emitido para fatura {} (R$ {})", invoiceId, paidAmount);
+
+            if (phone != null && !phone.isEmpty()) {
+                String msg = String.format("✅ *Pagamento Confirmado!*\n\nRecebemos o pagamento da sua fatura no valor de R$ %s. Sua conexão de internet está totalmente liberada. Obrigado!", paidAmount);
+                whatsAppService.sendTextMessage(null, phone, msg, "PAYMENT_CONFIRMATION");
+            }
         });
     }
 
@@ -70,6 +87,7 @@ public class NotificationEventConsumer {
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "_AccessGen", () -> {
             Map<String, Object> data = extractPayload(event.getPayload());
             String email = (String) data.get("userEmail");
+            String phone = (String) data.get("customerPhone");
             String username = (String) data.get("username");
             String initialPassword = (String) data.get("initialPassword");
 
@@ -78,6 +96,24 @@ public class NotificationEventConsumer {
                 String body = String.format("Seu acesso à Central do Assinante foi criado!\nLogin: %s\nSenha Inicial: %s\nRecomendamos alterar a senha no primeiro acesso.",
                         username, initialPassword);
                 emailService.sendEmail(email, subject, body);
+            }
+
+            if (phone != null && !phone.isEmpty()) {
+                String msg = String.format("🚀 *Bem-vindo à nossa rede!*\n\nSeu acesso à Central do Assinante foi criado:\n👤 *Login:* %s\n🔑 *Senha:* %s\n\nAcesse para ver suas faturas e gerenciar seu plano!", username, initialPassword);
+                whatsAppService.sendTextMessage(null, phone, msg, "WELCOME_CREDENTIALS");
+            }
+        });
+    }
+
+    private void handlePlanUpgraded(DomainEvent event) {
+        idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "_PlanUpgraded", () -> {
+            Map<String, Object> data = extractPayload(event.getPayload());
+            String phone = (String) data.get("customerPhone");
+            Object downloadSpeed = data.get("downloadSpeed");
+
+            if (phone != null && !phone.isEmpty()) {
+                String msg = String.format("⚡ *Upgrade de Plano Ativado!*\n\nSua velocidade foi atualizada para %s Mbps com sucesso. Aproveite sua conexão ultra-rápida!", downloadSpeed);
+                whatsAppService.sendTextMessage(null, phone, msg, "PLAN_UPGRADED");
             }
         });
     }

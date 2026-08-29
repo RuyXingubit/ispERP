@@ -10,6 +10,8 @@ import java.util.UUID;
 @Repository
 public interface PlanRepository extends JpaRepository<Plan, UUID> {
 
+    List<Plan> findByActiveTrue();
+
     List<Plan> findByActiveTrueOrderByIdDesc();
 
     List<Plan> findByNameContainingIgnoreCase(String name);
