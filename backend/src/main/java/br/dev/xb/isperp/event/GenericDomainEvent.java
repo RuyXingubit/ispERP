@@ -14,6 +14,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@SuppressWarnings("null")
 public class GenericDomainEvent implements DomainEvent {
 
     @Builder.Default

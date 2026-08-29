@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class DomainEventPublisher {
 
     private final OutboxEventRepository outboxEventRepository;

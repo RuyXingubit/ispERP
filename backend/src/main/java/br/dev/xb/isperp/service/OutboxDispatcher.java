@@ -17,6 +17,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class OutboxDispatcher {
 
     private static final int MAX_RETRIES = 5;
