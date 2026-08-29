@@ -105,6 +105,32 @@ public class Invoice {
     @Column(name = "pdf_url", columnDefinition = "text")
     private String pdfUrl;
 
+    @Column(name = "nfcom_number")
+    private Integer nfcomNumber;
+
+    @Column(name = "nfcom_series")
+    private Integer nfcomSeries;
+
+    @Column(name = "nfcom_key", length = 44)
+    private String nfcomKey;
+
+    @Column(name = "nfcom_xml_url", length = 500)
+    private String nfcomXmlUrl;
+
+    @Column(name = "nfcom_pdf_url", length = 500)
+    private String nfcomPdfUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "nfcom_status", nullable = false, length = 30)
+    @Builder.Default
+    private NfcomStatus nfcomStatus = NfcomStatus.NOT_APPLICABLE;
+
+    @Column(name = "nfcom_issued_at")
+    private LocalDateTime nfcomIssuedAt;
+
+    @Column(name = "nfcom_error_message", columnDefinition = "text")
+    private String nfcomErrorMessage;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -133,5 +159,13 @@ public class Invoice {
         PAID,
         OVERDUE,
         CANCELED
+    }
+
+    public enum NfcomStatus {
+        NOT_APPLICABLE,
+        PENDING_EMISSION,
+        ISSUED,
+        FAILED,
+        CANCELLED
     }
 }

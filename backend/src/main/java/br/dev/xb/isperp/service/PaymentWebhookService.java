@@ -28,6 +28,10 @@ public class PaymentWebhookService {
     private final PaymentTransactionRepository transactionRepository;
     private final IdempotencyService idempotencyService;
     private final ObjectMapper objectMapper;
+    private final NfcomDecisionService nfcomDecisionService;
+    private final br.dev.xb.isperp.gateway.xingubit.XingubitPayGateway xingubitPayGateway;
+    private final br.dev.xb.isperp.repository.CustomerRepository customerRepository;
+    private final br.dev.xb.isperp.repository.InvoiceRepository invoiceRepository;
 
     @Transactional
     public void processPaymentWebhook(@NonNull String gatewayName, @NonNull Map<String, Object> payload, String signature) {
@@ -56,6 +60,33 @@ public class PaymentWebhookService {
                     : invoice.getAmount();
 
             invoiceService.markInvoiceAsPaid(invoice.getId(), paidAmount, "PIX");
+
+            // Emissão condicional de NFCom (Modelo 62) via Xingubit Pay
+            if (nfcomDecisionService.shouldIssueNfcom(invoice)) {
+                try {
+                    var customerOpt = customerRepository.findById(invoice.getCustomerId());
+                    String customerName = customerOpt.map(br.dev.xb.isperp.entity.Customer::getName).orElse("Cliente");
+                    String customerCpfCnpj = customerOpt.map(br.dev.xb.isperp.entity.Customer::getCpf).orElse("00000000000");
+
+                    var nfcomRes = xingubitPayGateway.issueNfcom(
+                            txId, customerCpfCnpj, customerName, paidAmount, resolved.config());
+
+                    invoice.setNfcomNumber(nfcomRes.getNfcomNumber());
+                    invoice.setNfcomSeries(nfcomRes.getNfcomSeries());
+                    invoice.setNfcomKey(nfcomRes.getNfcomKey());
+                    invoice.setNfcomXmlUrl(nfcomRes.getXmlUrl());
+                    invoice.setNfcomPdfUrl(nfcomRes.getPdfUrl());
+                    invoice.setNfcomStatus(Invoice.NfcomStatus.ISSUED);
+                    invoice.setNfcomIssuedAt(nfcomRes.getIssuedAt());
+                    invoiceRepository.save(invoice);
+                    log.info("NFCom emitida com sucesso para fatura {}. Chave={}", invoice.getId(), nfcomRes.getNfcomKey());
+                } catch (Exception ex) {
+                    log.error("Erro ao emitir NFCom para fatura {}: {}", invoice.getId(), ex.getMessage());
+                    invoice.setNfcomStatus(Invoice.NfcomStatus.FAILED);
+                    invoice.setNfcomErrorMessage(ex.getMessage());
+                    invoiceRepository.save(invoice);
+                }
+            }
 
             try {
                 PaymentTransaction tx = PaymentTransaction.builder()

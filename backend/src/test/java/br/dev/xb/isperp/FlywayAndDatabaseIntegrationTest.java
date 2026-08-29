@@ -60,8 +60,14 @@ class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private ServiceRouteRepository serviceRouteRepository;
 
+    @Autowired
+    private HelpdeskTicketRepository helpdeskTicketRepository;
+
+    @Autowired
+    private TicketInteractionRepository ticketInteractionRepository;
+
     @Test
-    @DisplayName("Deve validar a execução das migrações Flyway V1 a V11 no PostgreSQL 17 real")
+    @DisplayName("Deve validar a execução das migrações Flyway V1 a V12 no PostgreSQL 17 real")
     void shouldVerifyPostgres17DatabaseConnectionAndFlyway() {
         assertTrue(postgres.isRunning());
         assertEquals("isperp_test", postgres.getDatabaseName());
@@ -71,6 +77,8 @@ class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(planUpgradeRequestRepository);
         assertNotNull(serializedAssetRepository);
         assertNotNull(serviceRouteRepository);
+        assertNotNull(helpdeskTicketRepository);
+        assertNotNull(ticketInteractionRepository);
     }
 
     @Test

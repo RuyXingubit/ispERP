@@ -34,9 +34,12 @@ import {
   QrCode as QrCodeIcon,
   SignalCellularAlt as SignalIcon,
   History as HistoryIcon,
-  Key as KeyIcon
+  Key as KeyIcon,
+  Receipt as ReceiptIcon,
+  HeadsetMic as SupportIcon
 } from '@mui/icons-material';
 import clientPortalService from '../../services/clientPortalService';
+import { helpdeskService } from '../../services/helpdeskService';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -58,6 +61,14 @@ const ClientPortal = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedUpgradePlan, setSelectedUpgradePlan] = useState(null);
+
+  // Tickets State
+  const [myTickets, setMyTickets] = useState([]);
+  const [ticketModalOpen, setTicketModalOpen] = useState(false);
+  const [newTicketCategory, setNewTicketCategory] = useState('SLOW_SPEED');
+  const [newTicketSubject, setNewTicketSubject] = useState('');
+  const [newTicketDesc, setNewTicketDesc] = useState('');
+  const [ticketSubmitting, setTicketSubmitting] = useState(false);
 
   // Profile & Password State
   const [profileForm, setProfileForm] = useState({
@@ -106,9 +117,52 @@ const ClientPortal = () => {
     }
   };
 
+  const loadMyTickets = async (customerId) => {
+    if (!customerId) return;
+    try {
+      const res = await helpdeskService.getTicketsByCustomer(customerId);
+      setMyTickets(res.data || []);
+    } catch (err) {
+      console.error('Erro ao carregar chamados do cliente:', err);
+    }
+  };
+
+  const handleCreateMyTicket = async () => {
+    if (!newTicketSubject.trim() || !newTicketDesc.trim()) {
+      setToast({ open: true, message: 'Preencha o assunto e a descrição do chamado.', severity: 'warning' });
+      return;
+    }
+    try {
+      setTicketSubmitting(true);
+      const res = await helpdeskService.createTicket({
+        customerId: dashboard?.customer?.id,
+        contractId: dashboard?.contract?.id,
+        category: newTicketCategory,
+        channel: 'PORTAL',
+        subject: newTicketSubject,
+        description: newTicketDesc,
+      });
+      setToast({ open: true, message: `Chamado aberto com sucesso! Protocolo ANATEL: ${res.data.protocol}`, severity: 'success' });
+      setTicketModalOpen(false);
+      setNewTicketSubject('');
+      setNewTicketDesc('');
+      loadMyTickets(dashboard?.customer?.id);
+    } catch (err) {
+      setToast({ open: true, message: 'Erro ao abrir chamado.', severity: 'error' });
+    } finally {
+      setTicketSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  useEffect(() => {
+    if (dashboard?.customer?.id) {
+      loadMyTickets(dashboard.customer.id);
+    }
+  }, [dashboard]);
 
   const handleCopyPix = (pixCode) => {
     if (pixCode) {
@@ -312,6 +366,7 @@ const ClientPortal = () => {
             iconPosition="start"
           />
           <Tab icon={<PersonIcon />} label="Meus Dados & Segurança" iconPosition="start" />
+          <Tab icon={<SupportIcon />} label="Suporte & Chamados (ANATEL)" iconPosition="start" />
         </Tabs>
       </Paper>
 
@@ -622,6 +677,25 @@ const ClientPortal = () => {
                           Pago em: {new Date(inv.paidAt).toLocaleDateString('pt-BR')}
                         </Typography>
                       )}
+
+                      {inv.nfcomKey && (
+                        <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px dashed #e0e0e0' }}>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            Chave NFCom: <strong>{inv.nfcomKey}</strong>
+                          </Typography>
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            size="small"
+                            startIcon={<ReceiptIcon />}
+                            href={inv.nfcomPdfUrl || `https://pay.xingubit.com.br/v1/nfcom/${inv.nfcomKey}/danfe-pdf`}
+                            target="_blank"
+                            sx={{ mt: 1, borderRadius: 1.5, fontWeight: 'bold' }}
+                          >
+                            Baixar NFCom (Modelo 62)
+                          </Button>
+                        </Box>
+                      )}
                     </CardContent>
                   </Card>
                 </Grid>
@@ -761,6 +835,138 @@ const ClientPortal = () => {
           </Grid>
         </Grid>
       </TabPanel>
+
+      {/* ABA 4: Suporte & Chamados (ANATEL) */}
+      <TabPanel value={activeTab} index={3}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box>
+            <Typography variant="h6" fontWeight="bold">
+              Meus Atendimentos & Protocolos ANATEL
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Acompanhe suas solicitações de suporte e histórico de chamados com prazos regulatórios.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<SupportIcon />}
+            onClick={() => setTicketModalOpen(true)}
+            sx={{ borderRadius: 2, fontWeight: 'bold' }}
+          >
+            Abrir Chamado
+          </Button>
+        </Box>
+
+        <Grid container spacing={2}>
+          {myTickets.length === 0 ? (
+            <Grid item xs={12}>
+              <Alert severity="info" sx={{ borderRadius: 2 }}>
+                Você não possui nenhum chamado de atendimento em aberto ou registrado no momento.
+              </Alert>
+            </Grid>
+          ) : (
+            myTickets.map((t) => (
+              <Grid item xs={12} md={6} key={t.id}>
+                <Card sx={{ borderRadius: 3, borderLeft: '6px solid #1976d2' }}>
+                  <CardContent sx={{ p: 2.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="subtitle1" fontWeight="bold" color="primary.main">
+                        Protocolo: {t.protocol}
+                      </Typography>
+                      <Chip
+                        label={t.status}
+                        color={t.status === 'RESOLVED' || t.status === 'CLOSED' ? 'success' : 'primary'}
+                        size="small"
+                      />
+                    </Box>
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      {t.subject}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ my: 1 }}>
+                      {t.description}
+                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5, pt: 1, borderTop: '1px solid #f0f0f0' }}>
+                      <Typography variant="caption" color="text.secondary">
+                        ⏱️ Prazo SLA: {new Date(t.slaDeadline).toLocaleString('pt-BR')}
+                      </Typography>
+                      {t.anatelSatisfactionRating && (
+                        <Typography variant="caption" color="warning.main" fontWeight="bold">
+                          ⭐ {t.anatelSatisfactionRating} / 5
+                        </Typography>
+                      )}
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))
+          )}
+        </Grid>
+      </TabPanel>
+
+      {/* MODAL NOVO CHAMADO CENTRAL DO ASSINANTE */}
+      <Dialog
+        open={ticketModalOpen}
+        onClose={() => setTicketModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 2 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          Abrir Chamado de Suporte (Protocolo ANATEL)
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Sua solicitação gerará um número oficial de protocolo ANATEL com atendimento prioritário.
+          </Typography>
+          <TextField
+            select
+            fullWidth
+            label="Tipo de Solicitação"
+            value={newTicketCategory}
+            onChange={(e) => setNewTicketCategory(e.target.value)}
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="SLOW_SPEED">Lentidão na Conexão (SLA 48h)</MenuItem>
+            <MenuItem value="CONNECTION_OUTAGE">Sem Sinal / Sem Internet (SLA 24h)</MenuItem>
+            <MenuItem value="ROUTER_CONFIG">Configuração de Wi-Fi / Roteador (SLA 48h)</MenuItem>
+            <MenuItem value="FINANCIAL">Dúvidas Financeiras / Pagamento (SLA 24h)</MenuItem>
+            <MenuItem value="ADDRESS_CHANGE">Mudança de Endereço (SLA 72h)</MenuItem>
+            <MenuItem value="OTHER">Outros Assuntos (SLA 48h)</MenuItem>
+          </TextField>
+          <TextField
+            fullWidth
+            label="Assunto Resumido"
+            placeholder="Ex: Wi-Fi desconectando no quarto"
+            value={newTicketSubject}
+            onChange={(e) => setNewTicketSubject(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="Descrição Detalhada do Problema"
+            placeholder="Descreva o que está acontecendo com sua conexão..."
+            value={newTicketDesc}
+            onChange={(e) => setNewTicketDesc(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setTicketModalOpen(false)} color="inherit">
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={ticketSubmitting || !newTicketSubject.trim()}
+            onClick={handleCreateMyTicket}
+            sx={{ fontWeight: 'bold', borderRadius: 2 }}
+          >
+            {ticketSubmitting ? 'Gerando Protocolo...' : 'Enviar Chamado'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* MODAL PIX COPIA E COLA & QR CODE (XINGUBIT PAY) */}
       <Dialog

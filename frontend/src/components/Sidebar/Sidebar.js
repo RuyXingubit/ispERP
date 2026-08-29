@@ -36,6 +36,7 @@ import {
   Router as NetworkIcon,
   Sensors as OnuIcon,
   Storage as OltIcon,
+  HeadsetMic as SupportIcon,
 } from '@mui/icons-material';
 
 import { useAuth } from '../../contexts/AuthContext';
@@ -115,6 +116,11 @@ const Sidebar = ({ open, onClose, onToggle }) => {
   ];
 
   const operacoesItems = [
+    {
+      text: 'Helpdesk (ANATEL)',
+      icon: <SupportIcon />,
+      path: '/helpdesk',
+    },
     {
       text: 'Ordens de Serviço (O.S.)',
       icon: <WorkOrderIcon />,

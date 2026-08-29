@@ -37,6 +37,7 @@ import {
   ContentCopy as CopyIcon,
   Autorenew as SyncIcon,
   AttachMoney as MoneyIcon,
+  Receipt as ReceiptIcon,
 } from '@mui/icons-material';
 import invoiceService from '../../services/invoiceService';
 
@@ -305,6 +306,18 @@ const InvoiceList = () => {
                               onClick={() => handleOpenPix(inv)}
                             >
                               Pix QR
+                            </Button>
+                          )}
+                          {inv.nfcomKey && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="info"
+                              startIcon={<ReceiptIcon />}
+                              href={inv.nfcomPdfUrl || `https://pay.xingubit.com.br/v1/nfcom/${inv.nfcomKey}/danfe-pdf`}
+                              target="_blank"
+                            >
+                              NFCom
                             </Button>
                           )}
                           {inv.status === 'PENDING' && (

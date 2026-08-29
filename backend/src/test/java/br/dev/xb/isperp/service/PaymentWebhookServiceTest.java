@@ -44,6 +44,18 @@ class PaymentWebhookServiceTest {
     @Mock
     private PaymentGateway paymentGateway;
 
+    @Mock
+    private NfcomDecisionService nfcomDecisionService;
+
+    @Mock
+    private br.dev.xb.isperp.gateway.xingubit.XingubitPayGateway xingubitPayGateway;
+
+    @Mock
+    private br.dev.xb.isperp.repository.CustomerRepository customerRepository;
+
+    @Mock
+    private br.dev.xb.isperp.repository.InvoiceRepository invoiceRepository;
+
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
 

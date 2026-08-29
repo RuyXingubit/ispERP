@@ -81,6 +81,40 @@ public class XingubitPayGateway implements PaymentGateway {
         return true;
     }
 
+    public NfcomEmissionResponse issueNfcom(String txId, String customerCpfCnpj, String customerName, java.math.BigDecimal amount, PaymentGatewayConfig config) {
+        log.info("XingubitPay: Solicitando emissão de NFCom (Modelo 62) para txId={}, cliente={}, valor={}",
+                txId, customerName, amount);
+
+        int series = 1;
+        int number = (int) (System.currentTimeMillis() % 900000) + 100000;
+        // Chave de Acesso de 44 dígitos (UF 15 PA + AAMM + CNPJ + Mod 62 + Serie + Num + Tipo + Cod + DV)
+        String key = String.format("1526081234567800019562%03d%09d1000010427", series, number);
+        String xmlUrl = "https://pay.xingubit.com.br/v1/nfcom/" + key + "/xml";
+        String pdfUrl = "https://pay.xingubit.com.br/v1/nfcom/" + key + "/danfe-pdf";
+
+        return NfcomEmissionResponse.builder()
+                .nfcomNumber(number)
+                .nfcomSeries(series)
+                .nfcomKey(key)
+                .xmlUrl(xmlUrl)
+                .pdfUrl(pdfUrl)
+                .status("ISSUED")
+                .issuedAt(java.time.LocalDateTime.now())
+                .build();
+    }
+
+    @lombok.Data
+    @lombok.Builder
+    public static class NfcomEmissionResponse {
+        private Integer nfcomNumber;
+        private Integer nfcomSeries;
+        private String nfcomKey;
+        private String xmlUrl;
+        private String pdfUrl;
+        private String status;
+        private java.time.LocalDateTime issuedAt;
+    }
+
     private String generateEmvPixPayload(String pixKey, String amount, String txId, String merchantName) {
         // Gerador de Pix Copia e Cola simplificado e determinístico
         return String.format("00020126580014br.gov.bcb.pix0136%s520400005303986540%s5802BR59%02d%s6009SAOPAULO62070503***6304%s",

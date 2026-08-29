@@ -26,6 +26,7 @@ import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import ClientPortal from './pages/Portal/ClientPortal';
 import InventoryManager from './pages/Inventory/InventoryManager';
 import RoutePlanner from './pages/WorkOrders/RoutePlanner';
+import TicketList from './pages/Helpdesk/TicketList';
 import NotificationConfigList from './pages/Settings/NotificationConfigList';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import { setupService } from './services/setupService';
@@ -243,6 +244,15 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_ANALYST', 'SUPPORT_N2', 'TECHNICIAN']}>
                 <RoutePlanner />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/helpdesk" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'ATTENDANT', 'SUPPORT_N2', 'SUPPORT_ANALYST']}>
+                <TicketList />
               </ProtectedRoute>
             } 
           />
