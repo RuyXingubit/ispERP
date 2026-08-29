@@ -71,6 +71,12 @@ public class WorkOrder {
     @Column(name = "gps_captured_at")
     private LocalDateTime gpsCapturedAt;
 
+    @Column(name = "installation_photo_url", columnDefinition = "text")
+    private String installationPhotoUrl;
+
+    @Column(name = "tool_agreement_id")
+    private UUID toolAgreementId;
+
     @Column(name = "notes", columnDefinition = "text")
     private String notes;
 

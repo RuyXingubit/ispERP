@@ -95,6 +95,9 @@ public class WorkOrderService {
             workOrder.setTechnicianLongitude(request.getTechnicianLongitude());
             workOrder.setGpsCapturedAt(LocalDateTime.now());
         }
+        if (request.getInstallationPhotoUrl() != null) {
+            workOrder.setInstallationPhotoUrl(request.getInstallationPhotoUrl());
+        }
         workOrder.setCompletedAt(LocalDateTime.now());
         workOrder.setStatus(WorkOrder.WorkOrderStatus.COMPLETED);
 

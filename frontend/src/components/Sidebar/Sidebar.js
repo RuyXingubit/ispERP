@@ -120,6 +120,11 @@ const Sidebar = ({ open, onClose, onToggle }) => {
       icon: <WorkOrderIcon />,
       path: '/work-orders',
     },
+    {
+      text: 'Almoxarifado & Estoque',
+      icon: <OperationsIcon />,
+      path: '/inventory',
+    },
   ];
 
   const cadastroItems = [

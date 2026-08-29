@@ -24,6 +24,7 @@ import GatewayConfig from './pages/Financial/GatewayConfig';
 import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import ClientPortal from './pages/Portal/ClientPortal';
+import InventoryManager from './pages/Inventory/InventoryManager';
 import NotificationConfigList from './pages/Settings/NotificationConfigList';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import { setupService } from './services/setupService';
@@ -223,6 +224,15 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2']}>
                 <NetworkDeviceList />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/inventory" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2', 'ADMINISTRATIVE_ASSISTANT', 'FINANCIAL']}>
+                <InventoryManager />
               </ProtectedRoute>
             } 
           />

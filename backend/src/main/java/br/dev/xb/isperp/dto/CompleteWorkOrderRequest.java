@@ -26,6 +26,7 @@ public class CompleteWorkOrderRequest {
 
     private BigDecimal technicianLatitude;
     private BigDecimal technicianLongitude;
+    private String installationPhotoUrl;
 
     private String notes;
 }
