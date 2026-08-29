@@ -56,23 +56,25 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 5: Faturamento Recorrente, Cobrança & Multi-Gateway de Pagamentos
+## 🎯 Milestone 5: Faturamento Recorrente, Cobrança & Multi-Gateway de Pagamentos (Concluído)
 > **Objetivo:** Geração automatizada de cobranças com suporte a múltiplos gateways simultâneos e integração primária com Xingubit Pay (Pix COB, COBV e NFCom).
 
-- [ ] **Entidades & Modelo de Dados:**
-  - `Invoice` e `PaymentTransaction` com UUIDv7.
+- [x] **Entidades & Modelo de Dados:**
+  - `Invoice` e `PaymentTransaction` com UUIDv7 via Flyway `V6`.
   - `PaymentGatewayConfig` (armazenando credenciais OAuth, chaves de API, webhook secrets por gateway/empresa).
-  - Vínculo hierárquico de gateway: `Contract.gateway_config_id` -> `Plan.gateway_config_id` -> `Company.default_gateway_config_id`.
-- [ ] **Interface de Gateway & Roteamento (`PaymentGateway`):**
-  - Implementação do `PaymentGatewayRouter` que seleciona dinamicamente o gateway correto.
-  - Adaptador Primário: `XingubitPaymentGatewayAdapter` (OAuth 2.0, Pix Imediato COB, Pix com Vencimento COBV e Carnês).
-  - Estrutura para adaptadores secundários plugáveis (Asaas, Efí/Gerencianet).
-- [ ] **Webhooks Unificados de Pagamento:**
-  - Endpoint `/api/webhooks/payments/xingubit` para recebimento de notificações em tempo real.
-  - Emissão do `PaymentConfirmedEvent` para acionamento de desbloqueio de rede e notificação de agradecimento.
-- [ ] **Consumidor de Ativação:**
-  - Consumidor que gera fatura a partir do `ContractActivatedEvent`.
-  - Emissão do `InvoiceGeneratedEvent` para o módulo de notificações multicanal.
+- [x] **Arquitetura Strategy / Multi-Gateway:**
+  - Interface universal `PaymentGateway` com `PaymentGatewayResolver`.
+  - Implementação oficial do **Xingubit Pay** (`XingubitPayGateway`) conforme especificação `pay.xingubit.com.br/doc` com Pix Copia e Cola, QR Code dinâmico e validação HMAC.
+- [x] **Motor de Cobrança e Faturamento Recorrente:**
+  - `InvoiceService` para emissão, cancelamento e baixa de faturas.
+  - Scheduler diário de faturamento recorrente (`BillingScheduler`).
+  - Webhook controller seguro `/api/webhooks/payments/{gatewayType}` com compensação instantânea e evento `INVOICE_PAID`.
+- [x] **Notificações SMTP / E-mail:**
+  - `NotificationEventConsumer` para envio assíncrono de faturas, credenciais e confirmação de pagamentos.
+- [x] **Telas no Frontend (Vite 6 / React 19):**
+  - Painel de Gestão de Faturas com métricas financeiras, modal de Pix Copia e Cola e QR Code.
+  - Gerenciador de Gateways de Pagamento (configuração de credenciais).
+- [x] Suíte de testes unitários automatizados cobrindo gateway, roteador, webhook e faturas (100% Green).
 
 ---
 

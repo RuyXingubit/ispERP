@@ -30,7 +30,9 @@ import {
   Storefront as CommercialIcon,
   Build as OperationsIcon,
   Engineering as WorkOrderIcon,
-  Inventory as InventoryIcon,
+  AccountBalance as FinancialIcon,
+  Receipt as InvoiceIcon,
+  Payment as GatewayIcon,
 } from '@mui/icons-material';
 
 const DRAWER_WIDTH = 280;
@@ -43,6 +45,7 @@ const Sidebar = ({ open, onClose, onToggle }) => {
   const [cadastroOpen, setCadastroOpen] = useState(false);
   const [comercialOpen, setComercialOpen] = useState(true);
   const [operacoesOpen, setOperacoesOpen] = useState(true);
+  const [financeiroOpen, setFinanceiroOpen] = useState(true);
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -74,6 +77,19 @@ const Sidebar = ({ open, onClose, onToggle }) => {
       text: 'Ordens de Serviço (O.S.)',
       icon: <WorkOrderIcon />,
       path: '/work-orders',
+    },
+  ];
+
+  const financeiroItems = [
+    {
+      text: 'Faturas & Cobranças',
+      icon: <InvoiceIcon />,
+      path: '/invoices',
+    },
+    {
+      text: 'Gateways de Pagamento',
+      icon: <GatewayIcon />,
+      path: '/payment-gateways',
     },
   ];
 
@@ -148,6 +164,43 @@ const Sidebar = ({ open, onClose, onToggle }) => {
 
       {/* Menu Items */}
       <List sx={{ flexGrow: 1, py: { xs: 0.5, sm: 1 } }}>
+        {/* Financeiro & Faturamento */}
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => setFinanceiroOpen(!financeiroOpen)}
+            sx={{ minHeight: 44, px: 2 }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
+              <FinancialIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Financeiro & Cobrança"
+              primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: 'bold' }}
+            />
+            {financeiroOpen ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+        </ListItem>
+
+        <Collapse in={financeiroOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {financeiroItems.map((item, index) => (
+              <ListItem key={index} disablePadding>
+                <ListItemButton
+                  onClick={() => handleNavigate(item.path)}
+                  sx={{ pl: 4, py: 0.8, '&:hover': { bgcolor: 'action.hover' } }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '0.85rem' }} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Collapse>
+
+        <Divider sx={{ my: 0.5 }} />
+
         {/* Comercial & Vendas */}
         <ListItem disablePadding>
           <ListItemButton
@@ -183,7 +236,7 @@ const Sidebar = ({ open, onClose, onToggle }) => {
           </List>
         </Collapse>
 
-        <Divider sx={{ my: 1 }} />
+        <Divider sx={{ my: 0.5 }} />
 
         {/* Operações & Campo */}
         <ListItem disablePadding>
@@ -220,7 +273,7 @@ const Sidebar = ({ open, onClose, onToggle }) => {
           </List>
         </Collapse>
 
-        <Divider sx={{ my: 1 }} />
+        <Divider sx={{ my: 0.5 }} />
 
         {/* Cadastros Gerais */}
         <ListItem disablePadding>

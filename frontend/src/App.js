@@ -19,6 +19,8 @@ import PlanList from './pages/Plans/PlanList';
 import SaleForm from './pages/Sales/SaleForm';
 import ContractList from './pages/Contracts/ContractList';
 import WorkOrderList from './pages/WorkOrders/WorkOrderList';
+import InvoiceList from './pages/Financial/InvoiceList';
+import GatewayConfig from './pages/Financial/GatewayConfig';
 import { setupService } from './services/setupService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -170,6 +172,22 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               !isAuthenticated ? <Navigate to="/login" replace /> : 
               <WorkOrderList />
+            } 
+          />
+          <Route 
+            path="/invoices" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <InvoiceList />
+            } 
+          />
+          <Route 
+            path="/payment-gateways" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <GatewayConfig />
             } 
           />
           <Route 

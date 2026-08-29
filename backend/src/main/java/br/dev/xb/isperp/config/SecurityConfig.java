@@ -24,7 +24,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/initial-setup/**", "/auth/login", "/health", "/error", "/actuator/**").permitAll()
+                .requestMatchers("/initial-setup/**", "/auth/login", "/health", "/error", "/actuator/**", "/api/webhooks/**").permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic(httpBasic -> httpBasic.disable())
