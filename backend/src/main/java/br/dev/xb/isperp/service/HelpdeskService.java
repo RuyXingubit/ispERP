@@ -4,7 +4,6 @@ import br.dev.xb.isperp.entity.HelpdeskTicket;
 import br.dev.xb.isperp.entity.TicketInteraction;
 import br.dev.xb.isperp.entity.WorkOrder;
 import br.dev.xb.isperp.event.GenericDomainEvent;
-import br.dev.xb.isperp.repository.CustomerRepository;
 import br.dev.xb.isperp.repository.HelpdeskTicketRepository;
 import br.dev.xb.isperp.repository.TicketInteractionRepository;
 import br.dev.xb.isperp.repository.WorkOrderRepository;

@@ -2,7 +2,6 @@ package br.dev.xb.isperp.service;
 
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Invoice;
-import br.dev.xb.isperp.service.DomainEventPublisher;
 import br.dev.xb.isperp.repository.ContractRepository;
 import br.dev.xb.isperp.repository.InvoiceRepository;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
