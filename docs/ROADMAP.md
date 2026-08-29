@@ -4,20 +4,20 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 1: Fundação Técnica, PostgreSQL 17+, UUIDv7 & Testes
+## 🎯 Milestone 1: Fundação Técnica, PostgreSQL 17+, UUIDv7 & Testes (Concluído)
 > **Objetivo:** Estabelecer a infraestrutura moderna do banco de dados, migração de IDs para UUIDv7 e garantia de qualidade com suíte de testes automatizados (TDD).
 
-- [ ] **Docker & Configuração:**
+- [x] **Docker & Configuração:**
   - Substituir container MySQL por PostgreSQL 17 (`postgres:17-alpine`) no `docker-compose.yml` e `docker-compose.prod.yml`.
   - Atualizar dependências no `build.gradle` (adicionar `org.postgresql:postgresql` e `com.github.f4b6a3:uuid-creator`, remover drivers MySQL).
   - Atualizar `application.yml` para driver e dialeto PostgreSQL.
-- [ ] **Migração de Schema (Flyway):**
+- [x] **Migração de Schema (Flyway):**
   - Reescrever migrações `V1`, `V2`, `V3` em PostgreSQL com tipos nativos `UUID DEFAULT uuidv7()`.
-- [ ] **Refatoração de Entidades Atuais:**
+- [x] **Refatoração de Entidades Atuais:**
   - `User`, `Company`, `SiteSettings`, `Customer` usando `UUID` v7.
-- [ ] **Suíte de Testes Automatizados (TDD):**
+- [x] **Suíte de Testes Automatizados (TDD):**
   - Configurar Testcontainers PostgreSQL para testes de repositório e migração.
-  - Criar testes unitários para Services e Controllers com Mockito e JUnit 5.
+  - Criar testes unitários para Services e Controllers com Mockito e JUnit 5 (100% de aprovação).
 
 ---
 
