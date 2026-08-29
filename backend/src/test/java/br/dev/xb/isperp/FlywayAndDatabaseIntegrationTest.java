@@ -52,7 +52,7 @@ class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
     private PlanUpgradeRequestRepository planUpgradeRequestRepository;
 
     @Test
-    @DisplayName("Deve validar a execução das migrações Flyway V1 a V8 no PostgreSQL 17 real")
+    @DisplayName("Deve validar a execução das migrações Flyway V1 a V9 no PostgreSQL 17 real")
     void shouldVerifyPostgres17DatabaseConnectionAndFlyway() {
         assertTrue(postgres.isRunning());
         assertEquals("isperp_test", postgres.getDatabaseName());
@@ -69,6 +69,8 @@ class FlywayAndDatabaseIntegrationTest extends AbstractIntegrationTest {
                 .cpf("52998224725")
                 .email("ruy.test@xingubit.com.br")
                 .phone("11999990000")
+                .latitude(new BigDecimal("-23.56168000"))
+                .longitude(new BigDecimal("-46.65613000"))
                 .build();
         customer = customerRepository.save(customer);
 

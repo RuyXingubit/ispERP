@@ -1,5 +1,6 @@
 package br.dev.xb.isperp.service;
 
+import br.dev.xb.isperp.entity.UserRole;
 import br.dev.xb.isperp.dto.InitialSetupRequest;
 import br.dev.xb.isperp.entity.Company;
 import br.dev.xb.isperp.entity.SiteSettings;
@@ -57,7 +58,7 @@ public class InitialSetupService {
         admin.setName(request.getAdminName());
         admin.setEmail(request.getAdminEmail());
         admin.setPassword(hashPassword(request.getAdminPassword()));
-        admin.setRole(User.UserRole.ADMIN);
+        admin.setRole(UserRole.ADMIN);
         admin.setActive(true);
         admin.setCreatedAt(LocalDateTime.now());
         admin.setUpdatedAt(LocalDateTime.now());

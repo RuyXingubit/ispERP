@@ -41,7 +41,7 @@ class UserServiceTest {
                 .name("Admin Teste")
                 .email("admin@provedor.com.br")
                 .password("senhaSegura123")
-                .role(User.UserRole.ADMIN)
+                .role(br.dev.xb.isperp.entity.UserRole.ADMIN)
                 .active(true)
                 .build();
     }

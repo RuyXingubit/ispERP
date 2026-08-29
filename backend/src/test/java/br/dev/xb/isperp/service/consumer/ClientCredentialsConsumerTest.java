@@ -87,7 +87,7 @@ class ClientCredentialsConsumerTest {
         verify(userRepository, times(1)).save(argThat(user ->
                 "Ruy Barbosa Borges França".equals(user.getName()) &&
                 "ruy@xingubit.com.br".equals(user.getEmail()) &&
-                User.UserRole.CLIENT.equals(user.getRole())
+                br.dev.xb.isperp.entity.UserRole.CLIENT.equals(user.getRole())
         ));
 
         verify(domainEventPublisher, times(1)).publish(argThat(event ->

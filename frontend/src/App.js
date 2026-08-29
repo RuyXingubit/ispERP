@@ -25,6 +25,7 @@ import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import ClientPortal from './pages/Portal/ClientPortal';
 import NotificationConfigList from './pages/Settings/NotificationConfigList';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 import { setupService } from './services/setupService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -94,120 +95,135 @@ function AppContent() {
             path="/dashboard" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <Dashboard />
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                <Dashboard />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/dashboard/usuarios" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <UserList />
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <UserList />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/dashboard/empresas" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <CompanyList />
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <CompanyList />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/dashboard/configuracoes" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <SiteSettings />
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <SiteSettings />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/customers" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <CustomerList />
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'SUPPORT_ANALYST', 'ADMINISTRATIVE_ASSISTANT']}>
+                <CustomerList />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/customers/new" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <CustomerForm />
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'SUPPORT_ANALYST', 'ADMINISTRATIVE_ASSISTANT']}>
+                <CustomerForm />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/customers/edit/:id" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <CustomerForm />
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'SUPPORT_ANALYST', 'ADMINISTRATIVE_ASSISTANT']}>
+                <CustomerForm />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/plans" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <PlanList />
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'SUPPORT_ANALYST', 'ADMINISTRATIVE_ASSISTANT']}>
+                <PlanList />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/sales/new" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <SaleForm />
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'SUPPORT_ANALYST', 'ADMINISTRATIVE_ASSISTANT']}>
+                <SaleForm />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/contracts" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <ContractList />
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'SUPPORT_ANALYST', 'ADMINISTRATIVE_ASSISTANT']}>
+                <ContractList />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/work-orders" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <WorkOrderList />
+              <ProtectedRoute allowedRoles={['ADMIN', 'TECHNICIAN', 'SUPPORT_ANALYST', 'SUPPORT_N2']}>
+                <WorkOrderList />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/invoices" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <InvoiceList />
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'ADMINISTRATIVE_ASSISTANT']}>
+                <InvoiceList />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/payment-gateways" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <GatewayConfig />
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                <GatewayConfig />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/onus" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <OnuList />
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2']}>
+                <OnuList />
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/network-devices" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <NetworkDeviceList />
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2']}>
+                <NetworkDeviceList />
+              </ProtectedRoute>
             } 
           />
           <Route 
@@ -221,8 +237,9 @@ function AppContent() {
             path="/settings/notifications" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              !isAuthenticated ? <Navigate to="/login" replace /> : 
-              <NotificationConfigList />
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <NotificationConfigList />
+              </ProtectedRoute>
             } 
           />
           <Route 

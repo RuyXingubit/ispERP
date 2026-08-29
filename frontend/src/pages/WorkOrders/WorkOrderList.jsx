@@ -69,8 +69,37 @@ const WorkOrderList = () => {
     onuMac: '',
     onuSerial: '',
     fiberSignalDbm: '-19.50',
+    technicianLatitude: null,
+    technicianLongitude: null,
     notes: '',
   });
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsSuccess, setGpsSuccess] = useState(false);
+
+  const handleCaptureGps = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocalização não é suportada pelo seu navegador/dispositivo.');
+      return;
+    }
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCompleteForm((prev) => ({
+          ...prev,
+          technicianLatitude: position.coords.latitude,
+          technicianLongitude: position.coords.longitude,
+        }));
+        setGpsSuccess(true);
+        setGpsLoading(false);
+      },
+      (err) => {
+        console.error('Erro ao obter GPS:', err);
+        alert('Não foi possível obter a localização GPS. Verifique a permissão do navegador.');
+        setGpsLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const loadWorkOrders = async () => {
     try {
@@ -413,6 +442,33 @@ const WorkOrderList = () => {
                   helperText="Valor ideal entre -15.00 e -24.00 dBm"
                 />
               </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ p: 2, bgcolor: '#f0fdf4', border: '1px dashed #22c55e', borderRadius: 2, textAlign: 'center' }}>
+                  <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                    📍 Localização da Instalação (GPS do Técnico)
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+                    Capture as coordenadas em frente à residência do cliente para registrar o ponto exato da fibra.
+                  </Typography>
+                  {gpsSuccess ? (
+                    <Chip
+                      label={`GPS Gravado: ${completeForm.technicianLatitude?.toFixed(6)}, ${completeForm.technicianLongitude?.toFixed(6)}`}
+                      color="success"
+                      icon={<DoneIcon />}
+                    />
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      color="success"
+                      onClick={handleCaptureGps}
+                      disabled={gpsLoading}
+                    >
+                      {gpsLoading ? 'Capturando Coordenadas...' : 'Marcar GPS em Frente à Casa'}
+                    </Button>
+                  )}
+                </Box>
+              </Grid>
+
               <Grid item xs={12}>
                 <TextField
                   fullWidth

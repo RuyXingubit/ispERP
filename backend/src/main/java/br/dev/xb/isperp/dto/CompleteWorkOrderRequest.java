@@ -24,5 +24,8 @@ public class CompleteWorkOrderRequest {
     @NotNull(message = "Sinal óptico em dBm é obrigatório")
     private BigDecimal fiberSignalDbm;
 
+    private BigDecimal technicianLatitude;
+    private BigDecimal technicianLongitude;
+
     private String notes;
 }

@@ -62,6 +62,15 @@ public class WorkOrder {
     @Column(name = "fiber_signal_dbm", precision = 5, scale = 2)
     private BigDecimal fiberSignalDbm;
 
+    @Column(name = "technician_latitude", precision = 10, scale = 8)
+    private BigDecimal technicianLatitude;
+
+    @Column(name = "technician_longitude", precision = 11, scale = 8)
+    private BigDecimal technicianLongitude;
+
+    @Column(name = "gps_captured_at")
+    private LocalDateTime gpsCapturedAt;
+
     @Column(name = "notes", columnDefinition = "text")
     private String notes;
 

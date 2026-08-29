@@ -63,6 +63,12 @@ public class Customer {
     @Column(name = "zip_code", length = 10)
     private String zipCode;
     
+    @Column(name = "latitude", precision = 10, scale = 8)
+    private java.math.BigDecimal latitude;
+    
+    @Column(name = "longitude", precision = 11, scale = 8)
+    private java.math.BigDecimal longitude;
+    
     @Column(name = "active", nullable = false)
     @Builder.Default
     private Boolean active = true;

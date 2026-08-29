@@ -90,6 +90,11 @@ public class WorkOrderService {
         workOrder.setOnuMac(request.getOnuMac().trim().toUpperCase());
         workOrder.setOnuSerial(request.getOnuSerial().trim().toUpperCase());
         workOrder.setFiberSignalDbm(request.getFiberSignalDbm());
+        if (request.getTechnicianLatitude() != null && request.getTechnicianLongitude() != null) {
+            workOrder.setTechnicianLatitude(request.getTechnicianLatitude());
+            workOrder.setTechnicianLongitude(request.getTechnicianLongitude());
+            workOrder.setGpsCapturedAt(LocalDateTime.now());
+        }
         workOrder.setCompletedAt(LocalDateTime.now());
         workOrder.setStatus(WorkOrder.WorkOrderStatus.COMPLETED);
 
@@ -107,6 +112,10 @@ public class WorkOrderService {
         payload.put("onuMac", saved.getOnuMac());
         payload.put("onuSerial", saved.getOnuSerial());
         payload.put("fiberSignalDbm", saved.getFiberSignalDbm());
+        if (saved.getTechnicianLatitude() != null) {
+            payload.put("technicianLatitude", saved.getTechnicianLatitude().toString());
+            payload.put("technicianLongitude", saved.getTechnicianLongitude().toString());
+        }
         payload.put("completedAt", saved.getCompletedAt().toString());
 
         GenericDomainEvent event = GenericDomainEvent.builder()

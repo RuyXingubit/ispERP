@@ -3,6 +3,7 @@ package br.dev.xb.isperp.service.consumer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import br.dev.xb.isperp.entity.User;
+import br.dev.xb.isperp.entity.UserRole;
 import br.dev.xb.isperp.event.DomainEvent;
 import br.dev.xb.isperp.event.GenericDomainEvent;
 import br.dev.xb.isperp.repository.UserRepository;
@@ -68,7 +69,7 @@ public class ClientCredentialsConsumer {
                             .name(customerName)
                             .email(userEmail)
                             .password(passwordEncoder.encode(initialPassword))
-                            .role(User.UserRole.CLIENT)
+                            .role(UserRole.CLIENT)
                             .active(true)
                             .build();
 
