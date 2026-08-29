@@ -43,13 +43,16 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 4: Ordens de Serviço (O.S.) & Campo
-> **Objetivo:** Gestão de instalação técnica e ativação automática pós-visita.
+## 🎯 Milestone 4: Ordens de Serviço (O.S.), Agendamento, Estoque & Campo (Concluído)
+> **Objetivo:** Gestão de instalação técnica, verificação de insumos, geração de acessos do cliente e ativação automática pós-visita.
 
-- [ ] Entidade `WorkOrder` com ciclo de vida (`SCHEDULED`, `IN_PROGRESS`, `COMPLETED`, `CANCELED`).
-- [ ] Consumidor que gera a O.S. de Instalação a partir do `ContractCreatedEvent`.
-- [ ] Tela/Interface para o técnico informar conclusão, MAC da ONU, número de série e sinal dBm.
-- [ ] Emissão do `WorkOrderCompletedEvent` e transição do contrato para `ACTIVE`.
+- [x] Migração Flyway `V5` com tabelas `work_orders`, `inventory_items` e preferências de agendamento na venda.
+- [x] Célula de Acesso: Geração automática de login (`ruyfranca`) e senha inicial (`franca`) com hash BCrypt a partir do evento `CONTRACT_CREATED` (`ClientCredentialsConsumer`).
+- [x] Célula de Almoxarifado: Verificação e reserva automática de insumos (ONT, Drop, Conectores SC/APC, PTO) via `InventoryStockConsumer`.
+- [x] Painel de Despacho & Agendamento de O.S.: Gestão de datas, períodos e equipes técnicas via `WorkOrderService`.
+- [x] Baixa Técnica de Instalação: Coleta de MAC da ONU, Número de Série e Sinal óptico (dBm), com emissão do evento `WORK_ORDER_COMPLETED` e ativação automática do contrato para `ACTIVE`.
+- [x] Telas no Frontend (Vite 6 / React 19): Central de Ordens de Serviço com abas de status, modal de agendamento e modal de conclusão de campo.
+- [x] Suíte de testes unitários automatizados cobrindo geração de credenciais, reserva de estoque, despacho e ciclo de vida da O.S. (100% Green).
 
 ---
 

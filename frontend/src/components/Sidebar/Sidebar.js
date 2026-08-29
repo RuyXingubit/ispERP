@@ -28,6 +28,9 @@ import {
   Speed as SpeedIcon,
   Description as ContractIcon,
   Storefront as CommercialIcon,
+  Build as OperationsIcon,
+  Engineering as WorkOrderIcon,
+  Inventory as InventoryIcon,
 } from '@mui/icons-material';
 
 const DRAWER_WIDTH = 280;
@@ -39,14 +42,7 @@ const Sidebar = ({ open, onClose, onToggle }) => {
   const navigate = useNavigate();
   const [cadastroOpen, setCadastroOpen] = useState(false);
   const [comercialOpen, setComercialOpen] = useState(true);
-
-  const handleCadastroClick = () => {
-    setCadastroOpen(!cadastroOpen);
-  };
-
-  const handleComercialClick = () => {
-    setComercialOpen(!comercialOpen);
-  };
+  const [operacoesOpen, setOperacoesOpen] = useState(true);
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -54,6 +50,32 @@ const Sidebar = ({ open, onClose, onToggle }) => {
       onClose();
     }
   };
+
+  const comercialItems = [
+    {
+      text: 'Planos de Internet',
+      icon: <SpeedIcon />,
+      path: '/plans',
+    },
+    {
+      text: 'Venda Rápida',
+      icon: <ShoppingCartIcon />,
+      path: '/sales/new',
+    },
+    {
+      text: 'Contratos',
+      icon: <ContractIcon />,
+      path: '/contracts',
+    },
+  ];
+
+  const operacoesItems = [
+    {
+      text: 'Ordens de Serviço (O.S.)',
+      icon: <WorkOrderIcon />,
+      path: '/work-orders',
+    },
+  ];
 
   const cadastroItems = [
     {
@@ -78,24 +100,6 @@ const Sidebar = ({ open, onClose, onToggle }) => {
     },
   ];
 
-  const comercialItems = [
-    {
-      text: 'Planos de Internet',
-      icon: <SpeedIcon />,
-      path: '/plans',
-    },
-    {
-      text: 'Venda Rápida',
-      icon: <ShoppingCartIcon />,
-      path: '/sales/new',
-    },
-    {
-      text: 'Contratos',
-      icon: <ContractIcon />,
-      path: '/contracts',
-    },
-  ];
-
   const drawerContent = (
     <Box
       sx={{
@@ -105,7 +109,7 @@ const Sidebar = ({ open, onClose, onToggle }) => {
         bgcolor: 'background.paper',
       }}
     >
-      {/* Header do Sidebar */}
+      {/* Header */}
       <Box
         sx={{
           display: 'flex',
@@ -144,22 +148,18 @@ const Sidebar = ({ open, onClose, onToggle }) => {
 
       {/* Menu Items */}
       <List sx={{ flexGrow: 1, py: { xs: 0.5, sm: 1 } }}>
-        {/* Item Comercial & Vendas */}
+        {/* Comercial & Vendas */}
         <ListItem disablePadding>
           <ListItemButton
-            onClick={handleComercialClick}
-            sx={{
-              minHeight: 48,
-              px: 2.5,
-              '&:hover': { bgcolor: 'action.hover' },
-            }}
+            onClick={() => setComercialOpen(!comercialOpen)}
+            sx={{ minHeight: 44, px: 2 }}
           >
             <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
               <CommercialIcon />
             </ListItemIcon>
             <ListItemText
               primary="Comercial & Vendas"
-              primaryTypographyProps={{ fontSize: '0.95rem', fontWeight: 'bold' }}
+              primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: 'bold' }}
             />
             {comercialOpen ? <ExpandLess /> : <ExpandMore />}
           </ListItemButton>
@@ -171,23 +171,12 @@ const Sidebar = ({ open, onClose, onToggle }) => {
               <ListItem key={index} disablePadding>
                 <ListItemButton
                   onClick={() => handleNavigate(item.path)}
-                  sx={{
-                    pl: 4,
-                    py: 1,
-                    '&:hover': {
-                      bgcolor: 'action.hover',
-                      transform: 'translateX(4px)',
-                      transition: 'all 0.2s',
-                    },
-                  }}
+                  sx={{ pl: 4, py: 0.8, '&:hover': { bgcolor: 'action.hover' } }}
                 >
                   <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
                     {item.icon}
                   </ListItemIcon>
-                  <ListItemText
-                    primary={item.text}
-                    primaryTypographyProps={{ fontSize: '0.875rem' }}
-                  />
+                  <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '0.85rem' }} />
                 </ListItemButton>
               </ListItem>
             ))}
@@ -196,22 +185,55 @@ const Sidebar = ({ open, onClose, onToggle }) => {
 
         <Divider sx={{ my: 1 }} />
 
-        {/* Item Cadastros */}
+        {/* Operações & Campo */}
         <ListItem disablePadding>
           <ListItemButton
-            onClick={handleCadastroClick}
-            sx={{
-              minHeight: 48,
-              px: 2.5,
-              '&:hover': { bgcolor: 'action.hover' },
-            }}
+            onClick={() => setOperacoesOpen(!operacoesOpen)}
+            sx={{ minHeight: 44, px: 2 }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
+              <OperationsIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Operações & Campo"
+              primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: 'bold' }}
+            />
+            {operacoesOpen ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+        </ListItem>
+
+        <Collapse in={operacoesOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {operacoesItems.map((item, index) => (
+              <ListItem key={index} disablePadding>
+                <ListItemButton
+                  onClick={() => handleNavigate(item.path)}
+                  sx={{ pl: 4, py: 0.8, '&:hover': { bgcolor: 'action.hover' } }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '0.85rem' }} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Collapse>
+
+        <Divider sx={{ my: 1 }} />
+
+        {/* Cadastros Gerais */}
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => setCadastroOpen(!cadastroOpen)}
+            sx={{ minHeight: 44, px: 2 }}
           >
             <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
               <AppRegistrationIcon />
             </ListItemIcon>
             <ListItemText
               primary="Cadastros Gerais"
-              primaryTypographyProps={{ fontSize: '0.95rem', fontWeight: 'medium' }}
+              primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: 'medium' }}
             />
             {cadastroOpen ? <ExpandLess /> : <ExpandMore />}
           </ListItemButton>
@@ -223,23 +245,12 @@ const Sidebar = ({ open, onClose, onToggle }) => {
               <ListItem key={index} disablePadding>
                 <ListItemButton
                   onClick={() => handleNavigate(item.path)}
-                  sx={{
-                    pl: 4,
-                    py: 1,
-                    '&:hover': {
-                      bgcolor: 'action.hover',
-                      transform: 'translateX(4px)',
-                      transition: 'all 0.2s',
-                    },
-                  }}
+                  sx={{ pl: 4, py: 0.8, '&:hover': { bgcolor: 'action.hover' } }}
                 >
                   <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
                     {item.icon}
                   </ListItemIcon>
-                  <ListItemText
-                    primary={item.text}
-                    primaryTypographyProps={{ fontSize: '0.875rem' }}
-                  />
+                  <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '0.85rem' }} />
                 </ListItemButton>
               </ListItem>
             ))}
@@ -248,20 +259,8 @@ const Sidebar = ({ open, onClose, onToggle }) => {
       </List>
 
       {/* Footer */}
-      <Box
-        sx={{
-          p: 1.5,
-          borderTop: 1,
-          borderColor: 'divider',
-          bgcolor: 'grey.50',
-        }}
-      >
-        <Typography 
-          variant="caption" 
-          color="text.secondary" 
-          align="center"
-          sx={{ display: 'block' }}
-        >
+      <Box sx={{ p: 1.5, borderTop: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
+        <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block' }}>
           © 2026 ISP ERP System
         </Typography>
       </Box>
