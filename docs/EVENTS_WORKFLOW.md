@@ -57,6 +57,43 @@ sequenceDiagram
 
 ---
 
+## 1.1. Ciclo de Vida do Transactional Outbox & Idempotência
+
+O diagrama abaixo ilustra o comportamento do mecanismo de Outbox e Idempotência que sustenta cada um dos passos do fluxo operacional:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Service as Serviço de Negócio (ex: VendaService)
+    participant DB as PostgreSQL (Transação ACID)
+    participant Outbox as outbox_events
+    participant Publisher as DomainEventPublisher
+    participant Dispatcher as OutboxDispatcher (Worker)
+    participant Consumer as Consumidor / Listener
+    participant Idempotency as processed_events
+
+    Service->>DB: 1. Inicia @Transactional
+    Service->>DB: 2. Persiste Entidade de Domínio
+    Service->>Publisher: 3. publish(domainEvent)
+    Publisher->>Outbox: 4. INSERT INTO outbox_events (STATUS='PENDING')
+    Service->>DB: 5. COMMIT da Transação
+    
+    loop A cada X ms (Dispatcher Assíncrono)
+        Dispatcher->>Outbox: 6. SELECT WHERE status = 'PENDING'
+        Dispatcher->>Consumer: 7. Despacha Evento para Listeners Spring
+        Consumer->>Idempotency: 8. Checa / Registra processed_events (event_id, consumer)
+        alt Não foi processado ainda
+            Consumer->>Consumer: 9. Executa Regra de Negócio (ex: Criar Contrato)
+            Consumer->>Idempotency: 10. Grava sucesso
+            Dispatcher->>Outbox: 11. UPDATE status = 'PUBLISHED'
+        else Já processado
+            Dispatcher->>Outbox: 12. UPDATE status = 'PUBLISHED' (Ignora reexecução)
+        end
+    end
+```
+
+---
+
 ## 2. Catálogo Detalhado de Eventos
 
 ### 2.1. `SaleSubmittedEvent`

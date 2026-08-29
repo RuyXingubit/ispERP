@@ -87,10 +87,43 @@ graph TD
 ### ADR 003: Arquitetura Orientada a Eventos (EDA) & Transactional Outbox
 - **Contexto:** Operações de provedores dependem de serviços externos com latências e taxas de falha variadas (geração de cobrança bancária, provisionamento no MikroTik, envio de WhatsApp). Executar tudo em uma única transação síncrona gera timeout, locks no banco e falhas em cascata.
 - **Decisão:** Desacoplar os processos de negócio em **Domain Events** com padrão **Transactional Outbox**.
-- **Mecanismo:**
-  1. O comando (ex: Registrar Venda) persiste os dados da entidade e insere o evento na tabela `outbox_events` dentro da **mesma transação ACID**.
-  2. Um dispatcher assíncrono (Spring `@TransactionalEventListener(phase = AFTER_COMMIT)`) processa o evento e o encaminha aos consumidores correspondentes.
-  3. Consumidores são **idempotentes** (gravam o `event_id` na tabela `processed_events` para evitar duplicações).
+- **Mecanismo Detalhado do Transactional Outbox:**
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Service as Serviço de Negócio (ex: VendaService)
+    participant DB as PostgreSQL (Transação ACID)
+    participant Outbox as outbox_events
+    participant Publisher as DomainEventPublisher
+    participant Dispatcher as OutboxDispatcher (Worker)
+    participant Consumer as Consumidor / Listener
+    participant Idempotency as processed_events
+
+    Service->>DB: 1. Inicia @Transactional
+    Service->>DB: 2. Persiste Entidade de Domínio
+    Service->>Publisher: 3. publish(domainEvent)
+    Publisher->>Outbox: 4. INSERT INTO outbox_events (STATUS='PENDING')
+    Service->>DB: 5. COMMIT da Transação
+    
+    loop A cada X ms (Dispatcher Assíncrono)
+        Dispatcher->>Outbox: 6. SELECT WHERE status = 'PENDING'
+        Dispatcher->>Consumer: 7. Despacha Evento para Listeners Spring
+        Consumer->>Idempotency: 8. Checa / Registra processed_events (event_id, consumer)
+        alt Não foi processado ainda
+            Consumer->>Consumer: 9. Executa Regra de Negócio (ex: Criar Contrato)
+            Consumer->>Idempotency: 10. Grava sucesso
+            Dispatcher->>Outbox: 11. UPDATE status = 'PUBLISHED'
+        else Já processado
+            Dispatcher->>Outbox: 12. UPDATE status = 'PUBLISHED' (Ignora reexecução)
+        end
+    end
+```
+
+- **Garantias:**
+  1. **Consistência Atômica:** O evento é salvo na tabela `outbox_events` na mesma transação JDBC da alteração de negócio.
+  2. **Entrega Confiável (*At-least-once Delivery*):** Em caso de falha transitória ou queda do servidor, o `OutboxDispatcher` reprocessa com backoff exponencial.
+  3. **Consumo Idempotente (*Exactly-once Processing*):** A tabela `processed_events` (`PRIMARY KEY (event_id, consumer_name)`) protege contra processamentos duplicados.
 
 ---
 
