@@ -78,26 +78,31 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 6: Notificações Multicanal (WhatsApp & E-mail SMTP Dinâmico)
-> **Objetivo:** Envio automático de cobranças e avisos pelo canal de preferência do assinante com provedores de WhatsApp plugáveis e servidor SMTP customizável por empresa.
+## 🎯 Milestone 6: Provisionamento de Rede Desacoplado & Multi-Driver (Concluído)
+> **Objetivo:** Integração com a infraestrutura de rede através de drivers plugáveis (SmartOLT, Microsserviço dedicado, MikroTik e Radius) acionados exclusivamente por eventos de domínio.
 
-- [ ] **Consumidor de Eventos:**
-  - Consumidor assíncrono para `InvoiceGeneratedEvent`, `InvoiceOverdueEvent` e `PaymentConfirmedEvent`.
-- [ ] **Módulo de E-mail (SMTP Customizável):**
-  - Cadastro de credenciais SMTP na entidade `Company` (`smtp_host`, `smtp_port`, `smtp_username`, `smtp_password`, `smtp_use_tls`, `smtp_from_email`, `smtp_from_name`).
-  - Motor de templates HTML responsivos (Thymeleaf) para avisos de fatura, cobrança PIX com botão de cópia e anexação de boleto PDF.
-  - Teste de envio de e-mail integrado nas configurações da empresa.
-- [ ] **Módulo de WhatsApp (Strategy / Adapter Pattern):**
-  - Interface `WhatsAppProvider` e 3 Adaptadores:
-    - `EvolutionApiWhatsAppProvider` (Open-source / Self-hosted via Docker).
-    - `ZApiWhatsAppProvider` (SaaS popular em ISPs).
-    - `TwilioWhatsAppProvider` / `MetaOfficialWhatsAppProvider` (API Oficial Cloud da Meta).
-- [ ] Templates dinâmicos de mensagem de texto com link de pagamento e código PIX Copia-e-Cola.
+- [x] **Entidades & Modelo de Dados:**
+  - `NetworkDevice` (OLTs, BRAS PPPoE, Concentradores) e `OnuProvisioning` com UUIDv7 via Flyway `V7`.
+- [x] **Arquitetura Strategy / Multi-Driver:**
+  - Interface universal `NetworkProvisioner` com `NetworkDriverResolver`.
+  - Driver `SmartOltProvisioner` (integração SmartOLT API).
+  - Driver `ExternalMicroserviceProvisioner` (preparado para microserviço de rede dedicado).
+  - Driver `MockNetworkProvisioner` para testes e homologação.
+- [x] **Automação de Rede Orientada a Eventos (EDA):**
+  - Consumidor `NetworkProvisioningConsumer`:
+    - Ao receber `WORK_ORDER_COMPLETED` ➔ Provisiona automaticamente a ONU na OLT com perfis de download/upload do plano.
+    - Ao receber `INVOICE_PAID` ➔ Desbloqueia o assinante instantaneamente em tempo real.
+- [x] **Serviços & Diagnóstico de Sinal Óptico:**
+  - `NetworkProvisioningService` com diagnóstico de atenuação/potência óptica (dBm) e comandos de bloqueio administrativo.
+- [x] **Telas no Frontend (Vite 6 / React 19):**
+  - Painel NOC de ONUs com visualização de RX Power (dBm) colorido por atenuação e botões de diagnóstico em tempo real.
+  - Gerenciador de Equipamentos de Rede (OLTs e Concentradores).
+- [x] Suíte de testes unitários automatizados cobrindo driver SmartOLT, roteador, provisionamento e desbloqueio por Pix (100% Green).
 
 ---
 
-## 🎯 Milestone 7: Provisionamento de Rede Desacoplado (Multi-Driver & Microsserviço)
-> **Objetivo:** Integração com a infraestrutura de rede através de drivers plugáveis (SmartOLT, Microsserviço dedicado, MikroTik e Radius) acionados exclusivamente por eventos de domínio.
+## 🎯 Milestone 7: Central do Assinante & Notificações Multicanal WhatsApp / SMTP
+> **Objetivo:** Portal self-service do assinante e disparo de faturas/avisos via WhatsApp (Evolution API / Z-API) e E-mail.
 
 - [ ] **Interface & Roteador de Rede (`NetworkProvisioningDriver` & `NetworkDriverRouter`):**
   - Definição do contrato unificado (`provisionAccess`, `suspendAccess`, `restoreAccess`, `deprovisionAccess`).

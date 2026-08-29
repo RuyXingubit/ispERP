@@ -33,6 +33,9 @@ import {
   AccountBalance as FinancialIcon,
   Receipt as InvoiceIcon,
   Payment as GatewayIcon,
+  Router as NetworkIcon,
+  Sensors as OnuIcon,
+  Storage as OltIcon,
 } from '@mui/icons-material';
 
 const DRAWER_WIDTH = 280;
@@ -46,6 +49,7 @@ const Sidebar = ({ open, onClose, onToggle }) => {
   const [comercialOpen, setComercialOpen] = useState(true);
   const [operacoesOpen, setOperacoesOpen] = useState(true);
   const [financeiroOpen, setFinanceiroOpen] = useState(true);
+  const [redeOpen, setRedeOpen] = useState(true);
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -53,6 +57,32 @@ const Sidebar = ({ open, onClose, onToggle }) => {
       onClose();
     }
   };
+
+  const redeItems = [
+    {
+      text: 'NOC - ONUs & Fibra',
+      icon: <OnuIcon />,
+      path: '/onus',
+    },
+    {
+      text: 'OLTs & Concentradores',
+      icon: <OltIcon />,
+      path: '/network-devices',
+    },
+  ];
+
+  const financeiroItems = [
+    {
+      text: 'Faturas & Cobranças',
+      icon: <InvoiceIcon />,
+      path: '/invoices',
+    },
+    {
+      text: 'Gateways de Pagamento',
+      icon: <GatewayIcon />,
+      path: '/payment-gateways',
+    },
+  ];
 
   const comercialItems = [
     {
@@ -77,19 +107,6 @@ const Sidebar = ({ open, onClose, onToggle }) => {
       text: 'Ordens de Serviço (O.S.)',
       icon: <WorkOrderIcon />,
       path: '/work-orders',
-    },
-  ];
-
-  const financeiroItems = [
-    {
-      text: 'Faturas & Cobranças',
-      icon: <InvoiceIcon />,
-      path: '/invoices',
-    },
-    {
-      text: 'Gateways de Pagamento',
-      icon: <GatewayIcon />,
-      path: '/payment-gateways',
     },
   ];
 
@@ -164,6 +181,43 @@ const Sidebar = ({ open, onClose, onToggle }) => {
 
       {/* Menu Items */}
       <List sx={{ flexGrow: 1, py: { xs: 0.5, sm: 1 } }}>
+        {/* Rede & NOC */}
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={() => setRedeOpen(!redeOpen)}
+            sx={{ minHeight: 44, px: 2 }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
+              <NetworkIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary="Rede & NOC"
+              primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: 'bold' }}
+            />
+            {redeOpen ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+        </ListItem>
+
+        <Collapse in={redeOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {redeItems.map((item, index) => (
+              <ListItem key={index} disablePadding>
+                <ListItemButton
+                  onClick={() => handleNavigate(item.path)}
+                  sx={{ pl: 4, py: 0.8, '&:hover': { bgcolor: 'action.hover' } }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '0.85rem' }} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Collapse>
+
+        <Divider sx={{ my: 0.5 }} />
+
         {/* Financeiro & Faturamento */}
         <ListItem disablePadding>
           <ListItemButton

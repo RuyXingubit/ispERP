@@ -21,6 +21,8 @@ import ContractList from './pages/Contracts/ContractList';
 import WorkOrderList from './pages/WorkOrders/WorkOrderList';
 import InvoiceList from './pages/Financial/InvoiceList';
 import GatewayConfig from './pages/Financial/GatewayConfig';
+import OnuList from './pages/Network/OnuList';
+import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import { setupService } from './services/setupService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -188,6 +190,22 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               !isAuthenticated ? <Navigate to="/login" replace /> : 
               <GatewayConfig />
+            } 
+          />
+          <Route 
+            path="/onus" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <OnuList />
+            } 
+          />
+          <Route 
+            path="/network-devices" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              !isAuthenticated ? <Navigate to="/login" replace /> : 
+              <NetworkDeviceList />
             } 
           />
           <Route 
