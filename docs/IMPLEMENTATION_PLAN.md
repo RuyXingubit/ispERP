@@ -41,15 +41,15 @@ A Milestone 1 foca em estabelecer uma base técnica sólida, moderna e segura pa
   - Criar tabela `outbox_events` (`id UUID PRIMARY KEY`, `event_type VARCHAR`, `payload JSONB`, `status VARCHAR`, `created_at TIMESTAMP`) e `processed_events` (`event_id UUID PRIMARY KEY`, `processed_at TIMESTAMP`).
 
 ### 2.3. Entidades JPA, Repositórios e Utilitários
-- [ ] **[backend/src/main/java/com/xingubit/isperp/util/UuidCreatorUtils.java](file:///Users/ruy/Code/ispERP/backend/src/main/java/com/xingubit/isperp/util/UuidCreatorUtils.java):**
-  - Criar classe utilitária para geração centralizada de UUIDv7 via `UuidCreator.getTimeOrderedEpoch()`.
-- [ ] **Entidades JPA:**
-  - Atualizar [Customer.java](file:///Users/ruy/Code/ispERP/backend/src/main/java/com/xingubit/isperp/entity/Customer.java), [User.java](file:///Users/ruy/Code/ispERP/backend/src/main/java/com/xingubit/isperp/entity/User.java), [Company.java](file:///Users/ruy/Code/ispERP/backend/src/main/java/com/xingubit/isperp/entity/Company.java) e [SiteSettings.java](file:///Users/ruy/Code/ispERP/backend/src/main/java/com/xingubit/isperp/entity/SiteSettings.java) para usar `UUID id` e `@PrePersist` para inicialização segura.
-- [ ] **Services, Controllers e DTOs:**
-  - Ajustar repositórios (`JpaRepository<Customer, UUID>`, etc.) e controladores para receber e retornar `UUID`.
-
-### 2.4. Suíte de Testes Automatizados (TDD)
-- [ ] Criar estrutura `backend/src/test/java/com/xingubit/isperp/`.
+- [x] **[backend/src/main/java/br/dev/xb/isperp/util/UuidCreatorUtils.java](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/util/UuidCreatorUtils.java):**
+  - Implementar método para gerar UUIDv7 com base em tempo via biblioteca `uuid-creator`.
+- [x] **Refatoração de Entidades:**
+  - Atualizar [Customer.java](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/entity/Customer.java), [User.java](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/entity/User.java), [Company.java](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/entity/Company.java) e [SiteSettings.java](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/entity/SiteSettings.java) para usar `UUID id` e `@PrePersist` para inicialização segura.
+- [x] **Refatoração de Repositories, Services e Controllers:**
+  - Atualizar métodos para receber e buscar por `UUID` em vez de `Long`.
+  - Consolidar pacote canônico sob `br.dev.xb.isperp`.
+- [x] **Suíte de Testes:**
+  - Criar estrutura `backend/src/test/java/br/dev/xb/isperp/`.
 - [ ] Criar testes unitários do serviço de clientes com validação de CPF e integridade: `CustomerServiceTest.java`.
 - [ ] Criar testes de integração com Testcontainers: `CustomerRepositoryTest.java`.
 - [ ] Criar testes do controlador REST: `CustomerControllerTest.java`.
