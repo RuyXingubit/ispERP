@@ -1,0 +1,65 @@
+package br.dev.xb.isperp.event;
+
+import br.dev.xb.isperp.util.UuidCreatorUtils;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.lang.NonNull;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class GenericDomainEvent implements DomainEvent {
+
+    @Builder.Default
+    private UUID eventId = UuidCreatorUtils.generateUuidV7();
+
+    @Builder.Default
+    private LocalDateTime occurredAt = LocalDateTime.now();
+
+    private String eventType;
+    private String aggregateType;
+    private String aggregateId;
+    private Object payload;
+
+    @Override
+    @NonNull
+    public UUID getEventId() {
+        return eventId != null ? eventId : UuidCreatorUtils.generateUuidV7();
+    }
+
+    @Override
+    @NonNull
+    public LocalDateTime getOccurredAt() {
+        return occurredAt != null ? occurredAt : LocalDateTime.now();
+    }
+
+    @Override
+    @NonNull
+    public String getEventType() {
+        return eventType != null ? eventType : "UNKNOWN";
+    }
+
+    @Override
+    @NonNull
+    public String getAggregateType() {
+        return aggregateType != null ? aggregateType : "UNKNOWN";
+    }
+
+    @Override
+    @NonNull
+    public String getAggregateId() {
+        return aggregateId != null ? aggregateId : "";
+    }
+
+    @Override
+    @NonNull
+    public Object getPayload() {
+        return payload != null ? payload : "";
+    }
+}
