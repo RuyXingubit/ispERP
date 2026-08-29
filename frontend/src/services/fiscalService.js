@@ -47,6 +47,11 @@ const fiscalService = {
   getConvenio115ExportUrl: (year, month) => {
     return `/api/fiscal/convenio115/export?year=${year}&month=${month}`;
   },
+
+  sendAccountingReport: async (year, month) => {
+    const response = await api.post(`/fiscal/convenio115/send-accounting?year=${year}&month=${month}`);
+    return response.data;
+  },
 };
 
 export default fiscalService;

@@ -34,6 +34,7 @@ public class FiscalController {
     private final ConvenioIcms115Service convenio115Service;
     private final FiscalCompanyRepository companyRepository;
     private final FiscalGatewayConfigRepository configRepository;
+    private final br.dev.xb.isperp.scheduler.FiscalAccountingScheduler fiscalAccountingScheduler;
 
     @GetMapping("/company")
     public ResponseEntity<FiscalCompany> getActiveCompany() {
@@ -110,5 +111,24 @@ public class FiscalController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + zipFilename + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(result.getZipBytes());
+    }
+
+    @PostMapping("/convenio115/send-accounting")
+    public ResponseEntity<Map<String, Object>> sendAccountingReport(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        int y = (year != null) ? year : LocalDate.now().getYear();
+        int m = (month != null) ? month : LocalDate.now().getMonthValue();
+
+        FiscalCompany company = companyRepository.findFirstByIsActiveTrue()
+                .orElseThrow(() -> new RuntimeException("Empresa fiscal não encontrada"));
+
+        boolean sent = fiscalAccountingScheduler.sendMonthlyReportToAccounting(company, y, m);
+
+        return ResponseEntity.ok(Map.of(
+                "success", sent,
+                "message", sent ? "Fechamento fiscal transmitido com sucesso para a contabilidade via FreeMarker!" : "Nenhum destinatário de contabilidade configurado.",
+                "sentAt", java.time.LocalDateTime.now()
+        ));
     }
 }

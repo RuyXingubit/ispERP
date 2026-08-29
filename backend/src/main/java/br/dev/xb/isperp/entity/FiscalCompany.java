@@ -137,6 +137,26 @@ public class FiscalCompany {
     @Nullable
     private LocalDateTime certificateExpiresAt;
 
+    @Column(name = "accounting_name")
+    @Nullable
+    private String accountingName;
+
+    @Column(name = "accounting_emails", length = 500)
+    @Nullable
+    private String accountingEmails;
+
+    @Column(name = "accounting_send_day", nullable = false)
+    @Builder.Default
+    private Integer accountingSendDay = 5;
+
+    @Column(name = "accounting_auto_send", nullable = false)
+    @Builder.Default
+    private Boolean accountingAutoSend = true;
+
+    @Column(name = "accounting_last_sent_at")
+    @Nullable
+    private LocalDateTime accountingLastSentAt;
+
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
