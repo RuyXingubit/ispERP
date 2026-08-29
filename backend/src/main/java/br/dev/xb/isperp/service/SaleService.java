@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +33,7 @@ public class SaleService {
         return saleRepository.findAll();
     }
 
-    public Optional<Sale> getSaleById(UUID id) {
+    public Optional<Sale> getSaleById(@NonNull UUID id) {
         return saleRepository.findById(id);
     }
 

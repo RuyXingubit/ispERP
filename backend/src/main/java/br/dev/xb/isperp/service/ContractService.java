@@ -4,6 +4,7 @@ import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.repository.ContractRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,11 +20,11 @@ public class ContractService {
         return contractRepository.findAll();
     }
 
-    public Optional<Contract> getContractById(UUID id) {
+    public Optional<Contract> getContractById(@NonNull UUID id) {
         return contractRepository.findById(id);
     }
 
-    public List<Contract> getContractsByCustomerId(UUID customerId) {
+    public List<Contract> getContractsByCustomerId(@NonNull UUID customerId) {
         return contractRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
     }
 
@@ -31,11 +32,11 @@ public class ContractService {
         return contractRepository.findByStatusOrderByCreatedAtDesc(status);
     }
 
-    public Contract createContract(Contract contract) {
+    public Contract createContract(@NonNull Contract contract) {
         return contractRepository.save(contract);
     }
 
-    public Contract updateStatus(UUID id, Contract.ContractStatus newStatus) {
+    public Contract updateStatus(@NonNull UUID id, Contract.ContractStatus newStatus) {
         Contract contract = contractRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contrato não encontrado"));
 

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,12 +28,12 @@ public class WarehouseService {
         return warehouseRepository.findByActiveTrue();
     }
 
-    public Optional<Warehouse> getWarehouseById(UUID id) {
+    public Optional<Warehouse> getWarehouseById(@NonNull UUID id) {
         return warehouseRepository.findById(id);
     }
 
     @Transactional
-    public Warehouse createWarehouse(Warehouse warehouse) {
+    public Warehouse createWarehouse(@NonNull Warehouse warehouse) {
         if (warehouse.getId() == null) {
             warehouse.setId(UuidCreatorUtils.generateUuidV7());
         }

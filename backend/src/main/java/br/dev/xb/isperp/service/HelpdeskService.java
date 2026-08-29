@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -76,7 +77,7 @@ public class HelpdeskService {
     }
 
     @Transactional
-    public HelpdeskTicket escalateToN2(UUID ticketId, UUID attendantUserId, String attendantName, String escalationReason) {
+    public HelpdeskTicket escalateToN2(@NonNull UUID ticketId, UUID attendantUserId, String attendantName, String escalationReason) {
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamado não encontrado: " + ticketId));
 
@@ -117,7 +118,7 @@ public class HelpdeskService {
     }
 
     @Transactional
-    public HelpdeskTicket resolveByN2(UUID ticketId, UUID n2UserId, String n2Name, String resolutionNotes) {
+    public HelpdeskTicket resolveByN2(@NonNull UUID ticketId, UUID n2UserId, String n2Name, String resolutionNotes) {
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamado não encontrado: " + ticketId));
 
@@ -145,7 +146,7 @@ public class HelpdeskService {
     }
 
     @Transactional
-    public WorkOrder escalateToWorkOrder(UUID ticketId, UUID n2UserId, String n2Name, String technicalReason) {
+    public WorkOrder escalateToWorkOrder(@NonNull UUID ticketId, UUID n2UserId, String n2Name, String technicalReason) {
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamado não encontrado: " + ticketId));
 
@@ -203,7 +204,7 @@ public class HelpdeskService {
     }
 
     @Transactional
-    public TicketInteraction addInteraction(UUID ticketId, AddInteractionRequest req) {
+    public TicketInteraction addInteraction(@NonNull UUID ticketId, AddInteractionRequest req) {
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamado não encontrado: " + ticketId));
 
@@ -226,7 +227,7 @@ public class HelpdeskService {
     }
 
     @Transactional
-    public HelpdeskTicket closeTicket(UUID ticketId, Integer satisfactionRating, String closureNotes) {
+    public HelpdeskTicket closeTicket(@NonNull UUID ticketId, Integer satisfactionRating, String closureNotes) {
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamado não encontrado: " + ticketId));
 
@@ -245,7 +246,7 @@ public class HelpdeskService {
         return ticketRepository.findAll();
     }
 
-    public Optional<HelpdeskTicket> getTicketById(UUID id) {
+    public Optional<HelpdeskTicket> getTicketById(@NonNull UUID id) {
         return ticketRepository.findById(id);
     }
 
@@ -253,11 +254,11 @@ public class HelpdeskService {
         return ticketRepository.findByProtocol(protocol);
     }
 
-    public List<HelpdeskTicket> getTicketsByCustomer(UUID customerId) {
+    public List<HelpdeskTicket> getTicketsByCustomer(@NonNull UUID customerId) {
         return ticketRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
     }
 
-    public List<TicketInteraction> getInteractions(UUID ticketId, boolean includeInternal) {
+    public List<TicketInteraction> getInteractions(@NonNull UUID ticketId, boolean includeInternal) {
         if (includeInternal) {
             return interactionRepository.findByTicketIdOrderByCreatedAtAsc(ticketId);
         } else {

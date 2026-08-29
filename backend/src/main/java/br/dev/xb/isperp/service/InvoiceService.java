@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -43,11 +44,11 @@ public class InvoiceService {
         return invoiceRepository.findAll();
     }
 
-    public List<Invoice> getInvoicesByCustomerId(UUID customerId) {
+    public List<Invoice> getInvoicesByCustomerId(@NonNull UUID customerId) {
         return invoiceRepository.findByCustomerIdOrderByDueDateDesc(customerId);
     }
 
-    public List<Invoice> getInvoicesByContractId(UUID contractId) {
+    public List<Invoice> getInvoicesByContractId(@NonNull UUID contractId) {
         return invoiceRepository.findByContractIdOrderByDueDateDesc(contractId);
     }
 
@@ -55,7 +56,7 @@ public class InvoiceService {
         return invoiceRepository.findByStatusOrderByDueDateAsc(status);
     }
 
-    public Optional<Invoice> getInvoiceById(UUID id) {
+    public Optional<Invoice> getInvoiceById(@NonNull UUID id) {
         return invoiceRepository.findById(id);
     }
 
@@ -149,7 +150,7 @@ public class InvoiceService {
     }
 
     @Transactional
-    public Invoice markInvoiceAsPaid(UUID invoiceId, BigDecimal paidAmount, String paymentMethod) {
+    public Invoice markInvoiceAsPaid(@NonNull UUID invoiceId, BigDecimal paidAmount, String paymentMethod) {
         log.info("Marcando fatura {} como PAGA. Valor={}", invoiceId, paidAmount);
 
         Invoice invoice = invoiceRepository.findById(invoiceId)
@@ -186,7 +187,7 @@ public class InvoiceService {
     }
 
     @Transactional
-    public Invoice cancelInvoice(UUID invoiceId) {
+    public Invoice cancelInvoice(@NonNull UUID invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new RuntimeException("Fatura não encontrada"));
 

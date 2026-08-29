@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -85,7 +86,7 @@ public class InvoiceRebalanceService {
      * - Grava os avisos fixos explicativos em ambas as faturas para a Central do Assinante.
      */
     @Transactional
-    public void executeCrossCreditRebalance(UUID futurePaidInvoiceId, UUID overdueUnpaidInvoiceId) {
+    public void executeCrossCreditRebalance(@NonNull UUID futurePaidInvoiceId, UUID overdueUnpaidInvoiceId) {
         Invoice futureInvoice = invoiceRepository.findById(futurePaidInvoiceId)
                 .orElseThrow(() -> new RuntimeException("Fatura futura não encontrada"));
         Invoice overdueInvoice = invoiceRepository.findById(overdueUnpaidInvoiceId)

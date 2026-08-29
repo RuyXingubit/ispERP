@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ public class InventoryService {
         return inventoryItemRepository.findByCode(code);
     }
 
-    public InventoryItem saveItem(InventoryItem item) {
+    public InventoryItem saveItem(@NonNull InventoryItem item) {
         return inventoryItemRepository.save(item);
     }
 
@@ -38,7 +39,7 @@ public class InventoryService {
      * @return Lista de alertas ou mensagens sobre o estoque
      */
     @Transactional
-    public List<String> checkAndReserveInstallationMaterials(UUID contractId) {
+    public List<String> checkAndReserveInstallationMaterials(@NonNull UUID contractId) {
         log.info("Verificando insumos de estoque para instalação do contrato: {}", contractId);
         List<String> warnings = new ArrayList<>();
 

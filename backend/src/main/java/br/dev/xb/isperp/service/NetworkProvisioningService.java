@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,11 +43,11 @@ public class NetworkProvisioningService {
         return onuRepository.findAll();
     }
 
-    public Optional<OnuProvisioning> getProvisioningById(UUID id) {
+    public Optional<OnuProvisioning> getProvisioningById(@NonNull UUID id) {
         return onuRepository.findById(id);
     }
 
-    public Optional<OnuProvisioning> getProvisioningByContractId(UUID contractId) {
+    public Optional<OnuProvisioning> getProvisioningByContractId(@NonNull UUID contractId) {
         return onuRepository.findByContractId(contractId);
     }
 
@@ -127,7 +128,7 @@ public class NetworkProvisioningService {
     }
 
     @Transactional
-    public OnuProvisioning blockInternetAccess(UUID contractId, String reason) {
+    public OnuProvisioning blockInternetAccess(@NonNull UUID contractId, String reason) {
         log.info("Bloqueando acesso de internet para contrato {}. Motivo: {}", contractId, reason);
 
         OnuProvisioning onu = onuRepository.findByContractId(contractId)
@@ -157,7 +158,7 @@ public class NetworkProvisioningService {
     }
 
     @Transactional
-    public OnuProvisioning unblockInternetAccess(UUID contractId) {
+    public OnuProvisioning unblockInternetAccess(@NonNull UUID contractId) {
         log.info("Desbloqueando acesso de internet para contrato {}", contractId);
 
         OnuProvisioning onu = onuRepository.findByContractId(contractId)
@@ -185,7 +186,7 @@ public class NetworkProvisioningService {
         return saved;
     }
 
-    public OnuStatusResponse diagnoseOnuSignal(UUID onuId) {
+    public OnuStatusResponse diagnoseOnuSignal(@NonNull UUID onuId) {
         OnuProvisioning onu = onuRepository.findById(onuId)
                 .orElseThrow(() -> new RuntimeException("ONU não encontrada"));
 

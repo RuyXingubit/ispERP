@@ -4,6 +4,7 @@ import br.dev.xb.isperp.entity.Plan;
 import br.dev.xb.isperp.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,15 +24,15 @@ public class PlanService {
         return planRepository.findByActiveTrueOrderByIdDesc();
     }
 
-    public Optional<Plan> getPlanById(UUID id) {
+    public Optional<Plan> getPlanById(@NonNull UUID id) {
         return planRepository.findById(id);
     }
 
-    public Plan createPlan(Plan plan) {
+    public Plan createPlan(@NonNull Plan plan) {
         return planRepository.save(plan);
     }
 
-    public Plan updatePlan(UUID id, Plan planDetails) {
+    public Plan updatePlan(@NonNull UUID id, @NonNull Plan planDetails) {
         Plan plan = planRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Plano não encontrado"));
 
@@ -46,7 +47,7 @@ public class PlanService {
         return planRepository.save(plan);
     }
 
-    public void deletePlan(UUID id) {
+    public void deletePlan(@NonNull UUID id) {
         if (!planRepository.existsById(id)) {
             throw new RuntimeException("Plano não encontrado");
         }
