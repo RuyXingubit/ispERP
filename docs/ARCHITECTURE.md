@@ -37,7 +37,13 @@ graph TD
     Billing --> DB
     Outbox --> OutboxTable
     
-    Network -->|API / SSH| MikroTik[MikroTik / OLTs / Radius]
+    subgraph Network Drivers [Provisionamento de Rede Desacoplado & Multi-Driver]
+        Network --> NetRouter[NetworkDriverRouter]
+        NetRouter --> SmartOLT[SmartOLT API Driver]
+        NetRouter --> Microservice[Microsserviço de Rede Dedicado - gRPC/REST]
+        NetRouter --> MikroTik[MikroTik RouterOS API]
+        NetRouter --> Radius[FreeRADIUS / CoA Disconnect]
+    end
     
     subgraph Payment Gateways [Multi-Gateway Plugável com Roteamento Hierárquico]
         Billing --> Router[PaymentGatewayRouter]
@@ -134,3 +140,21 @@ graph TD
      - Integração com emissão fiscal unificada (NFCom).
   3. **Imutabilidade e Rastreabilidade da Fatura:**
      - Cada registro de `Invoice` armazena o `gateway_type`, `gateway_tx_id` e `gateway_payload` original. Se a empresa alterar o gateway padrão para cobranças futuras, faturas passadas continuam funcionando e recebendo webhooks normalmente.
+
+---
+
+### ADR 008: Provisionamento de Rede Desacoplado & Multi-Driver (SmartOLT, Microsserviço, MikroTik, Radius)
+- **Contexto:** Provedores de internet possuem topologias de rede heterogêneas. Pequenos ISPs utilizam concentradores MikroTik locais; médios e grandes provedores utilizam SmartOLT para gerenciar OLTs (Huawei, ZTE, Fiberhome); outros operam com servidores FreeRADIUS dedicados ou microsserviços de rede isolados para isolamento de carga e segurança de borda.
+- **Decisão:** Modelar a camada de rede 100% desacoplada orientada a eventos através da interface `NetworkProvisioningDriver` e do roteador `NetworkDriverRouter`:
+  1. **Tipos de Drivers Suportados (Plugáveis):**
+     - `SmartOltDriver`: Integração com a API REST do SmartOLT para autorização de ONUs e alteração de profiles.
+     - `DedicatedMicroserviceDriver`: Comunicação assíncrona (gRPC ou REST) com um microsserviço externo especializado em automação de rede.
+     - `MikroTikRouterOsDriver`: Conexão direta via RouterOS API / SSH para criação de PPPoE Secrets e Queues.
+     - `RadiusCoAProvisioningDriver`: Envio de pacotes CoA (Change of Authorization / Disconnect) para servidores Radius.
+     - `NoOpNetworkDriver`: Driver passivo para homologação ou provedores com provisionamento manual.
+  2. **Gatilhos por Eventos de Domínio:**
+     - `ContractActivatedEvent` ➡️ `driver.provisionAccess(contract)`
+     - `ContractBlockedEvent` (Inadimplência) ➡️ `driver.suspendAccess(contract)`
+     - `PaymentConfirmedEvent` / `ContractReactivatedEvent` ➡️ `driver.restoreAccess(contract)`
+     - `ContractCanceledEvent` ➡️ `driver.deprovisionAccess(contract)`
+  3. **Associação Flexível:** Cada Ponto de Acesso / POP / Concentrador define qual `network_driver_type` e `network_driver_config_id` deve ser utilizado, permitindo ao ERP operar com múltiplos provedores de rede em paralelo.

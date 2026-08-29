@@ -56,10 +56,19 @@ O **ispERP** é uma plataforma moderna, aberta e altamente escalável para gest�
   - O técnico vincula o Serial/MAC da ONU/Roteador.
   - Ao marcar como `SUCCESS`, dispara o evento `WorkOrderCompletedEvent`.
 
-### 4.5. Módulo de Rede & Provisionamento (MikroTik / Radius / OLT)
-- Provisionamento automatizado após a conclusão da O.S.
-- Criação de credenciais PPPoE/IPoE no servidor Radius / MikroTik.
-- Bloqueio automático: redirecionamento para página de aviso de corte ou corte total de pacotes caso a fatura atinja a tolerância de dias de atraso.
+### 4.5. Módulo de Rede & Provisionamento Desacoplado (Multi-Driver)
+- **Arquitetura 100% Desacoplada e Orientada a Eventos:** O ERP não depende de uma única tecnologia de rede e pode delegar a execução para drivers plugáveis ou microsserviços dedicados.
+- **Drivers Suportados (Plugáveis & Configuráveis por POP/Ponto de Acesso):**
+  1. **SmartOLT API:** Para provedores com infraestrutura de fibra FTTH gerida pelo SmartOLT (Huawei, ZTE, Fiberhome, VSOL).
+  2. **Microsserviço de Rede Dedicado (gRPC / REST):** Serviço externo isolado para provedores de grande porte com regras customizadas de NOC.
+  3. **MikroTik RouterOS API:** Conexão direta com concentradores RouterOS para criação de PPPoE Secrets, IPs estáticos e Simple Queues de velocidade.
+  4. **FreeRADIUS / CoA:** Integração com servidores Radius para autenticação e desconexão forçada (CoA / Packet of Disconnect).
+  5. **NoOp / Manual:** Para ambientes de teste ou homologação sem impacto na rede física.
+- **Gatilhos Automáticos por Eventos de Domínio:**
+  - `ContractActivatedEvent` ➡️ Provisionamento automático de acesso e liberação de banda.
+  - `ContractBlockedEvent` (Inadimplência) ➡️ Redirecionamento para pool de aviso ou bloqueio de pacotes.
+  - `PaymentConfirmedEvent` ➡️ Desbloqueio e restauração instantânea do sinal (< 10 segundos).
+  - `ContractCanceledEvent` ➡️ Desprovisionamento e desvinculação de ONU.
 
 ### 4.6. Módulo Financeiro, Cobrança & Multi-Gateway de Pagamentos
 - Geração de cobranças automáticas vinculadas ao dia de vencimento escolhido (ex: dias 5, 10, 15, 20, 25).

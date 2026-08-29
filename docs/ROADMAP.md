@@ -90,9 +90,20 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 7: Provisionamento de Rede (MikroTik / Radius)
-> **Objetivo:** Integração direta com equipamentos de rede para liberação/corte automático.
+## 🎯 Milestone 7: Provisionamento de Rede Desacoplado (Multi-Driver & Microsserviço)
+> **Objetivo:** Integração com a infraestrutura de rede através de drivers plugáveis (SmartOLT, Microsserviço dedicado, MikroTik e Radius) acionados exclusivamente por eventos de domínio.
 
-- [ ] Conector de API MikroTik RouterOS (RouterOS Java API / REST).
-- [ ] Consumidor de `ContractActivatedEvent` para criação de PPPoE Secrets e Queues de velocidade.
-- [ ] Rotina de bloqueio automático por inadimplência (`ContractBlockedEvent`).
+- [ ] **Interface & Roteador de Rede (`NetworkProvisioningDriver` & `NetworkDriverRouter`):**
+  - Definição do contrato unificado (`provisionAccess`, `suspendAccess`, `restoreAccess`, `deprovisionAccess`).
+  - Associação de driver por Ponto de Acesso / Concentrador / POP.
+- [ ] **Adaptadores de Rede Plugáveis:**
+  - `SmartOltDriver`: Integração com API REST do SmartOLT.
+  - `DedicatedMicroserviceDriver`: Cliente gRPC / REST para microsserviço de rede externo especializado.
+  - `MikroTikRouterOsDriver`: Conexão com concentradores RouterOS (PPPoE / Queues).
+  - `RadiusCoAProvisioningDriver`: Pacotes de desconexão e autorização Radius.
+  - `NoOpNetworkDriver`: Driver para homologação / ambiente local.
+- [ ] **Consumidores de Eventos de Rede:**
+  - Consumidor assíncrono para `ContractActivatedEvent` (libera sinal).
+  - Consumidor assíncrono para `ContractBlockedEvent` (bloqueia por atraso).
+  - Consumidor assíncrono para `PaymentConfirmedEvent` (desbloqueia instantaneamente).
+  - Consumidor assíncrono para `ContractCanceledEvent` (desprovisiona).
