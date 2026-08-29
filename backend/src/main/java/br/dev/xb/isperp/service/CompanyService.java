@@ -48,9 +48,9 @@ public class CompanyService {
     }
 
     public void deleteCompany(@NonNull UUID id) {
-        Company company = companyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Empresa não encontrada"));
-        
-        companyRepository.delete(company);
+        if (!companyRepository.existsById(id)) {
+            throw new RuntimeException("Empresa não encontrada");
+        }
+        companyRepository.deleteById(id);
     }
 }

@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,14 +35,14 @@ public class CompanyController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Company> getCompanyById(@PathVariable UUID id) {
+    public ResponseEntity<Company> getCompanyById(@PathVariable @NonNull UUID id) {
         Optional<Company> company = companyService.getCompanyById(id);
         return company.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Company> createCompany(@Valid @RequestBody Company company) {
+    public ResponseEntity<Company> createCompany(@Valid @NonNull @RequestBody Company company) {
         try {
             Company createdCompany = companyService.createCompany(company);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdCompany);
@@ -51,7 +52,7 @@ public class CompanyController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Company> updateCompany(@PathVariable UUID id, @Valid @RequestBody Company companyDetails) {
+    public ResponseEntity<Company> updateCompany(@PathVariable @NonNull UUID id, @Valid @NonNull @RequestBody Company companyDetails) {
         try {
             Company updatedCompany = companyService.updateCompany(id, companyDetails);
             return ResponseEntity.ok(updatedCompany);
@@ -61,7 +62,7 @@ public class CompanyController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCompany(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteCompany(@PathVariable @NonNull UUID id) {
         try {
             companyService.deleteCompany(id);
             return ResponseEntity.noContent().build();

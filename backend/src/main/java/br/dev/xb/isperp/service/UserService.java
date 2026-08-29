@@ -63,9 +63,9 @@ public class UserService {
     }
 
     public void deleteUser(@NonNull UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        
-        userRepository.delete(user);
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("Usuário não encontrado");
+        }
+        userRepository.deleteById(id);
     }
 }

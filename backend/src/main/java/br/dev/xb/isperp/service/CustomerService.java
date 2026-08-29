@@ -106,10 +106,10 @@ public class CustomerService {
     }
 
     public void deleteCustomer(@NonNull UUID id) {
-        Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
-        
-        customerRepository.delete(customer);
+        if (!customerRepository.existsById(id)) {
+            throw new RuntimeException("Cliente não encontrado");
+        }
+        customerRepository.deleteById(id);
     }
 
     public void deactivateCustomer(@NonNull UUID id) {

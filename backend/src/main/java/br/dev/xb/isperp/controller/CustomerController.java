@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,7 +42,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable UUID id) {
+    public ResponseEntity<Customer> getCustomerById(@PathVariable @NonNull UUID id) {
         try {
             Optional<Customer> customer = customerService.getCustomerById(id);
             return customer.map(ResponseEntity::ok)
@@ -83,7 +84,7 @@ public class CustomerController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createCustomer(@Valid @RequestBody Customer customer) {
+    public ResponseEntity<?> createCustomer(@Valid @NonNull @RequestBody Customer customer) {
         try {
             Customer createdCustomer = customerService.createCustomer(customer);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdCustomer);
@@ -96,8 +97,8 @@ public class CustomerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCustomer(@PathVariable UUID id, 
-                                          @Valid @RequestBody Customer customerDetails) {
+    public ResponseEntity<?> updateCustomer(@PathVariable @NonNull UUID id, 
+                                          @Valid @NonNull @RequestBody Customer customerDetails) {
         try {
             Customer updatedCustomer = customerService.updateCustomer(id, customerDetails);
             return ResponseEntity.ok(updatedCustomer);
@@ -110,7 +111,7 @@ public class CustomerController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCustomer(@PathVariable UUID id) {
+    public ResponseEntity<?> deleteCustomer(@PathVariable @NonNull UUID id) {
         try {
             customerService.deleteCustomer(id);
             return ResponseEntity.ok().body("Cliente excluído com sucesso");
@@ -123,7 +124,7 @@ public class CustomerController {
     }
 
     @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<?> deactivateCustomer(@PathVariable UUID id) {
+    public ResponseEntity<?> deactivateCustomer(@PathVariable @NonNull UUID id) {
         try {
             customerService.deactivateCustomer(id);
             return ResponseEntity.ok().body("Cliente desativado com sucesso");
@@ -136,7 +137,7 @@ public class CustomerController {
     }
 
     @PatchMapping("/{id}/activate")
-    public ResponseEntity<?> activateCustomer(@PathVariable UUID id) {
+    public ResponseEntity<?> activateCustomer(@PathVariable @NonNull UUID id) {
         try {
             customerService.activateCustomer(id);
             return ResponseEntity.ok().body("Cliente ativado com sucesso");
