@@ -3,6 +3,7 @@ package br.dev.xb.isperp.service;
 import br.dev.xb.isperp.entity.User;
 import br.dev.xb.isperp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(UUID id) {
+    public Optional<User> getUserById(@NonNull UUID id) {
         return userRepository.findById(id);
     }
 
@@ -31,7 +32,7 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public User createUser(User user) {
+    public User createUser(@NonNull User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email já cadastrado");
         }
@@ -40,7 +41,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User updateUser(UUID id, User userDetails) {
+    public User updateUser(@NonNull UUID id, @NonNull User userDetails) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
@@ -61,7 +62,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void deleteUser(UUID id) {
+    public void deleteUser(@NonNull UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         

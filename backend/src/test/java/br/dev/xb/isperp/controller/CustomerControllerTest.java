@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = CustomerController.class)
 @AutoConfigureMockMvc(addFilters = false) // Desativa filtros de segurança no teste de slice MVC
+@SuppressWarnings("null")
 class CustomerControllerTest {
 
     @Autowired
