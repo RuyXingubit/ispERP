@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,6 +26,7 @@ public class PaymentTransaction {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
+    @Nullable
     @Column(name = "invoice_id")
     private UUID invoiceId;
 
@@ -33,6 +36,7 @@ public class PaymentTransaction {
     @Column(name = "transaction_type", nullable = false, length = 50)
     private String transactionType; // CHARGE_CREATION, WEBHOOK_NOTIFICATION, STATUS_POLL
 
+    @Nullable
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "raw_payload", columnDefinition = "jsonb")
     private String rawPayload;

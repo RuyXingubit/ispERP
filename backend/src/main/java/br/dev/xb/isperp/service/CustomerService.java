@@ -5,13 +5,13 @@ import br.dev.xb.isperp.repository.CustomerRepository;
 import br.dev.xb.isperp.util.CpfValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@SuppressWarnings("null")
 public class CustomerService {
 
     @Autowired
@@ -25,7 +25,7 @@ public class CustomerService {
         return customerRepository.findByActiveTrue();
     }
 
-    public Optional<Customer> getCustomerById(@NonNull UUID id) {
+    public Optional<Customer> getCustomerById(UUID id) {
         return customerRepository.findById(id);
     }
 
@@ -45,7 +45,7 @@ public class CustomerService {
         return customerRepository.findByCpfContaining(cpf);
     }
 
-    public Customer createCustomer(@NonNull Customer customer) {
+    public Customer createCustomer(Customer customer) {
         // Limpar e validar CPF
         String cleanCpf = CpfValidator.clean(customer.getCpf());
         if (!CpfValidator.isValid(cleanCpf)) {
@@ -68,7 +68,7 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    public Customer updateCustomer(@NonNull UUID id, @NonNull Customer customerDetails) {
+    public Customer updateCustomer(UUID id, Customer customerDetails) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
@@ -105,14 +105,14 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    public void deleteCustomer(@NonNull UUID id) {
+    public void deleteCustomer(UUID id) {
         if (!customerRepository.existsById(id)) {
             throw new RuntimeException("Cliente não encontrado");
         }
         customerRepository.deleteById(id);
     }
 
-    public void deactivateCustomer(@NonNull UUID id) {
+    public void deactivateCustomer(UUID id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
         
@@ -120,7 +120,7 @@ public class CustomerService {
         customerRepository.save(customer);
     }
 
-    public void activateCustomer(@NonNull UUID id) {
+    public void activateCustomer(UUID id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
         

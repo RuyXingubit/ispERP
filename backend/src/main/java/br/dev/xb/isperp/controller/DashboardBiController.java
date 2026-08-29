@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
+@SuppressWarnings("null")
 public class DashboardBiController {
 
     private final DashboardBiService dashboardBiService;

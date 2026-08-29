@@ -10,6 +10,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -24,6 +26,7 @@ public class Contract {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
+    @Nullable
     private UUID id;
 
     @NotNull(message = "ID do cliente é obrigatório")
@@ -34,6 +37,7 @@ public class Contract {
     @Column(name = "plan_id", nullable = false)
     private UUID planId;
 
+    @Nullable
     @Column(name = "sale_id")
     private UUID saleId;
 
@@ -56,6 +60,7 @@ public class Contract {
     @Builder.Default
     private Integer dueDay = 10;
 
+    @Nullable
     @Column(name = "custom_suspension_days")
     private Integer customSuspensionDays;
 
@@ -63,18 +68,22 @@ public class Contract {
     @Column(name = "installation_address", nullable = false)
     private String installationAddress;
 
+    @Nullable
     @Column(name = "city", length = 100)
     private String city;
 
+    @Nullable
     @Column(name = "state", length = 2)
     private String state;
 
+    @Nullable
     @Column(name = "zip_code", length = 10)
     private String zipCode;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Nullable
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

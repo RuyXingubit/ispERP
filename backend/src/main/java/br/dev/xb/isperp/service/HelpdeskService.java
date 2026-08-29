@@ -1,6 +1,7 @@
 package br.dev.xb.isperp.service;
 
 import br.dev.xb.isperp.entity.HelpdeskTicket;
+import br.dev.xb.isperp.entity.HelpdeskTicket.TicketCategory;
 import br.dev.xb.isperp.entity.TicketInteraction;
 import br.dev.xb.isperp.entity.WorkOrder;
 import br.dev.xb.isperp.event.GenericDomainEvent;
@@ -15,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class HelpdeskService {
 
     private final HelpdeskTicketRepository ticketRepository;
@@ -77,7 +79,7 @@ public class HelpdeskService {
     }
 
     @Transactional
-    public HelpdeskTicket escalateToN2(@NonNull UUID ticketId, UUID attendantUserId, String attendantName, String escalationReason) {
+    public HelpdeskTicket escalateToN2(UUID ticketId, @Nullable UUID attendantUserId, @Nullable String attendantName, @Nullable String escalationReason) {
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamado não encontrado: " + ticketId));
 
@@ -118,7 +120,7 @@ public class HelpdeskService {
     }
 
     @Transactional
-    public HelpdeskTicket resolveByN2(@NonNull UUID ticketId, UUID n2UserId, String n2Name, String resolutionNotes) {
+    public HelpdeskTicket resolveByN2(UUID ticketId, @Nullable UUID n2UserId, @Nullable String n2Name, @Nullable String resolutionNotes) {
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamado não encontrado: " + ticketId));
 
@@ -146,7 +148,7 @@ public class HelpdeskService {
     }
 
     @Transactional
-    public WorkOrder escalateToWorkOrder(@NonNull UUID ticketId, UUID n2UserId, String n2Name, String technicalReason) {
+    public WorkOrder escalateToWorkOrder(UUID ticketId, @Nullable UUID n2UserId, @Nullable String n2Name, @Nullable String technicalReason) {
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamado não encontrado: " + ticketId));
 
@@ -204,7 +206,7 @@ public class HelpdeskService {
     }
 
     @Transactional
-    public TicketInteraction addInteraction(@NonNull UUID ticketId, AddInteractionRequest req) {
+    public TicketInteraction addInteraction(UUID ticketId, AddInteractionRequest req) {
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamado não encontrado: " + ticketId));
 
@@ -227,7 +229,7 @@ public class HelpdeskService {
     }
 
     @Transactional
-    public HelpdeskTicket closeTicket(@NonNull UUID ticketId, Integer satisfactionRating, String closureNotes) {
+    public HelpdeskTicket closeTicket(UUID ticketId, @Nullable Integer satisfactionRating, @Nullable String closureNotes) {
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Chamado não encontrado: " + ticketId));
 
@@ -246,7 +248,7 @@ public class HelpdeskService {
         return ticketRepository.findAll();
     }
 
-    public Optional<HelpdeskTicket> getTicketById(@NonNull UUID id) {
+    public Optional<HelpdeskTicket> getTicketById(UUID id) {
         return ticketRepository.findById(id);
     }
 
@@ -254,11 +256,11 @@ public class HelpdeskService {
         return ticketRepository.findByProtocol(protocol);
     }
 
-    public List<HelpdeskTicket> getTicketsByCustomer(@NonNull UUID customerId) {
+    public List<HelpdeskTicket> getTicketsByCustomer(UUID customerId) {
         return ticketRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
     }
 
-    public List<TicketInteraction> getInteractions(@NonNull UUID ticketId, boolean includeInternal) {
+    public List<TicketInteraction> getInteractions(UUID ticketId, boolean includeInternal) {
         if (includeInternal) {
             return interactionRepository.findByTicketIdOrderByCreatedAtAsc(ticketId);
         } else {
@@ -266,7 +268,7 @@ public class HelpdeskService {
         }
     }
 
-    private LocalDateTime calculateSla(HelpdeskTicket.TicketCategory category, LocalDateTime from) {
+    private LocalDateTime calculateSla(@Nullable TicketCategory category, LocalDateTime from) {
         if (category == null) return from.plusHours(48);
         return switch (category) {
             case CONNECTION_OUTAGE, FINANCIAL, CANCELLATION_REQUEST -> from.plusHours(24);

@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -24,6 +26,7 @@ public class SerializedAsset {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
+    @Nullable
     @Column(name = "mac_address", length = 50)
     private String macAddress;
 
@@ -43,15 +46,19 @@ public class SerializedAsset {
     @Builder.Default
     private BigDecimal replacementValue = BigDecimal.ZERO;
 
+    @Nullable
     @Column(name = "current_warehouse_id")
     private UUID currentWarehouseId;
 
+    @Nullable
     @Column(name = "current_holder_user_id")
     private UUID currentHolderUserId; // CPF/Pessoa Física com a custódia
 
+    @Nullable
     @Column(name = "current_customer_id")
     private UUID currentCustomerId;
 
+    @Nullable
     @Column(name = "current_contract_id")
     private UUID currentContractId;
 
@@ -60,12 +67,14 @@ public class SerializedAsset {
     @Builder.Default
     private AssetStatus status = AssetStatus.DISPONIVEL_DEPOSITO;
 
+    @Nullable
     @Column(name = "last_movement_at")
     private LocalDateTime lastMovementAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Nullable
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

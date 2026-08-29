@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("null")
 public class JwtUtil {
     
     @Value("${JWT_SECRET:myVerySecureSecretKeyThatIsAtLeast256BitsLongForJWTSecurityAndMustBeAtLeast32CharactersLongToMeetTheRequirements}")
@@ -32,10 +34,10 @@ public class JwtUtil {
     }
     
     private String createToken(Map<String, Object> claims, String subject) {
-        io.jsonwebtoken.JwtBuilder builder = Jwts.builder()
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+        var builder = Jwts.builder()
+                .subject(subject)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey());
         if (claims != null) {
             for (Map.Entry<String, Object> entry : claims.entrySet()) {
@@ -45,32 +47,36 @@ public class JwtUtil {
         return builder.compact();
     }
     
+    @Nullable
     public String extractUsername(String token) {
         Claims claims = extractAllClaims(token);
         return claims != null ? claims.getSubject() : null;
     }
     
+    @Nullable
     public String extractRole(String token) {
         Claims claims = extractAllClaims(token);
         return claims != null ? (String) claims.get("role") : null;
     }
     
+    @Nullable
     public Date extractExpiration(String token) {
         Claims claims = extractAllClaims(token);
         return claims != null ? claims.getExpiration() : null;
     }
     
+    @Nullable
     public <T> T extractClaim(String token, java.util.function.Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claims != null && claimsResolver != null ? claimsResolver.apply(claims) : null;
     }
     
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
     
     public Boolean isTokenExpired(String token) {

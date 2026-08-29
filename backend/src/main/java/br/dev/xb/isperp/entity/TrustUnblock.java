@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -37,9 +39,11 @@ public class TrustUnblock {
     @Builder.Default
     private String unblockType = "BOT_AUTO"; // BOT_AUTO, ATTENDANT_MANUAL
 
+    @Nullable
     @Column(name = "granted_by_user_id")
     private UUID grantedByUserId;
 
+    @Nullable
     @Column(name = "invoice_id")
     private UUID invoiceId;
 

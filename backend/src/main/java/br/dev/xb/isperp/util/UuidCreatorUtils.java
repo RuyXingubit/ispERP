@@ -2,8 +2,8 @@ package br.dev.xb.isperp.util;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 
+import java.util.Objects;
 import java.util.UUID;
-import org.springframework.lang.NonNull;
 
 public final class UuidCreatorUtils {
 
@@ -16,8 +16,7 @@ public final class UuidCreatorUtils {
      *
      * @return Time-ordered UUIDv7
      */
-    @NonNull
     public static UUID generateUuidV7() {
-        return UuidCreator.getTimeOrderedEpoch();
+        return Objects.requireNonNull(UuidCreator.getTimeOrderedEpoch());
     }
 }

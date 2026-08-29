@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +15,7 @@ import java.util.UUID;
 @RequestMapping("/payment-gateways")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class PaymentGatewayConfigController {
 
     private final PaymentGatewayConfigRepository configRepository;
@@ -26,14 +26,14 @@ public class PaymentGatewayConfigController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentGatewayConfig> getConfigById(@PathVariable @NonNull UUID id) {
+    public ResponseEntity<PaymentGatewayConfig> getConfigById(@PathVariable UUID id) {
         Optional<PaymentGatewayConfig> config = configRepository.findById(id);
         return config.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<PaymentGatewayConfig> saveConfig(@Valid @RequestBody @NonNull PaymentGatewayConfig config) {
+    public ResponseEntity<PaymentGatewayConfig> saveConfig(@Valid @RequestBody PaymentGatewayConfig config) {
         PaymentGatewayConfig saved = configRepository.save(config);
         return ResponseEntity.ok(saved);
     }

@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 
 @Component
 @Slf4j
+@SuppressWarnings("null")
 public class MockWhatsAppProvider implements WhatsAppProvider {
 
     @Override

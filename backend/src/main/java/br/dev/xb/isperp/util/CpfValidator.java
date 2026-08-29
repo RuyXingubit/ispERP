@@ -1,8 +1,11 @@
 package br.dev.xb.isperp.util;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Utilitário para validação e formatação de CPF
  */
+@SuppressWarnings("null")
 public class CpfValidator {
 
     /**
@@ -10,7 +13,7 @@ public class CpfValidator {
      * @param cpf CPF a ser validado (pode conter pontos e traços)
      * @return true se o CPF for válido, false caso contrário
      */
-    public static boolean isValid(String cpf) {
+    public static boolean isValid(@Nullable String cpf) {
         if (cpf == null || cpf.trim().isEmpty()) {
             return false;
         }
@@ -79,7 +82,7 @@ public class CpfValidator {
      * @param cpf CPF formatado
      * @return CPF apenas com números
      */
-    public static String clean(String cpf) {
+    public static @Nullable String clean(@Nullable String cpf) {
         if (cpf == null) {
             return null;
         }

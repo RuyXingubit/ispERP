@@ -77,7 +77,7 @@ graph TD
 - **Contexto:** Na arquitetura orientada a eventos (EDA), precisamos conhecer o identificador da entidade em memória antes da persistência para publicar eventos de domínio com IDs correlacionados (ex: `SaleSubmittedEvent` já precisa carregar o `saleId`).
 - **Decisão:** 
   - **No Banco (PostgreSQL 17+):** Colunas `UUID DEFAULT uuidv7()`.
-  - **No Backend Java (Java 21):** Biblioteca `com.github.f4b6a3:uuid-creator` (RFC 9562, ultra-leve, zero dependências adicionais).
+  - **No Backend Java (Java 25):** Biblioteca `com.github.f4b6a3:uuid-creator` (RFC 9562, ultra-leve, zero dependências adicionais).
 - **Vantagens:**
   - Ordenação cronológica (índices B-Tree com eficiência idêntica a inteiros sequenciais).
   - Segurança antienumeração (proteção contra ataques de enumeração IDOR).

@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -36,6 +38,7 @@ public class StockTransfer {
     @Column(name = "destination_warehouse_id", nullable = false)
     private UUID destinationWarehouseId;
 
+    @Nullable
     @Column(name = "carrier_user_id")
     private UUID carrierUserId; // Colaborador / Portador responsável
 
@@ -52,9 +55,11 @@ public class StockTransfer {
     @Builder.Default
     private CarrierType carrierType = CarrierType.COLABORADOR;
 
+    @Nullable
     @Column(name = "dispatched_by_user_id")
     private UUID dispatchedByUserId;
 
+    @Nullable
     @Column(name = "received_by_user_id")
     private UUID receivedByUserId;
 
@@ -63,24 +68,30 @@ public class StockTransfer {
     @Builder.Default
     private TransferStatus status = TransferStatus.PENDING;
 
+    @Nullable
     @Column(name = "dispatch_photo_url", columnDefinition = "text")
     private String dispatchPhotoUrl;
 
+    @Nullable
     @Column(name = "receipt_photo_url", columnDefinition = "text")
     private String receiptPhotoUrl;
 
+    @Nullable
     @Column(name = "notes", columnDefinition = "text")
     private String notes;
 
+    @Nullable
     @Column(name = "dispatched_at")
     private LocalDateTime dispatchedAt;
 
+    @Nullable
     @Column(name = "received_at")
     private LocalDateTime receivedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Nullable
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

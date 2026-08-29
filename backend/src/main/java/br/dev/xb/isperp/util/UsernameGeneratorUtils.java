@@ -3,6 +3,7 @@ package br.dev.xb.isperp.util;
 import java.text.Normalizer;
 import java.util.Locale;
 
+@SuppressWarnings("null")
 public class UsernameGeneratorUtils {
 
     /**

@@ -2,6 +2,7 @@ package br.dev.xb.isperp.entity;
 
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
+import org.jspecify.annotations.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class Warehouse {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
+    @Nullable
     private UUID id;
 
     @NotBlank(message = "Código do depósito é obrigatório")
@@ -40,9 +42,11 @@ public class Warehouse {
     private String state = "PA";
 
     @Column(name = "address", length = 255)
+    @Nullable
     private String address;
 
     @Column(name = "responsible_user_id")
+    @Nullable
     private UUID responsibleUserId;
 
     @Column(name = "active", nullable = false)
@@ -53,6 +57,7 @@ public class Warehouse {
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @Nullable
     private LocalDateTime updatedAt;
 
     @PrePersist

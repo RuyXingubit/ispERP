@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ public class NotificationLog {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
+    @Nullable
     @Column(name = "customer_id")
     private UUID customerId;
 
@@ -37,9 +40,11 @@ public class NotificationLog {
     @Column(name = "status", nullable = false, length = 30)
     private String status; // SENT, FAILED
 
+    @Nullable
     @Column(name = "external_id", length = 100)
     private String externalId;
 
+    @Nullable
     @Column(name = "payload", columnDefinition = "text")
     private String payload;
 

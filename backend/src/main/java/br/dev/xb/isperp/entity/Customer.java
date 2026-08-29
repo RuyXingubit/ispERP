@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -25,6 +26,7 @@ public class Customer {
     
     @Id
     @Column(name = "id", nullable = false, updatable = false)
+    @Nullable
     private UUID id;
     
     @NotBlank(message = "Nome é obrigatório")

@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -26,6 +25,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class SaleEventConsumer {
 
     private static final String CONSUMER_NAME = "SaleToCustomerAndContractConsumer";

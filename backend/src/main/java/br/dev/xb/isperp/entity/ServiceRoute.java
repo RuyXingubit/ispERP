@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,6 +32,7 @@ public class ServiceRoute {
     @Column(name = "code", nullable = false, unique = true, length = 50)
     private String code;
 
+    @Nullable
     @Column(name = "technician_user_id")
     private UUID technicianUserId;
 
@@ -37,9 +40,11 @@ public class ServiceRoute {
     @Column(name = "route_date", nullable = false)
     private LocalDate routeDate;
 
+    @Nullable
     @Column(name = "total_distance_km", precision = 8, scale = 2)
     private BigDecimal totalDistanceKm;
 
+    @Nullable
     @Column(name = "estimated_duration_minutes")
     private Integer estimatedDurationMinutes;
 
@@ -51,6 +56,7 @@ public class ServiceRoute {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Nullable
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

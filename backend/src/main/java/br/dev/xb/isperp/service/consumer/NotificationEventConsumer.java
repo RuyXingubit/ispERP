@@ -12,10 +12,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class NotificationEventConsumer {
 
     private static final String CONSUMER_NAME = "MultiChannelNotificationConsumer";
@@ -52,6 +54,8 @@ public class NotificationEventConsumer {
             String pixCode = (String) data.get("pixCopiaECola");
             String pixQrUrl = (String) data.get("pixQrCodeUrl");
 
+            UUID customerId = UUID.fromString((String) data.get("customerId"));
+
             if (email != null && !email.isEmpty()) {
                 String subject = "Sua Fatura de Internet chegou! Vencimento em " + dueDate;
                 String body = String.format("Olá %s,\nSua fatura no valor de R$ %s com vencimento em %s já está disponível.\n\nPague via Pix Copia e Cola:\n%s",
@@ -61,7 +65,7 @@ public class NotificationEventConsumer {
 
             if (phone != null && !phone.isEmpty()) {
                 java.math.BigDecimal val = amount != null ? new java.math.BigDecimal(amount) : java.math.BigDecimal.ZERO;
-                whatsAppService.sendPixInvoice(null, phone, name != null ? name : "Cliente", val, dueDate != null ? dueDate : "", pixCode != null ? pixCode : "", pixQrUrl);
+                whatsAppService.sendPixInvoice(customerId, phone, name != null ? name : "Cliente", val, dueDate != null ? dueDate : "", pixCode != null ? pixCode : "", pixQrUrl);
             }
         });
     }
@@ -72,12 +76,13 @@ public class NotificationEventConsumer {
             String invoiceId = (String) data.get("invoiceId");
             String paidAmount = (String) data.get("paidAmount");
             String phone = (String) data.get("customerPhone");
+            UUID customerId = UUID.fromString((String) data.get("customerId"));
 
             log.info("Comprovante de pagamento emitido para fatura {} (R$ {})", invoiceId, paidAmount);
 
             if (phone != null && !phone.isEmpty()) {
                 String msg = String.format("✅ *Pagamento Confirmado!*\n\nRecebemos o pagamento da sua fatura no valor de R$ %s. Sua conexão de internet está totalmente liberada. Obrigado!", paidAmount);
-                whatsAppService.sendTextMessage(null, phone, msg, "PAYMENT_CONFIRMATION");
+                whatsAppService.sendTextMessage(customerId, phone, msg, "PAYMENT_CONFIRMATION");
             }
         });
     }
@@ -89,6 +94,7 @@ public class NotificationEventConsumer {
             String phone = (String) data.get("customerPhone");
             String username = (String) data.get("username");
             String initialPassword = (String) data.get("initialPassword");
+            UUID customerId = UUID.fromString((String) data.get("customerId"));
 
             if (email != null && !email.isEmpty()) {
                 String subject = "Bem-vindo ao ISP ERP - Seus dados de acesso";
@@ -99,7 +105,7 @@ public class NotificationEventConsumer {
 
             if (phone != null && !phone.isEmpty()) {
                 String msg = String.format("🚀 *Bem-vindo à nossa rede!*\n\nSeu acesso à Central do Assinante foi criado:\n👤 *Login:* %s\n🔑 *Senha:* %s\n\nAcesse para ver suas faturas e gerenciar seu plano!", username, initialPassword);
-                whatsAppService.sendTextMessage(null, phone, msg, "WELCOME_CREDENTIALS");
+                whatsAppService.sendTextMessage(customerId, phone, msg, "WELCOME_CREDENTIALS");
             }
         });
     }
@@ -109,10 +115,11 @@ public class NotificationEventConsumer {
             Map<String, Object> data = extractPayload(event.getPayload());
             String phone = (String) data.get("customerPhone");
             Object downloadSpeed = data.get("downloadSpeed");
+            UUID customerId = UUID.fromString((String) data.get("customerId"));
 
             if (phone != null && !phone.isEmpty()) {
                 String msg = String.format("⚡ *Upgrade de Plano Ativado!*\n\nSua velocidade foi atualizada para %s Mbps com sucesso. Aproveite sua conexão ultra-rápida!", downloadSpeed);
-                whatsAppService.sendTextMessage(null, phone, msg, "PLAN_UPGRADED");
+                whatsAppService.sendTextMessage(customerId, phone, msg, "PLAN_UPGRADED");
             }
         });
     }

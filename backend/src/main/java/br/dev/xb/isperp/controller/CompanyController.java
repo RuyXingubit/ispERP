@@ -15,6 +15,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/companies")
 @CrossOrigin(origins = "*")
+@SuppressWarnings("null")
 public class CompanyController {
 
     @Autowired

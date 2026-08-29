@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -46,12 +48,14 @@ public class OutboxEvent {
     @Builder.Default
     private Integer retryCount = 0;
 
+    @Nullable
     @Column(name = "last_error", columnDefinition = "text")
     private String lastError;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Nullable
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
 

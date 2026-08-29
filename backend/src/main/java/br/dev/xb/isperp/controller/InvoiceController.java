@@ -2,6 +2,7 @@ package br.dev.xb.isperp.controller;
 
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Invoice;
+import br.dev.xb.isperp.entity.Invoice.InvoiceStatus;
 import br.dev.xb.isperp.service.BillingScheduler;
 import br.dev.xb.isperp.service.ContractService;
 import br.dev.xb.isperp.service.InvoiceService;
@@ -10,6 +11,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,6 +24,7 @@ import java.util.UUID;
 @RequestMapping("/invoices")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
@@ -29,7 +33,7 @@ public class InvoiceController {
 
     @GetMapping
     public ResponseEntity<List<Invoice>> getAllInvoices(
-            @RequestParam(required = false) Invoice.InvoiceStatus status) {
+            @RequestParam(required = false) @Nullable InvoiceStatus status) {
         if (status != null) {
             return ResponseEntity.ok(invoiceService.getInvoicesByStatus(status));
         }

@@ -17,6 +17,7 @@ import java.util.UUID;
 @RequestMapping("/sales")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class SaleController {
 
     private final SaleService saleService;

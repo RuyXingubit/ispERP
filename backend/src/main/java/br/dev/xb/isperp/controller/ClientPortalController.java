@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
+@SuppressWarnings("null")
 public class ClientPortalController {
 
     private final ClientPortalService clientPortalService;
@@ -32,8 +35,8 @@ public class ClientPortalController {
      */
     @GetMapping("/dashboard")
     public ResponseEntity<ClientPortalDashboardDTO> getDashboard(
-            @RequestParam(required = false) UUID customerId,
-            @RequestHeader(value = "X-Customer-Id", required = false) UUID headerCustomerId) {
+            @RequestParam(required = false) @Nullable UUID customerId,
+            @RequestHeader(value = "X-Customer-Id", required = false) @Nullable UUID headerCustomerId) {
 
         UUID targetId = resolveCustomerId(customerId, headerCustomerId);
         ClientPortalDashboardDTO dashboard = clientPortalService.getClientDashboard(targetId);
@@ -45,8 +48,8 @@ public class ClientPortalController {
      */
     @PutMapping("/profile")
     public ResponseEntity<Customer> updateProfile(
-            @RequestParam(required = false) UUID customerId,
-            @RequestHeader(value = "X-Customer-Id", required = false) UUID headerCustomerId,
+            @RequestParam(required = false) @Nullable UUID customerId,
+            @RequestHeader(value = "X-Customer-Id", required = false) @Nullable UUID headerCustomerId,
             @Valid @RequestBody UpdateClientProfileRequest request) {
 
         UUID targetId = resolveCustomerId(customerId, headerCustomerId);
@@ -59,8 +62,8 @@ public class ClientPortalController {
      */
     @PostMapping("/change-password")
     public ResponseEntity<Map<String, String>> changePassword(
-            @RequestParam(required = false) UUID customerId,
-            @RequestHeader(value = "X-Customer-Id", required = false) UUID headerCustomerId,
+            @RequestParam(required = false) @Nullable UUID customerId,
+            @RequestHeader(value = "X-Customer-Id", required = false) @Nullable UUID headerCustomerId,
             @Valid @RequestBody ChangePasswordRequest request) {
 
         UUID targetId = resolveCustomerId(customerId, headerCustomerId);
@@ -73,8 +76,8 @@ public class ClientPortalController {
      */
     @PostMapping("/upgrade-plan")
     public ResponseEntity<Contract> upgradePlan(
-            @RequestParam(required = false) UUID customerId,
-            @RequestHeader(value = "X-Customer-Id", required = false) UUID headerCustomerId,
+            @RequestParam(required = false) @Nullable UUID customerId,
+            @RequestHeader(value = "X-Customer-Id", required = false) @Nullable UUID headerCustomerId,
             @RequestBody Map<String, UUID> payload) {
 
         UUID targetId = resolveCustomerId(customerId, headerCustomerId);
@@ -90,8 +93,8 @@ public class ClientPortalController {
      */
     @PostMapping("/trust-unblock")
     public ResponseEntity<TrustUnblock> requestTrustUnblock(
-            @RequestParam(required = false) UUID customerId,
-            @RequestHeader(value = "X-Customer-Id", required = false) UUID headerCustomerId,
+            @RequestParam(required = false) @Nullable UUID customerId,
+            @RequestHeader(value = "X-Customer-Id", required = false) @Nullable UUID headerCustomerId,
             @RequestBody Map<String, UUID> payload) {
 
         UUID targetId = resolveCustomerId(customerId, headerCustomerId);
@@ -101,7 +104,7 @@ public class ClientPortalController {
         return ResponseEntity.ok(trustUnblock);
     }
 
-    private UUID resolveCustomerId(UUID queryId, UUID headerId) {
+    private UUID resolveCustomerId(@Nullable UUID queryId, @Nullable UUID headerId) {
         if (queryId != null) return queryId;
         if (headerId != null) return headerId;
 

@@ -16,8 +16,8 @@ Sistema ERP web com:
 
 #### Pré-requisitos
 - Docker e Docker Compose instalados
-- Java JDK 11+
-- Node.js 14+
+- Java JDK 25+
+- Node.js 18+
 
 #### Configuração Inicial
 1. Clone o repositório:

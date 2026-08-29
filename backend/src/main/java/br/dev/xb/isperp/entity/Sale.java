@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -36,6 +38,7 @@ public class Sale {
     @Column(name = "customer_cpf", nullable = false, length = 14)
     private String customerCpf;
 
+    @Nullable
     @Column(name = "customer_email")
     private String customerEmail;
 
@@ -68,6 +71,7 @@ public class Sale {
     @Builder.Default
     private String notificationChannel = "WHATSAPP";
 
+    @Nullable
     @Column(name = "seller_name", length = 150)
     private String sellerName;
 
@@ -79,6 +83,7 @@ public class Sale {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Nullable
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

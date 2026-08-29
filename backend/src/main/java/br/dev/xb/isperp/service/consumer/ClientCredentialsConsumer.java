@@ -17,7 +17,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +25,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class ClientCredentialsConsumer {
 
     private static final String CONSUMER_NAME = "ClientCredentialsConsumer";

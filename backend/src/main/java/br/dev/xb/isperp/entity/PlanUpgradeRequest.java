@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -27,6 +29,7 @@ public class PlanUpgradeRequest {
     @Column(name = "contract_id", nullable = false)
     private UUID contractId;
 
+    @Nullable
     @Column(name = "old_plan_id")
     private UUID oldPlanId;
 

@@ -10,7 +10,6 @@ import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -18,6 +17,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class WhatsAppNotificationService {
 
     private final WhatsAppProviderResolver providerResolver;
@@ -27,7 +27,7 @@ public class WhatsAppNotificationService {
      * Envia cobrança com código Pix via WhatsApp usando o provedor ativo (Twilio, Evolution API, Z-API).
      */
     public boolean sendPixInvoice(
-            @NonNull UUID customerId,
+            UUID customerId,
             String toPhone,
             String customerName,
             BigDecimal amount,
@@ -66,7 +66,7 @@ public class WhatsAppNotificationService {
     /**
      * Envia mensagem de texto genérica via WhatsApp.
      */
-    public boolean sendTextMessage(@NonNull UUID customerId, String toPhone, String message, String messageType) {
+    public boolean sendTextMessage(UUID customerId, String toPhone, String message, String messageType) {
         WhatsAppProviderResolver.ResolvedWhatsAppProvider resolved = providerResolver.resolve(WhatsAppProviderType.TWILIO);
         WhatsAppProvider provider = resolved.provider();
         NotificationConfig config = resolved.config();

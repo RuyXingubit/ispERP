@@ -12,6 +12,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class WhatsAppProviderResolver {
 
     private final List<WhatsAppProvider> providers;

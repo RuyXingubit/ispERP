@@ -20,6 +20,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class NetworkProvisioningConsumer {
 
     private static final String CONSUMER_NAME = "NetworkProvisioningConsumer";

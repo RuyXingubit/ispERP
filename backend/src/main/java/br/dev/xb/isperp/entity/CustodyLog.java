@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -23,24 +25,31 @@ public class CustodyLog {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
+    @Nullable
     @Column(name = "asset_id")
     private UUID assetId;
 
+    @Nullable
     @Column(name = "item_id")
     private UUID itemId;
 
+    @Nullable
     @Column(name = "from_user_id")
     private UUID fromUserId;
 
+    @Nullable
     @Column(name = "to_user_id")
     private UUID toUserId;
 
+    @Nullable
     @Column(name = "from_warehouse_id")
     private UUID fromWarehouseId;
 
+    @Nullable
     @Column(name = "to_warehouse_id")
     private UUID toWarehouseId;
 
+    @Nullable
     @Column(name = "work_order_id")
     private UUID workOrderId;
 
@@ -48,9 +57,11 @@ public class CustodyLog {
     @Column(name = "event_type", nullable = false, length = 50)
     private String eventType;
 
+    @Nullable
     @Column(name = "photo_url", columnDefinition = "text")
     private String photoUrl;
 
+    @Nullable
     @Column(name = "notes", columnDefinition = "text")
     private String notes;
 

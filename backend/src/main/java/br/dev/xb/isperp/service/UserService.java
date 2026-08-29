@@ -5,13 +5,13 @@ import br.dev.xb.isperp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@SuppressWarnings("null")
 public class UserService {
 
     @Autowired
@@ -24,7 +24,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(@NonNull UUID id) {
+    public Optional<User> getUserById(UUID id) {
         return userRepository.findById(id);
     }
 
@@ -32,7 +32,7 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public User createUser(@NonNull User user) {
+    public User createUser(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email já cadastrado");
         }
@@ -41,7 +41,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User updateUser(@NonNull UUID id, @NonNull User userDetails) {
+    public User updateUser(UUID id, User userDetails) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
@@ -62,7 +62,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void deleteUser(@NonNull UUID id) {
+    public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("Usuário não encontrado");
         }

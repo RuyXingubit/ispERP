@@ -21,6 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
+@SuppressWarnings("null")
 public class AssetCustodyController {
 
     private final AssetCustodyService assetCustodyService;

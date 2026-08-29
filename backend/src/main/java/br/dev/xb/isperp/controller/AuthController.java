@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
+@SuppressWarnings("null")
 public class AuthController {
     
     private final AuthService authService;

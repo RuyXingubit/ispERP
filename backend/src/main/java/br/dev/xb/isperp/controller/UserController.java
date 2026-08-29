@@ -15,6 +15,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/users")
 @CrossOrigin(origins = "*")
+@SuppressWarnings("null")
 public class UserController {
 
     @Autowired

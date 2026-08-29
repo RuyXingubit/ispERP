@@ -9,21 +9,22 @@ import br.dev.xb.isperp.repository.CustomerRepository;
 import br.dev.xb.isperp.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
-import org.springframework.lang.NonNull;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class NfcomDecisionService {
 
     private final CustomerRepository customerRepository;
     private final ContractRepository contractRepository;
     private final PlanRepository planRepository;
 
-    public boolean shouldIssueNfcom(Invoice invoice) {
+    public boolean shouldIssueNfcom(@Nullable Invoice invoice) {
         if (invoice == null) {
             return false;
         }

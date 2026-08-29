@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,48 +45,62 @@ public class WorkOrder {
     @Builder.Default
     private WorkOrderStatus status = WorkOrderStatus.PENDING_SCHEDULE;
 
+    @Nullable
     @Column(name = "scheduled_date")
     private LocalDate scheduledDate;
 
+    @Nullable
     @Column(name = "scheduled_period", length = 30)
     private String scheduledPeriod; // MANHA, TARDE, NOITE, SABADO_MANHA
 
+    @Nullable
     @Column(name = "technician_name", length = 150)
     private String technicianName;
 
+    @Nullable
     @Column(name = "onu_mac", length = 50)
     private String onuMac;
 
+    @Nullable
     @Column(name = "onu_serial", length = 50)
     private String onuSerial;
 
+    @Nullable
     @Column(name = "fiber_signal_dbm", precision = 5, scale = 2)
     private BigDecimal fiberSignalDbm;
 
+    @Nullable
     @Column(name = "technician_latitude", precision = 10, scale = 8)
     private BigDecimal technicianLatitude;
 
+    @Nullable
     @Column(name = "technician_longitude", precision = 11, scale = 8)
     private BigDecimal technicianLongitude;
 
+    @Nullable
     @Column(name = "gps_captured_at")
     private LocalDateTime gpsCapturedAt;
 
+    @Nullable
     @Column(name = "installation_photo_url", columnDefinition = "text")
     private String installationPhotoUrl;
 
+    @Nullable
     @Column(name = "tool_agreement_id")
     private UUID toolAgreementId;
 
+    @Nullable
     @Column(name = "notes", columnDefinition = "text")
     private String notes;
 
+    @Nullable
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Nullable
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

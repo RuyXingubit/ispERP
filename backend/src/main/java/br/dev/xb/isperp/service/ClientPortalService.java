@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,6 +23,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class ClientPortalService {
 
     private final CustomerRepository customerRepository;
@@ -39,7 +40,7 @@ public class ClientPortalService {
      * Retorna a visão completa do painel do assinante.
      */
     @Transactional(readOnly = true)
-    public ClientPortalDashboardDTO getClientDashboard(@NonNull UUID customerId) {
+    public ClientPortalDashboardDTO getClientDashboard(UUID customerId) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado: " + customerId));
 
@@ -103,7 +104,7 @@ public class ClientPortalService {
      * Atualiza dados de contato do cliente.
      */
     @Transactional
-    public Customer updateProfile(@NonNull UUID customerId, UpdateClientProfileRequest request) {
+    public Customer updateProfile(UUID customerId, UpdateClientProfileRequest request) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado: " + customerId));
 
@@ -136,7 +137,7 @@ public class ClientPortalService {
      * Altera a senha do assinante no portal.
      */
     @Transactional
-    public void changePassword(@NonNull UUID customerId, ChangePasswordRequest request) {
+    public void changePassword(UUID customerId, ChangePasswordRequest request) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado: " + customerId));
 
@@ -156,7 +157,7 @@ public class ClientPortalService {
      * Executa solicitação de Upgrade de Plano pelo cliente.
      */
     @Transactional
-    public Contract requestPlanUpgrade(@NonNull UUID customerId, UUID contractId, UUID newPlanId) {
+    public Contract requestPlanUpgrade(UUID customerId, @Nullable UUID contractId, @Nullable UUID newPlanId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contrato não encontrado: " + contractId));
 
@@ -208,7 +209,7 @@ public class ClientPortalService {
      * Solicita o Desbloqueio em Confiança (Promessa de Pagamento por 48 horas).
      */
     @Transactional
-    public TrustUnblock requestTrustUnblock(@NonNull UUID customerId, UUID contractId) {
+    public TrustUnblock requestTrustUnblock(UUID customerId, @Nullable UUID contractId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contrato não encontrado: " + contractId));
 

@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -23,6 +23,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class TrustUnblockPolicyService {
 
     private final TrustUnblockRepository trustUnblockRepository;
@@ -42,7 +43,7 @@ public class TrustUnblockPolicyService {
      * Solicitação de Desbloqueio Temporário pelo Bot do WhatsApp (Autoatendimento).
      */
     @Transactional
-    public UnblockEvaluationResult requestBotAutoUnblock(@NonNull UUID contractId) {
+    public UnblockEvaluationResult requestBotAutoUnblock(UUID contractId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new RuntimeException("Contrato não encontrado"));
 
@@ -103,7 +104,7 @@ public class TrustUnblockPolicyService {
      * Solicitação de Desbloqueio Temporário pelo Atendente de Suporte no ERP (Exclusivo 2ª Tentativa).
      */
     @Transactional
-    public UnblockEvaluationResult requestAttendantManualUnblock(@NonNull UUID contractId, UUID attendantUserId, String reason) {
+    public UnblockEvaluationResult requestAttendantManualUnblock(UUID contractId, @Nullable UUID attendantUserId, @Nullable String reason) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new RuntimeException("Contrato não encontrado"));
 

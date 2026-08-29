@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -22,6 +22,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class WorkOrderService {
 
     private final WorkOrderRepository workOrderRepository;
@@ -35,16 +36,16 @@ public class WorkOrderService {
         return workOrderRepository.findByStatusOrderByCreatedAtDesc(status);
     }
 
-    public Optional<WorkOrder> getWorkOrderById(@NonNull UUID id) {
+    public Optional<WorkOrder> getWorkOrderById(UUID id) {
         return workOrderRepository.findById(id);
     }
 
-    public Optional<WorkOrder> getWorkOrderByContractId(@NonNull UUID contractId) {
+    public Optional<WorkOrder> getWorkOrderByContractId(UUID contractId) {
         return workOrderRepository.findByContractId(contractId);
     }
 
     @Transactional
-    public WorkOrder createInitialInstallationWorkOrder(@NonNull UUID contractId, UUID customerId, String notes) {
+    public WorkOrder createInitialInstallationWorkOrder(UUID contractId, @Nullable UUID customerId, @Nullable String notes) {
         log.info("Criando Ordem de Serviço de Instalação: contractId={}, customerId={}", contractId, customerId);
 
         WorkOrder workOrder = WorkOrder.builder()
@@ -60,7 +61,7 @@ public class WorkOrderService {
     }
 
     @Transactional
-    public WorkOrder scheduleWorkOrder(@NonNull UUID id, ScheduleWorkOrderRequest request) {
+    public WorkOrder scheduleWorkOrder(UUID id, ScheduleWorkOrderRequest request) {
         log.info("Agendando O.S. {}: data={}, período={}, técnico={}",
                 id, request.getScheduledDate(), request.getScheduledPeriod(), request.getTechnicianName());
 
@@ -79,7 +80,7 @@ public class WorkOrderService {
     }
 
     @Transactional
-    public WorkOrder completeWorkOrder(@NonNull UUID id, CompleteWorkOrderRequest request) {
+    public WorkOrder completeWorkOrder(UUID id, CompleteWorkOrderRequest request) {
         log.info("Concluindo O.S. de campo {}: MAC={}, Serial={}, Sinal={}dBm",
                 id, request.getOnuMac(), request.getOnuSerial(), request.getFiberSignalDbm());
 

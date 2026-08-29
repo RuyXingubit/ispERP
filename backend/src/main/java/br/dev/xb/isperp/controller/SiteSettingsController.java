@@ -12,6 +12,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/site-settings")
 @CrossOrigin(origins = "*")
+@SuppressWarnings("null")
 public class SiteSettingsController {
 
     @Autowired

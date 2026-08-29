@@ -3,11 +3,14 @@ package br.dev.xb.isperp.controller;
 import br.dev.xb.isperp.dto.CompleteWorkOrderRequest;
 import br.dev.xb.isperp.dto.ScheduleWorkOrderRequest;
 import br.dev.xb.isperp.entity.WorkOrder;
+import br.dev.xb.isperp.entity.WorkOrder.WorkOrderStatus;
 import br.dev.xb.isperp.service.WorkOrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,13 +20,14 @@ import java.util.UUID;
 @RequestMapping("/work-orders")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class WorkOrderController {
 
     private final WorkOrderService workOrderService;
 
     @GetMapping
     public ResponseEntity<List<WorkOrder>> getAllWorkOrders(
-            @RequestParam(required = false) WorkOrder.WorkOrderStatus status) {
+            @RequestParam(required = false) @Nullable WorkOrderStatus status) {
         if (status != null) {
             return ResponseEntity.ok(workOrderService.getWorkOrdersByStatus(status));
         }

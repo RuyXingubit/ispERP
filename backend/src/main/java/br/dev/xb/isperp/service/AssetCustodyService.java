@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,6 +20,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class AssetCustodyService {
 
     private final SerializedAssetRepository assetRepository;
@@ -32,11 +33,11 @@ public class AssetCustodyService {
         return assetRepository.findAll();
     }
 
-    public List<SerializedAsset> getAssetsByWarehouse(@NonNull UUID warehouseId) {
+    public List<SerializedAsset> getAssetsByWarehouse(UUID warehouseId) {
         return assetRepository.findByCurrentWarehouseIdAndStatus(warehouseId, SerializedAsset.AssetStatus.DISPONIVEL_DEPOSITO);
     }
 
-    public List<SerializedAsset> getAssetsByHolder(@NonNull UUID holderUserId) {
+    public List<SerializedAsset> getAssetsByHolder(UUID holderUserId) {
         return assetRepository.findByCurrentHolderUserIdAndStatus(holderUserId, SerializedAsset.AssetStatus.CUSTODIA_COLABORADOR);
     }
 
@@ -84,7 +85,7 @@ public class AssetCustodyService {
     }
 
     @Transactional
-    public StockTransfer dispatchTransfer(@NonNull UUID transferId, UUID dispatchedByUserId, String dispatchPhotoUrl) {
+    public StockTransfer dispatchTransfer(UUID transferId, @Nullable UUID dispatchedByUserId, @Nullable String dispatchPhotoUrl) {
         StockTransfer transfer = transferRepository.findById(transferId)
                 .orElseThrow(() -> new RuntimeException("Transferência não encontrada"));
 
@@ -126,7 +127,7 @@ public class AssetCustodyService {
     }
 
     @Transactional
-    public StockTransfer confirmReceiptTransfer(@NonNull UUID transferId, UUID receivedByUserId, String receiptPhotoUrl) {
+    public StockTransfer confirmReceiptTransfer(UUID transferId, @Nullable UUID receivedByUserId, @Nullable String receiptPhotoUrl) {
         StockTransfer transfer = transferRepository.findById(transferId)
                 .orElseThrow(() -> new RuntimeException("Transferência não encontrada"));
 
@@ -239,7 +240,7 @@ public class AssetCustodyService {
     }
 
     @Transactional
-    public ToolCustodyAgreement returnToolAgreement(@NonNull UUID agreementId, UUID warehouseId, boolean isDamaged, String returnPhotoUrl, String notes) {
+    public ToolCustodyAgreement returnToolAgreement(UUID agreementId, @Nullable UUID warehouseId, boolean isDamaged, @Nullable String returnPhotoUrl, @Nullable String notes) {
         ToolCustodyAgreement agreement = agreementRepository.findById(agreementId)
                 .orElseThrow(() -> new RuntimeException("Termo de cautela não encontrado"));
 
@@ -280,7 +281,7 @@ public class AssetCustodyService {
     }
 
     @Transactional
-    public SerializedAsset returnAssetFromWorkOrder(@NonNull UUID assetId, UUID warehouseId, boolean isDamaged, String photoUrl, String notes) {
+    public SerializedAsset returnAssetFromWorkOrder(UUID assetId, @Nullable UUID warehouseId, boolean isDamaged, @Nullable String photoUrl, @Nullable String notes) {
         SerializedAsset asset = assetRepository.findById(assetId)
                 .orElseThrow(() -> new RuntimeException("Ativo não encontrado"));
 

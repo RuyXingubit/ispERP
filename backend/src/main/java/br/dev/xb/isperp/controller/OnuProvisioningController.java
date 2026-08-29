@@ -15,6 +15,7 @@ import java.util.UUID;
 @RequestMapping("/onus")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class OnuProvisioningController {
 
     private final NetworkProvisioningService provisioningService;

@@ -12,6 +12,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/initial-setup")
 @CrossOrigin(origins = "*")
+@SuppressWarnings("null")
 public class InitialSetupController {
 
     @Autowired

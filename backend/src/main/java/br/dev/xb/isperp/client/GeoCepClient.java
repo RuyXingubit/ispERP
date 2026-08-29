@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -18,13 +17,14 @@ import java.util.Map;
 
 @Component
 @Slf4j
+@SuppressWarnings("null")
 public class GeoCepClient {
 
     private final RestClient restClient;
 
     public GeoCepClient(
-            @Value("${geocep.api.url:https://api.geocep.api.br}") @NonNull String baseUrl,
-            @Value("${geocep.api.key:}") @NonNull String apiKey) {
+            @Value("${geocep.api.url:https://api.geocep.api.br}") String baseUrl,
+            @Value("${geocep.api.key:}") String apiKey) {
         
         RestClient.Builder builder = RestClient.builder().baseUrl(baseUrl);
         if (apiKey != null && !apiKey.isBlank()) {

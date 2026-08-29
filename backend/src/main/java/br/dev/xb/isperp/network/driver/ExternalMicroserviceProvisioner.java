@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 
 @Component
 @Slf4j
+@SuppressWarnings("null")
 public class ExternalMicroserviceProvisioner implements NetworkProvisioner {
 
     @Override

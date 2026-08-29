@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,9 +30,11 @@ public class ToolCustodyAgreement {
     @Column(name = "code", nullable = false, unique = true, length = 50)
     private String code;
 
+    @Nullable
     @Column(name = "work_order_id")
     private UUID workOrderId;
 
+    @Nullable
     @Column(name = "holder_user_id")
     private UUID holderUserId;
 
@@ -59,24 +63,30 @@ public class ToolCustodyAgreement {
     @Column(name = "agreement_text", columnDefinition = "text", nullable = false)
     private String agreementText;
 
+    @Nullable
     @Column(name = "dispatch_photo_url", columnDefinition = "text")
     private String dispatchPhotoUrl;
 
+    @Nullable
     @Column(name = "return_photo_url", columnDefinition = "text")
     private String returnPhotoUrl;
 
+    @Nullable
     @Column(name = "notes", columnDefinition = "text")
     private String notes;
 
+    @Nullable
     @Column(name = "signed_at")
     private LocalDateTime signedAt;
 
+    @Nullable
     @Column(name = "returned_at")
     private LocalDateTime returnedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Nullable
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

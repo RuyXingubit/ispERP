@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -31,6 +30,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class NetworkProvisioningService {
 
     private final OnuProvisioningRepository onuRepository;
@@ -43,11 +43,11 @@ public class NetworkProvisioningService {
         return onuRepository.findAll();
     }
 
-    public Optional<OnuProvisioning> getProvisioningById(@NonNull UUID id) {
+    public Optional<OnuProvisioning> getProvisioningById(UUID id) {
         return onuRepository.findById(id);
     }
 
-    public Optional<OnuProvisioning> getProvisioningByContractId(@NonNull UUID contractId) {
+    public Optional<OnuProvisioning> getProvisioningByContractId(UUID contractId) {
         return onuRepository.findByContractId(contractId);
     }
 
@@ -128,7 +128,7 @@ public class NetworkProvisioningService {
     }
 
     @Transactional
-    public OnuProvisioning blockInternetAccess(@NonNull UUID contractId, String reason) {
+    public OnuProvisioning blockInternetAccess(UUID contractId, String reason) {
         log.info("Bloqueando acesso de internet para contrato {}. Motivo: {}", contractId, reason);
 
         OnuProvisioning onu = onuRepository.findByContractId(contractId)
@@ -158,7 +158,7 @@ public class NetworkProvisioningService {
     }
 
     @Transactional
-    public OnuProvisioning unblockInternetAccess(@NonNull UUID contractId) {
+    public OnuProvisioning unblockInternetAccess(UUID contractId) {
         log.info("Desbloqueando acesso de internet para contrato {}", contractId);
 
         OnuProvisioning onu = onuRepository.findByContractId(contractId)
@@ -186,7 +186,7 @@ public class NetworkProvisioningService {
         return saved;
     }
 
-    public OnuStatusResponse diagnoseOnuSignal(@NonNull UUID onuId) {
+    public OnuStatusResponse diagnoseOnuSignal(UUID onuId) {
         OnuProvisioning onu = onuRepository.findById(onuId)
                 .orElseThrow(() -> new RuntimeException("ONU não encontrada"));
 

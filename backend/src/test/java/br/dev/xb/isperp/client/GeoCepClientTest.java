@@ -8,6 +8,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("null")
 class GeoCepClientTest {
 
     private final GeoCepClient geoCepClient = new GeoCepClient("https://api.geocep.api.br", "");

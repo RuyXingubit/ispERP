@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ public class HelpdeskTicket {
     @Column(name = "customer_id", nullable = false)
     private UUID customerId;
 
+    @Nullable
     @Column(name = "contract_id")
     private UUID contractId;
 
@@ -62,9 +65,11 @@ public class HelpdeskTicket {
     @Column(name = "description", nullable = false, columnDefinition = "text")
     private String description;
 
+    @Nullable
     @Column(name = "assigned_to_user_id")
     private UUID assignedToUserId;
 
+    @Nullable
     @Column(name = "work_order_id")
     private UUID workOrderId;
 
@@ -72,21 +77,26 @@ public class HelpdeskTicket {
     @Column(name = "sla_deadline", nullable = false)
     private LocalDateTime slaDeadline;
 
+    @Nullable
     @Column(name = "resolution_notes", columnDefinition = "text")
     private String resolutionNotes;
 
+    @Nullable
     @Column(name = "anatel_satisfaction_rating")
     private Integer anatelSatisfactionRating; // 1 a 5
 
+    @Nullable
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
 
+    @Nullable
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Nullable
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

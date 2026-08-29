@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,6 +26,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class RouteOptimizationService {
 
     private final GeoCepClient geoCepClient;
@@ -49,7 +49,7 @@ public class RouteOptimizationService {
         return routeRepository.findByRouteDate(date);
     }
 
-    public List<ServiceRouteStop> getStopsByRouteId(@NonNull UUID routeId) {
+    public List<ServiceRouteStop> getStopsByRouteId(UUID routeId) {
         return routeStopRepository.findByRouteIdOrderBySequenceOrderAsc(routeId);
     }
 
