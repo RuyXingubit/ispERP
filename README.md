@@ -19,7 +19,7 @@ Consulte a pasta [`docs/`](file:///Users/ruy/Code/ispERP/docs/) para a documenta
 #### Pré-requisitos
 - Docker e Docker Compose instalados
 - Java JDK 25+
-- Node.js 18+
+- Node.js 24+
 
 #### Configuração Inicial
 1. Clone o repositório:

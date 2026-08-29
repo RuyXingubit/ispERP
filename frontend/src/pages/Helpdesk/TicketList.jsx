@@ -21,7 +21,9 @@ import {
   DialogActions,
   Grid,
   Card,
-  CardContent
+  CardContent,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -29,46 +31,62 @@ import {
   HeadsetMic as HelpdeskIcon,
   AccessTime as TimeIcon,
   CheckCircle as ResolvedIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon,
+  ContentCopy as CopyIcon
 } from '@mui/icons-material';
 import { helpdeskService } from '../../services/helpdeskService';
 import { customerService } from '../../services/customerService';
+import { contractService } from '../../services/contractService';
+import { useAuth } from '../../contexts/AuthContext';
 import TicketDetailModal from './TicketDetailModal';
 import { toast } from 'react-toastify';
 
 const categories = [
-  { value: 'CONNECTION_OUTAGE', label: 'Sem Conexão / LOS (24h)' },
-  { value: 'SLOW_SPEED', label: 'Lentidão na Conexão (48h)' },
-  { value: 'FINANCIAL', label: 'Financeiro / Pagamentos (24h)' },
-  { value: 'ROUTER_CONFIG', label: 'Configuração Roteador/Wi-Fi (48h)' },
-  { value: 'ADDRESS_CHANGE', label: 'Mudança de Endereço (72h)' },
-  { value: 'ROOM_TRANSFER', label: 'Troca de Cômodo (72h)' },
-  { value: 'CANCELLATION_REQUEST', label: 'Solicitação Cancelamento (24h)' },
-  { value: 'OTHER', label: 'Outros Assuntos (48h)' },
+  { value: 'CONNECTION_OUTAGE', label: 'Sem Conexão / LOS (24h SLA)' },
+  { value: 'SLOW_SPEED', label: 'Lentidão na Conexão (48h SLA)' },
+  { value: 'FINANCIAL', label: 'Financeiro / Pagamentos (24h SLA)' },
+  { value: 'ROUTER_CONFIG', label: 'Configuração Roteador/Wi-Fi (48h SLA)' },
+  { value: 'ADDRESS_CHANGE', label: 'Mudança de Endereço (72h SLA)' },
+  { value: 'ROOM_TRANSFER', label: 'Troca de Cômodo (72h SLA)' },
+  { value: 'CANCELLATION_REQUEST', label: 'Solicitação de Cancelamento (24h SLA)' },
+  { value: 'OTHER', label: 'Outros Assuntos (48h SLA)' },
 ];
 
 const channels = [
-  { value: 'PHONE', label: 'Telefone (Central)' },
+  { value: 'PHONE', label: 'Telefone (Central Telefônica)' },
   { value: 'WHATSAPP_BOT', label: 'WhatsApp / Bot' },
   { value: 'PORTAL', label: 'Central do Assinante' },
   { value: 'IN_PERSON', label: 'Presencial / Loja' },
   { value: 'EMAIL', label: 'E-mail' },
 ];
 
+const priorities = [
+  { value: 'LOW', label: 'Baixa', color: 'default' },
+  { value: 'NORMAL', label: 'Normal', color: 'info' },
+  { value: 'HIGH', label: 'Alta', color: 'warning' },
+  { value: 'URGENT', label: 'Urgente (Bloqueio Total)', color: 'error' },
+];
+
 const TicketList = () => {
+  const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [priorityFilter, setPriorityFilter] = useState('ALL');
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
   // Modal Novo Chamado
   const [newModalOpen, setNewModalOpen] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [customerContracts, setCustomerContracts] = useState([]);
+  const [loadingContracts, setLoadingContracts] = useState(false);
   const [newForm, setNewForm] = useState({
     customerId: '',
+    contractId: '',
     category: 'CONNECTION_OUTAGE',
+    priority: 'NORMAL',
     channel: 'PHONE',
     subject: '',
     description: '',
@@ -96,6 +114,27 @@ const TicketList = () => {
     loadData();
   }, []);
 
+  const handleCustomerChange = async (customerId) => {
+    setNewForm((prev) => ({ ...prev, customerId, contractId: '' }));
+    if (!customerId) {
+      setCustomerContracts([]);
+      return;
+    }
+    try {
+      setLoadingContracts(true);
+      const res = await contractService.getContractsByCustomerId(customerId);
+      setCustomerContracts(res.data || []);
+      if (res.data && res.data.length === 1) {
+        setNewForm((prev) => ({ ...prev, customerId, contractId: res.data[0].id }));
+      }
+    } catch (err) {
+      console.error('Erro ao carregar contratos do cliente:', err);
+      setCustomerContracts([]);
+    } finally {
+      setLoadingContracts(false);
+    }
+  };
+
   const handleCreateTicket = async () => {
     if (!newForm.customerId || !newForm.subject.trim() || !newForm.description.trim()) {
       toast.warning('Preencha cliente, assunto e descrição.');
@@ -104,25 +143,42 @@ const TicketList = () => {
 
     try {
       setSubmitting(true);
-      const res = await helpdeskService.createTicket({
-        ...newForm,
-        attendantName: 'Atendente N1',
-      });
+      const payload = {
+        customerId: newForm.customerId,
+        contractId: newForm.contractId || null,
+        category: newForm.category,
+        priority: newForm.priority,
+        channel: newForm.channel,
+        subject: newForm.subject.trim(),
+        description: newForm.description.trim(),
+        attendantUserId: user?.id || null,
+        attendantName: user?.name || user?.username || 'Atendente N1',
+      };
+
+      const res = await helpdeskService.createTicket(payload);
       toast.success(`Chamado aberto com Protocolo ANATEL: ${res.data.protocol}`);
       setNewModalOpen(false);
       setNewForm({
         customerId: '',
+        contractId: '',
         category: 'CONNECTION_OUTAGE',
+        priority: 'NORMAL',
         channel: 'PHONE',
         subject: '',
         description: '',
       });
+      setCustomerContracts([]);
       loadData();
     } catch (err) {
       toast.error('Erro ao criar chamado: ' + (err.response?.data?.message || err.message));
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const copyProtocol = (protocol) => {
+    navigator.clipboard.writeText(protocol);
+    toast.info(`Protocolo ${protocol} copiado!`);
   };
 
   const getCustomerName = (id) => {
@@ -136,18 +192,19 @@ const TicketList = () => {
       (t.subject && t.subject.toLowerCase().includes(search.toLowerCase())) ||
       getCustomerName(t.customerId).toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'ALL' || t.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchPriority = priorityFilter === 'ALL' || t.priority === priorityFilter;
+    return matchSearch && matchStatus && matchPriority;
   });
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Helpdesk & Atendimento (Protocolo ANATEL)
+            Central de Atendimento & Helpdesk
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Gestão regulatória de chamados N1 / N2 com controle de SLA e tramitação de O.S.
+            Gestão regulatória de chamados N1 / N2 com protocolos ANATEL e controle de SLA em tempo real.
           </Typography>
         </Box>
         <Button
@@ -155,7 +212,7 @@ const TicketList = () => {
           color="primary"
           startIcon={<AddIcon />}
           onClick={() => setNewModalOpen(true)}
-          sx={{ borderRadius: 2, fontWeight: 'bold' }}
+          sx={{ borderRadius: 2, fontWeight: 'bold', px: 3, py: 1 }}
         >
           Novo Chamado ANATEL
         </Button>
@@ -208,7 +265,7 @@ const TicketList = () => {
           size="small"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ minWidth: 300, flexGrow: 1 }}
+          sx={{ minWidth: 280, flexGrow: 1 }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -232,6 +289,20 @@ const TicketList = () => {
           <MenuItem value="RESOLVED">Resolvidos</MenuItem>
           <MenuItem value="CLOSED">Encerrados</MenuItem>
         </TextField>
+        <TextField
+          select
+          size="small"
+          label="Prioridade"
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value)}
+          sx={{ minWidth: 140 }}
+        >
+          <MenuItem value="ALL">Todas Prioridades</MenuItem>
+          <MenuItem value="LOW">Baixa</MenuItem>
+          <MenuItem value="NORMAL">Normal</MenuItem>
+          <MenuItem value="HIGH">Alta</MenuItem>
+          <MenuItem value="URGENT">Urgente</MenuItem>
+        </TextField>
       </Paper>
 
       {/* Tabela de Chamados */}
@@ -247,16 +318,17 @@ const TicketList = () => {
                 <TableCell><strong>Protocolo ANATEL</strong></TableCell>
                 <TableCell><strong>Cliente</strong></TableCell>
                 <TableCell><strong>Categoria / Assunto</strong></TableCell>
+                <TableCell><strong>Prioridade</strong></TableCell>
                 <TableCell><strong>Canal</strong></TableCell>
                 <TableCell><strong>Status</strong></TableCell>
-                <TableCell><strong>Limite SLA</strong></TableCell>
+                <TableCell><strong>Prazo SLA</strong></TableCell>
                 <TableCell align="right"><strong>Ações</strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredTickets.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     Nenhum chamado encontrado.
                   </TableCell>
                 </TableRow>
@@ -266,9 +338,16 @@ const TicketList = () => {
                   return (
                     <TableRow key={t.id} hover>
                       <TableCell>
-                        <Typography variant="body2" fontWeight="bold" color="primary.main">
-                          {t.protocol}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Typography variant="body2" fontWeight="bold" color="primary.main" sx={{ fontFamily: 'monospace' }}>
+                            {t.protocol}
+                          </Typography>
+                          <Tooltip title="Copiar protocolo">
+                            <IconButton size="small" onClick={() => copyProtocol(t.protocol)}>
+                              <CopyIcon fontSize="inherit" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                         <Typography variant="caption" color="text.secondary">
                           {new Date(t.createdAt).toLocaleDateString('pt-BR')}
                         </Typography>
@@ -281,6 +360,22 @@ const TicketList = () => {
                       <TableCell>
                         <Typography variant="body2">{t.subject}</Typography>
                         <Chip label={t.category} size="small" variant="outlined" sx={{ mt: 0.5 }} />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={t.priority || 'NORMAL'}
+                          size="small"
+                          color={
+                            t.priority === 'URGENT'
+                              ? 'error'
+                              : t.priority === 'HIGH'
+                              ? 'warning'
+                              : t.priority === 'LOW'
+                              ? 'default'
+                              : 'info'
+                          }
+                          variant="outlined"
+                        />
                       </TableCell>
                       <TableCell>
                         <Chip label={t.channel} size="small" />
@@ -333,6 +428,9 @@ const TicketList = () => {
         onClose={() => setModalOpen(false)}
         ticket={selectedTicket}
         onUpdated={loadData}
+        currentUserRole={user?.role}
+        currentUserId={user?.id}
+        currentUserName={user?.name || user?.username || 'Atendente'}
       />
 
       {/* Modal Abertura de Novo Chamado ANATEL */}
@@ -348,7 +446,7 @@ const TicketList = () => {
                 fullWidth
                 label="Cliente Solicitante *"
                 value={newForm.customerId}
-                onChange={(e) => setNewForm({ ...newForm, customerId: e.target.value })}
+                onChange={(e) => handleCustomerChange(e.target.value)}
               >
                 {customers.map((c) => (
                   <MenuItem key={c.id} value={c.id}>
@@ -357,6 +455,27 @@ const TicketList = () => {
                 ))}
               </TextField>
             </Grid>
+
+            {customerContracts.length > 0 && (
+              <Grid item xs={12}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Contrato / Ponto de Acesso Vinculado"
+                  value={newForm.contractId}
+                  onChange={(e) => setNewForm({ ...newForm, contractId: e.target.value })}
+                  helperText="Selecione caso o cliente possua múltiplos contratos"
+                >
+                  <MenuItem value="">Nenhum contrato específico</MenuItem>
+                  {customerContracts.map((cnt) => (
+                    <MenuItem key={cnt.id} value={cnt.id}>
+                      Contrato #{cnt.id.substring(0, 8)} - Status: {cnt.status}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            )}
+
             <Grid item xs={12} sm={6}>
               <TextField
                 select
@@ -372,7 +491,24 @@ const TicketList = () => {
                 ))}
               </TextField>
             </Grid>
+
             <Grid item xs={12} sm={6}>
+              <TextField
+                select
+                fullWidth
+                label="Prioridade *"
+                value={newForm.priority}
+                onChange={(e) => setNewForm({ ...newForm, priority: e.target.value })}
+              >
+                {priorities.map((p) => (
+                  <MenuItem key={p.value} value={p.value}>
+                    {p.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12}>
               <TextField
                 select
                 fullWidth
@@ -387,6 +523,7 @@ const TicketList = () => {
                 ))}
               </TextField>
             </Grid>
+
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -396,6 +533,7 @@ const TicketList = () => {
                 onChange={(e) => setNewForm({ ...newForm, subject: e.target.value })}
               />
             </Grid>
+
             <Grid item xs={12}>
               <TextField
                 fullWidth
