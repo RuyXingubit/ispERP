@@ -1,5 +1,6 @@
 export type TicketPriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'WAITING_CUSTOMER' | 'RESOLVED' | 'CANCELED';
+export type TicketCategory = 'LENTIDAO' | 'SEM_CONEXAO' | 'FINANCEIRO' | 'MUDANCA_ENDERECO' | 'DUVIDAS';
 
 export interface HelpdeskTicket {
   id: string;

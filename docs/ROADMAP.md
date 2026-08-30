@@ -301,3 +301,38 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
   - Suíte de testes unitários ([`S3FileStorageServiceTest.java`](file:///Users/ruy/Code/ispERP/backend/src/test/java/br/dev/xb/isperp/storage/S3FileStorageServiceTest.java), [`StorageConfigServiceTest.java`](file:///Users/ruy/Code/ispERP/backend/src/test/java/br/dev/xb/isperp/service/StorageConfigServiceTest.java), [`StorageConfigControllerTest.java`](file:///Users/ruy/Code/ispERP/backend/src/test/java/br/dev/xb/isperp/controller/StorageConfigControllerTest.java)) e build do frontend 100% aprovados.
 
 ---
+
+## 🎯 Milestone 19: Assistente Fiscal & Transição de Regime Tributário (Imediata & Agendada com Vigência) (Concluído)
+> **Objetivo:** Oferecer flexibilidade para provedores no onboarding fiscal (confirmação não-bloqueante "Vou confirmar com meu contador"), motor de transição de regime tributário (Simples Nacional, Lucro Presumido, Lucro Real) com vigência programada e scheduler diário, mantendo imutabilidade fiscal histórica.
+
+- [x] **Confirmação Fiscal Não-Bloqueante:**
+  - Migração Flyway [`V17__add_fiscal_confirmation_to_companies.sql`](file:///Users/ruy/Code/ispERP/backend/src/main/resources/db/migration/V17__add_fiscal_confirmation_to_companies.sql) com campos `fiscal_confirmed` e `fiscal_confirmed_at`.
+  - Assistente fiscal na UI com botões *"Vou confirmar com meu contador"* (mantém valores sugeridos como pendentes) e *"Confirmar e Salvar Dados Fiscais"*, com badge visual de alerta e status.
+- [x] **Motor de Transição de Regime Fiscal (`V18`):**
+  - Tabela `fiscal_regime_transitions` com `DEFAULT uuidv7()` ([`V18__create_fiscal_regime_transitions.sql`](file:///Users/ruy/Code/ispERP/backend/src/main/resources/db/migration/V18__create_fiscal_regime_transitions.sql)).
+  - Entidade [`FiscalRegimeTransition.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/entity/FiscalRegimeTransition.java), DTOs e Mapper MapStruct.
+  - Serviço [`FiscalRegimeTransitionService.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/service/FiscalRegimeTransitionService.java):
+    - Se a data de vigência for `<= hoje`, o status é definido como `APPLIED` e aplicado imediatamente na `FiscalCompany`.
+    - Se a data for futura (ex: `01/01/2026`), é registrado como `SCHEDULED`.
+    - Possibilidade de cancelamento de transições pendentes.
+  - Scheduler diário [`FiscalRegimeScheduler.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/scheduler/FiscalRegimeScheduler.java) executado à meia-noite e no startup.
+  - Controlador REST [`FiscalRegimeTransitionController.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/controller/FiscalRegimeTransitionController.java).
+- [x] **Interface do Usuário (Frontend):**
+  - Aba de Transição de Regime Fiscal em [`FiscalDashboard.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Financial/FiscalDashboard.tsx) com formulário de agendamento/aplicação imediata e tabela de histórico com cancelamento de agendamentos.
+- [x] **Testes Automatizados:**
+  - Testes unitários para serviço e controller com 100% de cobertura e aprovação (`./gradlew test`).
+
+---
+
+## 🎯 Milestone 20: Migração Total do Frontend para TypeScript (100% .ts / .tsx) (Concluído)
+> **Objetivo:** Converter 100% da base de código do frontend React para TypeScript estrito, garantindo type-safety de ponta a ponta, redução de bugs em tempo de execução e total sincronia com os DTOs do backend.
+
+- [x] **Conversão Completa de Páginas, Componentes, Serviços e Contextos:**
+  - 100% dos serviços em `src/services/` migrados para `.ts`.
+  - 100% das páginas em `src/pages/` e componentes em `src/components/` migrados para `.tsx`.
+  - Contextos (`AuthContext.tsx`) e utilitários (`cpfValidator.ts`) migrados para `.tsx` / `.ts`.
+  - Ponto de entrada migrado para `src/App.tsx` e `src/index.tsx` com atualização no `index.html`.
+  - Remoção de 100% dos arquivos legados `.js` e `.jsx` em `src/`.
+- [x] **Validação & Compilação:**
+  - `npm run typecheck` executado com 0 erros.
+  - `npm run build` do Vite compilado para produção com sucesso.

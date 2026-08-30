@@ -38,7 +38,8 @@ export interface StorageConfigResponse {
 
 export interface StorageConnectionTestResponse {
   success: boolean;
-  message: string;
-  details?: string;
-  latencyMs: number;
+  message?: string;
+  latencyMs?: number;
 }
+
+export type StorageConfig = StorageConfigResponse;

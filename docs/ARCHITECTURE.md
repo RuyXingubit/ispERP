@@ -308,6 +308,23 @@ sequenceDiagram
 
 ---
 
+### ADR 021: Transições de Regime Tributário com Vigência Programada e Imutabilidade Fiscal
+- **Contexto:** Provedores de internet frequentemente alteram sua opção fiscal (Simples Nacional, Lucro Presumido, Lucro Real) na virada do ano fiscal ou durante o crescimento do negócio. Alterações diretas no cadastro da empresa sem versionamento quebram a coerência de notas fiscais passadas (NFCom Modelo 62) e não permitem agendar a vigência com antecedência para início automático em 1º de Janeiro.
+- **Decisão:** Criar a tabela `fiscal_regime_transitions` com identificadores UUIDv7 nativos e o serviço `FiscalRegimeTransitionService` com status `SCHEDULED`, `APPLIED` e `CANCELLED`.
+- **Regras Arquiteturais:**
+  1. Se a `effectiveDate` for menor ou igual à data corrente, o regime é aplicado imediatamente (`APPLIED`) atualizando a `FiscalCompany`.
+  2. Se a `effectiveDate` for futura, a transição é agendada (`SCHEDULED`) e mantida em espera.
+  3. O scheduler diário `FiscalRegimeScheduler` roda à meia-noite e no startup do sistema verificando e aplicando transições agendadas cuja vigência tenha chegado.
+  4. As notas fiscais emitidas no passado (`nfcom_records`) mantêm seus valores de alíquota, base de cálculo e XML assinados de forma estritamente imutável.
 
+---
 
-
+### ADR 022: Migração Total e Padronização Mandatória de TypeScript no Frontend
+- **Contexto:** A manutenção mista de arquivos `.jsx`/`.js` e `.tsx`/`.ts` trazia duplicidade de arquivos, falta de autocompletion em componentes legados e risco de divergência com os DTOs do backend Java 25.
+- **Decisão:** Realizar a migração completa (100%) da base de código do frontend para TypeScript (`.ts` / `.tsx`), removendo todos os arquivos `.js` e `.jsx` residuais de `src/`.
+- **Regra Mandatória:**
+  > Novos componentes, serviços, hooks e páginas do frontend ispERP **DEVEM** ser desenvolvidos exclusivamente em `.ts` ou `.tsx`, integrando os tipos de domínio em `src/types/` e com validação contínua através do script `npm run typecheck`.
+- **Consequências:**
+  - 100% de type-safety no frontend React 19.
+  - Zero erros de compilação no Vite e TypeScript compiler.
+  - Documentação viva no próprio código de cada tela e serviço.

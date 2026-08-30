@@ -8,6 +8,15 @@ export interface GeoCepAddress {
   longitude?: number;
 }
 
+export type GeoAddressResponse = GeoCepAddress;
+
+export interface CoverageCheckResult {
+  hasCoverage: boolean;
+  closestPopDistanceMeters?: number;
+  availableTechnologies?: string[];
+  message?: string;
+}
+
 export interface GeoCepContributeRequest {
   cep: string;
   streetNumber: string;
