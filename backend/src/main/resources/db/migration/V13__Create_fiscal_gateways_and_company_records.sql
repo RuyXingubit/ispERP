@@ -4,7 +4,7 @@
 
 -- 1. Tabela de Dados Cadastrais & Fiscais das Empresas Emissoras (Matriz e Filiais)
 CREATE TABLE IF NOT EXISTS fiscal_companies (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     cnpj VARCHAR(18) NOT NULL UNIQUE,
     razao_social VARCHAR(255) NOT NULL,
     nome_fantasia VARCHAR(255),
@@ -41,7 +41,7 @@ CREATE INDEX IF NOT EXISTS idx_fiscal_companies_cnpj ON fiscal_companies(cnpj);
 
 -- 2. Tabela de Configuração dos Gateways Fiscais (Multi-Gateway Plugável)
 CREATE TABLE IF NOT EXISTS fiscal_gateway_configs (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     company_id UUID NOT NULL REFERENCES fiscal_companies(id) ON DELETE CASCADE,
     gateway_type VARCHAR(50) NOT NULL DEFAULT 'XINGUBIT_PAY',
     environment VARCHAR(20) NOT NULL DEFAULT 'HOMOLOGACAO',
@@ -60,7 +60,7 @@ CREATE INDEX IF NOT EXISTS idx_fiscal_gateway_configs_type ON fiscal_gateway_con
 
 -- 3. Tabela de Registro Detalhado de NFCom (Modelo 62) Emitidas
 CREATE TABLE IF NOT EXISTS nfcom_records (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     company_id UUID NOT NULL REFERENCES fiscal_companies(id) ON DELETE RESTRICT,
     invoice_id UUID REFERENCES invoices(id) ON DELETE SET NULL,
     contract_id UUID REFERENCES contracts(id) ON DELETE SET NULL,

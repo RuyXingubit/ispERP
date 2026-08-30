@@ -23,7 +23,7 @@ ALTER TABLE trust_unblocks ADD COLUMN IF NOT EXISTS invoice_id UUID;
 
 -- 6. Rotas Otimizadas de Ordens de Serviço (GeoCEP TSP)
 CREATE TABLE IF NOT EXISTS service_routes (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     code VARCHAR(50) NOT NULL UNIQUE,
     technician_user_id UUID,
     route_date DATE NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS service_routes (
 );
 
 CREATE TABLE IF NOT EXISTS service_route_stops (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     route_id UUID NOT NULL REFERENCES service_routes(id) ON DELETE CASCADE,
     work_order_id UUID NOT NULL REFERENCES work_orders(id),
     sequence_order INTEGER NOT NULL,

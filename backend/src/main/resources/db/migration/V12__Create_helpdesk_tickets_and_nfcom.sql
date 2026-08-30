@@ -4,7 +4,7 @@
 
 -- 1. Tabela de Chamados de Atendimento / Suporte (Helpdesk) com Protocolo ANATEL
 CREATE TABLE IF NOT EXISTS helpdesk_tickets (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     protocol VARCHAR(32) NOT NULL UNIQUE,
     customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
     contract_id UUID REFERENCES contracts(id) ON DELETE SET NULL,
@@ -32,7 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_helpdesk_tickets_sla ON helpdesk_tickets(sla_dead
 
 -- 2. Tabela de Histórico / Interações do Chamado (Públicas e Notas Internas)
 CREATE TABLE IF NOT EXISTS ticket_interactions (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     ticket_id UUID NOT NULL REFERENCES helpdesk_tickets(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     is_internal_note BOOLEAN NOT NULL DEFAULT FALSE,

@@ -3,7 +3,7 @@
 -- ==============================================================================
 
 CREATE TABLE IF NOT EXISTS storage_configs (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
     storage_type VARCHAR(50) NOT NULL DEFAULT 'S3',
     provider VARCHAR(50) NOT NULL DEFAULT 'SEAWEEDFS_LOCAL',
