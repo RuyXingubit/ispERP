@@ -136,13 +136,55 @@ const FiscalDashboard = () => {
     loadData();
   }, []);
 
-  const handleSaveCompany = async (e) => {
+  const handleRegimeChange = (regime) => {
+    let aliquotas = {};
+    if (regime === 'SIMPLES_NACIONAL') {
+      aliquotas = {
+        aliquotaIcms: 0,
+        aliquotaPis: 0,
+        aliquotaCofins: 0,
+        aliquotaFust: 0.65,
+        aliquotaFunttel: 0.50,
+      };
+    } else if (regime === 'LUCRO_PRESUMIDO') {
+      aliquotas = {
+        aliquotaIcms: 18.0,
+        aliquotaPis: 0.65,
+        aliquotaCofins: 3.0,
+        aliquotaFust: 0.65,
+        aliquotaFunttel: 0.50,
+      };
+    } else if (regime === 'LUCRO_REAL') {
+      aliquotas = {
+        aliquotaIcms: 18.0,
+        aliquotaPis: 1.65,
+        aliquotaCofins: 7.6,
+        aliquotaFust: 0.65,
+        aliquotaFunttel: 0.50,
+      };
+    }
+    setCompanyForm((prev) => ({
+      ...prev,
+      regimeTributario: regime,
+      ...aliquotas,
+    }));
+  };
+
+  const handleSaveCompany = async (confirmed = true, e) => {
     if (e && e.preventDefault) e.preventDefault();
     try {
       setLoading(true);
-      const saved = await fiscalService.saveCompany(companyForm);
+      const payload = {
+        ...companyForm,
+        fiscalConfirmed: confirmed,
+      };
+      const saved = await fiscalService.saveCompany(payload);
       setCompanyForm(saved);
-      setFeedback({ type: 'success', message: 'Dados cadastrais e fiscais da empresa salvos com sucesso!' });
+      if (confirmed) {
+        setFeedback({ type: 'success', message: 'Configurações fiscais confirmadas e salvas com sucesso!' });
+      } else {
+        setFeedback({ type: 'info', message: 'Dados salvos provisoriamente como pendentes de validação com o contador.' });
+      }
     } catch (err) {
       setFeedback({ type: 'error', message: 'Falha ao salvar dados da empresa: ' + err.message });
     } finally {
@@ -382,10 +424,25 @@ const FiscalDashboard = () => {
           <Grid item xs={12} md={7}>
             <Card sx={{ height: '100%' }}>
               <CardContent>
-                <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CompanyIcon color="primary" /> Dados Cadastrais & Fiscais do Provedor
-                </Typography>
-                <form onSubmit={handleSaveCompany}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                  <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CompanyIcon color="primary" /> Dados Cadastrais & Fiscais do Provedor
+                  </Typography>
+                  <Chip
+                    label={companyForm.fiscalConfirmed ? '🟢 Configuração Fiscal Validada' : '🟡 Pendente de Confirmação Contábil'}
+                    color={companyForm.fiscalConfirmed ? 'success' : 'warning'}
+                    variant="outlined"
+                    size="small"
+                  />
+                </Box>
+
+                {!companyForm.fiscalConfirmed && (
+                  <Alert severity="info" sx={{ mb: 3 }}>
+                    ℹ️ <strong>Status Provisório:</strong> Os parâmetros fiscais estão salvos provisoriamente. Você pode utilizar todo o sistema normalmente e validar as alíquotas com sua contabilidade a qualquer momento antes da emissão definitiva em produção.
+                  </Alert>
+                )}
+
+                <form onSubmit={(e) => handleSaveCompany(true, e)}>
                   <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
                       <TextField
@@ -424,6 +481,7 @@ const FiscalDashboard = () => {
                         label="CNAE Principal"
                         value={companyForm.cnaePrincipal}
                         onChange={(e) => setCompanyForm({ ...companyForm, cnaePrincipal: e.target.value })}
+                        helperText="6110-8/03 (Serviços de Comunicação Multimídia - SCM)"
                         required
                       />
                     </Grid>
@@ -434,13 +492,83 @@ const FiscalDashboard = () => {
                         select
                         label="Regime Tributário"
                         value={companyForm.regimeTributario}
-                        onChange={(e) => setCompanyForm({ ...companyForm, regimeTributario: e.target.value })}
+                        onChange={(e) => handleRegimeChange(e.target.value)}
                       >
                         <MenuItem value="SIMPLES_NACIONAL">Simples Nacional</MenuItem>
                         <MenuItem value="LUCRO_PRESUMIDO">Lucro Presumido</MenuItem>
                         <MenuItem value="LUCRO_REAL">Lucro Real</MenuItem>
                       </TextField>
                     </Grid>
+
+                    {/* Explicação e Alíquotas do Assistente Fiscal */}
+                    <Grid item xs={12}>
+                      <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
+                        <Typography variant="subtitle2" fontWeight="bold" gutterBottom color="primary">
+                          📊 Assistente de Alíquotas Sugeridas ({companyForm.regimeTributario}):
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1.5 }}>
+                          {companyForm.regimeTributario === 'SIMPLES_NACIONAL' &&
+                            '💡 No Simples Nacional, o ICMS, PIS e COFINS são recolhidos de forma unificada na guia DAS. O FUST (0.65%) e FUNTTEL (0.50%) são calculados conforme a Lei 9.998/2000.'}
+                          {companyForm.regimeTributario === 'LUCRO_PRESUMIDO' &&
+                            '💡 No Lucro Presumido, aplica-se o ICMS estadual padrão (ex: 18%), PIS cumulativo (0.65%), COFINS cumulativo (3.00%), FUST (0.65%) e FUNTTEL (0.50%).'}
+                          {companyForm.regimeTributario === 'LUCRO_REAL' &&
+                            '💡 No Lucro Real, aplica-se o ICMS estadual padrão (ex: 18%), PIS não-cumulativo (1.65%), COFINS não-cumulativo (7.60%), FUST (0.65%) e FUNTTEL (0.50%).'}
+                        </Typography>
+                        <Grid container spacing={1.5}>
+                          <Grid item xs={6} sm={2.4}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              type="number"
+                              label="ICMS (%)"
+                              value={companyForm.aliquotaIcms}
+                              onChange={(e) => setCompanyForm({ ...companyForm, aliquotaIcms: parseFloat(e.target.value) || 0 })}
+                            />
+                          </Grid>
+                          <Grid item xs={6} sm={2.4}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              type="number"
+                              label="PIS (%)"
+                              value={companyForm.aliquotaPis ?? 0}
+                              onChange={(e) => setCompanyForm({ ...companyForm, aliquotaPis: parseFloat(e.target.value) || 0 })}
+                            />
+                          </Grid>
+                          <Grid item xs={6} sm={2.4}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              type="number"
+                              label="COFINS (%)"
+                              value={companyForm.aliquotaCofins ?? 0}
+                              onChange={(e) => setCompanyForm({ ...companyForm, aliquotaCofins: parseFloat(e.target.value) || 0 })}
+                            />
+                          </Grid>
+                          <Grid item xs={6} sm={2.4}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              type="number"
+                              label="FUST (%)"
+                              value={companyForm.aliquotaFust}
+                              onChange={(e) => setCompanyForm({ ...companyForm, aliquotaFust: parseFloat(e.target.value) || 0 })}
+                            />
+                          </Grid>
+                          <Grid item xs={6} sm={2.4}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              type="number"
+                              label="FUNTTEL (%)"
+                              value={companyForm.aliquotaFunttel}
+                              onChange={(e) => setCompanyForm({ ...companyForm, aliquotaFunttel: parseFloat(e.target.value) || 0 })}
+                            />
+                          </Grid>
+                        </Grid>
+                      </Paper>
+                    </Grid>
+
                     <Grid item xs={12} md={8}>
                       <TextField
                         fullWidth
@@ -523,9 +651,25 @@ const FiscalDashboard = () => {
                         onChange={(e) => setCompanyForm({ ...companyForm, nfcomProximoNumero: parseInt(e.target.value) || 1 })}
                       />
                     </Grid>
-                    <Grid item xs={12}>
-                      <Button type="submit" variant="contained" startIcon={<SaveIcon />} disabled={loading}>
-                        Salvar Dados Fiscais
+                    <Grid item xs={12} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 1 }}>
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        color="warning"
+                        disabled={loading}
+                        onClick={() => handleSaveCompany(false)}
+                      >
+                        Vou confirmar com meu contador
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="contained"
+                        color="primary"
+                        startIcon={<SaveIcon />}
+                        disabled={loading}
+                        onClick={() => handleSaveCompany(true)}
+                      >
+                        Confirmar e Salvar Dados Fiscais
                       </Button>
                     </Grid>
                   </Grid>

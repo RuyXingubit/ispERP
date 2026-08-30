@@ -157,6 +157,14 @@ public class FiscalCompany {
     @Nullable
     private LocalDateTime accountingLastSentAt;
 
+    @Column(name = "fiscal_confirmed", nullable = false)
+    @Builder.Default
+    private Boolean fiscalConfirmed = false;
+
+    @Column(name = "fiscal_confirmed_at")
+    @Nullable
+    private LocalDateTime fiscalConfirmedAt;
+
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;

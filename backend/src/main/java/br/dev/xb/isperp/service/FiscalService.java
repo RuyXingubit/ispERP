@@ -38,6 +38,12 @@ public class FiscalService {
      */
     @Transactional
     public FiscalCompany saveCompany(FiscalCompany company, @Nullable FiscalGatewayConfig customConfig) {
+        if (Boolean.TRUE.equals(company.getFiscalConfirmed()) && company.getFiscalConfirmedAt() == null) {
+            company.setFiscalConfirmedAt(LocalDateTime.now());
+        } else if (Boolean.FALSE.equals(company.getFiscalConfirmed())) {
+            company.setFiscalConfirmedAt(null);
+        }
+
         FiscalCompany savedCompany = companyRepository.save(company);
 
         FiscalGatewayResolver.ResolvedFiscalGateway resolved = gatewayResolver.resolve(savedCompany.getId());
