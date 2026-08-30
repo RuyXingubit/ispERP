@@ -8,3 +8,6 @@ export * from './geocep';
 export * from './storage';
 export * from './regime';
 export * from './ipam';
+export * from './radius';
+export * from './cgnat';
+export * from './marcoCivil';

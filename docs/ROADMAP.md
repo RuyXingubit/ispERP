@@ -361,19 +361,25 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 22: FreeRADIUS Multi-Vendor, CGNAT Forense & Central do Marco Civil (Aguardando Início)
-> **Objetivo:** Disponibilizar o container FreeRADIUS no Docker com suporte a autenticação simples (apenas login/senha/velocidade) e avançada (IPAM/Rotas), parsers de CGNAT multi-fabricante e Central de Investigação do Marco Civil com laudos periciais e QR Code de autenticidade.
+## 🎯 Milestone 22: FreeRADIUS Multi-Vendor, CGNAT Forense & Central do Marco Civil Anti-Fraude (Concluído)
+> **Objetivo:** Disponibilizar o container FreeRADIUS no Docker com suporte a autenticação simples (apenas login/senha/velocidade) e avançada (IPAM/Rotas), parsers de CGNAT multi-fabricante e Central de Investigação do Marco Civil com laudos periciais, Hash SHA-256 e QR Code público de autenticidade.
 
-- [ ] **Container FreeRADIUS no Docker Compose (`rlm_sql_postgresql`):**
-  - Portas UDP expostas: `1812` (Auth), `1813` (Acct), `3799` (CoA / PoD).
-- [ ] **Banco de Dados (Flyway `V20`):**
-  - Tabelas `nas`, `radcheck`, `radreply`, `radacct`, `cgnat_mappings` e `marco_civil_reports`.
-- [ ] **Parsers CGNAT Multi-Fabricante:**
-  - Suporte a MikroTik, Huawei, A10 Networks, Hillstone, Cisco, Accel-PPP e importação CSV/XLS.
-- [ ] **Central do Marco Civil da Internet (Lei 12.965/2014):**
-  - Cruzamento forense reverso (`IP Público + Porta + Data/Hora` ➔ `IP Privado` ➔ `radacct` ➔ `Assinante`).
-  - Emissão de Laudo Pericial em PDF com QR Code e Hash SHA-256 de autenticidade pública.
-  - Endpoint e tela pública de validação anti-fraude para autoridades policiais e judiciais.
-- [ ] **Frontend React 19 / TypeScript:**
-  - Telas de Gestão de BNGs, CGNAT, Sessões Online e Central do Marco Civil.
+- [x] **Container FreeRADIUS no Docker Compose (`rlm_sql_postgresql`):**
+  - Portas UDP expostas: `1812:1812/udp` (Auth), `1813:1813/udp` (Acct), `3799:3799/udp` (CoA / PoD) em `docker-compose.yml` e `docker-compose.prod.yml`.
+- [x] **Banco de Dados (Flyway `V20`):**
+  - Tabelas `nas`, `radcheck`, `radreply`, `radgroupcheck`, `radgroupreply`, `radusergroup`, `radacct`, `cgnat_mappings` e `marco_civil_reports` com `UUID DEFAULT uuidv7()`.
+- [x] **Injeção Dinâmica Multi-Vendor & PoD:**
+  - Provisionamento automatizado para MikroTik (`Mikrotik-Rate-Limit`, `Mikrotik-Address-List`), Huawei (`Huawei-Input-Average-Rate`), Juniper (`ERX-Ingress-Policy-Name`), Cisco/RFC (`WISPr-Bandwidth-Max-Down`, `Framed-IP-Address`, `Delegated-IPv6-Prefix`).
+  - Desconexão de sessões ativas via comando PoD (Packet of Disconnect - RFC 3576).
+- [x] **Parsers CGNAT Multi-Fabricante:**
+  - Suporte a MikroTik RouterOS (`/ip firewall nat`), Huawei VRP (`nat address-group`), A10 Networks (`cgnv6`), Cisco IOS-XE (`port-block`) e planilhas CSV/XLS.
+- [x] **Central do Marco Civil da Internet (Lei 12.965/2014 & Decreto 8.771/2016):**
+  - Cruzamento forense reverso (`IP Público + Porta + Data/Hora` ➔ `CGNAT` ➔ `IP Privado` ➔ `radacct` ➔ `Assinante e Endereço de Instalação`).
+  - Emissão de Laudo Pericial Oficial com Hash Criptográfico **SHA-256** e **QR Code**.
+  - Página e endpoint públicos de validação anti-fraude (`/public/validar-laudo/:token`).
+- [x] **Frontend React 19 / TypeScript:**
+  - Telas [`RadiusManager.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Network/RadiusManager.tsx), [`CgnatManager.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Network/CgnatManager.tsx), [`MarcoCivilSearch.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Network/MarcoCivilSearch.tsx) e [`ReportValidation.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Public/ReportValidation.tsx).
+- [x] **Testes Automatizados:**
+  - Suíte de testes unitários para Parsers, Provisioning, Accounting, Disconnect e Marco Civil 100% aprovada (`./gradlew test`).
+
 

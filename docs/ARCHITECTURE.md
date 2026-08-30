@@ -343,3 +343,20 @@ sequenceDiagram
   - Suporte completo a RFC 3021 (/31) e RFC 5952 (IPv6 canônico).
   - Base pronta para consumo nativo pelo FreeRADIUS (Milestone 22).
 
+---
+
+### ADR 024: FreeRADIUS Multi-Vendor, CGNAT Forense & Central do Marco Civil Anti-Fraude
+- **Contexto:** Provedores de internet operam com infraestruturas heterogêneas de BNGs (MikroTik RouterOS, Huawei NE40/ME60, Juniper MX, Accel-PPP, Cisco ASR) e realizam CGNAT para economia de endereços IPv4 públicos. Paralelamente, a Lei nº 12.965/2014 (Marco Civil da Internet) exige a guarda e pronta disponibilização sob ordem judicial de registros de conexão (IP, porta lógica de origem, data/hora e identificação inequívoca do titular), com necessidade de proteção contra falsificação de laudos periciais entregues a autoridades policiais ou judiciais.
+- **Decisão:** Integrar nativamente o FreeRADIUS com PostgreSQL 17+, fornecer parsers automatizados de regras CGNAT multi-fabricante e uma Central de Investigação Forense com emissão de laudos oficiais assinados criptograficamente.
+- **Diretrizes de Implementação:**
+  1. **Schema FreeRADIUS + CGNAT com UUIDv7:** Tabelas `nas`, `radcheck`, `radreply`, `radacct`, `cgnat_mappings` e `marco_civil_reports` criadas na migração Flyway `V20`.
+  2. **Injeção Dinâmica Multi-Vendor:** Suporte a perfis de rate-limit nativos por fabricante (MikroTik, Huawei, Juniper, Cisco/RFC) e pool de bloqueio automático por inadimplência.
+  3. **Desconexão PoD (Packet of Disconnect - RFC 3576):** Envio de pacotes CoA/PoD UDP na porta 3799 para derrubar conexões de clientes em tempo real.
+  4. **Cruzamento Forense Reverso:** Algoritmo determinístico que correlaciona `IP Público + Porta + Timestamp` ➔ `Mapeamento CGNAT` ➔ `IP Privado` ➔ `radacct` ➔ `Assinante e Endereço de Instalação`.
+  5. **Garantia de Autenticidade Anti-Fraude:** Emissão de laudos periciais com Hash Criptográfico SHA-256 e QR Code com link público `/public/validar-laudo/:token`, permitindo à autoridade policial/judicial atestar que o laudo impresso confere com os registros invioláveis do provedor.
+- **Consequências:**
+  - Plena conformidade legal com o Marco Civil e LGPD.
+  - Agilidade imediata no atendimento a ofícios e inquéritos policiais.
+  - Blindagem do ISP contra retaliação e fraudes documentais.
+
+

@@ -15,6 +15,8 @@ public interface OnuProvisioningRepository extends JpaRepository<OnuProvisioning
 
     Optional<OnuProvisioning> findByOnuMac(String onuMac);
 
+    Optional<OnuProvisioning> findByPppoeUser(String pppoeUser);
+
     List<OnuProvisioning> findByCustomerId(UUID customerId);
 
     List<OnuProvisioning> findByStatus(OnuProvisioning.OnuStatus status);

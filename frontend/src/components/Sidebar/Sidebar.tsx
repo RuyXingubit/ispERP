@@ -95,6 +95,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
       icon: <OltIcon />,
       path: '/network/ipam',
     },
+    {
+      text: 'RADIUS & BNGs',
+      icon: <OltIcon />,
+      path: '/network/radius',
+    },
+    {
+      text: 'CGNAT Forense',
+      icon: <OltIcon />,
+      path: '/network/cgnat',
+    },
+    {
+      text: 'Central Marco Civil',
+      icon: <OltIcon />,
+      path: '/network/marco-civil',
+    },
   ];
 
   const financeiroItems: MenuItem[] = [

@@ -26,6 +26,10 @@ import FiscalDashboard from './pages/Financial/FiscalDashboard';
 import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import IpamManager from './pages/Network/IpamManager';
+import RadiusManager from './pages/Network/RadiusManager';
+import CgnatManager from './pages/Network/CgnatManager';
+import MarcoCivilSearch from './pages/Network/MarcoCivilSearch';
+import ReportValidation from './pages/Public/ReportValidation';
 import ClientPortal from './pages/Portal/ClientPortal';
 import InventoryManager from './pages/Inventory/InventoryManager';
 import RoutePlanner from './pages/WorkOrders/RoutePlanner';
@@ -259,6 +263,37 @@ function AppContent() {
                 <IpamManager />
               </ProtectedRoute>
             } 
+          />
+          <Route 
+            path="/network/radius" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2']}>
+                <RadiusManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/network/cgnat" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2']}>
+                <CgnatManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/network/marco-civil" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2', 'FINANCIAL', 'ADMINISTRATIVE_ASSISTANT']}>
+                <MarcoCivilSearch />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/public/validar-laudo/:token" 
+            element={<ReportValidation />} 
           />
           <Route 
             path="/inventory" 
