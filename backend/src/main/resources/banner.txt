@@ -5,7 +5,7 @@ ${AnsiColor.BRIGHT_GREEN}
   >  < | || | | | (_| | |_| | |_) | | |_ 
  /_/\_\|_||_| |_|\__, |\__,_|____/|_|\__|
                  |___/                   
-${AnsiColor.BRIGHT_CYAN} :: xinguBit Pay :: Core Engine & Payment Gateway (v1.22.0)
+${AnsiColor.BRIGHT_CYAN} :: ispERP :: Core ispERP
 ${AnsiColor.DEFAULT} :: Spring Boot :: ${spring-boot.version}
  :: Active Profile: ${spring.profiles.active:default}
  :: Running on Java: ${java.version}
