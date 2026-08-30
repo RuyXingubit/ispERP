@@ -33,6 +33,10 @@ frontend/yarn-error.log*
 .settings/
 .project
 .classpath
+.factorypath
+*.iml
+*.ipr
+*.iws
 *.swp
 *.swo
 *~
