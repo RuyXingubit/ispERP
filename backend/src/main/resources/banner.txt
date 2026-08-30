@@ -1,0 +1,12 @@
+${AnsiColor.BRIGHT_GREEN}
+        _                   ____  _ _   
+ __  __(_) _ __   __ _ _   _| __ )(_) |_ 
+ \ \/ /| || '_ \ / _` | | | |  _ \| | __|
+  >  < | || | | | (_| | |_| | |_) | | |_ 
+ /_/\_\|_||_| |_|\__, |\__,_|____/|_|\__|
+                 |___/                   
+${AnsiColor.BRIGHT_CYAN} :: xinguBit Pay :: Core Engine & Payment Gateway (v1.22.0)
+${AnsiColor.DEFAULT} :: Spring Boot :: ${spring-boot.version}
+ :: Active Profile: ${spring.profiles.active:default}
+ :: Running on Java: ${java.version}
+
