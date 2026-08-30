@@ -359,4 +359,20 @@ sequenceDiagram
   - Agilidade imediata no atendimento a ofícios e inquéritos policiais.
   - Blindagem do ISP contra retaliação e fraudes documentais.
 
+---
+
+### ADR 025: Sincronização Reativa do Ciclo de Vida RADIUS, Auto-Corte & Desbloqueio Instantâneo com PoD
+- **Contexto:** A gestão de bloqueio e liberação de clientes inadimplentes em ISPs precisa ser 100% automatizada para evitar perda de receita e sobrecarga no atendimento. Quando um assinante paga via PIX ou solicita Desbloqueio em Confiança, o acesso à internet deve ser restabelecido em menos de 1 segundo, sem necessidade de reboot do roteador pelo cliente ou intervenção humana do suporte.
+- **Decisão:** Desenvolver um motor reativo e orientado a eventos (`RadiusLifecycleEventListener`, `RadiusLifecycleService` e `RadiusLifecycleScheduler`) integrado ao FreeRADIUS, emitindo pacotes PoD (Packet of Disconnect - RFC 3576) na porta UDP 3799 para derrubada e reconexão imediata da sessão PPPoE nos concentradores BNG.
+- **Diretrizes de Implementação:**
+  1. **Schema de Políticas & Auditoria com UUIDv7:** Tabelas `radius_policy_configs` e `radius_lifecycle_logs` criadas na migração Flyway `V21`.
+  2. **Auto-Corte Inteligente:** Scheduler diário que avalia faturas vencidas além da carência configurada (ex: 5 dias), ignorando automaticamente clientes com *Desbloqueio em Confiança* ativo.
+  3. **Desbloqueio em Tempo Real (< 1s):** Consumo assíncrono do evento `INVOICE_PAID` (Webhook PIX / Baixa de Boleto) com validação de elegibilidade financeira global e emissão instantânea de pacote PoD para restaurar a velocidade total contratada.
+  4. **Auditoria Transparente:** Registro imutável de todas as ações de corte, desbloqueio e resposta dos concentradores BNG na tabela `radius_lifecycle_logs`.
+- **Consequências:**
+  - Redução drástica do Churn e chamados no suporte financeiro ("Paguei meu PIX, quando volta a internet?").
+  - Automação completa do ciclo de cobrança e rede de forma multi-vendor (MikroTik, Huawei, Juniper, Cisco).
+  - Experiência premium de autoatendimento para o assinante.
+
+
 

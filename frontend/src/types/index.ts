@@ -11,3 +11,4 @@ export * from './ipam';
 export * from './radius';
 export * from './cgnat';
 export * from './marcoCivil';
+export * from './radiusLifecycle';

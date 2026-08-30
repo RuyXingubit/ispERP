@@ -382,4 +382,28 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 - [x] **Testes Automatizados:**
   - Suíte de testes unitários para Parsers, Provisioning, Accounting, Disconnect e Marco Civil 100% aprovada (`./gradlew test`).
 
+---
+
+## 🎯 Milestone 23: Sincronização Automática do Ciclo de Vida RADIUS, Auto-Corte & Desbloqueio Instantâneo via PIX com PoD (Concluído)
+> **Objetivo:** Estabelecer a orquestração completa entre Contratos, Faturas, Webhook de Pagamento PIX/Boleto, Desbloqueio em Confiança e o servidor FreeRADIUS com envio dinâmico de pacotes PoD (Packet of Disconnect - RFC 3576).
+
+- [x] **Banco de Dados (Flyway `V21`):**
+  - Tabelas `radius_policy_configs` e `radius_lifecycle_logs` com `UUID DEFAULT uuidv7()`.
+- [x] **Orquestrador de Ciclo de Vida (`RadiusLifecycleService.java`):**
+  - Sincronização automática de credenciais PPPoE e atributos de velocidade ao ativar contratos ou provisionar ONUs.
+  - Bloqueio com injeção de atributos captive portal (`pg_bloqueados` no MikroTik / domínio captive na Huawei) e disparo imediato de PoD.
+  - Desbloqueio com restauração da velocidade do plano e disparo imediato de PoD.
+  - Validação de elegibilidade financeira (ausência de outras faturas vencidas além da tolerância).
+- [x] **Scheduler de Auto-Corte por Inadimplência (`RadiusLifecycleScheduler.java`):**
+  - Rotina agendada diária que analisa faturas vencidas além dos dias de tolerância (ex: 5 dias) e respeita solicitações de Desbloqueio em Confiança ativas.
+- [x] **Event Listener Reativo em Tempo Real (`RadiusLifecycleEventListener.java`):**
+  - Consumo assíncrono e idempotente de `INVOICE_PAID` (desbloqueio em < 1s via PIX), `CONTRACT_ACCESS_RESTORE_REQUESTED` (Desbloqueio em Confiança) e `ONU_PROVISIONED`.
+- [x] **Controlador REST (`RadiusLifecycleController.java`):**
+  - Endpoints `/api/radius/lifecycle/summary`, `/policy`, `/logs`, `/action` (bloqueio/desbloqueio manual com PoD) e `/run-autoblock`.
+- [x] **Frontend React 19 / TypeScript:**
+  - Aba **"Ciclo de Vida & Auto-Corte"** em [`RadiusManager.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Network/RadiusManager.tsx) com painel KPI, formulário de políticas, botão de execução manual e tabela de auditoria com status PoD.
+- [x] **Testes Automatizados:**
+  - Suíte de 197 testes unitários e de integração 100% aprovados (`./gradlew test`).
+
+
 

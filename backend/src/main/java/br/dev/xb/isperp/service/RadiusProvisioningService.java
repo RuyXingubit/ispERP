@@ -23,6 +23,51 @@ public class RadiusProvisioningService {
     private final RadReplyRepository radReplyRepository;
 
     @Transactional
+    public void provisionUser(
+            String username,
+            String cleartextPassword,
+            long downloadMbps,
+            long uploadMbps,
+            NasVendorType vendor,
+            @Nullable String fixedIp,
+            @Nullable String ipv6Prefix
+    ) {
+        provisionSubscriber(username, cleartextPassword, downloadMbps, uploadMbps, vendor, fixedIp, ipv6Prefix, false);
+    }
+
+    @Transactional
+    public void blockUser(String username, NasVendorType vendor, @Nullable String reason) {
+        log.info("Aplicando bloqueio de acesso RADIUS para {}. Motivo: {}", username, reason);
+        // Mantém a senha existente ou usa padrão se não houver
+        String password = radCheckRepository.findByUsername(username).stream()
+                .filter(c -> "Cleartext-Password".equals(c.getAttribute()))
+                .map(RadCheck::getValue)
+                .findFirst()
+                .orElse("xb123456");
+
+        provisionSubscriber(username, password, 0, 0, vendor, null, null, true);
+    }
+
+    @Transactional
+    public void unblockUser(
+            String username,
+            long downloadMbps,
+            long uploadMbps,
+            NasVendorType vendor,
+            @Nullable String fixedIp,
+            @Nullable String ipv6Prefix
+    ) {
+        log.info("Restaurando acesso total RADIUS para {} ({}M/{}M)", username, downloadMbps, uploadMbps);
+        String password = radCheckRepository.findByUsername(username).stream()
+                .filter(c -> "Cleartext-Password".equals(c.getAttribute()))
+                .map(RadCheck::getValue)
+                .findFirst()
+                .orElse("xb123456");
+
+        provisionSubscriber(username, password, downloadMbps, uploadMbps, vendor, fixedIp, ipv6Prefix, false);
+    }
+
+    @Transactional
     public void provisionSubscriber(
             String username,
             String cleartextPassword,

@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Nas, RadiusSession, NasVendorType } from '../../types/radius';
+import {
+  RadiusPolicyConfig,
+  RadiusLifecycleSummary,
+  RadiusLifecycleLog,
+} from '../../types/radiusLifecycle';
 import { radiusService } from '../../services/radiusService';
+import { radiusLifecycleService } from '../../services/radiusLifecycleService';
 import {
   FaServer,
   FaSignal,
@@ -14,14 +20,28 @@ import {
   FaKey,
   FaMicrochip,
   FaUserAlt,
+  FaShieldAlt,
+  FaSlidersH,
+  FaHistory,
+  FaBan,
+  FaUnlockAlt,
+  FaPlay,
+  FaClock,
 } from 'react-icons/fa';
 
 export const RadiusManager: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'sessions' | 'nas'>('sessions');
+  const [activeTab, setActiveTab] = useState<'sessions' | 'nas' | 'lifecycle'>('sessions');
   const [sessions, setSessions] = useState<RadiusSession[]>([]);
   const [nasList, setNasList] = useState<Nas[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Lifecycle & Policy State
+  const [lifecycleSummary, setLifecycleSummary] = useState<RadiusLifecycleSummary | null>(null);
+  const [policyConfig, setPolicyConfig] = useState<RadiusPolicyConfig | null>(null);
+  const [lifecycleLogs, setLifecycleLogs] = useState<RadiusLifecycleLog[]>([]);
+  const [savingPolicy, setSavingPolicy] = useState(false);
+  const [runningAutoBlock, setRunningAutoBlock] = useState(false);
 
   // Modal Novo NAS
   const [isNasModalOpen, setIsNasModalOpen] = useState(false);
@@ -47,12 +67,18 @@ export const RadiusManager: React.FC = () => {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [sessionsData, nasData] = await Promise.all([
+      const [sessionsData, nasData, summaryData, policyData, logsData] = await Promise.all([
         radiusService.getActiveSessions(),
         radiusService.getAllNas(),
+        radiusLifecycleService.getSummary().catch(() => null),
+        radiusLifecycleService.getPolicyConfig().catch(() => null),
+        radiusLifecycleService.getLogs(0, 20).catch(() => ({ content: [], totalElements: 0 })),
       ]);
       setSessions(sessionsData);
       setNasList(nasData);
+      if (summaryData) setLifecycleSummary(summaryData);
+      if (policyData) setPolicyConfig(policyData);
+      if (logsData) setLifecycleLogs(logsData.content);
     } catch (err: any) {
       showNotification('Erro ao carregar dados do RADIUS: ' + (err.response?.data?.detail || err.message), 'error');
     } finally {
@@ -119,6 +145,46 @@ export const RadiusManager: React.FC = () => {
     }
   };
 
+  // Salvar Políticas de Auto-Corte
+  const handleSavePolicy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!policyConfig) return;
+    try {
+      setSavingPolicy(true);
+      const updated = await radiusLifecycleService.updatePolicyConfig({
+        autoBlockEnabled: policyConfig.autoBlockEnabled,
+        toleranceDays: Number(policyConfig.toleranceDays),
+        blockMode: policyConfig.blockMode,
+        reducedDownloadKbps: Number(policyConfig.reducedDownloadKbps),
+        reducedUploadKbps: Number(policyConfig.reducedUploadKbps),
+        unblockOnPayment: policyConfig.unblockOnPayment,
+        sendPodOnBlock: policyConfig.sendPodOnBlock,
+        sendPodOnUnblock: policyConfig.sendPodOnUnblock,
+      });
+      setPolicyConfig(updated);
+      showNotification('Políticas de auto-corte e inadimplência salvas com sucesso!');
+    } catch (err: any) {
+      showNotification('Erro ao salvar políticas: ' + (err.response?.data?.detail || err.message), 'error');
+    } finally {
+      setSavingPolicy(false);
+    }
+  };
+
+  // Executar Varredura Manual de Auto-Corte
+  const handleRunAutoBlock = async () => {
+    if (!window.confirm('Deseja iniciar a varredura e bloqueio de clientes inadimplentes agora?')) return;
+    try {
+      setRunningAutoBlock(true);
+      await radiusLifecycleService.runAutoBlockNow();
+      showNotification('Varredura de auto-corte iniciada e executada com sucesso!');
+      loadData();
+    } catch (err: any) {
+      showNotification('Erro ao executar auto-corte: ' + (err.response?.data?.detail || err.message), 'error');
+    } finally {
+      setRunningAutoBlock(false);
+    }
+  };
+
   const filteredSessions = sessions.filter((s) => {
     const term = searchTerm.toLowerCase();
     return (
@@ -139,7 +205,7 @@ export const RadiusManager: React.FC = () => {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">FreeRADIUS - Autenticação & BNGs</h1>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Gestão de servidores BNG (MikroTik, Huawei, Juniper, Cisco), sessões online e desconexão PoD
+            Gestão de servidores BNG (MikroTik, Huawei, Juniper, Cisco), sessões online, ciclo de vida e auto-corte
           </p>
         </div>
 
@@ -177,7 +243,7 @@ export const RadiusManager: React.FC = () => {
       )}
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg">
             <FaSignal className="w-6 h-6" />
@@ -199,12 +265,26 @@ export const RadiusManager: React.FC = () => {
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-lg">
-            <FaMicrochip className="w-6 h-6" />
+          <div className="p-3 bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-lg">
+            <FaBan className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Protocolos Ativos</p>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-1">PPPoE & IPoE</h3>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Bloqueados</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+              {lifecycleSummary ? lifecycleSummary.totalBlockedUsers : 0}
+            </h3>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg">
+            <FaUnlockAlt className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Desbloqueios Hoje</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+              {lifecycleSummary ? lifecycleSummary.todayUnblocksCount : 0}
+            </h3>
           </div>
         </div>
       </div>
@@ -232,6 +312,17 @@ export const RadiusManager: React.FC = () => {
         >
           <FaServer className="w-4 h-4" /> Servidores NAS / BNG ({nasList.length})
         </button>
+
+        <button
+          onClick={() => setActiveTab('lifecycle')}
+          className={`pb-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition ${
+            activeTab === 'lifecycle'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400'
+              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+          }`}
+        >
+          <FaShieldAlt className="w-4 h-4" /> Ciclo de Vida & Auto-Corte
+        </button>
       </div>
 
       {/* TAB 1: Sessions */}
@@ -250,242 +341,422 @@ export const RadiusManager: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-            {loading ? (
-              <div className="p-8 text-center text-slate-500">Carregando sessões...</div>
-            ) : filteredSessions.length === 0 ? (
-              <div className="p-8 text-center text-slate-500">Nenhuma sessão online no momento.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-                  <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase">
+                    <th className="p-4">Assinante / Login</th>
+                    <th className="p-4">IP Conexão</th>
+                    <th className="p-4">MAC ONT (Calling)</th>
+                    <th className="p-4">BNG / Concentrador</th>
+                    <th className="p-4">Tráfego (Down / Up)</th>
+                    <th className="p-4">Início da Sessão</th>
+                    <th className="p-4 text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                  {filteredSessions.length === 0 ? (
                     <tr>
-                      <th className="px-6 py-4">Usuário PPPoE</th>
-                      <th className="px-6 py-4">Cliente / Assinante</th>
-                      <th className="px-6 py-4">Endereço IP</th>
-                      <th className="px-6 py-4">MAC ONT / BNG</th>
-                      <th className="px-6 py-4">Tráfego (Down / Up)</th>
-                      <th className="px-6 py-4 text-right">Ações</th>
+                      <td colSpan={7} className="p-8 text-center text-slate-500">
+                        Nenhuma sessão ativa encontrada.
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                    {filteredSessions.map((s) => (
-                      <tr key={s.radacctId} className="hover:bg-slate-50 dark:hover:bg-slate-750 transition">
-                        <td className="px-6 py-4">
+                  ) : (
+                    filteredSessions.map((s) => (
+                      <tr key={s.radacctId} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+                        <td className="p-4 font-medium text-slate-900 dark:text-white">
                           <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="font-mono font-bold text-slate-900 dark:text-white">
-                              {s.username}
-                            </span>
+                            <FaUserAlt className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>{s.username}</span>
                           </div>
-                          {s.acctStartTime && (
-                            <span className="text-xs text-slate-400">
-                              Online desde: {new Date(s.acctStartTime).toLocaleTimeString()}
-                            </span>
+                          {s.customerName && (
+                            <span className="text-xs text-slate-500 block mt-0.5">{s.customerName}</span>
                           )}
                         </td>
-
-                        <td className="px-6 py-4">
-                          {s.customerName ? (
-                            <div>
-                              <p className="font-medium text-slate-900 dark:text-white">{s.customerName}</p>
-                              <p className="text-xs text-slate-400">{s.customerCpfCnpj}</p>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-slate-400">Não vinculado</span>
-                          )}
+                        <td className="p-4 font-mono text-xs text-slate-700 dark:text-slate-300">
+                          {s.framedIpAddress || '-'}
                         </td>
-
-                        <td className="px-6 py-4 font-mono text-xs">
-                          <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                            {s.framedIpAddress || 'N/A'}
-                          </span>
-                          {s.delegatedIpv6Prefix && (
-                            <p className="text-purple-600 text-xs mt-0.5">{s.delegatedIpv6Prefix}</p>
-                          )}
+                        <td className="p-4 font-mono text-xs text-slate-500">
+                          {s.callingStationId || '-'}
                         </td>
-
-                        <td className="px-6 py-4 text-xs font-mono">
-                          <div>{s.callingStationId || 'N/A'}</div>
-                          <div className="text-slate-400 font-sans mt-0.5">
-                            BNG: {s.nasShortname || s.nasIpAddress}
-                          </div>
+                        <td className="p-4 text-slate-700 dark:text-slate-300">
+                          {s.nasShortname || s.nasIpAddress}
                         </td>
-
-                        <td className="px-6 py-4 text-xs">
-                          <div className="text-emerald-600 font-medium">
-                            ↓ {(s.acctInputOctets / (1024 * 1024)).toFixed(1)} MB
-                          </div>
-                          <div className="text-blue-600 font-medium mt-0.5">
-                            ↑ {(s.acctOutputOctets / (1024 * 1024)).toFixed(1)} MB
-                          </div>
+                        <td className="p-4 text-xs">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">↓ {((s.acctInputOctets || 0) / 1048576).toFixed(1)} MB</span> /{' '}
+                          <span className="text-blue-600 dark:text-blue-400 font-semibold">↑ {((s.acctOutputOctets || 0) / 1048576).toFixed(1)} MB</span>
                         </td>
-
-                        <td className="px-6 py-4 text-right">
+                        <td className="p-4 text-xs text-slate-500">
+                          {s.acctStartTime ? new Date(s.acctStartTime).toLocaleString('pt-BR') : '-'}
+                        </td>
+                        <td className="p-4 text-center">
                           <button
                             onClick={() => handleDisconnect(s)}
                             disabled={disconnectingUser === s.username}
-                            className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition"
-                            title="Derrubar Conexão (PoD)"
+                            className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 dark:text-rose-400 rounded transition"
+                            title="Derrubar sessão (PoD Disconnect)"
                           >
                             <FaPowerOff className="w-4 h-4" />
                           </button>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
 
-      {/* TAB 2: NAS / BNGs */}
+      {/* TAB 2: NAS List */}
       {activeTab === 'nas' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {nasList.map((nas) => (
-            <div
-              key={nas.id}
-              className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="px-2 py-0.5 text-xs font-bold rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300">
-                      {nas.vendorType}
-                    </span>
-                    <h3 className="font-bold text-lg text-slate-900 dark:text-white mt-2">
-                      {nas.shortname || nas.nasname}
-                    </h3>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteNas(nas.id, nas.shortname || nas.nasname)}
-                    className="text-rose-500 hover:text-rose-700 p-1"
-                  >
-                    <FaTrash className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="mt-4 space-y-2 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">IP / Host:</span>
-                    <span className="font-mono font-bold">{nas.nasname}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Secret:</span>
-                    <span className="font-mono text-slate-400">••••••••</span>
-                  </div>
-                  {nas.description && (
-                    <p className="text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-700">
-                      {nas.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs text-slate-500">
-                <span>Portas CoA: 3799</span>
-                <span className="text-emerald-500 font-semibold flex items-center gap-1">
-                  <FaCheckCircle className="w-3 h-3" /> Ativo
-                </span>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase">
+                  <th className="p-4">Identificador / Nome</th>
+                  <th className="p-4">IP / Hostname</th>
+                  <th className="p-4">Fabricante (Vendor)</th>
+                  <th className="p-4">Portas Auth / Acct</th>
+                  <th className="p-4">Descrição</th>
+                  <th className="p-4 text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                {nasList.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-slate-500">
+                      Nenhum servidor NAS cadastrado. Adicione seu MikroTik ou Huawei.
+                    </td>
+                  </tr>
+                ) : (
+                  nasList.map((nas) => (
+                    <tr key={nas.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+                      <td className="p-4 font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <FaServer className="w-4 h-4 text-indigo-600" />
+                        {nas.shortname || nas.nasname}
+                      </td>
+                      <td className="p-4 font-mono text-xs text-slate-700 dark:text-slate-300">
+                        {nas.nasname}
+                      </td>
+                      <td className="p-4">
+                        <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300">
+                          {nas.vendorType}
+                        </span>
+                      </td>
+                      <td className="p-4 text-xs font-mono text-slate-500">
+                        1812 / 1813 (CoA: 3799)
+                      </td>
+                      <td className="p-4 text-xs text-slate-500">
+                        {nas.description || '-'}
+                      </td>
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={() => handleDeleteNas(nas.id, nas.shortname || nas.nasname)}
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition"
+                          title="Excluir NAS"
+                        >
+                          <FaTrash className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
-      {/* MODAL: Novo NAS */}
+      {/* TAB 3: Lifecycle & Auto-Corte */}
+      {activeTab === 'lifecycle' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Coluna 1: Formulário de Configuração de Políticas */}
+          <div className="lg:col-span-1 bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FaSlidersH className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Políticas de Inadimplência</h2>
+              </div>
+            </div>
+
+            {policyConfig && (
+              <form onSubmit={handleSavePolicy} className="space-y-4">
+                <div>
+                  <label className="flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 cursor-pointer">
+                    <span>Habilitar Auto-Corte Periódico</span>
+                    <input
+                      type="checkbox"
+                      checked={policyConfig.autoBlockEnabled}
+                      onChange={(e) => setPolicyConfig({ ...policyConfig, autoBlockEnabled: e.target.checked })}
+                      className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                    />
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                    Dias de Tolerância após Vencimento
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={policyConfig.toleranceDays}
+                    onChange={(e) => setPolicyConfig({ ...policyConfig, toleranceDays: Number(e.target.value) })}
+                    className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <span className="text-xs text-slate-400 mt-1 block">
+                    Ex: 5 dias (bloqueia faturas vencidas há 6+ dias)
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                    Modo de Bloqueio Multi-Vendor
+                  </label>
+                  <select
+                    value={policyConfig.blockMode}
+                    onChange={(e) => setPolicyConfig({ ...policyConfig, blockMode: e.target.value as any })}
+                    className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="CAPTIVE_PORTAL">Captive Portal (Address-List pg_bloqueados)</option>
+                    <option value="BANDWIDTH_REDUCTION">Redução de Banda (ex: 256k/256k)</option>
+                    <option value="COMPLETE_DISCONNECT">Desconexão Completa (Rejeição de Auth)</option>
+                  </select>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                  <label className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    <span>Desbloqueio Imediato após PIX</span>
+                    <input
+                      type="checkbox"
+                      checked={policyConfig.unblockOnPayment}
+                      onChange={(e) => setPolicyConfig({ ...policyConfig, unblockOnPayment: e.target.checked })}
+                      className="w-4 h-4 text-indigo-600 rounded"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    <span>Enviar PoD no Bloqueio</span>
+                    <input
+                      type="checkbox"
+                      checked={policyConfig.sendPodOnBlock}
+                      onChange={(e) => setPolicyConfig({ ...policyConfig, sendPodOnBlock: e.target.checked })}
+                      className="w-4 h-4 text-indigo-600 rounded"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    <span>Enviar PoD no Desbloqueio</span>
+                    <input
+                      type="checkbox"
+                      checked={policyConfig.sendPodOnUnblock}
+                      onChange={(e) => setPolicyConfig({ ...policyConfig, sendPodOnUnblock: e.target.checked })}
+                      className="w-4 h-4 text-indigo-600 rounded"
+                    />
+                  </label>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="submit"
+                    disabled={savingPolicy}
+                    className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition shadow-sm"
+                  >
+                    {savingPolicy ? 'Salvando...' : 'Salvar Políticas'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={handleRunAutoBlock}
+                disabled={runningAutoBlock}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-semibold transition shadow-sm"
+              >
+                <FaPlay className="w-3.5 h-3.5" />
+                {runningAutoBlock ? 'Executando Varredura...' : 'Executar Auto-Corte Agora'}
+              </button>
+            </div>
+          </div>
+
+          {/* Coluna 2 e 3: Auditoria de Eventos de Ciclo de Vida */}
+          <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FaHistory className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Auditoria de Cortes & Desbloqueios</h2>
+              </div>
+              <button
+                onClick={() => loadData()}
+                className="text-xs text-indigo-600 hover:underline flex items-center gap-1 font-semibold"
+              >
+                <FaSyncAlt className="w-3 h-3" /> Atualizar
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase">
+                    <th className="p-3">Ação</th>
+                    <th className="p-3">Usuário PPPoE</th>
+                    <th className="p-3">Motivo</th>
+                    <th className="p-3">Status PoD</th>
+                    <th className="p-3">Data / Hora</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700 text-xs">
+                  {lifecycleLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="p-6 text-center text-slate-500">
+                        Nenhum registro de corte ou desbloqueio recente.
+                      </td>
+                    </tr>
+                  ) : (
+                    lifecycleLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+                        <td className="p-3 font-semibold">
+                          {log.actionType === 'AUTO_BLOCK' || log.actionType === 'MANUAL_BLOCK' ? (
+                            <span className="inline-flex items-center gap-1 text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded">
+                              <FaBan className="w-3 h-3" /> {log.actionType}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded">
+                              <FaUnlockAlt className="w-3 h-3" /> {log.actionType}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3 font-mono font-medium text-slate-800 dark:text-slate-200">
+                          {log.username}
+                          {log.customerName && <span className="block text-slate-400 text-[11px]">{log.customerName}</span>}
+                        </td>
+                        <td className="p-3 text-slate-600 dark:text-slate-400 max-w-xs truncate">
+                          {log.reason || '-'}
+                        </td>
+                        <td className="p-3 text-slate-500 font-mono text-[11px]">
+                          {log.details || 'PoD OK'}
+                        </td>
+                        <td className="p-3 text-slate-400 flex items-center gap-1">
+                          <FaClock className="w-3 h-3 text-slate-300" />
+                          {new Date(log.createdAt).toLocaleString('pt-BR')}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Novo NAS */}
       {isNasModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700 space-y-4">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Cadastrar BNG / NAS</h3>
-            <form onSubmit={handleCreateNas} className="space-y-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+              <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <FaServer className="w-5 h-5 text-indigo-600" /> Cadastrar Concentrador BNG / NAS
+              </h3>
+              <button onClick={() => setIsNasModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateNas} className="space-y-3 text-sm">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Endereço IP ou Hostname do BNG *
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  IP ou Hostname do BNG *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Ex: 10.0.0.1 ou bng01.provedor.net"
+                  placeholder="Ex: 10.0.0.1 ou 192.168.88.1"
                   value={nasForm.nasname}
                   onChange={(e) => setNasForm({ ...nasForm, nasname: e.target.value })}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg font-mono focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Nome Amigável / Identificador
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  Nome Curto (Identificador)
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: BNG-Centro-Huawei-NE40"
+                  placeholder="Ex: BNG-MikroTik-Centro"
                   value={nasForm.shortname}
                   onChange={(e) => setNasForm({ ...nasForm, shortname: e.target.value })}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Fabricante (Vendor) *
-                  </label>
-                  <select
-                    value={nasForm.vendorType}
-                    onChange={(e: any) => setNasForm({ ...nasForm, vendorType: e.target.value })}
-                    className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
-                  >
-                    <option value="MIKROTIK">MikroTik RouterOS</option>
-                    <option value="HUAWEI">Huawei (NE40/ME60)</option>
-                    <option value="JUNIPER">Juniper (MX/ERX)</option>
-                    <option value="ACCEL_PPP">Accel-PPP</option>
-                    <option value="CISCO">Cisco ASR/IOS</option>
-                    <option value="GENERIC">Genérico / RFC</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Secret RADIUS *
-                  </label>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  Segredo Compartilhado (RADIUS Secret) *
+                </label>
+                <div className="relative">
+                  <FaKey className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
                   <input
                     type="password"
                     required
-                    placeholder="Chave secreta"
+                    placeholder="Chave secreta configurada no RouterOS/Huawei"
                     value={nasForm.secret}
                     onChange={(e) => setNasForm({ ...nasForm, secret: e.target.value })}
-                    className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
+                    className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Descrição / Localização
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  Fabricante (Vendor)
                 </label>
-                <input
-                  type="text"
-                  placeholder="Ex: Datacenter Pop 1"
+                <select
+                  value={nasForm.vendorType}
+                  onChange={(e) => setNasForm({ ...nasForm, vendorType: e.target.value as NasVendorType })}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="MIKROTIK">MikroTik RouterOS</option>
+                  <option value="HUAWEI">Huawei VRP (NE40 / ME60)</option>
+                  <option value="JUNIPER">Juniper Networks (ERX / MX)</option>
+                  <option value="ACCEL_PPP">Accel-PPP Linux BNG</option>
+                  <option value="CISCO">Cisco IOS-XE / ASR</option>
+                  <option value="OTHER">RFC Padrão / Outro</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  Observações / Localização
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Ex: Torre Central - POP 01"
                   value={nasForm.description}
                   onChange={(e) => setNasForm({ ...nasForm, description: e.target.value })}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+              <div className="pt-3 flex gap-3">
                 <button
                   type="button"
                   onClick={() => setIsNasModalOpen(false)}
-                  className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                  className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition"
+                  className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium shadow-sm transition"
                 >
                   Salvar BNG
                 </button>
