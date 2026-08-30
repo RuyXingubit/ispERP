@@ -4,7 +4,6 @@ import br.dev.xb.isperp.dto.*;
 import br.dev.xb.isperp.entity.*;
 import br.dev.xb.isperp.repository.*;
 import br.dev.xb.isperp.service.*;
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -16,7 +15,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,12 +41,6 @@ public class CompleteOperationalLifecycleE2EIntegrationTest extends AbstractInte
     private SerializedAssetRepository serializedAssetRepository;
 
     @Autowired
-    private ToolCustodyAgreementRepository toolCustodyAgreementRepository;
-
-    @Autowired
-    private StockTransferRepository stockTransferRepository;
-
-    @Autowired
     private AssetCustodyService assetCustodyService;
 
     @Autowired
@@ -64,25 +56,10 @@ public class CompleteOperationalLifecycleE2EIntegrationTest extends AbstractInte
     private InvoiceRepository invoiceRepository;
 
     @Autowired
-    private ContractService contractService;
-
-    @Autowired
-    private InvoiceService invoiceService;
-
-    @Autowired
     private InvoiceRebalanceService invoiceRebalanceService;
 
     @Autowired
-    private HierarchicalBillingService hierarchicalBillingService;
-
-    @Autowired
-    private TrustUnblockPolicyService trustUnblockPolicyService;
-
-    @Autowired
     private ClientPortalService clientPortalService;
-
-    @Autowired
-    private HelpdeskTicketRepository helpdeskTicketRepository;
 
     @Autowired
     private HelpdeskService helpdeskService;
@@ -314,6 +291,7 @@ public class CompleteOperationalLifecycleE2EIntegrationTest extends AbstractInte
                 .status(Invoice.InvoiceStatus.OVERDUE)
                 .pixCopiaECola("00020126580014br.gov.bcb.pix2536pay.xingubit.com.br/qr/e2e")
                 .build());
+        assertNotNull(overdueInvoice.getId());
 
         // B. Consulta ao Dashboard da Central do Assinante
         ClientPortalDashboardDTO dashboard = clientPortalService.getClientDashboard(customer.getId());

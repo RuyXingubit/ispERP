@@ -70,7 +70,7 @@ public class FiscalAccountingScheduler {
         }
 
         LocalDate refDate = LocalDate.of(year, month, 1);
-        String mesReferencia = refDate.getMonth().getDisplayName(TextStyle.FULL, new Locale("pt", "BR")) + " / " + year;
+        String mesReferencia = refDate.getMonth().getDisplayName(TextStyle.FULL, Locale.forLanguageTag("pt-BR")) + " / " + year;
         String zipFilename = String.format("CONVENIO_115_%s_%d_%02d.zip",
                 company.getCnpj().replaceAll("[^0-9]", ""), year, month);
 
