@@ -226,3 +226,33 @@ sequenceDiagram
   - Análise estática em tempo de compilação sem falsos-positivos com Lombok.
   - Código 100% autodocumentado quanto a contratos de nulidade.
 
+---
+
+### ADR 013: Arquitetura Multi-Gateway Fiscal (Strategy Pattern), NFCom Modelo 62 e Convênio ICMS 115/03
+- **Contexto:** ISPs no Brasil precisam emitir a Nota Fiscal Fatura de Serviços de Comunicação Eletrônica (NFCom Modelo 62) junto à SEFAZ autorizadora ou gerar arquivos magnéticos legados do Convênio ICMS 115/03. A solução não pode ficar acoplada a um único emissor ou depender de soluções desktop lentas.
+- **Decisão:** Implementar a camada fiscal desacoplada com Strategy Pattern via interface `FiscalGateway`, resolução dinâmica via `FiscalGatewayResolver` e suporte nativo aos drivers `XingubitPayFiscalDriver` (driver de nuvem oficial com OAuth2 e upload de Certificado A1 `.pfx`) e `MockFiscalDriver` (para testes/CI), além de um gerador nativo dos arquivos magnéticos do Convênio 115/03 (`ConvenioIcms115Service`) com validação de hashes MD5 cruzados.
+- **Consequências:**
+  - Emissão síncrona/assíncrona de NFCom com armazenamento de chave de acesso SEFAZ, XML e link para DANFE em PDF.
+  - Parametrização individual por empresa (ambiente de homologação/produção, série fiscal e certificado A1).
+  - Exportação em lote de arquivos do Convênio 115/03 (Mestre, Item, Destinatário e Controle) em `.zip` para conformidade estadual.
+
+---
+
+### ADR 014: App Mobile do Técnico com Mapas Vetoriais GeoCEP (MapLibre GL), Crowdsourcing Predial e Assinatura Touch
+- **Contexto:** Técnicos em campo operam através de dispositivos móveis em condições de rede variáveis e necessitam de navegação precisa até o endereço do cliente, conferência de porta de atendimento, coleta de coordenadas reais e assinatura do cliente sem formulários em papel.
+- **Decisão:** Criar interface Web Mobile-First (`TechnicianPortal.jsx`) com mapas vetoriais acelerados por WebGL via MapLibre GL (`GeoCepMapView.jsx`) consumindo estilos e tiles da API GeoCEP (`geocep.api.br`). Implementar fluxo de crowdsourcing predial (`POST /v1/contribute` via `GeoCepClient`) e canvas de assinatura digital touch armazenada em Base64 na O.S.
+- **Consequências:**
+  - Carregamento de mapas a 60fps diretamente no navegador mobile sem custos com APIs proprietárias.
+  - Alimentação contínua da base GeoCEP com coordenadas submétricas coletadas pelo GPS do técnico no momento da instalação.
+  - Eliminação de papel com comprovantes de instalação assinados digitalmente e ativação de rede em tempo real no término da O.S.
+
+---
+
+### ADR 015: Padronização de E-mails Transacionais com Apache FreeMarker e Fechamento Contábil Mensal Automatizado
+- **Contexto:** Provedores necessitam de comunicação transacional visualmente consistente (boletos, avisos de cobrança, códigos 2FA, Magic Links) e envio mensal recorrente de faturas e relatórios fiscais para as assessorias contábeis sem intervenção humana manual.
+- **Decisão:** Adotar a engine de templates Apache FreeMarker (`.ftl`) gerenciada pelo `EmailNotificationService` e implementar job de despacho contábil automatizado (`MonthlyAccountingDispatchService`) com geração de arquivos compactados `.zip` anexados diretamente ao e-mail da contabilidade cadastrada.
+- **Consequências:**
+  - Separação clara entre a lógica de negócio do backend e o design/responsividade dos e-mails em HTML.
+  - Envio automático no primeiro dia útil do mês contendo todas as NFCom emitidas e relatórios financeiros do mês anterior para a contabilidade do provedor.
+
+

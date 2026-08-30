@@ -166,6 +166,14 @@ Disparado quando uma remessa de insumos/ativos serializados é transferida entre
 Disparado na abertura de um chamado técnico com número de protocolo Anatel gerado.
 - **Efeito:** Inicialização do cronômetro de SLA e notificação da equipe de suporte / geração de O.S. de reparo se necessário.
 
+### 2.10. `NfcomIssuedEvent`
+Disparado após a autorização da Nota Fiscal Eletrônica de Telecomunicações (NFCom Modelo 62) pelo Gateway Fiscal / SEFAZ.
+- **Efeito:** Gravação da chave de acesso de 44 dígitos, armazenamento do XML assinado, vinculação à fatura e disponibilização do DANFE PDF para o assinante e contabilidade.
+
+### 2.11. `GeoCepContributedEvent`
+Disparado quando o técnico de campo confirma o número predial e a coordenada GPS submétrica real do imóvel (`POST /v1/contribute`).
+- **Efeito:** Enriquecimento contínuo da base cartográfica GeoCEP e atualização de precisão de rotas futuras.
+
 ---
 
 ## 3. Resiliência, Falhas & Idempotência

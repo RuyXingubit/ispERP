@@ -101,15 +101,51 @@ O **ispERP** é uma plataforma moderna, aberta e altamente escalável para gest�
   - Notificação de suspensão iminente (10 dias após vencimento).
   - Confirmação de pagamento e agradecimento.
 
-### 4.8. Módulo Fiscal (Telecom NFCom)
-- Emissão de Nota Fiscal de Serviços de Comunicação (NFCom - Modelo 62).
-- Exportação de arquivos magnéticos do Convênio ICMS 115/03 (Modelos 21 e 22).
+### 4.8. Módulo Fiscal & Compliance Telecom (NFCom Modelo 62 & Convênio 115/03)
+- **Multi-Gateway Fiscal Plugável:** Arquitetura desacoplada via Strategy Pattern com suporte a `XingubitPayFiscalDriver` e `MockFiscalDriver`.
+- **Parametrização por Empresa:**
+  - Configuração de ambiente (Homologação / Produção) e série fiscal.
+  - Upload seguro e armazenamento criptografado do Certificado Digital A1 (`.pfx` / `.p12`).
+- **Emissão Automática & Painel de Controle (`FiscalDashboard`):**
+  - Emissão síncrona/assíncrona da NFCom Modelo 62 com consulta de chave de acesso, status SEFAZ, download do XML e DANFE em PDF.
+  - Segregação de tributação automática (SCM / ICMS vs. SVA / ISS).
+- **Convênio ICMS 115/03:**
+  - Geração dos 4 arquivos magnéticos oficiais (Mestre, Item, Destinatário e Controle) com hashes MD5 cruzados e exportação compactada em `.zip`.
+- **Despacho Contábil Mensal Automatizado:**
+  - Envio agendado por e-mail com anexo `.zip` contendo todas as notas fiscais e relatórios do mês anterior para a contabilidade do ISP.
+
+### 4.9. Módulo de Almoxarifado, Controle de Ativos & Custódia de Ferramentas
+- **Multi-Depósito:** Gestão segregada entre Almoxarifado Central e Estoques Móveis (Veículos dos Técnicos).
+- **Rastreabilidade de Ativos Serializados:** Controle individual de ONTs, Roteadores e Switches por Número de Série / MAC / Status (`AVAILABLE`, `IN_TRANSFER`, `IN_CUSTODY`, `INSTALLED`, `DAMAGED`, `RETIRED`).
+- **Termos de Custódia de Ferramentas de Alto Valor:**
+  - Emissão de Termos de Responsabilidade com força executiva para ferramentas caras (Máquinas de Fusão, OTDR, Power Meter).
+  - Controle de devolução, conferência de avarias e histórico imutável de custódia.
+
+### 4.10. Módulo de Helpdesk & Atendimento com Protocolo ANATEL
+- **Geração de Protocolo Regulatório:** Numeração sequencial no formato oficial da Anatel (`YYYYMMDD-XXXXXX`).
+- **Gestão de SLA:** Matriz de criticidade (Crítica, Alta, Média, Baixa) com cálculo automático de prazos de primeiro atendimento e resolução.
+- **Interações & Histórico:** Registro de mensagens públicas para o cliente e notas internas entre suporte e equipe técnica.
+- **Integração com O.S.:** Disparo de O.S. de Reparo vinculada ao chamado quando necessário atendimento em campo.
+
+### 4.11. Portal do Técnico Mobile-First & GeoCEP
+- **Interface Otimizada para Celular:** Visualização de ordens de serviço em cards verticais, botões rápidos de contato (WhatsApp, Telefone) e rota de deslocamento.
+- **Mapas Vetoriais Integrados (MapLibre GL):** Renderização de mapas da API GeoCEP (`geocep.api.br`) a 60fps com localização em tempo real do técnico e ponto de instalação.
+- **Crowdsourcing Predial (`POST /v1/contribute`):** Coleta da coordenada GPS submétrica em frente ao número predial do cliente para alimentar a base GeoCEP.
+- **Assinatura Digital Touch:** Coleta da assinatura do cliente na tela do celular e ativação instantânea da conexão com baixa da O.S.
+
+### 4.12. Central do Assinante (Portal do Cliente)
+- **Autoatendimento Web:** Consulta e emissão de 2ª via de faturas com Pix Copia e Cola e QR Code dinâmico.
+- **Desbloqueio em Confiança:** Reativação automática do sinal por 48 horas em caso de suspensão por atraso.
+- **Abertura de Chamados:** Solicitação de suporte com protocolo Anatel instantâneo.
+- **Download de Documentos:** Acesso rápido ao contrato assinado e DANFE da NFCom.
 
 ---
 
 ## 5. Requisitos Não Funcionais (NFRs)
 - **Segurança:** Autenticação via JWT Stateless, senhas com BCrypt (custo 12), proteção contra IDOR através de identificadores **UUIDv7**.
 - **Consistência e Confiabilidade:** Padrão **Transactional Outbox** para garantir que nenhum evento seja perdido se uma conexão externa oscilar.
-- **Auditoria:** Registro imutável de logs de alteração cadastral, liberação manual de sinal e estornos financeiros.
-- **Cobertura de Testes:** Meta de cobertura mínima de 80% em regras de domínio e fluxos de eventos com TDD (JUnit 5 + Mockito + Testcontainers).
+- **Auditoria:** Registro imutável de logs de alteração cadastral, liberação manual de sinal, transferências de estoque e estornos financeiros.
+- **Null-Safety:** Governança estrita de nulos via **JSpecify** (`@NullMarked`) no Java 25.
+- **Cobertura de Testes:** Suíte automatizada com mais de 100 testes unitários, integrados e teste de ciclo de vida operacional E2E completo.
 - **Banco de Dados:** PostgreSQL 17+ com Flyway para versionamento de schema.
+

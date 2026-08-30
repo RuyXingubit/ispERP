@@ -61,12 +61,26 @@ Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQ
   - Métricas consolidadas de ISP (MRR, Churn, Inadimplência, ARPU).
   - Roteirização de O.S. com proximidade geográfica (Haversine/GeoCEP).
 
+### 2.6. Emissão Fiscal NFCom & Convênio ICMS 115/03 ([frontend/src/pages/Fiscal](../frontend/src/pages/Fiscal))
+- [x] **Painel de Controle Fiscal (`FiscalDashboard.jsx`):**
+  - Listagem de notas fiscais NFCom com status de autorização SEFAZ, chave de acesso e download de XML e DANFE PDF.
+  - Formulário de parametrização da empresa emissora com upload seguro de Certificado A1 (`.pfx`).
+  - Geração e exportação dos 4 arquivos magnéticos do Convênio ICMS 115/03 em lote compactado (`.zip`).
+
+### 2.7. Portal Mobile do Técnico & GeoCEP ([frontend/src/pages/Technician](../frontend/src/pages/Technician))
+- [x] **App de Campo Mobile-First (`TechnicianPortal.jsx`):**
+  - Mapa vetorial acelerado por WebGL via MapLibre GL (`GeoCepMapView.jsx`) integrado à API GeoCEP.
+  - Crowdsourcing de coordenadas prediais (`POST /v1/contribute`) no momento do atendimento.
+  - Coleta de assinatura digital na tela (touch screen) e conclusão de O.S. com ativação imediata de rede.
+
 ---
 
 ## 3. Critérios de Aceite e Verificação
 
 1. [x] **Compilação e Lint do Frontend:** `npm run build` executado com sucesso no Node 24 / Vite 6 sem erros.
 2. [x] **Integração com Backend:** Todos os endpoints REST consumidos com tratamento adequado de erros e feedbacks visuais (toasts, loading states, validações de formulário).
-3. [x] **Responsividade:** Telas operacionais e portal do assinante com layout responsivo para desktop e dispositivos móveis.
-4. [x] **Segurança:** Respeito integral às permissões do usuário logado (RBAC) e proteção de endpoints autenticados.
+3. [x] **Responsividade:** Telas operacionais, portal do técnico e portal do assinante com layout responsivo para desktop e dispositivos móveis.
+4. [x] **Segurança:** Respeito integral às permissões do usuário logado (RBAC) e proteção de endpoints autenticados com tokens JWT e UUIDv7.
 5. [x] **Teste E2E do Ciclo Operacional:** `CompleteOperationalLifecycleE2EIntegrationTest.java` com 100% de aprovação no PostgreSQL 17.
+6. [x] **Suíte Geral de Testes:** Mais de 105 testes automatizados aprovados no backend (`./gradlew test`).
+
