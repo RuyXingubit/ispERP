@@ -63,6 +63,9 @@ dependencies {
     // S3 Storage (AWS S3, SeaweedFS, Cloudflare R2)
     implementation 'software.amazon.awssdk:s3:2.30.36'
     
+    // IPAM & Network Mathematics (IPv4/IPv6, CIDR, Split, Overlap)
+    implementation 'com.github.seancfoley:ipaddress:5.5.1'
+    
     // MapStruct & Utilities
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'

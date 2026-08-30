@@ -328,3 +328,18 @@ sequenceDiagram
   - 100% de type-safety no frontend React 19.
   - Zero erros de compilação no Vite e TypeScript compiler.
   - Documentação viva no próprio código de cada tela e serviço.
+
+---
+
+### ADR 023: Subsistema IPAM Hierárquico e Aritmética de Rede (IPv4 / IPv6)
+- **Contexto:** Provedores de internet necessitam documentar seus blocos de numeração (ASNs, VRFs, subnets públicas e privadas, CGNAT e prefixos IPv6), permitindo cálculos precisos de gateway/broadcast/hosts, divisão de blocos (Split VLSM) e alocação opcional para contratos ou equipamentos de rede.
+- **Decisão:** Criar um subsistema corporativo de IPAM desacoplado e modular, utilizando a biblioteca padrão da indústria `com.github.seancfoley:ipaddress:5.5.1` encapsulada no serviço [`IpCalculator.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/ipam/IpCalculator.java).
+- **Diretrizes de Implementação:**
+  1. **Schema PostgreSQL com UUIDv7:** Tabelas `ipam_asns`, `ipam_vrfs`, `ipam_subnets` e `ipam_ip_addresses` via Flyway `V19`.
+  2. **Independência Operacional:** O IPAM é opcional para o funcionamento básico de autenticação RADIUS, mas disponível como ferramenta de primeira classe para ISPs organizados.
+  3. **Segurança Matemática:** Todo cálculo de split, contenção, detecção de overlap e máscara de sub-rede é executado via motor bitwise sem risco de estouro de memória ou corner-cases em IPv6.
+- **Consequências:**
+  - Capacidade de dividir blocos (/24 em /28, /32 em /40) com pré-visualização instantânea e persistência em lote.
+  - Suporte completo a RFC 3021 (/31) e RFC 5952 (IPv6 canônico).
+  - Base pronta para consumo nativo pelo FreeRADIUS (Milestone 22).
+

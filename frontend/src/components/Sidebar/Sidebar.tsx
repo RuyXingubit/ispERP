@@ -90,6 +90,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
       icon: <OltIcon />,
       path: '/network-devices',
     },
+    {
+      text: 'IPAM & Subnets',
+      icon: <OltIcon />,
+      path: '/network/ipam',
+    },
   ];
 
   const financeiroItems: MenuItem[] = [

@@ -336,3 +336,44 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 - [x] **Validação & Compilação:**
   - `npm run typecheck` executado com 0 erros.
   - `npm run build` do Vite compilado para produção com sucesso.
+
+---
+
+## 🎯 Milestone 21: IPAM Core (Subsistema Modular, VLSM/Split & Visualização) (Concluído)
+> **Objetivo:** Estabelecer o subsistema corporativo de IPAM (IP Address Management) para inventário e documentação de recursos de numeração (ASNs, VRFs, Subnets IPv4/IPv6 e IPs alocados), com motor matemático de alta performance (`com.github.seancfoley:ipaddress`), divisão de sub-redes (Split VLSM), detecção de sobreposição e visualização no frontend.
+
+- [x] **Motor Matemático & Dependências:**
+  - Adição de `com.github.seancfoley:ipaddress:5.5.1` ao `build.gradle`.
+  - Implementação do [`IpCalculator.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/ipam/IpCalculator.java) suportando IPv4, IPv6, split de sub-redes, primeiro/último host, broadcast, netmask, wildcard mask e overlap detection.
+- [x] **Banco de Dados (Flyway `V19`):**
+  - Migração [`V19__create_ipam_schema.sql`](file:///Users/ruy/Code/ispERP/backend/src/main/resources/db/migration/V19__create_ipam_schema.sql) com tabelas `ipam_asns`, `ipam_vrfs`, `ipam_subnets` e `ipam_ip_addresses` utilizando `UUID DEFAULT uuidv7()`.
+- [x] **Backend Java 25:**
+  - Entidades JPA (`IpamAsn`, `IpamVrf`, `IpamSubnet`, `IpamIpAddress`).
+  - DTOs e Mapper MapStruct [`IpamMapper.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/mapper/IpamMapper.java).
+  - Serviços de negócio [`IpamService.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/service/IpamService.java) com métricas de ocupação e busca do próximo IP disponível.
+  - Controlador REST [`IpamController.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/controller/IpamController.java).
+  - Testes unitários cobrindo cálculos matemáticos, divisão de subnets e endpoints REST (100% Green).
+- [x] **Frontend React 19 / TypeScript:**
+  - Tipagem estrita em [`src/types/ipam.ts`](file:///Users/ruy/Code/ispERP/frontend/src/types/ipam.ts).
+  - Serviço [`src/services/ipamService.ts`](file:///Users/ruy/Code/ispERP/frontend/src/services/ipamService.ts).
+  - Painel [`src/pages/Network/IpamManager.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Network/IpamManager.tsx) com Árvore de Subnets, Barras de Ocupação, Calculadora/Simulador VLSM, Gestão de ASNs/VRFs e Modal de Split.
+  - Registro de rotas e link de navegação no menu Rede.
+
+---
+
+## 🎯 Milestone 22: FreeRADIUS Multi-Vendor, CGNAT Forense & Central do Marco Civil (Aguardando Início)
+> **Objetivo:** Disponibilizar o container FreeRADIUS no Docker com suporte a autenticação simples (apenas login/senha/velocidade) e avançada (IPAM/Rotas), parsers de CGNAT multi-fabricante e Central de Investigação do Marco Civil com laudos periciais e QR Code de autenticidade.
+
+- [ ] **Container FreeRADIUS no Docker Compose (`rlm_sql_postgresql`):**
+  - Portas UDP expostas: `1812` (Auth), `1813` (Acct), `3799` (CoA / PoD).
+- [ ] **Banco de Dados (Flyway `V20`):**
+  - Tabelas `nas`, `radcheck`, `radreply`, `radacct`, `cgnat_mappings` e `marco_civil_reports`.
+- [ ] **Parsers CGNAT Multi-Fabricante:**
+  - Suporte a MikroTik, Huawei, A10 Networks, Hillstone, Cisco, Accel-PPP e importação CSV/XLS.
+- [ ] **Central do Marco Civil da Internet (Lei 12.965/2014):**
+  - Cruzamento forense reverso (`IP Público + Porta + Data/Hora` ➔ `IP Privado` ➔ `radacct` ➔ `Assinante`).
+  - Emissão de Laudo Pericial em PDF com QR Code e Hash SHA-256 de autenticidade pública.
+  - Endpoint e tela pública de validação anti-fraude para autoridades policiais e judiciais.
+- [ ] **Frontend React 19 / TypeScript:**
+  - Telas de Gestão de BNGs, CGNAT, Sessões Online e Central do Marco Civil.
+

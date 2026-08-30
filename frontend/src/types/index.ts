@@ -7,3 +7,4 @@ export * from './helpdesk';
 export * from './geocep';
 export * from './storage';
 export * from './regime';
+export * from './ipam';

@@ -25,6 +25,7 @@ import GatewayConfig from './pages/Financial/GatewayConfig';
 import FiscalDashboard from './pages/Financial/FiscalDashboard';
 import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
+import IpamManager from './pages/Network/IpamManager';
 import ClientPortal from './pages/Portal/ClientPortal';
 import InventoryManager from './pages/Inventory/InventoryManager';
 import RoutePlanner from './pages/WorkOrders/RoutePlanner';
@@ -247,6 +248,15 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2']}>
                 <NetworkDeviceList />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/network/ipam" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2']}>
+                <IpamManager />
               </ProtectedRoute>
             } 
           />
