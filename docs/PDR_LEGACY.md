@@ -1,7 +1,7 @@
 # PDR.md (Product Development Roadmap - Legado / Original)
 
 > Documento original mantido para histórico e rastreabilidade da evolução do projeto.
-> A versão atualizada e detalhada está em [PRD.md](file:///Users/ruy/Code/ispERP/docs/PRD.md) e [ARCHITECTURE.md](file:///Users/ruy/Code/ispERP/docs/ARCHITECTURE.md).
+> A versão atualizada e detalhada está em [PRD.md](PRD.md) e [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Visão do Produto
 ERP completo para provedores de internet com:

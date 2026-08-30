@@ -19,7 +19,7 @@ Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQ
 
 ## 2. Tarefas e Telas a Serem Integradas / Validadas
 
-### 2.1. Central de Atendimento & Helpdesk ([frontend/src/pages/Helpdesk](file:///Users/ruy/Code/ispERP/frontend/src/pages/Helpdesk))
+### 2.1. Central de Atendimento & Helpdesk ([frontend/src/pages/Helpdesk](../frontend/src/pages/Helpdesk))
 - [x] **Listagem de Chamados:**
   - Exibição de tabela paginada com status (Aberto, Em Atendimento, Pendente Cliente, Resolvido, Cancelado).
   - Badge colorido de prioridade e SLA restante (tempo até expiração).
@@ -29,7 +29,7 @@ Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQ
   - Timeline de interações (mensagens públicas para o cliente vs. notas internas da equipe técnica).
   - Botão de ação para gerar Ordem de Serviço de Reparo vinculada diretamente ao chamado.
 
-### 2.2. Almoxarifado Multi-Depósito & Custódia ([frontend/src/pages/Inventory](file:///Users/ruy/Code/ispERP/frontend/src/pages/Inventory))
+### 2.2. Almoxarifado Multi-Depósito & Custódia ([frontend/src/pages/Inventory](../frontend/src/pages/Inventory))
 - [x] **Gestão de Depósitos e Estoques:**
   - Visão geral de múltiplos estoques (Almoxarifado Principal vs. Veículos Técnicos).
   - Transferência de itens em lote com geração de guia de remessa interna e duplo handshake.
@@ -39,7 +39,7 @@ Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQ
   - Emissão de Termo de Responsabilidade com valor de Nota Promissória Executiva para ferramentas caras (Máquina de Fusão, OTDR, Power Meter).
   - Histórico de devolução e conferência de avarias com logs imutáveis e triagem de logística reversa.
 
-### 2.3. Painel Financeiro & Rebalanceamento Pro-Rata ([frontend/src/pages/Financial](file:///Users/ruy/Code/ispERP/frontend/src/pages/Financial))
+### 2.3. Painel Financeiro & Rebalanceamento Pro-Rata ([frontend/src/pages/Financial](../frontend/src/pages/Financial))
 - [x] **Gestão de Faturas & Faturamento Hierárquico:**
   - Visualização de faturas individuais e faturas com status em tempo real.
   - Modal de detalhes da fatura com QR Code dinâmico do Pix Xingubit Pay e cópia de Pix Copia e Cola.
@@ -47,7 +47,7 @@ Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQ
   - Simulador e execução de compensação cruzada (pagamento fora de ordem / Dona Maria) quitando fatura anterior e reabrindo futura sem penalidades.
   - Régua de dunning automatizada e desbloqueio em confiança concedido por atendente.
 
-### 2.4. Central do Assinante (Portal do Cliente) ([frontend/src/pages/Portal](file:///Users/ruy/Code/ispERP/frontend/src/pages/Portal))
+### 2.4. Central do Assinante (Portal do Cliente) ([frontend/src/pages/Portal](../frontend/src/pages/Portal))
 - [x] **Área de Autoatendimento & Simulação:**
   - Barra de alternância rápida de clientes para suporte/atendentes.
   - Diagnóstico de sinal óptico (dBm), velocidade contratada e botão de upgrade de plano.
@@ -56,7 +56,7 @@ Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQ
   - Botão de **Desbloqueio em Confiança (Trust Unblock)** de 48 horas com reativação instantânea do sinal.
   - Abertura de chamados com protocolo regulatório ANATEL direto pelo assinante.
 
-### 2.5. Otimização de Rotas de Campo & BI ([frontend/src/pages/WorkOrders](file:///Users/ruy/Code/ispERP/frontend/src/pages/WorkOrders))
+### 2.5. Otimização de Rotas de Campo & BI ([frontend/src/pages/WorkOrders](../frontend/src/pages/WorkOrders))
 - [x] **Dashboard de BI & Despacho Técnico:**
   - Métricas consolidadas de ISP (MRR, Churn, Inadimplência, ARPU).
   - Roteirização de O.S. com proximidade geográfica (Haversine/GeoCEP).

@@ -12,7 +12,7 @@ Sistema ERP moderno para provedores de internet (ISPs) com:
 - **Migrações:** Flyway
 - **Contêineres:** Docker e Docker Compose para desenvolvimento e produção
 
-Consulte a pasta [`docs/`](file:///Users/ruy/Code/ispERP/docs/) para a documentação detalhada de Arquitetura, PRD, Roadmap e Eventos.
+Consulte a pasta [`docs/`](docs/) para a documentação detalhada de Arquitetura, PRD, Roadmap e Eventos.
 
 ### Como Usar
 
@@ -52,7 +52,8 @@ Adoramos contribuições! Siga estes passos:
 
 1. Faça um fork do projeto
 2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+3. Faça commit de suas alterações seguindo o padrão [Conventional Commits](https://www.conventionalcommits.org/) (ex: `feat: add some AmazingFeature` ou `fix: resolve issue with customer address`)
+   > Utilize prefixos semânticos como: `feat:` (novas funcionalidades), `fix:` (correção de bugs), `docs:` (documentação), `refactor:` (refatorações), `test:` (testes) ou `chore:` (tarefas de build/manutenção).
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
