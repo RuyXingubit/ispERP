@@ -1,7 +1,6 @@
 package br.dev.xb.isperp.repository;
 
 import br.dev.xb.isperp.entity.IpamIpAddress;
-import br.dev.xb.isperp.ipam.IpamAddressStatus;
 import br.dev.xb.isperp.ipam.IpamAssignedToType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

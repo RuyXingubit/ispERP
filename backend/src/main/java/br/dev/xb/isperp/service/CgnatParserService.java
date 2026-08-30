@@ -226,6 +226,26 @@ public class CgnatParserService {
             }
         }
 
+        // 5. Parser Cisco IOS-XE
+        if (vendorType == NasVendorType.CISCO || line.toLowerCase().contains("cisco") || line.toLowerCase().contains("port-block")) {
+            Matcher m = CISCO_NAT_PATTERN.matcher(line);
+            if (m.find()) {
+                String publicIp = m.group(1);
+                int portStart = Integer.parseInt(m.group(2));
+                int portEnd = Integer.parseInt(m.group(3));
+
+                return CgnatMapping.builder()
+                        .publicIp(publicIp)
+                        .portStart(portStart)
+                        .portEnd(portEnd)
+                        .privateIpStart("100.64.0.1")
+                        .privateIpEnd("100.64.0.1")
+                        .protocol("BOTH")
+                        .notes("Importado de script Cisco IOS-XE")
+                        .build();
+            }
+        }
+
         return null;
     }
 

@@ -132,4 +132,21 @@ public class IpCalculator {
         }
         return parent.toPrefixBlock().contains(child);
     }
+
+    public String findNextAvailableHost(String cidr, java.util.Set<String> usedSet) {
+        IPAddress address = new IPAddressString(cidr.trim()).getAddress();
+        if (address == null) {
+            return cidr;
+        }
+
+        IPAddress block = address.toPrefixBlock();
+        Iterator<? extends IPAddress> it = block.iterator();
+        while (it.hasNext()) {
+            String candidate = it.next().getLower().withoutPrefixLength().toCanonicalString();
+            if (!usedSet.contains(candidate)) {
+                return candidate;
+            }
+        }
+        return block.getLower().withoutPrefixLength().toCanonicalString();
+    }
 }

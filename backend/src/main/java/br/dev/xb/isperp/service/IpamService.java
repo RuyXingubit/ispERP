@@ -331,16 +331,8 @@ public class IpamService {
 
         // Fast scan for small subnets
         if (subnet.getIpVersion() == IpamIpVersion.IPV4 && subnet.getPrefixLength() >= 20) {
-            long total = calc.getTotalHosts();
             try {
-                inet.ipaddr.IPAddress block = new inet.ipaddr.IPAddressString(subnet.getCidr()).getAddress().toPrefixBlock();
-                Iterator<? extends inet.ipaddr.IPAddress> it = block.iterator();
-                while (it.hasNext()) {
-                    String candidate = it.next().toCanonicalString();
-                    if (!usedSet.contains(candidate)) {
-                        return candidate;
-                    }
-                }
+                return ipCalculator.findNextAvailableHost(subnet.getCidr(), usedSet);
             } catch (Exception e) {
                 log.warn("Erro ao buscar próximo IP livre: {}", e.getMessage());
             }

@@ -10,9 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
@@ -37,10 +35,7 @@ class IpamServiceTest {
     @Mock
     private IpamIpAddressRepository ipAddressRepository;
 
-    @Spy
     private IpamMapper ipamMapper = Mappers.getMapper(IpamMapper.class);
-
-    @Spy
     private IpCalculator ipCalculator = new IpCalculator();
 
     private IpamService ipamService;
