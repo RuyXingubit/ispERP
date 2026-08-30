@@ -280,4 +280,24 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
+## 🎯 Milestone 18: Armazenamento S3 Universal com SeaweedFS Local & Cloud (AWS S3 / Cloudflare R2) (Concluído)
+> **Objetivo:** Implementar o suporte universal a armazenamento compatível com a API S3, fornecendo o SeaweedFS pré-configurado no Docker Compose para desenvolvimento e ISPs locais, além de painel na UI para parametrização dinâmica de provedores em nuvem (AWS S3, Cloudflare R2, MinIO ou outro storage S3).
 
+- [x] **SDK Universal S3 & Driver de Armazenamento:**
+  - Adição do SDK oficial AWS Java v2 (`software.amazon.awssdk:s3`).
+  - Implementação do driver [`S3FileStorageService.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/storage/S3FileStorageService.java) com auto-criação de buckets, upload seguro com UUIDv7 e streaming de download.
+- [x] **Modelo de Dados & Migração Flyway (`V16`):**
+  - Tabela `storage_configs` ([`V16__Create_storage_configs_table.sql`](file:///Users/ruy/Code/ispERP/backend/src/main/resources/db/migration/V16__Create_storage_configs_table.sql)), entidade [`StorageConfig.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/entity/StorageConfig.java) e repositório.
+- [x] **Serviços & Endpoints REST de Gestão & Teste S3:**
+  - [`StorageConfigService.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/service/StorageConfigService.java) com resolução dinâmica de credenciais e teste de conectividade em tempo real com cálculo de latência (`testConnection`).
+  - [`StorageConfigController.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/controller/StorageConfigController.java) (`GET /storage/config`, `PUT /storage/config`, `POST /storage/config/test`).
+- [x] **Infraestrutura Docker Compose com SeaweedFS:**
+  - Container `seaweedfs` (`chrislusf/seaweedfs:latest`) adicionado no [`docker-compose.yml`](file:///Users/ruy/Code/ispERP/docker-compose.yml) e [`docker-compose.prod.yml`](file:///Users/ruy/Code/ispERP/docker-compose.prod.yml) com healthcheck e volume persistente.
+- [x] **Frontend React / TypeScript:**
+  - Tipagem estrita em [`storage.ts`](file:///Users/ruy/Code/ispERP/frontend/src/types/storage.ts).
+  - Tela completa de parametrização [`StorageConfig.jsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Settings/StorageConfig.jsx) com presets inteligentes (SeaweedFS, AWS S3, Cloudflare R2, Custom S3, Local Disk), toggle de secret key, feedback de teste de conexão com badge de latência e botão de salvar.
+  - Rota protegida `/settings/storage` e item no menu lateral do [`Sidebar.js`](file:///Users/ruy/Code/ispERP/frontend/src/components/Sidebar/Sidebar.js).
+- [x] **Testes Automatizados:**
+  - Suíte de testes unitários ([`S3FileStorageServiceTest.java`](file:///Users/ruy/Code/ispERP/backend/src/test/java/br/dev/xb/isperp/storage/S3FileStorageServiceTest.java), [`StorageConfigServiceTest.java`](file:///Users/ruy/Code/ispERP/backend/src/test/java/br/dev/xb/isperp/service/StorageConfigServiceTest.java), [`StorageConfigControllerTest.java`](file:///Users/ruy/Code/ispERP/backend/src/test/java/br/dev/xb/isperp/controller/StorageConfigControllerTest.java)) e build do frontend 100% aprovados.
+
+---

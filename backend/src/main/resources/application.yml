@@ -43,3 +43,16 @@ management:
   endpoint:
     health:
       show-details: always
+
+app:
+  storage:
+    type: ${STORAGE_TYPE:s3}
+    local:
+      directory: ${STORAGE_LOCAL_DIR:./uploads}
+    s3:
+      endpoint: ${STORAGE_S3_ENDPOINT:http://localhost:8333}
+      bucket: ${STORAGE_S3_BUCKET:isperp-files}
+      region: ${STORAGE_S3_REGION:us-east-1}
+      access-key: ${STORAGE_S3_ACCESS_KEY:}
+      secret-key: ${STORAGE_S3_SECRET_KEY:}
+      path-style-access: ${STORAGE_S3_PATH_STYLE:true}

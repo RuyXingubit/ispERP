@@ -17,6 +17,21 @@ services:
       timeout: 5s
       retries: 5
 
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: isperp-seaweedfs-prod
+    command: "server -dir=/data -s3 -s3.port=8333"
+    volumes:
+      - seaweedfs_prod_data:/data
+    networks:
+      - isperp-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8333/" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
   backend:
     image: ${DOCKER_REGISTRY:-localhost}/isperp-backend:${VERSION:-latest}
     container_name: isperp-backend-prod
@@ -27,6 +42,9 @@ services:
       DB_NAME: ${DB_NAME:-isperp}
       DB_USERNAME: ${DB_USERNAME:-isperp}
       DB_PASSWORD: ${DB_PASSWORD}
+      STORAGE_TYPE: ${STORAGE_TYPE:-s3}
+      STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT:-http://seaweedfs:8333}
+      STORAGE_S3_BUCKET: ${STORAGE_S3_BUCKET:-isperp-files}
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       postgres:
@@ -80,6 +98,8 @@ services:
 
 volumes:
   postgres_prod_data:
+    driver: local
+  seaweedfs_prod_data:
     driver: local
 
 networks:

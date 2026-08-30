@@ -37,6 +37,7 @@ import {
   Sensors as OnuIcon,
   Storage as OltIcon,
   HeadsetMic as SupportIcon,
+  CloudQueue as CloudIcon,
 } from '@mui/icons-material';
 
 import { useAuth } from '../../contexts/AuthContext';
@@ -173,6 +174,11 @@ const Sidebar = ({ open, onClose, onToggle }) => {
       text: 'Notificações & WhatsApp',
       icon: <SettingsIcon />,
       path: '/settings/notifications',
+    },
+    {
+      text: 'Armazenamento & S3',
+      icon: <CloudIcon />,
+      path: '/settings/storage',
     },
     {
       text: 'Configurações do Site',

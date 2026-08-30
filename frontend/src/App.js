@@ -30,6 +30,7 @@ import InventoryManager from './pages/Inventory/InventoryManager';
 import RoutePlanner from './pages/WorkOrders/RoutePlanner';
 import TicketList from './pages/Helpdesk/TicketList';
 import NotificationConfigList from './pages/Settings/NotificationConfigList';
+import StorageConfig from './pages/Settings/StorageConfig';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import { setupService } from './services/setupService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -289,6 +290,15 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <NotificationConfigList />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/settings/storage" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <StorageConfig />
               </ProtectedRoute>
             } 
           />

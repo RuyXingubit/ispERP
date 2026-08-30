@@ -296,6 +296,18 @@ sequenceDiagram
   - Respostas instantâneas em < 5ms para consultas repetidas com validação de ETag.
   - Armazenamento desacoplado pronto para transição entre disco local e cloud storage (S3/MinIO).
 
+---
+
+### ADR 020: Armazenamento Universal S3 com SeaweedFS Local e Drivers Cloud (AWS S3 / Cloudflare R2)
+- **Contexto:** Com a mudança de licenciamento do MinIO para AGPLv3 e a descontinuação da distribuição comunitária simples, os provedores necessitam de uma solução S3 on-premise moderna, leve e sem atritos de licença (Apache 2.0), além da flexibilidade de usar nuvens públicas (AWS S3, Cloudflare R2, Wasabi) sem alterar o código da aplicação.
+- **Decisão:** Adotar a biblioteca oficial **AWS SDK v2 (`software.amazon.awssdk:s3`)** com o driver `S3FileStorageService` conectado por padrão ao **SeaweedFS (`chrislusf/seaweedfs`)** no Docker Compose, suportando parametrização dinâmica via UI e banco de dados (`StorageConfig`).
+- **Consequências:**
+  - Ambientes de desenvolvimento e provedores on-premise sobem o SeaweedFS em < 1s consumindo ~30MB de RAM.
+  - Provedores que optarem por AWS S3 ou Cloudflare R2 apenas configuram as credenciais pela UI administrativa (`/settings/storage`), com teste de latência em tempo real.
+  - O bucket é criado automaticamente se não existir e os identificadores seguem o padrão UUIDv7.
+
+---
+
 
 
 
