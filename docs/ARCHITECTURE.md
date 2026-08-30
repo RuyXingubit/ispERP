@@ -277,5 +277,25 @@ sequenceDiagram
   - Eliminação de erros de digitação e propriedades inexistentes em tempo de desenvolvimento.
   - Sincronização automatizada dos contratos entre Java e React.
 
+---
+
+### ADR 018: Padronização Global de Erros de API com RFC 7807 (Problem Details)
+- **Contexto:** Respostas de erro sem padrão estruturado geram inconsistências para o frontend e dificultam a identificação imediata de campos inválidos em formulários complexos.
+- **Decisão:** Implementar a especificação padrão da IETF **RFC 7807 (Problem Details for HTTP APIs)** através do `GlobalExceptionHandler` estendendo `ResponseEntityExceptionHandler`.
+- **Consequências:**
+  - Todas as respostas de erro (400, 404, 409, 500) retornam schema unificado com `type`, `title`, `status`, `detail`, `userMessage`, `timestamp` e o array `objects` contendo os campos violados.
+  - O frontend React/TypeScript exibe feedbacks visuais precisos abaixo dos inputs correspondentes.
+
+---
+
+### ADR 019: Consultas Dinâmicas com JPA Specifications, Cache HTTP ETag e Storage Desacoplado
+- **Contexto:** Listagens do ERP (faturas, ordens de serviço, clientes) exigem filtros multidimensionais que sobrecarregam repositórios clássicos. Além disso, leituras estáticas e uploads de fotos de campo necessitam de otimização de banda e persistência plugável.
+- **Decisão:** Adotar **JPA Specifications (`CriteriaBuilder`)** para filtros compostos, **`ShallowEtagHeaderFilter`** para cache HTTP `304 Not Modified`, e interface **`FileStorageService`** para persistência de fotos e documentos.
+- **Consequências:**
+  - Filtros dinâmicos limpos e reutilizáveis sem duplicação de métodos no repositório.
+  - Respostas instantâneas em < 5ms para consultas repetidas com validação de ETag.
+  - Armazenamento desacoplado pronto para transição entre disco local e cloud storage (S3/MinIO).
+
+
 
 

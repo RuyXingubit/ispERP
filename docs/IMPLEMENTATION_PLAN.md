@@ -82,6 +82,18 @@ Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQ
 - [x] **TypeScript no Frontend:**
   - Suporte a TypeScript (React 19 + Vite 6 + TypeScript) com `tsconfig.json` e tipos do domínio ispERP em `src/types/`.
 
+### 2.9. Excelência REST (RFC 7807, JPA Specifications, Cache ETag & Storage Desacoplado)
+- [x] **RFC 7807 Problem Details:**
+  - `GlobalExceptionHandler` padronizando respostas de erro com `userMessage` e lista de campos inválidos `objects`.
+- [x] **JPA Specifications:**
+  - `InvoiceSpecs` e `WorkOrderSpecs` para buscas e filtros combinados em tempo real.
+- [x] **Cache ETag:**
+  - `ShallowEtagHeaderFilter` para respostas instantâneas `304 Not Modified`.
+- [x] **Seeder Isolado de Homologação:**
+  - `afterMigrate.sql` ativo apenas no profile `dev` (`application-dev.yml`), mantendo `prod` 100% limpo.
+- [x] **Storage Desacoplado:**
+  - `FileStorageService` e `LocalFileStorageService` para uploads e downloads de fotos e documentos.
+
 ---
 
 ## 3. Critérios de Aceite e Verificação
@@ -91,5 +103,5 @@ Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQ
 3. [x] **Responsividade:** Telas operacionais, portal do técnico e portal do assinante com layout responsivo para desktop e dispositivos móveis.
 4. [x] **Segurança:** Respeito integral às permissões do usuário logado (RBAC) e proteção de endpoints autenticados com tokens JWT e UUIDv7.
 5. [x] **Teste E2E do Ciclo Operacional:** `CompleteOperationalLifecycleE2EIntegrationTest.java` com 100% de aprovação no PostgreSQL 17.
-6. [x] **Suíte Geral de Testes:** Mais de 105 testes automatizados aprovados no backend (`./gradlew test`).
+6. [x] **Suíte Geral de Testes:** Mais de 109 testes automatizados aprovados no backend (`./gradlew test`).
 

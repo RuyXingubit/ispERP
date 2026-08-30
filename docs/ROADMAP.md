@@ -258,3 +258,26 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
+## 🎯 Milestone 17: Excelência REST - RFC 7807, JPA Specifications, Cache ETag & Storage Desacoplado (Concluído)
+> **Objetivo:** Elevar o backend ispERP ao mais alto nível de engenharia REST com tratamento padronizado de erros RFC 7807, consultas dinâmicas com Criteria Specifications, respostas ultrarrápidas com ETag (304 Not Modified), persistência de arquivos plugável e seeder de homologação seguro.
+
+- [x] **RFC 7807 (Problem Details for HTTP APIs):**
+  - Manipulador global [`GlobalExceptionHandler.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/exception/GlobalExceptionHandler.java) tratando validações (400), recursos não encontrados (404), regras de negócio e erros internos (500).
+  - Enriquecimento com mensagens amigáveis (`userMessage`) e lista de campos inválidos (`objects`) para o frontend React/TypeScript.
+  - Testes unitários dedicados em [`GlobalExceptionHandlerTest.java`](file:///Users/ruy/Code/ispERP/backend/src/test/java/br/dev/xb/isperp/exception/GlobalExceptionHandlerTest.java).
+- [x] **Consultas Dinâmicas com JPA Specifications:**
+  - `JpaSpecificationExecutor` habilitado em `InvoiceRepository` e `WorkOrderRepository`.
+  - Predicados dinâmicos em [`InvoiceSpecs.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/repository/spec/InvoiceSpecs.java) e [`WorkOrderSpecs.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/repository/spec/WorkOrderSpecs.java).
+- [x] **Cache HTTP com ETag (RFC 7234):**
+  - Bean [`ShallowEtagHeaderFilter`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/config/WebConfig.java) registrado para cálculo de MD5 e resposta `304 Not Modified` em requisições de leitura.
+- [x] **Seeder Seguro de Homologação (`afterMigrate.sql`):**
+  - Script [`afterMigrate.sql`](file:///Users/ruy/Code/ispERP/backend/src/main/resources/db/devdata/afterMigrate.sql) isolado em `db/devdata` e ativado apenas no profile de desenvolvimento (`application-dev.yml`), garantindo que produção suba 100% limpa.
+- [x] **Armazenamento Desacoplado de Arquivos (`FileStorageService`):**
+  - Interface [`FileStorageService.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/storage/FileStorageService.java), implementação local [`LocalFileStorageService.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/storage/LocalFileStorageService.java) e endpoint [`FileStorageController.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/controller/FileStorageController.java).
+  - Testes unitários em [`FileStorageServiceTest.java`](file:///Users/ruy/Code/ispERP/backend/src/test/java/br/dev/xb/isperp/storage/FileStorageServiceTest.java).
+- [x] **Validação & Testes:**
+  - Suíte completa de 109+ testes unitários e de integração 100% aprovada (`./gradlew test`).
+
+---
+
+
