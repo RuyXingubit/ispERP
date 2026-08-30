@@ -255,4 +255,27 @@ sequenceDiagram
   - Separação clara entre a lógica de negócio do backend e o design/responsividade dos e-mails em HTML.
   - Envio automático no primeiro dia útil do mês contendo todas as NFCom emitidas e relatórios financeiros do mês anterior para a contabilidade do provedor.
 
+---
+
+### ADR 016: Adoção Mandatória do MapStruct para Mapeamento DTO ↔ Entidade e Descontinuação do ModelMapper
+- **Contexto:** O uso de bibliotecas baseadas em reflexão em tempo de execução (`ModelMapper`) introduz lentidão e risco de inconsistências silenciosas quando propriedades são renomeadas. O Java 25 exige compilação estrita e determinística.
+- **Decisão:** Adotar o **MapStruct 1.6.3** como padrão **mandatório e exclusivo** para todas as conversões entre Entidades JPA e DTOs, descontinuando o ModelMapper.
+- **Regra Arquitetural Obrigatória:**
+  > **SEMPRE** que uma nova entidade, DTO ou serviço for criado, o mapeamento **DEVE** ser implementado através de uma interface `@Mapper(componentModel = "spring")` gerenciada pelo Spring DI e processada pelo `mapstruct-processor` na compilação.
+- **Consequências:**
+  - Conversões de alto desempenho geradas em código Java puro durante o `./gradlew compileJava`.
+  - Falha imediata de compilação caso algum campo obrigatório não seja mapeado corretamente.
+  - Total compatibilidade com GraalVM e AOT.
+
+---
+
+### ADR 017: Governança de Tipagem com TypeScript no Frontend e Contratos OpenAPI
+- **Contexto:** O crescimento da complexidade do ERP exige que o frontend seja orientado a objetos e fortemente tipado, aproveitando a capacidade computacional dos desktops corporativos modernos e evitando que o backend seja sobrecarregado com validações triviais que podem falhar antes na UI.
+- **Decisão:** Migrar a camada de frontend para **TypeScript (React 19 + Vite 6 + TypeScript)** e expor a documentação dos serviços via **Springdoc OpenAPI (`/swagger-ui.html` e `/v3/api-docs`)**.
+- **Consequências:**
+  - Tipagem estrita de DTOs, contratos de API e modelos de domínio no frontend.
+  - Eliminação de erros de digitação e propriedades inexistentes em tempo de desenvolvimento.
+  - Sincronização automatizada dos contratos entre Java e React.
+
+
 

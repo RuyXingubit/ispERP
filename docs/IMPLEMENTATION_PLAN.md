@@ -73,11 +73,20 @@ Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQ
   - Crowdsourcing de coordenadas prediais (`POST /v1/contribute`) no momento do atendimento.
   - Coleta de assinatura digital na tela (touch screen) e conclusão de O.S. com ativação imediata de rede.
 
+### 2.8. OpenAPI Swagger UI, MapStruct Mandatório & TypeScript no Frontend
+- [x] **OpenAPI & Swagger UI:**
+  - Habilitado em `/swagger-ui.html` com suporte a autenticação Bearer JWT e metadados oficiais.
+- [x] **MapStruct Mandatório:**
+  - Eliminação do `ModelMapper` e introdução do MapStruct 1.6.3 com compilação determinística no Java 25.
+  - Regra arquitetural (**ADR 016**) obrigatória para novas entidades e DTOs.
+- [x] **TypeScript no Frontend:**
+  - Suporte a TypeScript (React 19 + Vite 6 + TypeScript) com `tsconfig.json` e tipos do domínio ispERP em `src/types/`.
+
 ---
 
 ## 3. Critérios de Aceite e Verificação
 
-1. [x] **Compilação e Lint do Frontend:** `npm run build` executado com sucesso no Node 24 / Vite 6 sem erros.
+1. [x] **Compilação e Lint do Frontend:** `npm run build` e `npm run typecheck` executados com sucesso no Node 24 / Vite 6 sem erros de tipagem.
 2. [x] **Integração com Backend:** Todos os endpoints REST consumidos com tratamento adequado de erros e feedbacks visuais (toasts, loading states, validações de formulário).
 3. [x] **Responsividade:** Telas operacionais, portal do técnico e portal do assinante com layout responsivo para desktop e dispositivos móveis.
 4. [x] **Segurança:** Respeito integral às permissões do usuário logado (RBAC) e proteção de endpoints autenticados com tokens JWT e UUIDv7.

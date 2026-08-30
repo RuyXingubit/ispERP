@@ -235,3 +235,26 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
   - Suíte de testes unitários e de integração 100% aprovada (`./gradlew test`).
 
 ---
+
+## 🎯 Milestone 16: OpenAPI Swagger UI, MapStruct Mandatório & TypeScript no Frontend (Concluído)
+> **Objetivo:** Modernizar a integração Fullstack com documentação interativa viva, eliminação total do ModelMapper em prol do MapStruct (compilação rápida e segura) e adoção do TypeScript no React 19 para tipagem estrita e POO no cliente.
+
+- [x] **OpenAPI & Swagger UI Interativo (`springdoc-openapi`):**
+  - Documentação viva em `/swagger-ui.html` e contrato `/v3/api-docs`.
+  - Suporte a Bearer Token JWT direto no Swagger UI para testes rápidos (`OpenApiConfig.java`).
+  - Endpoints de documentação liberados no `SecurityConfig.java`.
+- [x] **Migração Total para MapStruct & Remoção do ModelMapper:**
+  - Configuração do MapStruct 1.6.3 + `lombok-mapstruct-binding` no Java 25.
+  - Implementação das interfaces `@Mapper(componentModel = "spring")` (`PlanMapper`, `ContractMapper`, `WorkOrderMapper`).
+  - Remoção definitiva da biblioteca `ModelMapper`.
+  - Regra arquitetural (**ADR 016**) tornando o MapStruct padrão obrigatório para novos desenvolvimentos.
+- [x] **Frontend TypeScript (React 19 + Vite 6 + TypeScript):**
+  - Configuração do `tsconfig.json` e `tsconfig.node.json` no frontend.
+  - Tipagem estrita dos DTOs e entidades do domínio ispERP em `frontend/src/types/` (`customer.ts`, `contract.ts`, `invoice.ts`, `workorder.ts`, `fiscal.ts`, `helpdesk.ts`, `geocep.ts`).
+  - Adição do script `npm run typecheck` para validação estática de tipos.
+- [x] **Validação & Testes:**
+  - Suíte de testes unitários e de integração do backend 100% aprovada (`MapperTest.java`, `./gradlew test`).
+  - Build do Vite e checagem de tipos aprovados sem erros (`npm run typecheck` && `npm run build`).
+
+---
+

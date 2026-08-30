@@ -27,7 +27,21 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/initial-setup/**", "/auth/login", "/health", "/error", "/actuator/**", "/api/webhooks/**", "/portal/client/**", "/api/bi/**").permitAll()
+                .requestMatchers(
+                    "/initial-setup/**",
+                    "/auth/login",
+                    "/health",
+                    "/error",
+                    "/actuator/**",
+                    "/api/webhooks/**",
+                    "/portal/client/**",
+                    "/api/bi/**",
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/swagger-resources/**",
+                    "/webjars/**"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic(httpBasic -> httpBasic.disable())

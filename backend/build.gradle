@@ -57,10 +57,15 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
     
-    // Utilities
+    // OpenAPI & Swagger UI (Springdoc)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+    
+    // MapStruct & Utilities
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     compileOnly 'org.projectlombok:lombok:1.18.46'
     annotationProcessor 'org.projectlombok:lombok:1.18.46'
-    implementation 'org.modelmapper:modelmapper:3.2.6'
     
     // Development
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
