@@ -5,7 +5,7 @@ import br.dev.xb.isperp.dto.StorageConfigResponse;
 import br.dev.xb.isperp.dto.StorageConnectionTestResponse;
 import br.dev.xb.isperp.entity.StorageConfig;
 import br.dev.xb.isperp.mapper.StorageConfigMapper;
-import br.dev.xb.isperp.mapper.StorageConfigMapperImpl;
+import org.mapstruct.factory.Mappers;
 import br.dev.xb.isperp.repository.StorageConfigRepository;
 import br.dev.xb.isperp.storage.StorageProvider;
 import br.dev.xb.isperp.storage.StorageType;
@@ -30,7 +30,7 @@ class StorageConfigServiceTest {
     @Mock
     private StorageConfigRepository storageConfigRepository;
 
-    private StorageConfigMapper storageConfigMapper = new StorageConfigMapperImpl();
+    private StorageConfigMapper storageConfigMapper = Mappers.getMapper(StorageConfigMapper.class);
 
     private StorageConfigService storageConfigService;
 
