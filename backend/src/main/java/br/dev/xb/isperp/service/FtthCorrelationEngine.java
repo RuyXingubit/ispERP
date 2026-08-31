@@ -7,6 +7,7 @@ import br.dev.xb.isperp.monitoring.IncidentSeverity;
 import br.dev.xb.isperp.monitoring.IncidentStatus;
 import br.dev.xb.isperp.monitoring.IncidentType;
 import br.dev.xb.isperp.repository.*;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -252,7 +253,7 @@ public class FtthCorrelationEngine {
         // Decodifica nomes das CTOs afetadas
         if (incident.getAffectedCtosIds() != null) {
             try {
-                List<String> ctoIds = objectMapper.readValue(incident.getAffectedCtosIds(), List.class);
+                List<String> ctoIds = objectMapper.readValue(incident.getAffectedCtosIds(), new TypeReference<List<String>>() {});
                 List<String> ctoNames = new ArrayList<>();
                 for (Object idObj : ctoIds) {
                     UUID id = UUID.fromString(idObj.toString());

@@ -454,3 +454,32 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 - [x] **Testes Automatizados:**
   - 214 testes unitários e de integração de backend 100% aprovados (`./gradlew test`).
 
+---
+
+## 🎯 Milestone 26: Assinatura Eletrônica Avançada via Pix com Motor de Templates Customizáveis (MP 2.200-2/2001 & Lei 14.063/2020) (Concluído)
+> **Objetivo:** Automatizar a formalização jurídica e fechamento do ciclo Zero-Touch Onboarding do ispERP através de assinatura eletrônica avançada com validação bancária via Pix (BACEN), aliada a um motor completo de templates dinâmicos de contratos e termos customizáveis pelo ISP com catálogo de variáveis e blindagem contra fraudes.
+
+- [x] **Banco de Dados (Flyway `V25`):**
+  - Tabela `contract_templates`: Modelos de contratos, termos de fidelidade, comodato e consentimento, com versionamento e suporte a variáveis `{{tags}}`.
+  - Tabela `contract_signatures`: Sessões de assinatura pública com tokens seguros, logs de auditoria (IP, User-Agent, coordenadas geodésicas, hash SHA-256), End-to-End ID do BACEN e controle de status (`PENDING`, `SIGNED`, `REJECTED_DIVERGENT_DOCUMENT`, `EXPIRED`).
+- [x] **Motor de Templates & Interpolação Dinâmica (`ContractTemplateEngine.java`):**
+  - Suporte a tags dinâmicas de Cliente (`{{customer.*}}`), Empresa/ISP (`{{company.*}}`), Contrato & Plano (`{{contract.*}}`, `{{plan.*}}`) e Transação Bancária (`{{signature.*}}`).
+  - Catálogo interativo de variáveis disponíveis com validação sintática e pré-visualização de saída.
+  - Cálculo de hash SHA-256 do documento para integridade e imutabilidade jurídica.
+- [x] **Serviço de Assinatura & Validação Anti-Fraude BACEN (`ElectronicSignatureService.java`):**
+  - Geração de cobrança Pix imediata de valor simbólico (ex: R$ 1,00) via gateway dinâmico.
+  - Processamento de Webhook com validação estrita de titularidade do CPF/CNPJ pagador retornado pelo Banco Central.
+  - Rejeição automática com alerta em tempo real se o Pix for pago por terceiros (`REJECTED_DIVERGENT_DOCUMENT`).
+  - Geração de PDF oficial com folha de rosto de auditoria jurídica e upload no S3/SeaweedFS.
+  - Disparo de `ContractSignedEvent` para avanço imediato de status do contrato e agendamento de O.S.
+- [x] **Controladores REST:**
+  - `ContractTemplateController.java`: Endpoints administrativos `/api/contracts/templates` com RBAC.
+  - `ElectronicSignatureController.java`: Endpoints `/api/contracts/signatures` e endpoint público `/api/public/signatures/{token}`.
+  - `ElectronicSignatureWebhookController.java`: Recebimento seguro de notificações Pix `/api/webhooks/signatures/pix`.
+- [x] **Frontend React 19 / TypeScript:**
+  - `ContractTemplateManager.tsx`: Gestão de templates com toolbar de variáveis dinâmicas clicáveis, editor de cláusulas e Live Preview com dados simulados.
+  - `PublicSignaturePage.tsx`: Interface pública *mobile-first* para o assinante com leitor de contrato, termo de consentimento legal, QR Code Pix Dinâmico e feedback em tempo real.
+- [x] **Testes Automatizados:**
+  - Testes unitários e integrados cobrindo substituição de variáveis, criação de sessão, aprovação por CPF idêntico e rejeição por divergência de documento.
+
+

@@ -2,7 +2,6 @@ package br.dev.xb.isperp.service;
 
 import br.dev.xb.isperp.dto.OltPonPortRequest;
 import br.dev.xb.isperp.dto.OltPonPortResponse;
-import br.dev.xb.isperp.entity.NetworkDevice;
 import br.dev.xb.isperp.entity.OltPonPort;
 import br.dev.xb.isperp.entity.OnuProvisioning;
 import br.dev.xb.isperp.mapper.FtthMonitoringMapper;

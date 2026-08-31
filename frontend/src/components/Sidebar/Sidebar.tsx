@@ -156,6 +156,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
       icon: <ContractIcon />,
       path: '/contracts',
     },
+    {
+      text: 'Modelos de Contratos',
+      icon: <ContractIcon />,
+      path: '/contracts/templates',
+    },
   ];
 
   const operacoesItems: MenuItem[] = [

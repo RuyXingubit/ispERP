@@ -18,6 +18,8 @@ import CustomerForm from './pages/CustomerForm';
 import PlanList from './pages/Plans/PlanList';
 import SaleForm from './pages/Sales/SaleForm';
 import ContractList from './pages/Contracts/ContractList';
+import { ContractTemplateManager } from './pages/Contracts/ContractTemplateManager';
+import { PublicSignaturePage } from './pages/Public/PublicSignaturePage';
 import WorkOrderList from './pages/WorkOrders/WorkOrderList';
 import TechnicianPortal from './pages/Technician/TechnicianPortal';
 import InvoiceList from './pages/Financial/InvoiceList';
@@ -195,6 +197,15 @@ function AppContent() {
             } 
           />
           <Route 
+            path="/contracts/templates" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'SUPPORT_ANALYST', 'ADMINISTRATIVE_ASSISTANT']}>
+                <ContractTemplateManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/work-orders" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
@@ -314,6 +325,10 @@ function AppContent() {
           <Route 
             path="/public/validar-laudo/:token" 
             element={<ReportValidation />} 
+          />
+          <Route 
+            path="/sign/:token" 
+            element={<PublicSignaturePage />} 
           />
           <Route 
             path="/inventory" 

@@ -137,7 +137,19 @@ O **ispERP** é uma plataforma moderna, aberta e altamente escalável para gest�
 - **Autoatendimento Web:** Consulta e emissão de 2ª via de faturas com Pix Copia e Cola e QR Code dinâmico.
 - **Desbloqueio em Confiança:** Reativação automática do sinal por 48 horas em caso de suspensão por atraso.
 - **Abertura de Chamados:** Solicitação de suporte com protocolo Anatel instantâneo.
-- **Download de Documentos:** Acesso rápido ao contrato assinado e DANFE da NFCom.
+
+### 4.13. Módulo de Contratos Digitais & Assinatura Eletrônica Avançada via Pix
+- **Validade Jurídica & Compliance:** Enquadramento como Assinatura Eletrônica Avançada (Art. 10, § 2º da MP 2.200-2/2001 e Lei 14.063/2020), eliminando custos com plataformas de assinatura e burocracia de papel.
+- **Motor de Templates Customizáveis:**
+  - Editor dinâmico de contratos (SCM/SVA), termos de fidelidade (12 meses com cálculo de multa rescisória) e termos de comodato de equipamentos.
+  - Catálogo de variáveis dinâmicas interpoladas em tempo real (`{{customer.*}}`, `{{company.*}}`, `{{contract.*}}`, `{{plan.*}}`, `{{signature.*}}`).
+- **Validação Anti-Fraude de Titularidade (BACEN):**
+  - O sistema gera um QR Code Pix Dinâmico de valor simbólico (ex: R$ 1,00).
+  - No retorno do Webhook bancário, compara rigorosamente o CPF/CNPJ do pagador retornado pelo Banco Central com o titular do contrato.
+  - Rejeição imediata se o pagamento for feito por conta de terceiros (`REJECTED_DIVERGENT_DOCUMENT`), impedindo fraudes de contratação.
+- **Logs Imutáveis de Auditoria:**
+  - Captura de IP do cliente, User-Agent, carimbo oficial de data/hora (Brasília), coordenadas geodésicas, hash SHA-256 e End-to-End ID do BACEN.
+  - Emissão e armazenamento no S3/SeaweedFS do PDF oficial do contrato com folha de rosto de auditoria jurídica e QR Code para validação pública de integridade.
 
 ---
 
