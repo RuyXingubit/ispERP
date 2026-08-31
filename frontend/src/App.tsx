@@ -27,6 +27,7 @@ import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import IpamManager from './pages/Network/IpamManager';
 import RadiusManager from './pages/Network/RadiusManager';
+import FtthManager from './pages/Network/FtthManager';
 import CgnatManager from './pages/Network/CgnatManager';
 import MarcoCivilSearch from './pages/Network/MarcoCivilSearch';
 import ReportValidation from './pages/Public/ReportValidation';
@@ -270,6 +271,15 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2']}>
                 <RadiusManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/network/ftth" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2', 'FIELD_TECH']}>
+                <FtthManager />
               </ProtectedRoute>
             } 
           />

@@ -369,10 +369,26 @@ sequenceDiagram
   2. **Auto-Corte Inteligente:** Scheduler diário que avalia faturas vencidas além da carência configurada (ex: 5 dias), ignorando automaticamente clientes com *Desbloqueio em Confiança* ativo.
   3. **Desbloqueio em Tempo Real (< 1s):** Consumo assíncrono do evento `INVOICE_PAID` (Webhook PIX / Baixa de Boleto) com validação de elegibilidade financeira global e emissão instantânea de pacote PoD para restaurar a velocidade total contratada.
   4. **Auditoria Transparente:** Registro imutável de todas as ações de corte, desbloqueio e resposta dos concentradores BNG na tabela `radius_lifecycle_logs`.
+---
+
+### ADR 026: Documentação de Rede FTTH, Gestão de Fibras ABNT/TIA-598, Diagramas Unifilares e Viabilidade de Vendas
+- **Contexto:** A operação de ISPs requer documentação precisa de ativos passivos de rede óptica (cabos ópticos, caixas de emenda/CEO, divisores/splitters, caixas de atendimento/CTO e postes). Para manutenções de campo e fusões sem erro humano, o sistema deve respeitar os códigos de cores oficiais das fibras ópticas conforme as normas nacionais (ABNT NBR 14106) e internacionais (TIA/EIA-598). Além disso, o time de vendas e suporte necessita de consulta instantânea de viabilidade técnica por geolocalização e cálculo do orçamento de potência óptica (Power Budget).
+- **Decisão:** Desenvolver um módulo completo de topologia FTTH no backend Java 25 / PostgreSQL 17+ com motor de cores dinâmico, rastreamento óptico com atenuação acumulada teórica e interface gráfica interativa em React 19 / TypeScript com diagrama unifilar vetorial.
+- **Diretrizes de Implementação:**
+  1. **Schema FTTH com UUIDv7:** Tabelas `ftth_pops`, `ftth_poles`, `ftth_cables`, `ftth_closures`, `ftth_splitters`, `ftth_ctos`, `ftth_cto_ports` e `ftth_fusions` criadas na migração Flyway `V23`.
+  2. **Motor de Cores Multi-Norma (`FtthColorService.java`):**
+     - **ABNT NBR 14106 / Telebrás:** 1: Verde, 2: Amarelo, 3: Branco, 4: Azul, 5: Vermelho, 6: Violeta, 7: Marrom, 8: Rosa, 9: Preto, 10: Cinza, 11: Laranja, 12: Aqua.
+     - **TIA/EIA-598:** 1: Azul, 2: Laranja, 3: Verde, 4: Marrom, 5: Cinza, 6: Branco, 7: Vermelho, 8: Preto, 9: Amarelo, 10: Violeta, 11: Rosa, 12: Aqua.
+     - Suporte a agrupamento em tubos *loose* para cabos de 6, 12, 24, 36, 72 e 144 fibras.
+  3. **Diagrama Unifilar Interativo em 2 Cliques (`FtthFusionDiagram.tsx`):**
+     - Visualização das fibras de entrada com código de cores e identificação de tubos.
+     - Montagem e exclusão de fusões fibra-a-fibra e divisores ópticos balanceados (PLC 1:2 até 1:64) ou desbalanceados (FBT 95/05 até 50/50).
+  4. **Painel Frontal de CTOs & Rastreamento Óptico (`FtthCtoDetail.tsx` & `FtthLightPathService.java`):**
+     - Visão realista de 8 ou 16 adaptadores SC-APC com identificação de ocupação por cliente/ONU.
+     - Rastreamento reverso do caminho da luz calculando a atenuação teórica (Power Budget) e potência óptica Rx estimada na ONT.
+  5. **Motor Geográfico de Viabilidade de Vendas (`FtthTopologyService.calculateFeasibility` & `FtthMap.tsx`):**
+     - Cálculo de distância geodésica (Haversine) entre a coordenada do cliente e as CTOs cadastradas, filtrando caixas com portas livres dentro do raio máximo de atendimento.
 - **Consequências:**
-  - Redução drástica do Churn e chamados no suporte financeiro ("Paguei meu PIX, quando volta a internet?").
-  - Automação completa do ciclo de cobrança e rede de forma multi-vendor (MikroTik, Huawei, Juniper, Cisco).
-  - Experiência premium de autoatendimento para o assinante.
-
-
-
+  - Redução expressiva de erros em campo por técnicos e terceirizados ao realizar sangrias e fusões de cabos ópticos.
+  - Automação da análise de viabilidade para vendas comerciais sem necessidade de vistoria prévia.
+  - Rastreabilidade total de ponta a ponta: do cliente até a porta PON da OLT.

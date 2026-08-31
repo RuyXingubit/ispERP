@@ -405,5 +405,27 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 - [x] **Testes Automatizados:**
   - Suíte de 197 testes unitários e de integração 100% aprovados (`./gradlew test`).
 
+---
 
+## 🎯 Milestone 24: Documentação FTTH, Gestão de Fibras (ABNT & TIA/EIA-598), Diagrama Unifilar de Fusões, CTOs & Viabilidade de Vendas (Concluído)
+> **Objetivo:** Implementar a gestão completa de documentação da rede passiva FTTH com suporte a normas de cores ABNT NBR 14106 e TIA/EIA-598, diagrama unifilar interativo de fusões em caixas de emenda (CEO), visão realista do painel frontal de CTOs com rastreamento óptico (Power Budget) e motor geográfico de viabilidade de vendas por raio.
 
+- [x] **Banco de Dados (Flyway `V23`):**
+  - Tabelas `ftth_pops`, `ftth_poles`, `ftth_cables`, `ftth_closures`, `ftth_splitters`, `ftth_ctos`, `ftth_cto_ports` e `ftth_fusions` todas com `UUID DEFAULT uuidv7()`.
+- [x] **Motor de Cores de Fibra Multi-Norma (`FtthColorService.java`):**
+  - **Padrão Nacional ABNT NBR 14106 / Telebrás:** 1: Verde, 2: Amarelo, 3: Branco, 4: Azul, 5: Vermelho, 6: Violeta, 7: Marrom, 8: Rosa, 9: Preto, 10: Cinza, 11: Laranja, 12: Aqua.
+  - **Padrão Internacional TIA/EIA-598:** 1: Azul, 2: Laranja, 3: Verde, 4: Marrom, 5: Cinza, 6: Branco, 7: Vermelho, 8: Preto, 9: Amarelo, 10: Violeta, 11: Rosa, 12: Aqua.
+  - Cálculo de tubos loose buffer e identificação das fibras individuais.
+- [x] **Serviços de Topologia, Fusões & Rastreamento Óptico:**
+  - `FtthTopologyService.java`: CRUD completo de POPs, Postes, Cabos, Caixas de Emenda e CTOs com criação automática de portas 1 a 16 e cálculo de viabilidade por distância Haversine.
+  - `FtthFusionService.java`: Criação e remoção de fusões ópticas com validação de fibra duplicada e montagem do diagrama unifilar.
+  - `FtthLightPathService.java`: Rastreamento óptico reverso da porta da CTO até o POP/DIO com cálculo de atenuação acumulada teórica (Power Budget) e Rx Power estimado da ONU.
+- [x] **Controlador REST (`FtthTopologyController.java`):**
+  - Endpoints completos para `/api/ftth/pops`, `/poles`, `/cables`, `/closures`, `/closures/{id}/diagram`, `/splitters`, `/fusions`, `/ctos`, `/feasibility` e `/lightpath/{ctoPortId}`.
+- [x] **Frontend React 19 / TypeScript:**
+  - `FtthManager.tsx`: Painel central com abas de CTOs, Diagrama de Fusões, Mapa GIS e Cabos.
+  - `FtthFusionDiagram.tsx`: Diagrama unifilar visual com cores das fibras, splitters e conexões em 2 cliques.
+  - `FtthCtoDetail.tsx`: Painel frontal de portas SC-APC com status, dados do cliente/ONU e botão de rastreamento de rota óptica.
+  - `FtthMap.tsx`: Mapa georreferenciado e calculadora de viabilidade de vendas por coordenadas GPS.
+- [x] **Testes Automatizados:**
+  - 209 testes unitários e de integração de backend 100% aprovados (`./gradlew test`).
