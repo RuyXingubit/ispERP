@@ -106,6 +106,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
       path: '/network/ftth',
     },
     {
+      text: 'NOC & Alarmes Ópticos',
+      icon: <OltIcon />,
+      path: '/network/noc',
+    },
+    {
       text: 'CGNAT Forense',
       icon: <OltIcon />,
       path: '/network/cgnat',

@@ -429,3 +429,28 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
   - `FtthMap.tsx`: Mapa georreferenciado e calculadora de viabilidade de vendas por coordenadas GPS.
 - [x] **Testes Automatizados:**
   - 209 testes unitários e de integração de backend 100% aprovados (`./gradlew test`).
+
+---
+
+## 🎯 Milestone 25: Monitoramento Ativo SNMP/Telemetry de OLTs, PONs, Alarmística de LOS & Correlação Inteligente de Rompimento de Fibra FTTH (Concluído)
+> **Objetivo:** Estabelecer o Centro de Operações de Rede (NOC) com monitoramento contínuo em arquitetura anti-tempestade (3 camadas), telemetria óptica de portas PON e motor analítico de correlação que diferencia Falta de Energia (*Dying Gasp*) de Rompimento de Fibra (*LOS*), com localização do ponto de corte e abertura de O.S. emergencial.
+
+- [x] **Banco de Dados (Flyway `V24`):**
+  - Tabelas `olt_pon_ports`, `ftth_incidents` e `onu_telemetry_records` todas com `UUID DEFAULT uuidv7()`.
+- [x] **Arquitetura Escalonada Anti-Tempestade (3 Camadas):**
+  - **Camada 1: Event-Driven Push (SNMP Traps / Syslog):** Alarmes críticos instantâneos a custo zero de CPU em regime normal.
+  - **Camada 2: Summary Polling Leve a cada 2 min:** Apenas 1 query de agregação por porta PON (consumo de CPU da OLT < 0.1%).
+  - **Camada 3: Leitura de Potência Rx/Tx com Rate-Limiting:** Lotes com Java 25 Virtual Threads e semáforo limitador por OLT.
+- [x] **Motor de Correlação Analítica Topológica (`FtthCorrelationEngine.java`):**
+  - Diferenciação de *Dying Gasp* (apagão elétrico local) vs *LOS* (rompimento de fibra).
+  - Classificação de Rompimento Troncal (PON inteira) vs Rompimento de Distribuição (CTO isolada).
+  - Cálculo geodésico da coordenada estimada do ponto de corte de fibra no mapa.
+  - Despacho de equipe técnica e geração de O.S. emergencial.
+- [x] **Controlador REST (`FtthMonitoringController.java`):**
+  - Endpoints `/api/ftth/monitoring/summary`, `/pons`, `/incidents`, `/incidents/active`, `/incidents/{id}/dispatch`, `/incidents/{id}/resolve` e `/poll-now`.
+- [x] **Frontend React 19 / TypeScript:**
+  - Tela [`NocDashboard.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Network/NocDashboard.tsx) com KPIs em tempo real, grid de saúde das portas PON, tabela de alarmes com indicador de severidade e modais de despacho/resolução.
+  - Rota `/network/noc` e item "NOC & Alarmes Ópticos" no menu da Sidebar.
+- [x] **Testes Automatizados:**
+  - 214 testes unitários e de integração de backend 100% aprovados (`./gradlew test`).
+

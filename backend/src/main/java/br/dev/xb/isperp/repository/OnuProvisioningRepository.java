@@ -19,5 +19,7 @@ public interface OnuProvisioningRepository extends JpaRepository<OnuProvisioning
 
     List<OnuProvisioning> findByCustomerId(UUID customerId);
 
+    List<OnuProvisioning> findByNetworkDeviceId(UUID networkDeviceId);
+
     List<OnuProvisioning> findByStatus(OnuProvisioning.OnuStatus status);
 }

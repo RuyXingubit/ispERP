@@ -28,6 +28,7 @@ import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import IpamManager from './pages/Network/IpamManager';
 import RadiusManager from './pages/Network/RadiusManager';
 import FtthManager from './pages/Network/FtthManager';
+import NocDashboard from './pages/Network/NocDashboard';
 import CgnatManager from './pages/Network/CgnatManager';
 import MarcoCivilSearch from './pages/Network/MarcoCivilSearch';
 import ReportValidation from './pages/Public/ReportValidation';
@@ -280,6 +281,15 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2', 'FIELD_TECH']}>
                 <FtthManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/network/noc" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_N2', 'FIELD_TECH']}>
+                <NocDashboard />
               </ProtectedRoute>
             } 
           />

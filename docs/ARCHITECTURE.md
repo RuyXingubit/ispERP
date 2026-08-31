@@ -386,9 +386,24 @@ sequenceDiagram
   4. **Painel Frontal de CTOs & Rastreamento Óptico (`FtthCtoDetail.tsx` & `FtthLightPathService.java`):**
      - Visão realista de 8 ou 16 adaptadores SC-APC com identificação de ocupação por cliente/ONU.
      - Rastreamento reverso do caminho da luz calculando a atenuação teórica (Power Budget) e potência óptica Rx estimada na ONT.
-  5. **Motor Geográfico de Viabilidade de Vendas (`FtthTopologyService.calculateFeasibility` & `FtthMap.tsx`):**
-     - Cálculo de distância geodésica (Haversine) entre a coordenada do cliente e as CTOs cadastradas, filtrando caixas com portas livres dentro do raio máximo de atendimento.
+---
+
+### ADR 027: Monitoramento Ativo de OLTs, Alarmística de LOS e Correlação de Rompimento de Fibra FTTH
+- **Contexto:** Em operações de ISPs com milhares de assinantes ópticos, falhas físicas na rede externa (rompimento de cabos por caminhões, obras ou vandalismo) ou quedas de energia elétrica em bairros precisam ser diagnosticadas instantaneamente. O envio de consultas SNMP frequentes e individuais para dezenas de milhares de ONUs pode sobrecarregar a CPU das controladoras das OLTs e travar o plano de gerência da rede.
+- **Decisão:** Desenvolver um Centro de Operações de Rede (NOC) com arquitetura escalonada anti-tempestade em 3 camadas e um motor de correlação analítica topológica que cruza telemetria de OLTs com a rede passiva FTTH.
+- **Diretrizes de Implementação:**
+  1. **Schema de Telemetria & Incidentes com UUIDv7:** Tabelas `olt_pon_ports`, `ftth_incidents` e `onu_telemetry_records` criadas na migração Flyway `V24`.
+  2. **Arquitetura Escalonada Anti-Tempestade:**
+     - *Camada 1 (Push Reativo):* Recepção instantânea de SNMP Traps / Syslog de alarmes de *LOS* e *Dying Gasp* com custo zero de CPU em regime normal.
+     - *Camada 2 (Summary Polling Leve a cada 2 min):* Consulta leve de contadores agregados por porta PON (< 0.1% CPU na OLT).
+     - *Camada 3 (Leitura em Lotes com Rate-Limiting):* Coleta detalhada de dBm em blocos com Java 25 Virtual Threads e semáforo limitador de concorrência por OLT.
+  3. **Motor Analítico de Correlação Topológica (`FtthCorrelationEngine.java`):**
+     - Diferenciação precisa de *Dying Gasp* (queda de energia no bairro) vs *LOS* (rompimento de fibra).
+     - Classificação do raio de impacto: Rompimento Troncal (PON inteira) vs Rompimento de Distribuição (CTO isolada).
+     - Cálculo da coordenada geográfica central estimada do ponto de corte.
+     - Abertura e despacho de Ordem de Serviço emergencial para a equipe de campo.
 - **Consequências:**
-  - Redução expressiva de erros em campo por técnicos e terceirizados ao realizar sangrias e fusões de cabos ópticos.
-  - Automação da análise de viabilidade para vendas comerciais sem necessidade de vistoria prévia.
-  - Rastreabilidade total de ponta a ponta: do cliente até a porta PON da OLT.
+  - Redução do MTTR (Mean Time to Repair) de incidentes graves de rompimento de fibra de horas para minutos.
+  - Eliminação de falsos despachos de técnicos de fusão durante apagões elétricos da concessionária de energia.
+  - Estabilidade e segurança total das controladoras de OLTs mesmo em redes com mais de 100.000 clientes.
+

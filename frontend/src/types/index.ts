@@ -13,3 +13,4 @@ export * from './cgnat';
 export * from './marcoCivil';
 export * from './radiusLifecycle';
 export * from './ftth';
+export * from './monitoring';
