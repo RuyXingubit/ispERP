@@ -160,9 +160,13 @@ export const RadiusManager: React.FC = () => {
         unblockOnPayment: policyConfig.unblockOnPayment,
         sendPodOnBlock: policyConfig.sendPodOnBlock,
         sendPodOnUnblock: policyConfig.sendPodOnUnblock,
+        blockStartHour: Number(policyConfig.blockStartHour),
+        blockEndHour: Number(policyConfig.blockEndHour),
+        allowBlockOnFriday: policyConfig.allowBlockOnFriday,
+        protectEveOfHolidays: policyConfig.protectEveOfHolidays,
       });
       setPolicyConfig(updated);
-      showNotification('Políticas de auto-corte e inadimplência salvas com sucesso!');
+      showNotification('Políticas de auto-corte e proteção salvas com sucesso!');
     } catch (err: any) {
       showNotification('Erro ao salvar políticas: ' + (err.response?.data?.detail || err.message), 'error');
     } finally {
@@ -529,8 +533,71 @@ export const RadiusManager: React.FC = () => {
                   </select>
                 </div>
 
+                {/* Janela de Horário Comercial Matutino */}
+                <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Janela Matutina de Corte</span>
+                    <span className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400 font-semibold">
+                      {policyConfig.blockStartHour || 9}:00 às {policyConfig.blockEndHour || 11}:00
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] text-slate-500 mb-0.5">Início (Hora)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="23"
+                        value={policyConfig.blockStartHour || 9}
+                        onChange={(e) => setPolicyConfig({ ...policyConfig, blockStartHour: Number(e.target.value) })}
+                        className="w-full px-2 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-slate-500 mb-0.5">Fim (Hora)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="23"
+                        value={policyConfig.blockEndHour || 11}
+                        onChange={(e) => setPolicyConfig({ ...policyConfig, blockEndHour: Number(e.target.value) })}
+                        className="w-full px-2 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    O corte só é executado no horário comercial matutino para o cliente ter tempo de ligar no suporte.
+                  </p>
+                </div>
+
                 <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-2">
                   <label className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    <div>
+                      <span className="block font-semibold">Proteger Feriados e Vésperas</span>
+                      <span className="text-[10px] text-slate-400 block">Não bloqueia em feriados nacionais nem no dia anterior</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={policyConfig.protectEveOfHolidays}
+                      onChange={(e) => setPolicyConfig({ ...policyConfig, protectEveOfHolidays: e.target.checked })}
+                      className="w-4 h-4 text-indigo-600 rounded"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    <div>
+                      <span className="block font-semibold">Permitir Bloqueio na Sexta-feira</span>
+                      <span className="text-[10px] text-slate-400 block">Desativado por padrão para evitar cortes antes do fim de semana</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={policyConfig.allowBlockOnFriday}
+                      onChange={(e) => setPolicyConfig({ ...policyConfig, allowBlockOnFriday: e.target.checked })}
+                      className="w-4 h-4 text-indigo-600 rounded"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer pt-1">
                     <span>Desbloqueio Imediato após PIX</span>
                     <input
                       type="checkbox"

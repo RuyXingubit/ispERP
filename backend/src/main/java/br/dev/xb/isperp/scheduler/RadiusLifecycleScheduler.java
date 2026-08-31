@@ -3,10 +3,13 @@ package br.dev.xb.isperp.scheduler;
 import br.dev.xb.isperp.dto.RadiusPolicyConfigResponse;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Invoice;
+import br.dev.xb.isperp.entity.RadiusPolicyConfig;
 import br.dev.xb.isperp.entity.TrustUnblock;
 import br.dev.xb.isperp.repository.ContractRepository;
 import br.dev.xb.isperp.repository.InvoiceRepository;
+import br.dev.xb.isperp.repository.RadiusPolicyConfigRepository;
 import br.dev.xb.isperp.repository.TrustUnblockRepository;
+import br.dev.xb.isperp.service.BrazilianCalendarService;
 import br.dev.xb.isperp.service.RadiusLifecycleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +18,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -28,21 +31,35 @@ public class RadiusLifecycleScheduler {
     private final ContractRepository contractRepository;
     private final InvoiceRepository invoiceRepository;
     private final TrustUnblockRepository trustUnblockRepository;
+    private final RadiusPolicyConfigRepository policyConfigRepository;
+    private final BrazilianCalendarService brazilianCalendarService;
 
     /**
-     * Executa a rotina periódica de corte por inadimplência às 06:00 e 12:00
+     * Executa a rotina periódica de corte por inadimplência às 09:30 da manhã em dias úteis
      */
-    @Scheduled(cron = "${radius.autoblock.cron:0 0 6,12 * * *}")
+    @Scheduled(cron = "${radius.autoblock.cron:0 30 9 * * ?}")
     public void processAutoBlockRoutine() {
-        RadiusPolicyConfigResponse config = radiusLifecycleService.getPolicyConfigResponse();
-        if (!config.isAutoBlockEnabled()) {
+        RadiusPolicyConfig policyConfig = policyConfigRepository.findFirstConfig()
+                .orElseGet(() -> RadiusPolicyConfig.builder().build());
+
+        if (!policyConfig.isAutoBlockEnabled()) {
             log.info("Rotina de auto-corte RADIUS desabilitada nas configurações.");
             return;
         }
 
-        log.info("Iniciando rotina de auto-corte RADIUS (tolerância: {} dias)...", config.getToleranceDays());
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
 
-        LocalDate cutoffDate = LocalDate.now().minusDays(config.getToleranceDays());
+        // Validação estrita de Horário Comercial, Dias Úteis e Feriados
+        if (!brazilianCalendarService.isAllowedForAutoBlock(today, now, policyConfig)) {
+            log.info("Auto-corte ignorado: {} {} está fora da janela permitida (Horário Comercial {}h-{}h, Dias Úteis Seg-Qui, sem feriados ou vésperas).",
+                    today, now, policyConfig.getBlockStartHour(), policyConfig.getBlockEndHour());
+            return;
+        }
+
+        log.info("Iniciando rotina de auto-corte RADIUS (tolerância: {} dias)...", policyConfig.getToleranceDays());
+
+        LocalDate cutoffDate = today.minusDays(policyConfig.getToleranceDays());
         List<Contract> activeContracts = contractRepository.findByStatusOrderByCreatedAtDesc(Contract.ContractStatus.ACTIVE);
 
         int blockedCount = 0;

@@ -57,6 +57,22 @@ public class RadiusPolicyConfig {
     @Column(name = "send_pod_on_unblock", nullable = false)
     private boolean sendPodOnUnblock = true;
 
+    @Builder.Default
+    @Column(name = "block_start_hour", nullable = false)
+    private int blockStartHour = 9;
+
+    @Builder.Default
+    @Column(name = "block_end_hour", nullable = false)
+    private int blockEndHour = 11;
+
+    @Builder.Default
+    @Column(name = "allow_block_on_friday", nullable = false)
+    private boolean allowBlockOnFriday = false;
+
+    @Builder.Default
+    @Column(name = "protect_eve_of_holidays", nullable = false)
+    private boolean protectEveOfHolidays = true;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

@@ -19,6 +19,10 @@ export interface RadiusPolicyConfig {
   unblockOnPayment: boolean;
   sendPodOnBlock: boolean;
   sendPodOnUnblock: boolean;
+  blockStartHour: number;
+  blockEndHour: number;
+  allowBlockOnFriday: boolean;
+  protectEveOfHolidays: boolean;
   createdAt: string;
   updatedAt?: string;
 }
@@ -32,6 +36,10 @@ export interface RadiusPolicyConfigRequest {
   unblockOnPayment: boolean;
   sendPodOnBlock: boolean;
   sendPodOnUnblock: boolean;
+  blockStartHour: number;
+  blockEndHour: number;
+  allowBlockOnFriday: boolean;
+  protectEveOfHolidays: boolean;
 }
 
 export interface RadiusLifecycleSummary {

@@ -25,6 +25,10 @@ public class RadiusPolicyConfigResponse {
     private boolean unblockOnPayment;
     private boolean sendPodOnBlock;
     private boolean sendPodOnUnblock;
+    private int blockStartHour;
+    private int blockEndHour;
+    private boolean allowBlockOnFriday;
+    private boolean protectEveOfHolidays;
     private OffsetDateTime createdAt;
     private @Nullable OffsetDateTime updatedAt;
 }

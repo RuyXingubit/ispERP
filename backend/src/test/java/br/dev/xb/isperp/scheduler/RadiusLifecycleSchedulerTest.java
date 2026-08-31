@@ -1,12 +1,14 @@
 package br.dev.xb.isperp.scheduler;
 
-import br.dev.xb.isperp.dto.RadiusPolicyConfigResponse;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Invoice;
+import br.dev.xb.isperp.entity.RadiusPolicyConfig;
 import br.dev.xb.isperp.entity.TrustUnblock;
 import br.dev.xb.isperp.repository.ContractRepository;
 import br.dev.xb.isperp.repository.InvoiceRepository;
+import br.dev.xb.isperp.repository.RadiusPolicyConfigRepository;
 import br.dev.xb.isperp.repository.TrustUnblockRepository;
+import br.dev.xb.isperp.service.BrazilianCalendarService;
 import br.dev.xb.isperp.service.RadiusLifecycleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -39,6 +42,12 @@ class RadiusLifecycleSchedulerTest {
     @Mock
     private TrustUnblockRepository trustUnblockRepository;
 
+    @Mock
+    private RadiusPolicyConfigRepository policyConfigRepository;
+
+    @Mock
+    private BrazilianCalendarService brazilianCalendarService;
+
     private RadiusLifecycleScheduler scheduler;
 
     @BeforeEach
@@ -47,81 +56,111 @@ class RadiusLifecycleSchedulerTest {
                 radiusLifecycleService,
                 contractRepository,
                 invoiceRepository,
-                trustUnblockRepository
+                trustUnblockRepository,
+                policyConfigRepository,
+                brazilianCalendarService
         );
     }
 
     @Test
-    @DisplayName("Deve bloquear contrato inadimplente com fatura vencida além da tolerância")
+    @DisplayName("Deve bloquear contrato inadimplente em dia útil e horário comercial")
     void testProcessAutoBlockRoutineExecutesBlock() {
         UUID customerId = UUID.randomUUID();
         UUID contractId = UUID.randomUUID();
 
-        RadiusPolicyConfigResponse config = RadiusPolicyConfigResponse.builder()
+        RadiusPolicyConfig config = RadiusPolicyConfig.builder()
                 .autoBlockEnabled(true)
                 .toleranceDays(5)
                 .build();
 
         Contract contract = Contract.builder()
                 .id(contractId)
+                .customerId(customerId)
                 .contractNumber("CTR-001")
-                .customerId(customerId)
                 .status(Contract.ContractStatus.ACTIVE)
                 .build();
 
-        Invoice overdueInvoice = Invoice.builder()
+        Invoice invoice = Invoice.builder()
                 .id(UUID.randomUUID())
                 .customerId(customerId)
-                .dueDate(LocalDate.now().minusDays(10)) // 10 dias de atraso (> 5 dias de tolerância)
-                .status(Invoice.InvoiceStatus.PENDING)
-                .build();
-
-        when(radiusLifecycleService.getPolicyConfigResponse()).thenReturn(config);
-        when(contractRepository.findByStatusOrderByCreatedAtDesc(Contract.ContractStatus.ACTIVE)).thenReturn(List.of(contract));
-        when(invoiceRepository.findByCustomerIdAndStatus(customerId, Invoice.InvoiceStatus.PENDING)).thenReturn(List.of(overdueInvoice));
-        when(trustUnblockRepository.findByContractIdOrderByRequestedAtDesc(contractId)).thenReturn(List.of());
-
-        scheduler.processAutoBlockRoutine();
-
-        verify(radiusLifecycleService).executeAutoBlock(eq(contractId), contains("Auto-corte por inadimplência"));
-    }
-
-    @Test
-    @DisplayName("Deve ignorar contrato se houver Desbloqueio em Confiança ativo")
-    void testProcessAutoBlockSkipsTrustUnblock() {
-        UUID customerId = UUID.randomUUID();
-        UUID contractId = UUID.randomUUID();
-
-        RadiusPolicyConfigResponse config = RadiusPolicyConfigResponse.builder()
-                .autoBlockEnabled(true)
-                .toleranceDays(5)
-                .build();
-
-        Contract contract = Contract.builder()
-                .id(contractId)
-                .contractNumber("CTR-002")
-                .customerId(customerId)
-                .status(Contract.ContractStatus.ACTIVE)
-                .build();
-
-        Invoice overdueInvoice = Invoice.builder()
-                .id(UUID.randomUUID())
-                .customerId(customerId)
+                .contractId(contractId)
                 .dueDate(LocalDate.now().minusDays(10))
                 .status(Invoice.InvoiceStatus.PENDING)
                 .build();
 
-        TrustUnblock activeUnblock = TrustUnblock.builder()
+        when(policyConfigRepository.findFirstConfig()).thenReturn(Optional.of(config));
+        when(brazilianCalendarService.isAllowedForAutoBlock(any(), any(), any())).thenReturn(true);
+        when(contractRepository.findByStatusOrderByCreatedAtDesc(Contract.ContractStatus.ACTIVE))
+                .thenReturn(List.of(contract));
+        when(invoiceRepository.findByCustomerIdAndStatus(customerId, Invoice.InvoiceStatus.PENDING))
+                .thenReturn(List.of(invoice));
+        when(trustUnblockRepository.findByContractIdOrderByRequestedAtDesc(contractId))
+                .thenReturn(List.of());
+
+        scheduler.processAutoBlockRoutine();
+
+        verify(radiusLifecycleService).executeAutoBlock(eq(contractId), contains("Fatura vencida em"));
+    }
+
+    @Test
+    @DisplayName("Deve ignorar rotina se fora do horário comercial ou feriado")
+    void testProcessAutoBlockIgnoredWhenNotAllowedByCalendar() {
+        RadiusPolicyConfig config = RadiusPolicyConfig.builder()
+                .autoBlockEnabled(true)
+                .toleranceDays(5)
+                .build();
+
+        when(policyConfigRepository.findFirstConfig()).thenReturn(Optional.of(config));
+        when(brazilianCalendarService.isAllowedForAutoBlock(any(), any(), any())).thenReturn(false);
+
+        scheduler.processAutoBlockRoutine();
+
+        verifyNoInteractions(contractRepository);
+        verifyNoInteractions(radiusLifecycleService);
+    }
+
+    @Test
+    @DisplayName("Deve ignorar contrato se possuir Desbloqueio em Confiança ativo")
+    void testProcessAutoBlockSkipsContractWithActiveTrustUnblock() {
+        UUID customerId = UUID.randomUUID();
+        UUID contractId = UUID.randomUUID();
+
+        RadiusPolicyConfig config = RadiusPolicyConfig.builder()
+                .autoBlockEnabled(true)
+                .toleranceDays(5)
+                .build();
+
+        Contract contract = Contract.builder()
+                .id(contractId)
+                .customerId(customerId)
+                .contractNumber("CTR-002")
+                .status(Contract.ContractStatus.ACTIVE)
+                .build();
+
+        Invoice invoice = Invoice.builder()
+                .id(UUID.randomUUID())
+                .customerId(customerId)
+                .contractId(contractId)
+                .dueDate(LocalDate.now().minusDays(12))
+                .status(Invoice.InvoiceStatus.PENDING)
+                .build();
+
+        TrustUnblock trustUnblock = TrustUnblock.builder()
                 .id(UUID.randomUUID())
                 .contractId(contractId)
                 .status("ACTIVE")
-                .expiresAt(LocalDateTime.now().plusHours(12))
+                .requestedAt(LocalDateTime.now().minusDays(1))
+                .expiresAt(LocalDateTime.now().plusDays(2))
                 .build();
 
-        when(radiusLifecycleService.getPolicyConfigResponse()).thenReturn(config);
-        when(contractRepository.findByStatusOrderByCreatedAtDesc(Contract.ContractStatus.ACTIVE)).thenReturn(List.of(contract));
-        when(invoiceRepository.findByCustomerIdAndStatus(customerId, Invoice.InvoiceStatus.PENDING)).thenReturn(List.of(overdueInvoice));
-        when(trustUnblockRepository.findByContractIdOrderByRequestedAtDesc(contractId)).thenReturn(List.of(activeUnblock));
+        when(policyConfigRepository.findFirstConfig()).thenReturn(Optional.of(config));
+        when(brazilianCalendarService.isAllowedForAutoBlock(any(), any(), any())).thenReturn(true);
+        when(contractRepository.findByStatusOrderByCreatedAtDesc(Contract.ContractStatus.ACTIVE))
+                .thenReturn(List.of(contract));
+        when(invoiceRepository.findByCustomerIdAndStatus(customerId, Invoice.InvoiceStatus.PENDING))
+                .thenReturn(List.of(invoice));
+        when(trustUnblockRepository.findByContractIdOrderByRequestedAtDesc(contractId))
+                .thenReturn(List.of(trustUnblock));
 
         scheduler.processAutoBlockRoutine();
 
