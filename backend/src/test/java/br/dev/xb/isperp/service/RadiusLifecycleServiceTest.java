@@ -15,7 +15,6 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -42,9 +41,6 @@ class RadiusLifecycleServiceTest {
 
     @Mock
     private InvoiceRepository invoiceRepository;
-
-    @Mock
-    private TrustUnblockRepository trustUnblockRepository;
 
     @Mock
     private RadiusPolicyConfigRepository policyConfigRepository;
@@ -82,7 +78,6 @@ class RadiusLifecycleServiceTest {
                 planRepository,
                 onuProvisioningRepository,
                 invoiceRepository,
-                trustUnblockRepository,
                 policyConfigRepository,
                 lifecycleLogRepository,
                 radiusProvisioningService,

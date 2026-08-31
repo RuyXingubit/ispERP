@@ -31,7 +31,6 @@ public class RadiusLifecycleService {
     private final PlanRepository planRepository;
     private final OnuProvisioningRepository onuProvisioningRepository;
     private final InvoiceRepository invoiceRepository;
-    private final TrustUnblockRepository trustUnblockRepository;
     private final RadiusPolicyConfigRepository policyConfigRepository;
     private final RadiusLifecycleLogRepository lifecycleLogRepository;
     private final RadiusProvisioningService radiusProvisioningService;

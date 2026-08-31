@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.scheduler;
 
-import br.dev.xb.isperp.dto.RadiusPolicyConfigResponse;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Invoice;
 import br.dev.xb.isperp.entity.RadiusPolicyConfig;

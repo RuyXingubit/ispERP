@@ -1,7 +1,6 @@
 package br.dev.xb.isperp.controller;
 
 import br.dev.xb.isperp.dto.*;
-import br.dev.xb.isperp.radius.RadiusBlockMode;
 import br.dev.xb.isperp.scheduler.RadiusLifecycleScheduler;
 import br.dev.xb.isperp.service.RadiusLifecycleService;
 import org.junit.jupiter.api.DisplayName;
