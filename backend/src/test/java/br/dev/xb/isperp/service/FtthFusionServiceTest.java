@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,9 +26,6 @@ class FtthFusionServiceTest {
 
     @Mock
     private FtthFusionRepository fusionRepository;
-
-    @Mock
-    private FtthClosureRepository closureRepository;
 
     @Mock
     private FtthCableRepository cableRepository;
@@ -52,7 +48,6 @@ class FtthFusionServiceTest {
     void setUp() {
         fusionService = new FtthFusionService(
                 fusionRepository,
-                closureRepository,
                 cableRepository,
                 splitterRepository,
                 ctoRepository,

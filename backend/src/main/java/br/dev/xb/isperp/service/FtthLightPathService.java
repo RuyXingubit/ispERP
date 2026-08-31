@@ -28,8 +28,6 @@ public class FtthLightPathService {
     private final FtthCtoPortRepository ctoPortRepository;
     private final FtthFusionRepository fusionRepository;
     private final FtthCableRepository cableRepository;
-    private final FtthSplitterRepository splitterRepository;
-    private final FtthClosureRepository closureRepository;
     private final FtthPopRepository popRepository;
 
     @Data
@@ -93,7 +91,6 @@ public class FtthLightPathService {
                 .build());
 
         // 3. Rastreamento reverso pelas fusões
-        UUID currentClosureId = cto.getClosureId();
         UUID currentCableId = null;
         Integer currentFiberNumber = null;
         String popName = "Central Indeterminada";
@@ -108,7 +105,6 @@ public class FtthLightPathService {
             FtthFusion f = ctoFusion.get();
             currentCableId = f.getSourceCableId();
             currentFiberNumber = f.getSourceFiberNumber();
-            currentClosureId = f.getClosureId();
 
             cumulativeLoss += f.getLossDb().doubleValue();
             path.add(LightPathNode.builder()
@@ -166,7 +162,6 @@ public class FtthLightPathService {
                 FtthFusion pf = prevFusion.get();
                 currentCableId = pf.getSourceCableId();
                 currentFiberNumber = pf.getSourceFiberNumber();
-                currentClosureId = pf.getClosureId();
 
                 cumulativeLoss += pf.getLossDb().doubleValue();
                 path.add(LightPathNode.builder()

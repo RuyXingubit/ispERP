@@ -34,12 +34,6 @@ class FtthLightPathServiceTest {
     private FtthCableRepository cableRepository;
 
     @Mock
-    private FtthSplitterRepository splitterRepository;
-
-    @Mock
-    private FtthClosureRepository closureRepository;
-
-    @Mock
     private FtthPopRepository popRepository;
 
     private FtthLightPathService lightPathService;
@@ -51,8 +45,6 @@ class FtthLightPathServiceTest {
                 ctoPortRepository,
                 fusionRepository,
                 cableRepository,
-                splitterRepository,
-                closureRepository,
                 popRepository
         );
     }

@@ -2,8 +2,6 @@ package br.dev.xb.isperp.service;
 
 import br.dev.xb.isperp.dto.*;
 import br.dev.xb.isperp.entity.*;
-import br.dev.xb.isperp.ftth.FiberColorStandard;
-import br.dev.xb.isperp.ftth.FtthCableType;
 import br.dev.xb.isperp.ftth.FtthPortStatus;
 import br.dev.xb.isperp.mapper.FtthMapper;
 import br.dev.xb.isperp.repository.*;
@@ -17,7 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;

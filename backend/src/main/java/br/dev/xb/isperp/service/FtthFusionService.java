@@ -21,7 +21,6 @@ import java.util.UUID;
 public class FtthFusionService {
 
     private final FtthFusionRepository fusionRepository;
-    private final FtthClosureRepository closureRepository;
     private final FtthCableRepository cableRepository;
     private final FtthSplitterRepository splitterRepository;
     private final FtthCtoRepository ctoRepository;
