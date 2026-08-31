@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.service;
 
-import br.dev.xb.isperp.client.GeoCepClient;
 import br.dev.xb.isperp.dto.InstallationMaterialDemandResponse;
 import br.dev.xb.isperp.entity.*;
 import br.dev.xb.isperp.mapper.InstallationMaterialDemandMapper;
@@ -11,7 +10,6 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -28,7 +26,6 @@ public class InstallationDemandService {
     private final FtthCtoRepository ctoRepository;
     private final WarehouseRepository warehouseRepository;
     private final InstallationMaterialDemandMapper demandMapper;
-    private final GeoCepClient geoCepClient;
 
     /**
      * Gera a demanda de materiais FTTH e metragem do drop para uma Ordem de Serviço de Instalação.

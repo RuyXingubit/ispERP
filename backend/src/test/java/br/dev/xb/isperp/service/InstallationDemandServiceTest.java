@@ -1,7 +1,5 @@
 package br.dev.xb.isperp.service;
 
-import br.dev.xb.isperp.client.GeoCepClient;
-import br.dev.xb.isperp.dto.InstallationMaterialDemandResponse;
 import br.dev.xb.isperp.entity.*;
 import br.dev.xb.isperp.mapper.InstallationMaterialDemandMapper;
 import br.dev.xb.isperp.repository.*;
@@ -47,9 +45,6 @@ class InstallationDemandServiceTest {
     @Mock
     private WarehouseRepository warehouseRepository;
 
-    @Mock
-    private GeoCepClient geoCepClient;
-
     private final InstallationMaterialDemandMapper demandMapper = Mappers.getMapper(InstallationMaterialDemandMapper.class);
 
     private InstallationDemandService demandService;
@@ -70,8 +65,7 @@ class InstallationDemandServiceTest {
                 planRepository,
                 ctoRepository,
                 warehouseRepository,
-                demandMapper,
-                geoCepClient
+                demandMapper
         );
 
         workOrderId = UuidCreatorUtils.generateUuidV7();

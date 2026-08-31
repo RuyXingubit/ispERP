@@ -73,7 +73,6 @@ public class ElectronicSignatureService {
         }
 
         String rawContent = template != null ? template.getContentMarkdown() : "# CONTRATO DE PRESTAÇÃO DE SERVIÇOS\n\n{{customer.name}} - {{plan.name}}";
-        String consentClause = template != null ? template.getConsentClause() : "Ao realizar o pagamento via Pix, declaro que aceito os termos deste contrato.";
 
         // Renderiza conteúdo com as tags dinâmicas
         String renderedContent = templateEngine.render(rawContent, customer, company, contract, plan, null);
