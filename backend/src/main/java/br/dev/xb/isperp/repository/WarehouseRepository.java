@@ -14,4 +14,6 @@ public interface WarehouseRepository extends JpaRepository<Warehouse, UUID> {
     Optional<Warehouse> findByCode(String code);
 
     List<Warehouse> findByActiveTrue();
+
+    Optional<Warehouse> findByResponsibleUserId(UUID responsibleUserId);
 }

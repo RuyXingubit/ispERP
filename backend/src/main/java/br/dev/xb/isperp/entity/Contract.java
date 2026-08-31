@@ -80,6 +80,14 @@ public class Contract {
     @Column(name = "zip_code", length = 10)
     private String zipCode;
 
+    @Nullable
+    @Column(name = "cto_id")
+    private UUID ctoId;
+
+    @Nullable
+    @Column(name = "cto_port_number")
+    private Integer ctoPortNumber;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -105,6 +113,7 @@ public class Contract {
     }
 
     public enum ContractStatus {
+        DRAFT,
         PENDING_INSTALLATION,
         ACTIVE,
         SUSPENDED,

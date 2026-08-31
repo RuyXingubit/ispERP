@@ -15,6 +15,8 @@ public interface ContractMapper {
     ContractDTO toDto(Contract contract);
 
     @Mapping(target = "customSuspensionDays", ignore = true)
+    @Mapping(target = "ctoId", ignore = true)
+    @Mapping(target = "ctoPortNumber", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Contract toEntity(ContractDTO dto);
 

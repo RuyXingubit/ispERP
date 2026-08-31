@@ -24,6 +24,11 @@ public interface WorkOrderMapper {
     @Mapping(target = "customerSignatureName", ignore = true)
     @Mapping(target = "installationPhotoUrl", ignore = true)
     @Mapping(target = "toolAgreementId", ignore = true)
+    @Mapping(target = "onuRxPowerDbm", ignore = true)
+    @Mapping(target = "radiusAuthenticated", ignore = true)
+    @Mapping(target = "allocatedWarehouseId", ignore = true)
+    @Mapping(target = "ctoId", ignore = true)
+    @Mapping(target = "ctoPortNumber", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     WorkOrder toEntity(WorkOrderDTO dto);
 

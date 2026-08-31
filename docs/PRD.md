@@ -147,9 +147,19 @@ O **ispERP** é uma plataforma moderna, aberta e altamente escalável para gest�
   - O sistema gera um QR Code Pix Dinâmico de valor simbólico (ex: R$ 1,00).
   - No retorno do Webhook bancário, compara rigorosamente o CPF/CNPJ do pagador retornado pelo Banco Central com o titular do contrato.
   - Rejeição imediata se o pagamento for feito por conta de terceiros (`REJECTED_DIVERGENT_DOCUMENT`), impedindo fraudes de contratação.
-- **Logs Imutáveis de Auditoria:**
-  - Captura de IP do cliente, User-Agent, carimbo oficial de data/hora (Brasília), coordenadas geodésicas, hash SHA-256 e End-to-End ID do BACEN.
-  - Emissão e armazenamento no S3/SeaweedFS do PDF oficial do contrato com folha de rosto de auditoria jurídica e QR Code para validação pública de integridade.
+### 4.14. Orquestrador Zero-Touch Onboarding Ponta a Ponta Orientado a Eventos
+- **Ciclo de Vida 100% Automatizado (EDA via Transactional Outbox):**
+  - Integração contínua: `Venda` ➡️ `Assinatura Pix R$ 1,00 (BACEN)` ➡️ `Dimensionamento FTTH / Drop` ➡️ `Estoque em Veículos` ➡️ `Despacho Inteligente` ➡️ `Auto-Discovery OLT` ➡️ `Validação FreeRADIUS` ➡️ `Ativação com Evidências`.
+- **Dimensionamento Topológico Automático:**
+  - Cálculo geodésico e por rota GeoCEP (`geocep.api.br`) da distância entre a caixa CTO mais próxima e a coordenada da residência (+20% de margem técnica para o drop).
+  - Determinação do kit de instalação padrão (ONT Wi-Fi Dual-Band, cabo drop, conectores fast SC/APC, roseta PTO).
+- **Rastreabilidade de Estoque em Veículos & Despacho Inteligente:**
+  - O sistema avalia a custódia de materiais em depósitos móveis de veículos de técnicos e pontua os candidatos por disponibilidade de kit completo e proximidade geográfica da última O.S.
+- **Auto-Discovery na OLT & Validação RADIUS em Tempo Real:**
+  - Detecção automática de ONUs desprovisionadas na porta PON da OLT via SNMP/API para provisionamento 1-clique sem digitação manual de serial.
+  - Consulta ao FreeRADIUS para confirmar a autenticação da sessão PPPoE (`RadAcct` ativa) antes de liberar o encerramento da O.S.
+- **Baixa Automática de Estoque & Ativação:**
+  - Baixa de ativos serializados e insumos da custódia do veículo do técnico, ativação imediata do contrato (`ACTIVE`) e liberação da fatura inicial.
 
 ---
 

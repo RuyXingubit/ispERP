@@ -106,6 +106,7 @@ public class Sale {
 
     public enum SaleStatus {
         SUBMITTED,
+        PENDING_PAYMENT_SIGNATURE,
         PROCESSED,
         CANCELED
     }

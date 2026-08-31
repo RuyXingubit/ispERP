@@ -70,6 +70,27 @@ public class WorkOrder {
     private BigDecimal fiberSignalDbm;
 
     @Nullable
+    @Column(name = "onu_rx_power_dbm", precision = 5, scale = 2)
+    private BigDecimal onuRxPowerDbm;
+
+    @Nullable
+    @Column(name = "radius_authenticated")
+    @Builder.Default
+    private Boolean radiusAuthenticated = false;
+
+    @Nullable
+    @Column(name = "allocated_warehouse_id")
+    private UUID allocatedWarehouseId;
+
+    @Nullable
+    @Column(name = "cto_id")
+    private UUID ctoId;
+
+    @Nullable
+    @Column(name = "cto_port_number")
+    private Integer ctoPortNumber;
+
+    @Nullable
     @Column(name = "technician_latitude", precision = 10, scale = 8)
     private BigDecimal technicianLatitude;
 

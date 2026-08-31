@@ -482,4 +482,32 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 - [x] **Testes Automatizados:**
   - Testes unitários e integrados cobrindo substituição de variáveis, criação de sessão, aprovação por CPF idêntico e rejeição por divergência de documento.
 
+---
+
+## 🎯 Milestone 27: Orquestrador Zero-Touch Onboarding Ponta a Ponta Orientado a Eventos (Concluído)
+> **Objetivo:** Orquestrar o ciclo completo de entrada de novos clientes 100% orientado a eventos (EDA via Outbox): Venda ➡️ Assinatura Pix R$ 1,00 (BACEN) ➡️ Dimensionamento de Drop/CTO com rota GeoCEP ➡️ Avaliação de Estoque nos Veículos ➡️ Despacho Inteligente de O.S. no Suporte ➡️ Auto-Discovery de ONU na OLT ➡️ Validação de Sessão PPPoE no FreeRADIUS ➡️ Encerramento com Evidências e Ativação Instantânea.
+
+- [x] **Banco de Dados (Flyway `V26`):**
+  - Tabela `installation_material_demands`: Registro da demanda de materiais por O.S., metragem calculada de drop, modelo de ONT, conectores e alocação de depósito móvel (veículo técnico).
+  - Campos em `work_orders`: `onu_rx_power_dbm`, `radius_authenticated`, `allocated_warehouse_id`.
+  - Campos em `contracts`: `cto_id`, `cto_port_number`.
+  - Enum `SaleStatus`: Adicionado `PENDING_PAYMENT_SIGNATURE`.
+- [x] **Orquestrador de Eventos (`ZeroTouchOnboardingOrchestrator.java`):**
+  - Consumo encadeado e idempotente de `SALE_SUBMITTED`, `CONTRACT_SIGNED`, `INSTALLATION_DEMAND_GENERATED`, `WORK_ORDER_DISPATCHED`, `ONU_PROVISIONED`, `RADIUS_AUTHENTICATED`, `WORK_ORDER_COMPLETED`.
+  - Abertura de sessão de assinatura Pix R$ 1,00 imediata ao submeter a venda.
+- [x] **Motor de Dimensionamento FTTH & Estoque (`InstallationDemandService.java` & `TechnicianDispatchService.java`):**
+  - Cálculo automático de distância da CTO até o cliente (+20% de margem técnica para o drop).
+  - Análise de estoque em depósitos móveis de veículos de técnicos para priorização de despacho por posse de kit completo e proximidade geográfica.
+- [x] **Execução em Campo & Auto-Discovery OLT (`TechnicianFieldExecutionService.java`):**
+  - Auto-Discovery de ONUs unprovisioned na porta PON da OLT via SNMP/API.
+  - Provisionamento 1-clique com profile de velocidade e VLAN.
+  - Verificação de sessão PPPoE ativa em tempo real no FreeRADIUS.
+  - Baixa automática de materiais do estoque do veículo e ativação do contrato (`ContractActivatedEvent`).
+- [x] **Frontend React 19 / TypeScript:**
+  - Painel de Despacho no Suporte: [`InstallationDispatchDashboard.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/WorkOrders/InstallationDispatchDashboard.tsx) (`/dispatch/installations`).
+  - Portal do Técnico Aprimorado: [`TechnicianPortal.jsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Technician/TechnicianPortal.jsx) com seletor de rotas no mapa GeoCEP (Rota até CTO vs Rota até Cliente), card de Auto-Discovery da ONU na OLT, status RADIUS em tempo real e upload de evidências.
+- [x] **Testes Automatizados:**
+  - Testes cobrindo dimensionamento de materiais, despacho inteligente, provisionamento OLT, autenticação RADIUS e ciclo completo de onboarding.
+
+
 

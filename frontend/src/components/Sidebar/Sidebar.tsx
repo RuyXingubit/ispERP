@@ -185,6 +185,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
       path: '/routes/planner',
     },
     {
+      text: 'Despacho de Instalações FTTH',
+      icon: <OperationsIcon />,
+      path: '/dispatch/installations',
+    },
+    {
       text: 'Almoxarifado & Estoque',
       icon: <OperationsIcon />,
       path: '/inventory',

@@ -37,6 +37,7 @@ import ReportValidation from './pages/Public/ReportValidation';
 import ClientPortal from './pages/Portal/ClientPortal';
 import InventoryManager from './pages/Inventory/InventoryManager';
 import RoutePlanner from './pages/WorkOrders/RoutePlanner';
+import { InstallationDispatchDashboard } from './pages/WorkOrders/InstallationDispatchDashboard';
 import TicketList from './pages/Helpdesk/TicketList';
 import NotificationConfigList from './pages/Settings/NotificationConfigList';
 import StorageConfig from './pages/Settings/StorageConfig';
@@ -345,6 +346,15 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_ANALYST', 'SUPPORT_N2', 'TECHNICIAN']}>
                 <RoutePlanner />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dispatch/installations" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'SUPPORT_ANALYST', 'SUPPORT_N2', 'FINANCIAL']}>
+                <InstallationDispatchDashboard />
               </ProtectedRoute>
             } 
           />
