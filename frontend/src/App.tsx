@@ -33,6 +33,7 @@ import { DeleveragingDashboard } from './pages/Financial/DeleveragingDashboard';
 import { DreReportViewer } from './pages/Financial/DreReportViewer';
 import { NetworkProjectsPayback } from './pages/Financial/NetworkProjectsPayback';
 import { SentinelWatchdog } from './pages/Financial/SentinelWatchdog';
+import { BackupDisasterRecoveryDashboard } from './pages/Financial/BackupDisasterRecoveryDashboard';
 import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import IpamManager from './pages/Network/IpamManager';
@@ -469,6 +470,24 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <StorageConfig />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/settings/backup" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                <BackupDisasterRecoveryDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/financial/backup" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                <BackupDisasterRecoveryDashboard />
               </ProtectedRoute>
             } 
           />

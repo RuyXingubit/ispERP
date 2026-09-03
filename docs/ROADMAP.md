@@ -608,6 +608,25 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 - [x] **Testes Automatizados:**
   - `ElectronicSignaturePixIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando rejeição de CPF terceiro, desconto na fatura e emissão do certificado pericial. Suíte de mais de 250 testes verdes.
 
+---
+
+## 🎯 Milestone 33: Backup Multi-Destino, Criptografia AES-256 & Disaster Recovery (Concluído)
+> **Objetivo:** Infraestrutura nativa de proteção patrimonial e recuperação de desastres do ispERP com pipeline de streaming em memória sem estouro de disco, compressão ZStandard, criptografia militar AES-256 (PBKDF2), múltiplos destinos (S3, Cloudflare R2, MinIO, SFTP, NAS Local), teste contínuo de restauração (Dry-Run Restore) e emissão de Kit de Resgate de Emergência.
+
+- [x] **Migração Flyway:**
+  - `V31__create_backup_and_disaster_recovery_schema.sql`: Tabelas `backup_policies`, `backup_destinations` e `backup_execution_logs` com índices periciais e UUIDv7.
+- [x] **Backend Core (Java 25 + Spring Boot 4.1.1):**
+  - `BackupCryptoService`: Geração de chaves mestras de 256 bits, derivação PBKDF2 com Salt e IV aleatórios de 16 bytes, `CipherOutputStream` e `CipherInputStream` para streaming sem carga na heap.
+  - `StorageProviderService`: Integração com AWS S3, Cloudflare R2, MinIO e volumes locais com teste de conectividade em tempo real (`testConnection`).
+  - `BackupStreamingPipelineService`: Pipeline contínuo `Dump -> ZstdOutputStream -> CipherOutputStream -> DigestOutputStream (SHA-256) -> Storage` sem criação de dumps intermediários gigantes em disco.
+  - `DisasterRecoveryService`: Gestão de políticas centrais (Modo Resgate ispERP vs Zero-Knowledge), expurgo automático por retenção e geração do Kit de Resgate de Emergência em Markdown com comandos OpenSSL.
+  - Controladores REST: `BackupDisasterRecoveryController` (`/api/financial/backup/overview`, `/policies`, `/destinations`, `/execute`, `/history`, `/emergency-kit`).
+- [x] **Frontend Corporativo (React 19 / TypeScript):**
+  - `BackupDisasterRecoveryDashboard.tsx` (`/settings/backup` e `/financial/backup`): Cockpit dos 3 Indicadores Sagrados (Último Backup com taxa de compressão e SHA-256, Rotina Automática e Integridade Dry-Run), Wizard de cadastro e teste de destinos S3/SFTP em tempo real e histórico de auditoria.
+- [x] **Testes Automatizados:**
+  - `BackupCryptoServiceTest`: Validação unitária de criptografia/descriptografia AES-256 reversa com integridade byte a byte.
+  - `BackupAndDisasterRecoveryIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando todo o ciclo de streaming, compressão ZSTD, integridade pericial (Dry-Run Restore) e emissão do Kit de Resgate. Suíte completa de testes verdes.
+
 
 
 

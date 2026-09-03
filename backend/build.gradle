@@ -62,6 +62,9 @@ dependencies {
 
     // S3 Storage (AWS S3, SeaweedFS, Cloudflare R2)
     implementation 'software.amazon.awssdk:s3:2.30.36'
+
+    // ZStandard Compression for high-throughput backups
+    implementation 'com.github.luben:zstd-jni:1.5.7-1'
     
     // MapStruct & Utilities
     implementation 'org.mapstruct:mapstruct:1.6.3'
