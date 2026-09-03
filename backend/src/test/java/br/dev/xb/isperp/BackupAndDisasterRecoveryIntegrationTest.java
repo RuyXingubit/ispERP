@@ -12,7 +12,6 @@ import br.dev.xb.isperp.dto.backup.BackupPolicyRequest;
 import br.dev.xb.isperp.dto.backup.BackupPolicyResponse;
 import br.dev.xb.isperp.entity.backup.BackupExecutionLog;
 import br.dev.xb.isperp.entity.backup.BackupPolicy;
-import br.dev.xb.isperp.repository.backup.BackupDestinationRepository;
 import br.dev.xb.isperp.repository.backup.BackupExecutionLogRepository;
 import br.dev.xb.isperp.repository.backup.BackupPolicyRepository;
 import br.dev.xb.isperp.service.backup.BackupCryptoService;
