@@ -39,7 +39,10 @@ import {
   Key as KeyIcon,
   Receipt as ReceiptIcon,
   HeadsetMic as SupportIcon,
-  SwitchAccount as SwitchAccountIcon
+  SwitchAccount as SwitchAccountIcon,
+  Logout as LogoutIcon,
+  VpnKey as VpnKeyIcon,
+  Badge as BadgeIcon,
 } from '@mui/icons-material';
 import clientPortalService from '../../services/clientPortalService';
 import { helpdeskService } from '../../services/helpdeskService';
@@ -60,23 +63,50 @@ const ClientPortal = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryCustomerId = searchParams.get('customerId');
 
-  const [loading, setLoading] = useState(true);
-  const [dashboard, setDashboard] = useState(null);
+  // Sessão persistente do cliente no navegador
+  const [clientSession, setClientSession] = useState<any>(() => {
+    try {
+      const saved = sessionStorage.getItem('isperp_client_portal_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const isOperator = user?.role === 'ADMIN' || user?.role === 'SUPPORT_ANALYST' || user?.role === 'ATTENDANT';
+  const effectiveCustomerId = (isOperator && queryCustomerId) ? queryCustomerId : clientSession?.customerId;
+
+  // Estados do formulário de autenticação do cliente
+  const [authStep, setAuthStep] = useState<'DOCUMENT' | 'PIN'>('DOCUMENT');
+  const [loginDoc, setLoginDoc] = useState('');
+  const [loginPin, setLoginPin] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [loginCustomerInfo, setLoginCustomerInfo] = useState<any>(null);
+
+  // Estados do Modal de PIN de 4 dígitos
+  const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [currentPin, setCurrentPin] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [pinSaving, setPinSaving] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [dashboard, setDashboard] = useState<any>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [invoiceSubTab, setInvoiceSubTab] = useState(0);
 
-  // Lista de clientes para simulação (quando operador logado)
-  const [allCustomers, setAllCustomers] = useState([]);
-  const isOperator = user?.role === 'ADMIN' || user?.role === 'SUPPORT_ANALYST' || user?.role === 'ATTENDANT';
+  // Lista de clientes para simulação (somente se operador do ERP logado)
+  const [allCustomers, setAllCustomers] = useState<any[]>([]);
 
   // Modals
   const [pixModalOpen, setPixModalOpen] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [selectedUpgradePlan, setSelectedUpgradePlan] = useState(null);
+  const [selectedUpgradePlan, setSelectedUpgradePlan] = useState<any>(null);
 
   // Tickets State
-  const [myTickets, setMyTickets] = useState([]);
+  const [myTickets, setMyTickets] = useState<any[]>([]);
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [newTicketCategory, setNewTicketCategory] = useState('SLOW_SPEED');
   const [newTicketSubject, setNewTicketSubject] = useState('');
@@ -102,7 +132,11 @@ const ClientPortal = () => {
   // Snackbars & Feedback
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
-  const loadDashboard = async (targetCustomerId = queryCustomerId) => {
+  const loadDashboard = async (targetCustomerId = effectiveCustomerId) => {
+    if (!targetCustomerId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const data = await clientPortalService.getDashboard(targetCustomerId);
@@ -118,8 +152,12 @@ const ClientPortal = () => {
           zipCode: data.customer.zipCode || ''
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao carregar Central do Assinante:', err);
+      // Se não autorizado, limpa sessão
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        handleClientLogout();
+      }
       setToast({
         open: true,
         message: 'Erro ao carregar dados da Central do Assinante',
@@ -133,14 +171,14 @@ const ClientPortal = () => {
   const loadAllCustomers = async () => {
     if (!isOperator) return;
     try {
-      const list = await customerService.getAll();
+      const list: any = await customerService.getAll();
       setAllCustomers(list || []);
     } catch (err) {
       console.error('Erro ao listar clientes:', err);
     }
   };
 
-  const loadMyTickets = async (customerId) => {
+  const loadMyTickets = async (customerId: string) => {
     if (!customerId) return;
     try {
       const res: any = await helpdeskService.getTicketsByCustomer(customerId);
@@ -150,18 +188,111 @@ const ClientPortal = () => {
     }
   };
 
+  // Carrega ao mudar o ID efetivo
   useEffect(() => {
-    loadDashboard(queryCustomerId);
-    if (isOperator) {
-      loadAllCustomers();
+    if (effectiveCustomerId) {
+      loadDashboard(effectiveCustomerId);
+      if (isOperator) {
+        loadAllCustomers();
+      }
     }
-  }, [queryCustomerId]);
+  }, [effectiveCustomerId]);
 
   useEffect(() => {
     if (dashboard?.customer?.id) {
       loadMyTickets(dashboard.customer.id);
     }
   }, [dashboard]);
+
+  // Handler de login do cliente por CPF/CNPJ e PIN
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+
+    if (!loginDoc.trim()) {
+      setLoginError('Informe o seu CPF ou CNPJ.');
+      return;
+    }
+
+    try {
+      setLoginLoading(true);
+      const res: any = await clientPortalService.authenticate(
+        loginDoc.trim(),
+        authStep === 'PIN' ? loginPin.trim() : undefined
+      );
+
+      if (res.status === 'PIN_REQUIRED') {
+        setLoginCustomerInfo(res);
+        setAuthStep('PIN');
+        setLoginLoading(false);
+        return;
+      }
+
+      if (res.status === 'AUTHENTICATED') {
+        const session = {
+          customerId: res.customerId,
+          customerName: res.customerName,
+          hasPin: res.hasPin,
+          document: res.maskedDocument
+        };
+        sessionStorage.setItem('isperp_client_portal_session', JSON.stringify(session));
+        setClientSession(session);
+        setToast({
+          open: true,
+          message: `Bem-vindo(a), ${res.customerName}!`,
+          severity: 'success'
+        });
+      }
+    } catch (err: any) {
+      setLoginError(err.response?.data?.message || err.message || 'Erro ao validar documento.');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleClientLogout = () => {
+    sessionStorage.removeItem('isperp_client_portal_session');
+    setClientSession(null);
+    setDashboard(null);
+    setAuthStep('DOCUMENT');
+    setLoginDoc('');
+    setLoginPin('');
+    setLoginError('');
+    if (queryCustomerId && !isOperator) {
+      setSearchParams({});
+    }
+  };
+
+  const handleSavePin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPin || newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+      setToast({ open: true, message: 'O PIN deve conter exatamente 4 dígitos numéricos.', severity: 'warning' });
+      return;
+    }
+    if (newPin !== confirmPin) {
+      setToast({ open: true, message: 'A confirmação do novo PIN não confere.', severity: 'warning' });
+      return;
+    }
+
+    try {
+      setPinSaving(true);
+      await clientPortalService.setPin(effectiveCustomerId, newPin, currentPin || undefined);
+      setToast({ open: true, message: 'PIN de 4 dígitos configurado com sucesso!', severity: 'success' });
+      setPinModalOpen(false);
+      setNewPin('');
+      setConfirmPin('');
+      setCurrentPin('');
+      if (clientSession) {
+        const updated = { ...clientSession, hasPin: true };
+        sessionStorage.setItem('isperp_client_portal_session', JSON.stringify(updated));
+        setClientSession(updated);
+      }
+    } catch (err: any) {
+      setToast({ open: true, message: err.response?.data?.message || 'Erro ao configurar PIN.', severity: 'error' });
+    } finally {
+      setPinSaving(false);
+    }
+  };
 
   const handleCustomerSwitch = (newCustId) => {
     if (newCustId) {
@@ -310,6 +441,159 @@ const ClientPortal = () => {
     );
   }
 
+  // Se o cliente não estiver autenticado (sem sessão e sem impersonate de operador), exibe tela de login do assinante
+  if (!effectiveCustomerId) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: '#f4f6f8',
+          p: 2,
+        }}
+      >
+        <Card sx={{ maxWidth: 460, width: '100%', borderRadius: 3, boxShadow: 4, overflow: 'hidden' }}>
+          <Box
+            sx={{
+              p: 3,
+              background: 'linear-gradient(135deg, #0d47a1 0%, #1976d2 100%)',
+              color: '#fff',
+              textAlign: 'center',
+            }}
+          >
+            <Typography variant="h5" fontWeight="bold">
+              Central do Assinante
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+              Nexus Fibra Telecom • Autoatendimento
+            </Typography>
+          </Box>
+
+          <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+            {loginError && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {loginError}
+              </Alert>
+            )}
+
+            <form onSubmit={handleLoginSubmit}>
+              {authStep === 'DOCUMENT' ? (
+                <Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Informe o <strong>CPF</strong> ou <strong>CNPJ</strong> do titular para consultar faturas, código Pix e serviços.
+                  </Typography>
+
+                  <TextField
+                    fullWidth
+                    label="CPF ou CNPJ do Titular"
+                    variant="outlined"
+                    value={loginDoc}
+                    onChange={(e) => setLoginDoc(e.target.value)}
+                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                    autoFocus
+                    required
+                    sx={{ mb: 3 }}
+                  />
+
+                  <Button
+                    fullWidth
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={loginLoading}
+                    sx={{
+                      py: 1.5,
+                      fontWeight: 'bold',
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #0d47a1 0%, #1976d2 100%)',
+                    }}
+                  >
+                    {loginLoading ? <CircularProgress size={24} color="inherit" /> : 'Acessar Central'}
+                  </Button>
+                </Box>
+              ) : (
+                <Box>
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    Olá, <strong>{loginCustomerInfo?.customerName}</strong>! ({loginCustomerInfo?.maskedDocument})
+                  </Alert>
+
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Digite seu <strong>PIN de 4 dígitos</strong> para desbloquear o acesso às suas faturas:
+                  </Typography>
+
+                  <TextField
+                    fullWidth
+                    label="PIN de 4 Dígitos"
+                    type="password"
+                    inputProps={{ maxLength: 4, inputMode: 'numeric', pattern: '[0-9]*' }}
+                    value={loginPin}
+                    onChange={(e) => setLoginPin(e.target.value.replace(/\D/g, ''))}
+                    placeholder="••••"
+                    autoFocus
+                    required
+                    sx={{ mb: 3, input: { letterSpacing: 8, fontSize: '1.5rem', textAlign: 'center' } }}
+                  />
+
+                  <Button
+                    fullWidth
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={loginLoading}
+                    sx={{
+                      py: 1.5,
+                      fontWeight: 'bold',
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #0d47a1 0%, #1976d2 100%)',
+                      mb: 1.5,
+                    }}
+                  >
+                    {loginLoading ? <CircularProgress size={24} color="inherit" /> : 'Confirmar e Entrar'}
+                  </Button>
+
+                  <Button
+                    fullWidth
+                    variant="text"
+                    color="inherit"
+                    onClick={() => {
+                      setAuthStep('DOCUMENT');
+                      setLoginPin('');
+                      setLoginError('');
+                    }}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Trocar CPF/CNPJ
+                  </Button>
+                </Box>
+              )}
+            </form>
+
+            <Divider sx={{ my: 3 }} />
+
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="caption" color="text.secondary" display="block">
+                Precisa de ajuda ou esqueceu seu PIN?
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                color="success"
+                startIcon={<SupportIcon />}
+                href="https://wa.me/559335152000"
+                target="_blank"
+                sx={{ mt: 1, textTransform: 'none', borderRadius: 2 }}
+              >
+                Falar com Atendente no WhatsApp
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
   const {
     customer,
     contract,
@@ -388,12 +672,32 @@ const ClientPortal = () => {
             </Typography>
           </Grid>
           <Grid item xs={12} sm={4} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-            <Chip
-              icon={isConnectionBlocked ? <WarningIcon /> : <CheckCircleIcon />}
-              label={isConnectionBlocked ? 'Conexão Suspensa' : 'Conexão Ativa'}
-              color={isConnectionBlocked ? 'error' : 'success'}
-              sx={{ fontWeight: 'bold', fontSize: '0.9rem', py: 2, px: 1 }}
-            />
+            <Box sx={{ display: 'flex', gap: 1, justifyContent: { xs: 'flex-start', sm: 'flex-end' }, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Chip
+                icon={isConnectionBlocked ? <WarningIcon /> : <CheckCircleIcon />}
+                label={isConnectionBlocked ? 'Conexão Suspensa' : 'Conexão Ativa'}
+                color={isConnectionBlocked ? 'error' : 'success'}
+                sx={{ fontWeight: 'bold', fontSize: '0.9rem', py: 2, px: 1 }}
+              />
+              <Tooltip title={clientSession?.hasPin ? "Alterar PIN de 4 dígitos" : "Cadastrar PIN de 4 dígitos"}>
+                <IconButton 
+                  color="inherit" 
+                  onClick={() => setPinModalOpen(true)}
+                  sx={{ bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }}
+                >
+                  <VpnKeyIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Encerrar Sessão">
+                <IconButton 
+                  color="inherit" 
+                  onClick={handleClientLogout}
+                  sx={{ bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }}
+                >
+                  <LogoutIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Grid>
         </Grid>
       </Paper>
@@ -1184,6 +1488,60 @@ const ClientPortal = () => {
             sx={{ fontWeight: 'bold', borderRadius: 2, px: 3 }}
           >
             Confirmar Upgrade de Plano
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de Configuração de PIN de 4 dígitos */}
+      <Dialog open={pinModalOpen} onClose={() => setPinModalOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          {clientSession?.hasPin ? 'Alterar PIN de Segurança' : 'Cadastrar PIN de 4 Dígitos'}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            O PIN numérico de 4 dígitos protege o acesso às suas faturas e histórico de chamados.
+          </Typography>
+
+          {clientSession?.hasPin && (
+            <TextField
+              fullWidth
+              label="PIN Atual"
+              type="password"
+              inputProps={{ maxLength: 4, inputMode: 'numeric' }}
+              value={currentPin}
+              onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, ''))}
+              placeholder="••••"
+              sx={{ mb: 2 }}
+            />
+          )}
+
+          <TextField
+            fullWidth
+            label="Novo PIN (4 dígitos)"
+            type="password"
+            inputProps={{ maxLength: 4, inputMode: 'numeric' }}
+            value={newPin}
+            onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
+            placeholder="••••"
+            sx={{ mb: 2 }}
+          />
+
+          <TextField
+            fullWidth
+            label="Confirmar Novo PIN"
+            type="password"
+            inputProps={{ maxLength: 4, inputMode: 'numeric' }}
+            value={confirmPin}
+            onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+            placeholder="••••"
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setPinModalOpen(false)} color="inherit">
+            Cancelar
+          </Button>
+          <Button onClick={handleSavePin} variant="contained" disabled={pinSaving || newPin.length !== 4}>
+            {pinSaving ? <CircularProgress size={20} /> : 'Salvar PIN'}
           </Button>
         </DialogActions>
       </Dialog>

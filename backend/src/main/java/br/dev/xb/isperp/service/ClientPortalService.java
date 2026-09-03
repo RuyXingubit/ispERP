@@ -1,8 +1,6 @@
 package br.dev.xb.isperp.service;
 
-import br.dev.xb.isperp.dto.ChangePasswordRequest;
-import br.dev.xb.isperp.dto.ClientPortalDashboardDTO;
-import br.dev.xb.isperp.dto.UpdateClientProfileRequest;
+import br.dev.xb.isperp.dto.*;
 import br.dev.xb.isperp.entity.*;
 import br.dev.xb.isperp.exception.ResourceNotFoundException;
 import br.dev.xb.isperp.repository.*;
@@ -257,5 +255,118 @@ public class ClientPortalService {
         Optional<TrustUnblock> lastActive = trustUnblockRepository
                 .findFirstByContractIdAndStatusOrderByRequestedAtDesc(contractId, "ACTIVE");
         return lastActive.isEmpty();
+    }
+
+    /**
+     * Autentica o cliente por CPF/CNPJ e valida PIN de 4 dígitos.
+     */
+    @Transactional(readOnly = true)
+    public ClientAuthResponse authenticateClient(ClientAuthRequest request) {
+        String rawDoc = request.getDocument();
+        String cleanDoc = rawDoc.replaceAll("[^0-9]", "");
+
+        Customer customer = customerRepository.findByCpfOrCleanDocument(rawDoc, cleanDoc)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente não localizado com o CPF/CNPJ informado."));
+
+        if (!Boolean.TRUE.equals(customer.getActive())) {
+            throw new IllegalArgumentException("Cadastro de cliente inativo. Por favor, contate nosso suporte.");
+        }
+
+        boolean hasPin = customer.getPortalPin() != null && !customer.getPortalPin().isBlank();
+
+        // Se o cliente tem PIN cadastrado
+        if (hasPin) {
+            if (request.getPin() == null || request.getPin().isBlank()) {
+                return ClientAuthResponse.builder()
+                        .status("PIN_REQUIRED")
+                        .message("Informe seu PIN de 4 dígitos para prosseguir.")
+                        .customerId(customer.getId())
+                        .customerName(customer.getName())
+                        .maskedDocument(maskDocument(cleanDoc))
+                        .hasPin(true)
+                        .build();
+            }
+
+            // Validar o PIN
+            boolean pinMatches = passwordEncoder.matches(request.getPin(), customer.getPortalPin())
+                    || request.getPin().equals(customer.getPortalPin()); // fallback para PIN legado não hasheado
+
+            if (!pinMatches) {
+                throw new IllegalArgumentException("PIN incorreto. Tente novamente.");
+            }
+
+            if (Boolean.TRUE.equals(customer.getPinForceChange())) {
+                return ClientAuthResponse.builder()
+                        .status("FORCE_CHANGE_PIN")
+                        .message("Por segurança, cadastre um novo PIN de 4 dígitos para o seu acesso.")
+                        .customerId(customer.getId())
+                        .customerName(customer.getName())
+                        .maskedDocument(maskDocument(cleanDoc))
+                        .hasPin(true)
+                        .build();
+            }
+        }
+
+        // Autenticado com sucesso
+        return ClientAuthResponse.builder()
+                .status("AUTHENTICATED")
+                .message("Acesso liberado com sucesso.")
+                .customerId(customer.getId())
+                .customerName(customer.getName())
+                .maskedDocument(maskDocument(cleanDoc))
+                .hasPin(hasPin)
+                .customer(customer)
+                .build();
+    }
+
+    /**
+     * Define ou atualiza o PIN de 4 dígitos do assinante.
+     */
+    @Transactional
+    public void setPin(SetClientPinRequest request) {
+        Customer customer = customerRepository.findById(request.getCustomerId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado: " + request.getCustomerId()));
+
+        // Se já tiver PIN e não for force change, valida o PIN atual
+        if (customer.getPortalPin() != null && !customer.getPortalPin().isBlank()
+                && !Boolean.TRUE.equals(customer.getPinForceChange())
+                && request.getCurrentPin() != null && !request.getCurrentPin().isBlank()) {
+            boolean pinMatches = passwordEncoder.matches(request.getCurrentPin(), customer.getPortalPin())
+                    || request.getCurrentPin().equals(customer.getPortalPin());
+            if (!pinMatches) {
+                throw new IllegalArgumentException("PIN atual incorreto.");
+            }
+        }
+
+        customer.setPortalPin(passwordEncoder.encode(request.getNewPin()));
+        customer.setPinForceChange(false);
+        customerRepository.save(customer);
+        log.info("PIN de 4 dígitos atualizado com sucesso para o cliente {}", customer.getId());
+    }
+
+    /**
+     * Operador administrativo reseta ou define um PIN temporário para o assinante.
+     */
+    @Transactional
+    public void resetPinByOperator(UUID customerId, String temporaryPin, boolean forceChange) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado: " + customerId));
+
+        customer.setPortalPin(passwordEncoder.encode(temporaryPin));
+        customer.setPinForceChange(forceChange);
+        customerRepository.save(customer);
+        log.info("PIN resetado pelo operador para o cliente {}", customerId);
+    }
+
+    private String maskDocument(String doc) {
+        if (doc == null || doc.length() < 6) return "***";
+        if (doc.length() == 11) {
+            // CPF: 123.***.***-00
+            return doc.substring(0, 3) + ".***.***-" + doc.substring(9);
+        } else if (doc.length() == 14) {
+            // CNPJ: 12.***.***/****-00
+            return doc.substring(0, 2) + ".***.***/****-" + doc.substring(12);
+        }
+        return doc.substring(0, 2) + "***" + doc.substring(doc.length() - 2);
     }
 }

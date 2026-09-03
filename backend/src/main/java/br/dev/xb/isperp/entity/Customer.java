@@ -79,6 +79,13 @@ public class Customer {
     @Builder.Default
     private Boolean alwaysIssueNfcom = false;
     
+    @Column(name = "portal_pin")
+    private String portalPin;
+
+    @Column(name = "pin_force_change", nullable = false)
+    @Builder.Default
+    private Boolean pinForceChange = false;
+
     @Column(name = "active", nullable = false)
     @Builder.Default
     private Boolean active = true;

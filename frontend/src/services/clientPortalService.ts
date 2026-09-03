@@ -1,6 +1,16 @@
 import api from './api';
 
 export const clientPortalService = {
+  authenticate: async (document: string, pin?: string) => {
+    const response = await api.post('/portal/client/auth', { document, pin });
+    return response.data;
+  },
+
+  setPin: async (customerId: string, newPin: string, currentPin?: string) => {
+    const response = await api.post('/portal/client/pin', { customerId, newPin, currentPin });
+    return response.data;
+  },
+
   getDashboard: async (customerId?: string) => {
     const params = customerId ? { customerId } : {};
     const response = await api.get('/portal/client/dashboard', { params });

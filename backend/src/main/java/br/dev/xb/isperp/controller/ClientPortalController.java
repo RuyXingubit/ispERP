@@ -1,18 +1,17 @@
 package br.dev.xb.isperp.controller;
 
-import br.dev.xb.isperp.dto.ChangePasswordRequest;
-import br.dev.xb.isperp.dto.ClientPortalDashboardDTO;
-import br.dev.xb.isperp.dto.UpdateClientProfileRequest;
+import br.dev.xb.isperp.dto.*;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Customer;
 import br.dev.xb.isperp.entity.TrustUnblock;
-import br.dev.xb.isperp.repository.CustomerRepository;
 import br.dev.xb.isperp.service.ClientPortalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import org.jspecify.annotations.Nullable;
 
@@ -28,7 +27,23 @@ import java.util.UUID;
 public class ClientPortalController {
 
     private final ClientPortalService clientPortalService;
-    private final CustomerRepository customerRepository;
+
+    /**
+     * Autenticação do cliente por CPF/CNPJ com validação de PIN de 4 dígitos.
+     */
+    @PostMapping("/auth")
+    public ResponseEntity<ClientAuthResponse> authenticate(@Valid @RequestBody ClientAuthRequest request) {
+        return ResponseEntity.ok(clientPortalService.authenticateClient(request));
+    }
+
+    /**
+     * Define ou atualiza o PIN de 4 dígitos do cliente.
+     */
+    @PostMapping("/pin")
+    public ResponseEntity<Map<String, String>> setPin(@Valid @RequestBody SetClientPinRequest request) {
+        clientPortalService.setPin(request);
+        return ResponseEntity.ok(Map.of("message", "PIN de 4 dígitos configurado com sucesso."));
+    }
 
     /**
      * Retorna o dashboard completo do assinante.
@@ -108,10 +123,7 @@ public class ClientPortalController {
         if (queryId != null) return queryId;
         if (headerId != null) return headerId;
 
-        // Fallback para o primeiro cliente cadastrado para demonstração/testes
-        return customerRepository.findAll().stream()
-                .findFirst()
-                .map(c -> c.getId())
-                .orElseThrow(() -> new RuntimeException("Nenhum cliente cadastrado no sistema"));
+        // Sem fallback: acesso não identificado é estritamente rejeitado com 401 Unauthorized
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Acesso não autorizado. Identifique-se com seu CPF ou CNPJ.");
     }
 }
