@@ -1,58 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ToastContainer } from 'react-toastify';
-import { CircularProgress, Box } from '@mui/material';
+import { CircularProgress, Box, Typography } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
 
-import Setup from './pages/Setup/Setup';
-import Home from './pages/Home/Home';
-import Login from './pages/Login/Login';
-import Dashboard from './pages/Dashboard/Dashboard';
-import UserList from './pages/Users/UserList';
-import CompanyList from './pages/Companies/CompanyList';
-import SiteSettings from './pages/SiteSettings/SiteSettings';
-import CustomerList from './pages/CustomerList';
-import CustomerForm from './pages/CustomerForm';
-import PlanList from './pages/Plans/PlanList';
-import SaleForm from './pages/Sales/SaleForm';
-import ContractList from './pages/Contracts/ContractList';
-import { ContractTemplateManager } from './pages/Contracts/ContractTemplateManager';
-import { PublicSignaturePage } from './pages/Public/PublicSignaturePage';
-import WorkOrderList from './pages/WorkOrders/WorkOrderList';
-import TechnicianPortal from './pages/Technician/TechnicianPortal';
-import InvoiceList from './pages/Financial/InvoiceList';
-import GatewayConfig from './pages/Financial/GatewayConfig';
-import FiscalDashboard from './pages/Financial/FiscalDashboard';
-import CashCustodyManager from './pages/Financial/CashCustodyManager';
-import { ChartOfAccountsManager } from './pages/Financial/ChartOfAccountsManager';
-import { PayablesManager } from './pages/Financial/PayablesManager';
-import { WorkOrderFeeWaivers } from './pages/Financial/WorkOrderFeeWaivers';
-import { DeleveragingDashboard } from './pages/Financial/DeleveragingDashboard';
-import { DreReportViewer } from './pages/Financial/DreReportViewer';
-import { NetworkProjectsPayback } from './pages/Financial/NetworkProjectsPayback';
-import { SentinelWatchdog } from './pages/Financial/SentinelWatchdog';
-import { BackupDisasterRecoveryDashboard } from './pages/Financial/BackupDisasterRecoveryDashboard';
-import OnuList from './pages/Network/OnuList';
-import NetworkDeviceList from './pages/Network/NetworkDeviceList';
-import IpamManager from './pages/Network/IpamManager';
-import RadiusManager from './pages/Network/RadiusManager';
-import FtthManager from './pages/Network/FtthManager';
-import NocDashboard from './pages/Network/NocDashboard';
-import CgnatManager from './pages/Network/CgnatManager';
-import MarcoCivilSearch from './pages/Network/MarcoCivilSearch';
-import ReportValidation from './pages/Public/ReportValidation';
-import ClientPortal from './pages/Portal/ClientPortal';
-import InventoryManager from './pages/Inventory/InventoryManager';
-import RoutePlanner from './pages/WorkOrders/RoutePlanner';
-import { InstallationDispatchDashboard } from './pages/WorkOrders/InstallationDispatchDashboard';
-import TicketList from './pages/Helpdesk/TicketList';
-import NotificationConfigList from './pages/Settings/NotificationConfigList';
-import StorageConfig from './pages/Settings/StorageConfig';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import { setupService } from './services/setupService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+// Lazy-loaded pages for high-performance Code-Splitting
+const Setup = lazy(() => import('./pages/Setup/Setup'));
+const Home = lazy(() => import('./pages/Home/Home'));
+const Login = lazy(() => import('./pages/Login/Login'));
+const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'));
+const UserList = lazy(() => import('./pages/Users/UserList'));
+const CompanyList = lazy(() => import('./pages/Companies/CompanyList'));
+const SiteSettings = lazy(() => import('./pages/SiteSettings/SiteSettings'));
+const CustomerList = lazy(() => import('./pages/CustomerList'));
+const CustomerForm = lazy(() => import('./pages/CustomerForm'));
+const PlanList = lazy(() => import('./pages/Plans/PlanList'));
+const SaleForm = lazy(() => import('./pages/Sales/SaleForm'));
+const ContractList = lazy(() => import('./pages/Contracts/ContractList'));
+const ContractTemplateManager = lazy(() => import('./pages/Contracts/ContractTemplateManager').then(m => ({ default: m.ContractTemplateManager })));
+const PublicSignaturePage = lazy(() => import('./pages/Public/PublicSignaturePage').then(m => ({ default: m.PublicSignaturePage })));
+const WorkOrderList = lazy(() => import('./pages/WorkOrders/WorkOrderList'));
+const TechnicianPortal = lazy(() => import('./pages/Technician/TechnicianPortal'));
+const InvoiceList = lazy(() => import('./pages/Financial/InvoiceList'));
+const GatewayConfig = lazy(() => import('./pages/Financial/GatewayConfig'));
+const FiscalDashboard = lazy(() => import('./pages/Financial/FiscalDashboard'));
+const CashCustodyManager = lazy(() => import('./pages/Financial/CashCustodyManager'));
+const ChartOfAccountsManager = lazy(() => import('./pages/Financial/ChartOfAccountsManager').then(m => ({ default: m.ChartOfAccountsManager })));
+const PayablesManager = lazy(() => import('./pages/Financial/PayablesManager').then(m => ({ default: m.PayablesManager })));
+const WorkOrderFeeWaivers = lazy(() => import('./pages/Financial/WorkOrderFeeWaivers').then(m => ({ default: m.WorkOrderFeeWaivers })));
+const DeleveragingDashboard = lazy(() => import('./pages/Financial/DeleveragingDashboard').then(m => ({ default: m.DeleveragingDashboard })));
+const DreReportViewer = lazy(() => import('./pages/Financial/DreReportViewer').then(m => ({ default: m.DreReportViewer })));
+const NetworkProjectsPayback = lazy(() => import('./pages/Financial/NetworkProjectsPayback').then(m => ({ default: m.NetworkProjectsPayback })));
+const SentinelWatchdog = lazy(() => import('./pages/Financial/SentinelWatchdog').then(m => ({ default: m.SentinelWatchdog })));
+const BackupDisasterRecoveryDashboard = lazy(() => import('./pages/Financial/BackupDisasterRecoveryDashboard').then(m => ({ default: m.BackupDisasterRecoveryDashboard })));
+const OnuList = lazy(() => import('./pages/Network/OnuList'));
+const NetworkDeviceList = lazy(() => import('./pages/Network/NetworkDeviceList'));
+const IpamManager = lazy(() => import('./pages/Network/IpamManager'));
+const RadiusManager = lazy(() => import('./pages/Network/RadiusManager'));
+const FtthManager = lazy(() => import('./pages/Network/FtthManager'));
+const NocDashboard = lazy(() => import('./pages/Network/NocDashboard'));
+const CgnatManager = lazy(() => import('./pages/Network/CgnatManager'));
+const MarcoCivilSearch = lazy(() => import('./pages/Network/MarcoCivilSearch'));
+const ReportValidation = lazy(() => import('./pages/Public/ReportValidation'));
+const ClientPortal = lazy(() => import('./pages/Portal/ClientPortal'));
+const InventoryManager = lazy(() => import('./pages/Inventory/InventoryManager'));
+const RoutePlanner = lazy(() => import('./pages/WorkOrders/RoutePlanner'));
+const InstallationDispatchDashboard = lazy(() => import('./pages/WorkOrders/InstallationDispatchDashboard').then(m => ({ default: m.InstallationDispatchDashboard })));
+const TicketList = lazy(() => import('./pages/Helpdesk/TicketList'));
+const NotificationConfigList = lazy(() => import('./pages/Settings/NotificationConfigList'));
+const StorageConfig = lazy(() => import('./pages/Settings/StorageConfig'));
+
+const PageLoadingFallback = () => (
+  <Box 
+    display="flex" 
+    flexDirection="column"
+    justifyContent="center" 
+    alignItems="center" 
+    minHeight="60vh"
+    gap={2}
+  >
+    <CircularProgress size={36} thickness={4} />
+    <Typography variant="caption" color="text.secondary">
+      Carregando módulo ispERP...
+    </Typography>
+  </Box>
+);
 
 const theme = createTheme({
   palette: {
@@ -99,7 +117,8 @@ function AppContent() {
   return (
     <Router>
       <div className="App">
-        <Routes>
+        <Suspense fallback={<PageLoadingFallback />}>
+          <Routes>
           <Route 
             path="/setup" 
             element={isSetupCompleted ? <Navigate to="/" replace /> : <Setup />} 
@@ -504,6 +523,7 @@ function AppContent() {
             } 
           />
         </Routes>
+        </Suspense>
         <ToastContainer
           position="top-right"
           autoClose={5000}
