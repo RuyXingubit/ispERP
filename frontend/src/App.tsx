@@ -31,6 +31,8 @@ import { PayablesManager } from './pages/Financial/PayablesManager';
 import { WorkOrderFeeWaivers } from './pages/Financial/WorkOrderFeeWaivers';
 import { DeleveragingDashboard } from './pages/Financial/DeleveragingDashboard';
 import { DreReportViewer } from './pages/Financial/DreReportViewer';
+import { NetworkProjectsPayback } from './pages/Financial/NetworkProjectsPayback';
+import { SentinelWatchdog } from './pages/Financial/SentinelWatchdog';
 import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import IpamManager from './pages/Network/IpamManager';
@@ -308,6 +310,24 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
                 <DreReportViewer />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/financial/projects-payback" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                <NetworkProjectsPayback />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/financial/sentinel" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                <SentinelWatchdog />
               </ProtectedRoute>
             } 
           />

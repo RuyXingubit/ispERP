@@ -88,5 +88,30 @@ export const financialService = {
   simulateInvestment: async (request: SimulationRequest): Promise<SimulationResponse> => {
     const res = await api.post<SimulationResponse>('/financial/deleveraging/simulate', request);
     return res.data;
+  },
+
+  // 6. Payback de Projetos de Rede & Mapa de Guerra Comercial
+  getNetworkProjectsPayback: async (): Promise<NetworkProjectPaybackDto[]> => {
+    const res = await api.get<NetworkProjectPaybackDto[]>('/financial/network-projects/payback');
+    return res.data;
+  },
+
+  createNetworkProject: async (request: NetworkProjectRequest): Promise<void> => {
+    await api.post('/financial/network-projects', request);
+  },
+
+  // 7. Sentinela IA (Auditoria Forense)
+  getSentinelAlerts: async (): Promise<SentinelAuditLogDto[]> => {
+    const res = await api.get<SentinelAuditLogDto[]>('/financial/sentinel/alerts');
+    return res.data;
+  },
+
+  triggerSentinelSweep: async (): Promise<SentinelAuditLogDto[]> => {
+    const res = await api.post<SentinelAuditLogDto[]>('/financial/sentinel/sweep');
+    return res.data;
+  },
+
+  resolveSentinelAlert: async (id: string): Promise<void> => {
+    await api.post(`/financial/sentinel/alerts/${id}/resolve`);
   }
 };

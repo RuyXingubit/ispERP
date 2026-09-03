@@ -573,8 +573,22 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 31: Payback por Projeto de Rede (Mapa de Guerra Comercial) & Sentinela IA (Planejado)
-> **Objetivo:** Vínculo de caixas CTO a centros de custo de projetos de expansão com cálculo de payback e direcionador comercial, além do Sentinela Anti-Fraude com Gemini Flash.
+## 🎯 Milestone 31: Payback por Projeto de Rede (Mapa de Guerra Comercial) & Sentinela IA (Concluído)
+> **Objetivo:** Vínculo de caixas CTO a centros de custo de projetos de expansão com cálculo de payback e direcionador comercial, além do Sentinela Anti-Fraude com IA.
+
+- [x] **Migração Flyway:**
+  - `V29__create_network_projects_and_sentinel_audit_schema.sql`: Tabela `network_projects`, coluna `project_id` em `ftth_ctos` e tabela `sentinel_audit_logs`.
+- [x] **Backend Core (Java 25 + Spring Boot 4.1.1):**
+  - Entidades `NetworkProject` e `SentinelAuditLog` com UUIDv7 nativo.
+  - `NetworkProjectService`: Vínculo de CTOs a projetos, cálculo em tempo real de portas ocupadas vs livres, MRR no bairro, margem líquida, meses de payback e geração do alerta do **Direcionador Comercial** (*"🚨 DINHEIRO DORMINDO NO POSTE: Bairro possui baixa ocupação. Direcionar vendas aqui!"*).
+  - `SentinelWatchdogService`: Varredura pericial automatizada de anomalias (retenção excessiva de dinheiro vivo por CPF, anomalias de isenções de O.S., auditoria de materiais).
+  - Controladores REST: `NetworkProjectController` (`/api/financial/network-projects`) e `SentinelAuditController` (`/api/financial/sentinel`).
+- [x] **Frontend Corporativo (React 19 / TypeScript):**
+  - `NetworkProjectsPayback.tsx` (`/financial/projects-payback`): Mapa de guerra comercial, cards por projeto de bairro com barra de ocupação e termômetro comercial.
+  - `SentinelWatchdog.tsx` (`/financial/sentinel`): Painel pericial anti-fraude com disparo de varredura forense e dossiês analíticos.
+- [x] **Testes Automatizados:**
+  - `NetworkProjectServiceTest` e `SentinelWatchdogServiceTest` passando 100%.
+  - `NetworkProjectsAndSentinelIntegrationTest`: Teste com Testcontainers e PostgreSQL 17 real validando todo o ciclo ponta a ponta.
 
 
 

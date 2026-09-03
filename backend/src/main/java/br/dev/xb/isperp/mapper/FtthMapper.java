@@ -50,6 +50,7 @@ public interface FtthMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "projectId", ignore = true)
     FtthCto toCtoEntity(FtthCtoRequest request);
 
     @Mapping(target = "onuSerial", ignore = true)

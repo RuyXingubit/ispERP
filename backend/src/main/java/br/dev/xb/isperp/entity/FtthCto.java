@@ -58,6 +58,9 @@ public class FtthCto {
     @Column(columnDefinition = "TEXT")
     private @Nullable String description;
 
+    @Column(name = "project_id")
+    private @Nullable UUID projectId;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

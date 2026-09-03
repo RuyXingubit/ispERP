@@ -135,6 +135,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
       path: '/financial/dre',
     },
     {
+      text: 'Payback & Guerra Comercial',
+      icon: <SpeedIcon />,
+      path: '/financial/projects-payback',
+    },
+    {
+      text: 'Sentinela Anti-Fraude (IA)',
+      icon: <SecurityIcon />,
+      path: '/financial/sentinel',
+    },
+    {
       text: 'Custódia de Caixa & CPF',
       icon: <WalletIcon />,
       path: '/financial/custody',

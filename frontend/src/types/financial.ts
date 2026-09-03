@@ -161,3 +161,49 @@ export interface SimulationResponse {
   delayInMonthsForFreedom: number;
   riskAnalysisSummary: string;
 }
+
+export interface NetworkProjectRequest {
+  name: string;
+  neighborhood: string;
+  city: string;
+  budgetAmount: number;
+  targetSubscribers: number;
+  startDate?: string;
+  notes?: string;
+}
+
+export interface NetworkProjectPaybackDto {
+  projectId: string;
+  name: string;
+  neighborhood: string;
+  city: string;
+  status: 'PLANNING' | 'DEPLOYING' | 'ACTIVE' | 'COMPLETED';
+  budgetAmount: number;
+  targetSubscribers: number;
+  startDate: string;
+  ctoCount: number;
+  totalPorts: number;
+  occupiedPorts: number;
+  occupancyRatePercentage: number;
+  activeSubscribers: number;
+  generatedMrr: number;
+  monthlyNetContribution: number;
+  accumulatedPaybackMonths: number;
+  isPaybackReached: boolean;
+  commercialDirectionAlert: string;
+  priorityLevel: 'IDLE_NETWORK_FOCUS' | 'HIGH_RETURN' | 'NORMAL';
+}
+
+export type SentinelSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export interface SentinelAuditLogDto {
+  id: string;
+  auditType: string;
+  severity: SentinelSeverity;
+  title: string;
+  description: string;
+  geminiAnalysis?: string | null;
+  recommendedAction?: string | null;
+  resolved: boolean;
+  createdAt: string;
+}

@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface FtthCtoRepository extends JpaRepository<FtthCto, UUID> {
     List<FtthCto> findAllByOrderByCreatedAtDesc();
     List<FtthCto> findByClosureId(UUID closureId);
+    List<FtthCto> findByProjectId(UUID projectId);
 }
