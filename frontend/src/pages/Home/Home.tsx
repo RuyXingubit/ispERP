@@ -45,7 +45,11 @@ const Home = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg'));
 
-  const handleLoginClick = () => {
+  const handleClientPortalClick = () => {
+    navigate('/portal/client');
+  };
+
+  const handleAdminLoginClick = () => {
     navigate('/login');
   };
 
@@ -162,7 +166,7 @@ const Home = () => {
             <Divider orientation="vertical" flexItem />
             <Button 
               variant="contained"
-              onClick={handleLoginClick}
+              onClick={handleClientPortalClick}
               startIcon={<LoginIcon sx={{ fontSize: { xs: 16, sm: 20 } }} />}
               sx={{ 
                 ml: 1,
@@ -178,7 +182,7 @@ const Home = () => {
           <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <Button 
               variant="contained"
-              onClick={handleLoginClick}
+              onClick={handleClientPortalClick}
               size="small"
               sx={{ 
                 fontSize: '0.75rem',
@@ -186,7 +190,7 @@ const Home = () => {
                 px: 1.5,
               }}
             >
-              Login
+              Área do Cliente
             </Button>
           </Box>
         </Toolbar>
@@ -982,6 +986,18 @@ const Home = () => {
                 }}
               >
                 Termos de Uso
+              </Typography>
+              <Typography 
+                variant="body2" 
+                onClick={handleAdminLoginClick}
+                sx={{ 
+                  opacity: 0.6, 
+                  cursor: 'pointer',
+                  fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                  '&:hover': { opacity: 1, color: 'primary.light' },
+                }}
+              >
+                Acesso Colaborador (ERP)
               </Typography>
             </Box>
           </Box>
