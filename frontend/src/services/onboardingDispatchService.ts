@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 import {
   InstallationMaterialDemand,
   TechnicianDispatchCandidate,
@@ -7,27 +7,25 @@ import {
   TechnicianExecutionCompleteRequest,
 } from '../types/onboarding-dispatch';
 
-const API_BASE = '/api';
-
 export const onboardingDispatchService = {
   // Despacho de Instalações
   async listDemands(): Promise<InstallationMaterialDemand[]> {
-    const response = await axios.get(`${API_BASE}/dispatch/installations/demands`);
+    const response = await api.get<InstallationMaterialDemand[]>('/dispatch/installations/demands');
     return response.data;
   },
 
   async getDemandByWorkOrder(workOrderId: string): Promise<InstallationMaterialDemand> {
-    const response = await axios.get(`${API_BASE}/dispatch/installations/demands/${workOrderId}`);
+    const response = await api.get<InstallationMaterialDemand>(`/dispatch/installations/demands/${workOrderId}`);
     return response.data;
   },
 
   async listCandidates(workOrderId: string): Promise<TechnicianDispatchCandidate[]> {
-    const response = await axios.get(`${API_BASE}/dispatch/installations/${workOrderId}/candidates`);
+    const response = await api.get<TechnicianDispatchCandidate[]>(`/dispatch/installations/${workOrderId}/candidates`);
     return response.data;
   },
 
   async dispatchWorkOrder(workOrderId: string, technicianId: string): Promise<any> {
-    const response = await axios.post(`${API_BASE}/dispatch/installations/${workOrderId}/dispatch`, null, {
+    const response = await api.post(`/dispatch/installations/${workOrderId}/dispatch`, null, {
       params: { technicianId },
     });
     return response.data;
@@ -35,7 +33,7 @@ export const onboardingDispatchService = {
 
   // Execução de Campo pelo Técnico
   async listUnprovisionedOnus(workOrderId: string): Promise<OltUnprovisionedOnu[]> {
-    const response = await axios.get(`${API_BASE}/technician/execution/${workOrderId}/unprovisioned-onus`);
+    const response = await api.get<OltUnprovisionedOnu[]>(`/technician/execution/${workOrderId}/unprovisioned-onus`);
     return response.data;
   },
 
@@ -48,14 +46,14 @@ export const onboardingDispatchService = {
       pppoePassword?: string;
     }
   ): Promise<any> {
-    const response = await axios.post(`${API_BASE}/technician/execution/${workOrderId}/provision`, null, {
+    const response = await api.post(`/technician/execution/${workOrderId}/provision`, null, {
       params: data,
     });
     return response.data;
   },
 
   async getRadiusStatus(workOrderId: string): Promise<RadiusSessionStatus> {
-    const response = await axios.get(`${API_BASE}/technician/execution/${workOrderId}/radius-status`);
+    const response = await api.get<RadiusSessionStatus>(`/technician/execution/${workOrderId}/radius-status`);
     return response.data;
   },
 
@@ -63,8 +61,8 @@ export const onboardingDispatchService = {
     workOrderId: string,
     payload: TechnicianExecutionCompleteRequest
   ): Promise<any> {
-    const response = await axios.post(
-      `${API_BASE}/technician/execution/${workOrderId}/complete`,
+    const response = await api.post(
+      `/technician/execution/${workOrderId}/complete`,
       payload
     );
     return response.data;

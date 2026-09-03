@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/warehouses")
+@RequestMapping({"/warehouses", "/api/warehouses"})
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

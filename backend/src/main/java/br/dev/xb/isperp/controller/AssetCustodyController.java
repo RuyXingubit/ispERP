@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/inventory/custody")
+@RequestMapping({"/inventory/custody", "/api/inventory/custody"})
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

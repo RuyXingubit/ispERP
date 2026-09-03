@@ -14,8 +14,9 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/ftth")
+@RequestMapping({"/ftth", "/api/ftth"})
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @SuppressWarnings("null")
 public class FtthTopologyController {
 

@@ -64,6 +64,9 @@ public class User {
         if (this.id == null) {
             this.id = UuidCreatorUtils.generateUuidV7();
         }
+        if (this.active == null) {
+            this.active = true;
+        }
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

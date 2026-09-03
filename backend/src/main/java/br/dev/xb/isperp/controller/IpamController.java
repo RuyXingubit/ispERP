@@ -17,8 +17,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/ipam")
+@RequestMapping({"/ipam", "/api/ipam"})
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Tag(name = "IPAM (IP Address Management)", description = "Gestão corporativa de recursos de numeração, ASNs, VRFs, Subnets IPv4/IPv6, Split e Inventário de IPs")
 @SecurityRequirement(name = "bearerAuth")
 public class IpamController {

@@ -16,8 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/radius")
+@RequestMapping({"/radius", "/api/radius"})
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Tag(name = "RADIUS - Sessões & Accounting", description = "Monitoramento de Sessões Online e Desconexão PoD")
 public class RadiusSessionController {
 

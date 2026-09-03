@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/geocep")
+@RequestMapping({"/geocep", "/api/geocep"})
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

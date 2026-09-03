@@ -12,13 +12,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/marco-civil")
+@RequestMapping({"/marco-civil", "/api/marco-civil"})
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Tag(name = "Marco Civil da Internet (Lei 12.965/2014)", description = "Investigação Forense, Identificação de Assinante e Laudos Oficiais")
 public class MarcoCivilController {
 

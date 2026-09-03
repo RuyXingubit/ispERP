@@ -60,6 +60,24 @@ class DevDataSeederServiceTest {
     @Mock
     private WorkOrderRepository workOrderRepository;
     @Mock
+    private ContractTemplateRepository contractTemplateRepository;
+    @Mock
+    private SaleRepository saleRepository;
+    @Mock
+    private StorageConfigRepository storageConfigRepository;
+    @Mock
+    private NotificationConfigRepository notificationConfigRepository;
+    @Mock
+    private NasRepository nasRepository;
+    @Mock
+    private IpamSubnetRepository ipamSubnetRepository;
+    @Mock
+    private HelpdeskTicketRepository helpdeskTicketRepository;
+    @Mock
+    private OnuProvisioningRepository onuProvisioningRepository;
+    @Mock
+    private FiscalCompanyRepository fiscalCompanyRepository;
+    @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private ApplicationArguments args;
@@ -113,6 +131,15 @@ class DevDataSeederServiceTest {
         verify(customerRepository, times(13)).save(any(Customer.class));
         verify(contractRepository, times(13)).save(any(Contract.class));
         verify(workOrderRepository, times(1)).save(any(WorkOrder.class));
+        verify(contractTemplateRepository, times(2)).save(any(ContractTemplate.class));
+        verify(saleRepository, times(2)).save(any(Sale.class));
+        verify(storageConfigRepository, times(1)).save(any(StorageConfig.class));
+        verify(notificationConfigRepository, times(1)).save(any(NotificationConfig.class));
+        verify(nasRepository, times(1)).save(any(Nas.class));
+        verify(ipamSubnetRepository, times(2)).save(any(IpamSubnet.class));
+        verify(helpdeskTicketRepository, times(2)).save(any(HelpdeskTicket.class));
+        verify(onuProvisioningRepository, times(1)).save(any(OnuProvisioning.class));
+        verify(fiscalCompanyRepository, times(1)).save(any(FiscalCompany.class));
         verify(invoiceRepository, atLeast(70)).save(any(Invoice.class)); // Histórico de 12 meses
     }
 }

@@ -309,7 +309,7 @@ export const FiscalDashboard: React.FC = () => {
     }
   };
 
-  const filteredRecords = records.filter(
+  const filteredRecords = (Array.isArray(records) ? records : []).filter(
     (r) =>
       (r.accessKey && r.accessKey.includes(searchTerm)) ||
       (r.documentNumber && r.documentNumber.toString().includes(searchTerm)) ||

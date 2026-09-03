@@ -43,6 +43,8 @@ import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from '../../components/Sidebar';
+import userService from '../../services/userService';
+import api from '../../services/api';
 
 // Constantes de largura da sidebar (mesmas do componente Sidebar)
 const DRAWER_WIDTH = 280;
@@ -89,24 +91,8 @@ const UserList = () => {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      // Simulando dados para desenvolvimento
-      const mockUsers = [
-        {
-          id: 1,
-          name: 'Administrador',
-          email: 'admin@isperp.com',
-          role: 'ADMIN',
-          createdAt: '2025-01-01',
-        },
-        {
-          id: 2,
-          name: 'João Silva',
-          email: 'joao@empresa.com',
-          role: 'USER',
-          createdAt: '2025-01-02',
-        },
-      ];
-      setUsers(mockUsers);
+      const data = await userService.getAll();
+      setUsers(data || []);
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
       toast.error('Erro ao carregar usuários');
@@ -130,7 +116,7 @@ const UserList = () => {
   };
 
   const handleEditUser = (userToEdit) => {
-    if (user.role !== 'ADMIN') {
+    if (user?.role !== 'ADMIN') {
       toast.error('Apenas administradores podem editar usuários');
       return;
     }
@@ -140,7 +126,7 @@ const UserList = () => {
   };
 
   const handleDeleteUser = (userToDelete) => {
-    if (user.role !== 'ADMIN') {
+    if (user?.role !== 'ADMIN') {
       toast.error('Apenas administradores podem deletar usuários');
       return;
     }
@@ -150,33 +136,19 @@ const UserList = () => {
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      if (isEditing) {
-        // Simular atualização
-        const updatedUsers = users.map(u => 
-          u.id === selectedUser.id 
-            ? { ...u, name: values.name, email: values.email, role: values.role }
-            : u
-        );
-        setUsers(updatedUsers);
+      if (isEditing && selectedUser) {
+        await api.put(`/users/${selectedUser.id}`, values);
         toast.success('Usuário atualizado com sucesso!');
       } else {
-        // Simular criação
-        const newUser = {
-          id: Date.now(),
-          name: values.name,
-          email: values.email,
-          role: values.role,
-          createdAt: new Date().toISOString().split('T')[0],
-        };
-        setUsers([...users, newUser]);
+        await userService.create(values);
         toast.success('Usuário criado com sucesso!');
       }
-      
+      await loadUsers();
       setDialogOpen(false);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar usuário:', error);
-      toast.error('Erro ao salvar usuário');
+      toast.error(error?.response?.data?.message || 'Erro ao salvar usuário');
     } finally {
       setSubmitting(false);
     }
@@ -184,9 +156,9 @@ const UserList = () => {
 
   const confirmDelete = async () => {
     try {
-      const updatedUsers = users.filter(u => u.id !== selectedUser.id);
-      setUsers(updatedUsers);
+      await api.delete(`/users/${selectedUser.id}`);
       toast.success('Usuário deletado com sucesso!');
+      await loadUsers();
       setDeleteDialogOpen(false);
     } catch (error) {
       console.error('Erro ao deletar usuário:', error);
@@ -197,7 +169,17 @@ const UserList = () => {
   const getRoleLabel = (role) => {
     switch (role) {
       case 'ADMIN':
-        return 'Administrador';
+        return 'Diretoria / Admin';
+      case 'CFO':
+        return 'CFO / Financeiro';
+      case 'SUPPORT_ANALYST':
+        return 'Analista Comercial';
+      case 'ADMINISTRATIVE_ASSISTANT':
+        return 'Suporte N1';
+      case 'ATTENDANT':
+        return 'Cobrança / Atendimento';
+      case 'TECHNICIAN':
+        return 'Técnico de Campo';
       case 'USER':
         return 'Usuário';
       default:
@@ -209,6 +191,14 @@ const UserList = () => {
     switch (role) {
       case 'ADMIN':
         return 'error';
+      case 'CFO':
+        return 'warning';
+      case 'TECHNICIAN':
+        return 'secondary';
+      case 'SUPPORT_ANALYST':
+      case 'ADMINISTRATIVE_ASSISTANT':
+      case 'ATTENDANT':
+        return 'info';
       case 'USER':
         return 'primary';
       default:
@@ -323,14 +313,14 @@ const UserList = () => {
                         <IconButton
                           onClick={() => handleEditUser(userItem)}
                           color="primary"
-                          disabled={user.role !== 'ADMIN'}
+                          disabled={user?.role !== 'ADMIN'}
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
                           onClick={() => handleDeleteUser(userItem)}
                           color="error"
-                          disabled={user.role !== 'ADMIN'}
+                          disabled={user?.role !== 'ADMIN'}
                         >
                           <DeleteIcon />
                         </IconButton>
@@ -345,8 +335,14 @@ const UserList = () => {
       </Box>
 
       {/* Dialog de Criação/Edição */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
+      <Dialog 
+        open={dialogOpen} 
+        onClose={() => setDialogOpen(false)} 
+        maxWidth="xs" 
+        fullWidth
+        scroll="paper"
+      >
+        <DialogTitle sx={{ py: 1.5 }}>
           {isEditing ? 'Editar Usuário' : 'Novo Usuário'}
         </DialogTitle>
         <Formik
@@ -355,6 +351,7 @@ const UserList = () => {
             email: selectedUser?.email || '',
             role: selectedUser?.role || 'USER',
             password: '',
+            active: true,
             isEditing: isEditing,
           }}
           validationSchema={validationSchema}
@@ -362,7 +359,7 @@ const UserList = () => {
         >
           {({ errors, touched, isSubmitting }) => (
             <Form>
-              <DialogContent>
+              <DialogContent dividers sx={{ py: 2 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <Field
@@ -394,8 +391,13 @@ const UserList = () => {
                         label="Perfil"
                         error={touched.role && !!errors.role}
                       >
-                        <MenuItem value="USER">Usuário</MenuItem>
-                        <MenuItem value="ADMIN">Administrador</MenuItem>
+                        <MenuItem value="ADMIN">Diretoria / Administrador</MenuItem>
+                        <MenuItem value="CFO">CFO / Financeiro</MenuItem>
+                        <MenuItem value="SUPPORT_ANALYST">Analista Comercial</MenuItem>
+                        <MenuItem value="ADMINISTRATIVE_ASSISTANT">Suporte N1</MenuItem>
+                        <MenuItem value="ATTENDANT">Cobrança / Atendimento</MenuItem>
+                        <MenuItem value="TECHNICIAN">Técnico de Campo</MenuItem>
+                        <MenuItem value="USER">Usuário Comum</MenuItem>
                       </Field>
                     </FormControl>
                   </Grid>

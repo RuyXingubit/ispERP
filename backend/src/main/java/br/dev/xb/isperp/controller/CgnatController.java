@@ -17,8 +17,9 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/cgnat")
+@RequestMapping({"/cgnat", "/api/cgnat"})
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Tag(name = "CGNAT & Mapeamento Forense", description = "Gestão de Blocos CGNAT e Importação Multi-Vendor")
 public class CgnatController {
 

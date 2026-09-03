@@ -24,9 +24,10 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/fiscal")
+@RequestMapping({"/fiscal", "/api/fiscal"})
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "*")
 @SuppressWarnings("null")
 public class FiscalController {
 

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/webhooks/payments")
+@RequestMapping({"/webhooks/payments", "/api/webhooks/payments"})
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @Slf4j

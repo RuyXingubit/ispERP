@@ -16,8 +16,9 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/dispatch/installations")
+@RequestMapping({"/dispatch/installations", "/api/dispatch/installations"})
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Tag(name = "Despacho de Instalações", description = "Endpoints para triagem de demandas FTTH, estoque em veículos e despacho de O.S.")
 public class InstallationDispatchController {
 

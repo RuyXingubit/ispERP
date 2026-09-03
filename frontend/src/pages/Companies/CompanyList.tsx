@@ -39,6 +39,7 @@ import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from '../../components/Sidebar';
+import companyService from '../../services/companyService';
 
 // Constantes de largura da sidebar (mesmas do componente Sidebar)
 const DRAWER_WIDTH = 280;
@@ -83,30 +84,8 @@ const CompanyList = () => {
   const loadCompanies = async () => {
     try {
       setLoading(true);
-      // Simulando dados para desenvolvimento
-      const mockCompanies = [
-        {
-          id: 1,
-          name: 'ISP Connect Ltda',
-          cnpj: '12.345.678/0001-90',
-          email: 'contato@ispconnect.com',
-          phone: '(11) 99999-9999',
-          address: 'Rua das Fibras, 123 - São Paulo/SP',
-          website: 'https://www.ispconnect.com',
-          createdAt: '2025-01-01',
-        },
-        {
-          id: 2,
-          name: 'Empresa Parceira ABC',
-          cnpj: '98.765.432/0001-10',
-          email: 'contato@abc.com',
-          phone: '(11) 88888-8888',
-          address: 'Av. Principal, 456 - São Paulo/SP',
-          website: 'https://www.abc.com',
-          createdAt: '2025-01-02',
-        },
-      ];
-      setCompanies(mockCompanies);
+      const data = await companyService.getAll();
+      setCompanies(data || []);
     } catch (error) {
       console.error('Erro ao carregar empresas:', error);
       toast.error('Erro ao carregar empresas');
@@ -150,31 +129,29 @@ const CompanyList = () => {
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      if (isEditing) {
-        // Simular atualização
-        const updatedCompanies = companies.map(c => 
-          c.id === selectedCompany.id 
-            ? { ...c, ...values }
-            : c
-        );
-        setCompanies(updatedCompanies);
+      const payload = {
+        name: values.name,
+        document: values.cnpj || values.document,
+        email: values.email,
+        phone: values.phone,
+        address: values.address,
+        website: values.website,
+        active: true,
+      };
+
+      if (isEditing && selectedCompany) {
+        await companyService.update(selectedCompany.id, payload);
         toast.success('Empresa atualizada com sucesso!');
       } else {
-        // Simular criação
-        const newCompany = {
-          id: Date.now(),
-          ...values,
-          createdAt: new Date().toISOString().split('T')[0],
-        };
-        setCompanies([...companies, newCompany]);
+        await companyService.create(payload);
         toast.success('Empresa criada com sucesso!');
       }
-      
+      await loadCompanies();
       setDialogOpen(false);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar empresa:', error);
-      toast.error('Erro ao salvar empresa');
+      toast.error(error?.response?.data?.message || 'Erro ao salvar empresa');
     } finally {
       setSubmitting(false);
     }
@@ -182,9 +159,9 @@ const CompanyList = () => {
 
   const confirmDelete = async () => {
     try {
-      const updatedCompanies = companies.filter(c => c.id !== selectedCompany.id);
-      setCompanies(updatedCompanies);
+      await companyService.delete(selectedCompany.id);
       toast.success('Empresa deletada com sucesso!');
+      await loadCompanies();
       setDeleteDialogOpen(false);
     } catch (error) {
       console.error('Erro ao deletar empresa:', error);
@@ -292,10 +269,10 @@ const CompanyList = () => {
                           {company.name}
                         </Box>
                       </TableCell>
-                      <TableCell>{company.cnpj || '-'}</TableCell>
+                      <TableCell>{company.cnpj || company.document || '-'}</TableCell>
                       <TableCell>{company.email || '-'}</TableCell>
                       <TableCell>{company.phone || '-'}</TableCell>
-                      <TableCell>{new Date(company.createdAt).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell>{company.createdAt ? new Date(company.createdAt).toLocaleDateString('pt-BR') : '-'}</TableCell>
                       <TableCell align="center">
                         <IconButton
                           onClick={() => handleEditCompany(company)}

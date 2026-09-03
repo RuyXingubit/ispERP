@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/billing/dunning")
+@RequestMapping({"/billing/dunning", "/api/billing/dunning"})
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

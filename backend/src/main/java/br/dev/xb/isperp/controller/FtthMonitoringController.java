@@ -13,8 +13,9 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/ftth/monitoring")
+@RequestMapping({"/ftth/monitoring", "/api/ftth/monitoring"})
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @SuppressWarnings("null")
 public class FtthMonitoringController {
 

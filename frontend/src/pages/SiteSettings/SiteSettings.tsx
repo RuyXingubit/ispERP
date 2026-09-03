@@ -33,6 +33,7 @@ import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from '../../components/Sidebar';
+import siteSettingsService from '../../services/siteSettingsService';
 
 // Constantes de largura da sidebar (mesmas do componente Sidebar)
 const DRAWER_WIDTH = 280;
@@ -76,19 +77,8 @@ const SiteSettings = () => {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      // Simulando dados para desenvolvimento
-      const mockSettings = {
-        siteTitle: 'ISP Connect',
-        siteDescription: 'Provedor de Internet de Alta Velocidade',
-        primaryColor: '#1976d2',
-        secondaryColor: '#dc004e',
-        logoUrl: '',
-        contactEmail: 'contato@ispconnect.com',
-        contactPhone: '(11) 99999-9999',
-        supportEmail: 'suporte@ispconnect.com',
-        footerText: '© 2025 ISP Connect. Todos os direitos reservados.',
-      };
-      setSettings(mockSettings);
+      const data = await siteSettingsService.get();
+      setSettings(data);
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
       toast.error('Erro ao carregar configurações');
@@ -112,8 +102,8 @@ const SiteSettings = () => {
     }
 
     try {
-      // Simular salvamento
-      setSettings(values);
+      const updated = await siteSettingsService.update(values);
+      setSettings(updated);
       toast.success('Configurações salvas com sucesso!');
     } catch (error) {
       console.error('Erro ao salvar configurações:', error);

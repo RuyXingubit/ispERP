@@ -50,10 +50,13 @@ const fiscalService = {
   },
 
   getRecords: async (page = 0, size = 10): Promise<NfcomRecord[]> => {
-    const response = await api.get<NfcomRecord[]>(
+    const response = await api.get<any>(
       `/fiscal/records?page=${page}&size=${size}&sort=createdAt,desc`
     );
-    return response.data;
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    return response.data?.content || [];
   },
 
   cancelNfcom: async (recordId: string, reason: string): Promise<NfcomRecord> => {

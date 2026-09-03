@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/contracts/templates")
+@RequestMapping({"/contracts/templates", "/api/contracts/templates"})
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ContractTemplateController {

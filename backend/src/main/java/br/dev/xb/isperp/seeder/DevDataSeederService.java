@@ -48,13 +48,23 @@ public class DevDataSeederService implements ApplicationRunner {
     private final NetworkProjectRepository networkProjectRepository;
     private final FtthCtoRepository ftthCtoRepository;
     private final WorkOrderRepository workOrderRepository;
+    private final ContractTemplateRepository contractTemplateRepository;
+    private final SaleRepository saleRepository;
+    private final StorageConfigRepository storageConfigRepository;
+    private final NotificationConfigRepository notificationConfigRepository;
+    private final NasRepository nasRepository;
+    private final IpamSubnetRepository ipamSubnetRepository;
+    private final HelpdeskTicketRepository helpdeskTicketRepository;
+    private final OnuProvisioningRepository onuProvisioningRepository;
+    private final FiscalCompanyRepository fiscalCompanyRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
         if (userRepository.count() > 0) {
-            log.info("⏩ [DevDataSeeder] Banco de dados já possui usuários cadastrados. Pulando carga de dados de teste.");
+            log.info("⏩ [DevDataSeeder] Usuários já cadastrados. Verificando se faltam módulos a enriquecer...");
+            seedMissingEntitiesIfAny();
             return;
         }
 
@@ -76,8 +86,65 @@ public class DevDataSeederService implements ApplicationRunner {
 
         seedPayablesAndCapex(caLink, caPostes, caEquip);
         seedCustomersContractsInvoicesAndWorkOrders(plans, users, projects, ctos);
+        seedContractTemplates(company);
+        seedSales(plans);
+        seedStorageConfig(company);
+        seedNotificationConfig(company);
+        seedNas();
+        seedIpam(company);
+        seedFiscalCompany(company);
 
         log.info("✅ [DevDataSeeder] Simulação de 1 ano concluída com 100% de sucesso! Ambiente pronto para uso.");
+    }
+
+    private void seedMissingEntitiesIfAny() {
+        Company company = companyRepository.findAll().stream().findFirst().orElse(null);
+        if (company == null) return;
+
+        Map<String, Plan> plans = new HashMap<>();
+        for (Plan p : planRepository.findAll()) {
+            if (p.getName().contains("300")) plans.put("300M", p);
+            if (p.getName().contains("600")) plans.put("600M", p);
+            if (p.getName().contains("1 Giga")) plans.put("1G", p);
+        }
+
+        if (contractTemplateRepository.count() == 0) {
+            seedContractTemplates(company);
+        }
+        if (saleRepository.count() == 0 && !plans.isEmpty()) {
+            seedSales(plans);
+        }
+        if (storageConfigRepository.count() == 0) {
+            seedStorageConfig(company);
+        }
+        if (notificationConfigRepository.count() == 0) {
+            seedNotificationConfig(company);
+        }
+        if (nasRepository.count() == 0) {
+            seedNas();
+        }
+        if (ipamSubnetRepository.count() == 0) {
+            seedIpam(company);
+        }
+        if (helpdeskTicketRepository.count() == 0) {
+            Customer c1 = customerRepository.findAll().stream().findFirst().orElse(null);
+            Contract ctr1 = contractRepository.findAll().stream().findFirst().orElse(null);
+            User maria = userRepository.findByEmail("atendente.maria@nexusfibra.com.br").orElse(null);
+            if (c1 != null && ctr1 != null && maria != null) {
+                seedHelpdeskTickets(c1, ctr1, maria);
+            }
+        }
+        if (onuProvisioningRepository.count() == 0) {
+            Contract ctr1 = contractRepository.findAll().stream().findFirst().orElse(null);
+            Customer c1 = customerRepository.findAll().stream().findFirst().orElse(null);
+            FtthCto cto1 = ftthCtoRepository.findAll().stream().findFirst().orElse(null);
+            if (ctr1 != null && c1 != null && cto1 != null) {
+                seedOnus(cto1, ctr1, c1);
+            }
+        }
+        if (fiscalCompanyRepository.count() == 0) {
+            seedFiscalCompany(company);
+        }
     }
 
     private Company seedCompany() {
@@ -700,6 +767,11 @@ public class DevDataSeederService implements ApplicationRunner {
                     .build();
             contract = contractRepository.save(contract);
 
+            if (c == 0) {
+                seedHelpdeskTickets(customer, contract, users.get("maria"));
+                seedOnus(ctoJardins, contract, customer);
+            }
+
             // Gerar 12 faturas pagas mês a mês retroativas
             for (int m = 11; m >= 0; m--) {
                 LocalDate dueDate = today.minusMonths(m).withDayOfMonth(10);
@@ -921,6 +993,90 @@ public class DevDataSeederService implements ApplicationRunner {
         contractRepository.save(pixContract);
     }
 
+    private void seedContractTemplates(Company company) {
+        ContractTemplate template1 = ContractTemplate.builder()
+                .companyId(company.getId())
+                .name("Contrato de Adesão SCM & SVA (Nexus Fibra)")
+                .documentType(br.dev.xb.isperp.signature.DocumentType.SERVICE_AGREEMENT)
+                .version(1)
+                .isActive(true)
+                .contentMarkdown("""
+                        # TERMO DE ADESÃO AO CONTRATO DE PRESTAÇÃO DE SERVIÇOS SCM E SVA
+
+                        **CONTRATADA:** {{company.name}}, CNPJ {{company.cnpj}}, com sede em {{company.address}}.
+                        **CONTRATANTE:** {{customer.name}}, CPF/CNPJ {{customer.cpf_cnpj}}, residente em {{contract.installation_address}}.
+
+                        ### 1. DO OBJETO
+                        O presente instrumento tem por objeto a prestação contínua de Serviços de Comunicação Multimídia (SCM) e Conexão à Internet em Fibra Óptica no plano **{{plan.name}}**, com velocidade de download de **{{plan.download_speed}} Mbps** e upload de **{{plan.upload_speed}} Mbps**, pelo valor mensal contratado de **R$ {{plan.price}}**.
+
+                        ### 2. DA COBRANÇA E DO PAGAMENTO
+                        A mensalidade vencerá todo dia **{{contract.due_day}}** de cada mês, devendo ser quitada via Pix Instantâneo com Baixa Automática ou Boleto Bancário disponibilizado na Central do Assinante.
+
+                        ### 3. DO COMODATO DE EQUIPAMENTOS
+                        A CONTRATADA cede ao CONTRATANTE, a título de comodato gratuito, a Unidade de Rede Óptica (ONT Wi-Fi) com porta Gigabit e Wi-Fi integrado, a qual deverá ser devolvida em perfeito estado de conservação em caso de rescisão.
+
+                        ### 4. DA ASSINATURA ELETRÔNICA AVANÇADA
+                        As partes reconhecem expressamente a plena validade jurídica deste documento assinado digitalmente, nos termos da Medida Provisória nº 2.200-2/2001 e da Lei Federal nº 14.063/2020.
+                        """)
+                .consentClause("Declaro que li e concordo integralmente com as cláusulas deste Contrato de Prestação de Serviços SCM e Comodato de Equipamentos.")
+                .build();
+        contractTemplateRepository.save(template1);
+
+        ContractTemplate template2 = ContractTemplate.builder()
+                .companyId(company.getId())
+                .name("Termo de Fidelidade Contratual 12 Meses")
+                .documentType(br.dev.xb.isperp.signature.DocumentType.LOYALTY_TERM)
+                .version(1)
+                .isActive(true)
+                .contentMarkdown("""
+                        # TERMO DE FIDELIDADE CONTRATUAL E BENEFÍCIO DE INSTALAÇÃO
+
+                        Em virtude do benefício concedido pela CONTRATADA na isenção de 100% da taxa de instalação e ativação da fibra óptica (no valor de R$ 350,00), o CONTRATANTE compromete-se a manter o plano ativo pelo período mínimo de 12 (doze) meses.
+                        """)
+                .consentClause("Aceito a cláusula de permanência mínima de 12 meses em contrapartida à isenção da taxa de instalação.")
+                .build();
+        contractTemplateRepository.save(template2);
+    }
+
+    private void seedSales(Map<String, Plan> plans) {
+        Plan p300 = plans.get("300M");
+        Plan p600 = plans.get("600M");
+
+        Sale sale1 = Sale.builder()
+                .planId(p300.getId())
+                .customerName("Patrícia Ribeiro")
+                .customerCpf("111.222.333-44")
+                .customerEmail("patricia.ribeiro@gmail.com")
+                .customerPhone("(93) 99123-4567")
+                .installationAddress("Rua das Acácias, 102 - Bairro Jardins")
+                .city("Altamira")
+                .state("PA")
+                .zipCode("68371-000")
+                .preferredDueDate(10)
+                .notificationChannel("WHATSAPP")
+                .sellerName("Loja Central - Balcão")
+                .status(Sale.SaleStatus.SUBMITTED)
+                .build();
+        saleRepository.save(sale1);
+
+        Sale sale2 = Sale.builder()
+                .planId(p600.getId())
+                .customerName("Thiago Alencar")
+                .customerCpf("222.333.444-55")
+                .customerEmail("thiago.alencar@hotmail.com")
+                .customerPhone("(93) 98456-7890")
+                .installationAddress("Av. João Pessoa, 450 - Centro")
+                .city("Altamira")
+                .state("PA")
+                .zipCode("68370-000")
+                .preferredDueDate(15)
+                .notificationChannel("WHATSAPP")
+                .sellerName("Vendedor Externo - Porta a Porta")
+                .status(Sale.SaleStatus.PROCESSED)
+                .build();
+        saleRepository.save(sale2);
+    }
+
     /**
      * Gera CPFs matematicamente válidos e únicos para passar nas validações @ValidCpf.
      */
@@ -949,5 +1105,173 @@ public class DevDataSeederService implements ApplicationRunner {
 
         return String.format("%d%d%d.%d%d%d.%d%d%d-%d%d",
                 d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d1, d2);
+    }
+
+    private void seedStorageConfig(Company company) {
+        StorageConfig storage = StorageConfig.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .companyId(company.getId())
+                .storageType(br.dev.xb.isperp.storage.StorageType.S3)
+                .provider(br.dev.xb.isperp.storage.StorageProvider.SEAWEEDFS_LOCAL)
+                .bucketName("isperp-documents")
+                .endpointUrl("http://seaweedfs:8333")
+                .region("us-east-1")
+                .accessKey("seaweed_access_key")
+                .secretKey("seaweed_secret_key")
+                .isActive(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        storageConfigRepository.save(storage);
+    }
+
+    private void seedNotificationConfig(Company company) {
+        NotificationConfig notif = NotificationConfig.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .companyId(company.getId())
+                .name("WhatsApp Principal - Nexus Fibra")
+                .providerType(br.dev.xb.isperp.notification.whatsapp.WhatsAppProviderType.EVOLUTION_API)
+                .apiUrl("https://evolution.nexusfibra.com.br")
+                .apiToken("nexus-evo-secret-token-2026")
+                .fromPhoneNumber("+5593984012000")
+                .active(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        notificationConfigRepository.save(notif);
+    }
+
+    private void seedNas() {
+        Nas bng = Nas.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .nasname("10.0.0.1")
+                .shortname("BNG-MIKROTIK-SEDE")
+                .type("mikrotik")
+                .ports(1812)
+                .secret("NexusRadiusSecret2026")
+                .description("Concentrador BNG CCR2004 - Pop Sede Altamira")
+                .build();
+        nasRepository.save(bng);
+    }
+
+    private void seedIpam(Company company) {
+        IpamSubnet subnetCgnat = IpamSubnet.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .companyId(company.getId())
+                .cidr("100.64.0.0/20")
+                .ipVersion(br.dev.xb.isperp.ipam.IpamIpVersion.IPV4)
+                .networkAddress("100.64.0.0")
+                .broadcastAddress("100.64.15.255")
+                .prefixLength(20)
+                .category(br.dev.xb.isperp.ipam.IpamSubnetCategory.CGNAT)
+                .status(br.dev.xb.isperp.ipam.IpamSubnetStatus.ACTIVE)
+                .description("Bloco Carrier-Grade NAT para Assinantes Residenciais")
+                .build();
+        ipamSubnetRepository.save(subnetCgnat);
+
+        IpamSubnet subnetIpv6 = IpamSubnet.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .companyId(company.getId())
+                .cidr("2804:7f80::/32")
+                .ipVersion(br.dev.xb.isperp.ipam.IpamIpVersion.IPV6)
+                .networkAddress("2804:7f80::")
+                .prefixLength(32)
+                .category(br.dev.xb.isperp.ipam.IpamSubnetCategory.CUSTOMER_ACCESS)
+                .status(br.dev.xb.isperp.ipam.IpamSubnetStatus.ACTIVE)
+                .description("Bloco IPv6 Delegado pelo LACNIC / Registro.br (/32)")
+                .build();
+        ipamSubnetRepository.save(subnetIpv6);
+    }
+
+    private void seedHelpdeskTickets(Customer customer, Contract contract, User attendant) {
+        HelpdeskTicket ticket1 = HelpdeskTicket.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .protocol(String.format("ANATEL-2026-%06d", 10452))
+                .customerId(customer.getId())
+                .contractId(contract.getId())
+                .category(HelpdeskTicket.TicketCategory.ROUTER_CONFIG)
+                .priority(HelpdeskTicket.TicketPriority.NORMAL)
+                .status(HelpdeskTicket.TicketStatus.OPEN)
+                .channel(HelpdeskTicket.TicketChannel.WHATSAPP_BOT)
+                .subject("Troca de Senha do Wi-Fi 5GHz da ONT")
+                .description("Cliente solicitou alteração do SSID e senha da rede 5GHz do roteador de casa.")
+                .assignedToUserId(attendant.getId())
+                .slaDeadline(LocalDateTime.now().plusHours(4))
+                .build();
+        helpdeskTicketRepository.save(ticket1);
+
+        HelpdeskTicket ticket2 = HelpdeskTicket.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .protocol(String.format("ANATEL-2026-%06d", 10453))
+                .customerId(customer.getId())
+                .contractId(contract.getId())
+                .category(HelpdeskTicket.TicketCategory.FINANCIAL)
+                .priority(HelpdeskTicket.TicketPriority.LOW)
+                .status(HelpdeskTicket.TicketStatus.RESOLVED)
+                .channel(HelpdeskTicket.TicketChannel.PORTAL)
+                .subject("Solicitação de 2ª via de fatura para Pix")
+                .description("Fatura reenviada com código copia e cola diretamente pelo WhatsApp.")
+                .assignedToUserId(attendant.getId())
+                .slaDeadline(LocalDateTime.now().plusHours(2))
+                .resolvedAt(LocalDateTime.now().minusMinutes(20))
+                .resolutionNotes("Fatura gerada e baixada com sucesso.")
+                .build();
+        helpdeskTicketRepository.save(ticket2);
+    }
+
+    private void seedOnus(FtthCto cto, Contract contract, Customer customer) {
+        OnuProvisioning onu = OnuProvisioning.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(contract.getId())
+                .customerId(customer.getId())
+                .onuMac("48:57:02:AA:BB:01")
+                .onuSerial("HWTC00AABB01")
+                .vlanId(100)
+                .pppoeUser(customer.getEmail() != null ? customer.getEmail() : "user.pppoe@nexusfibra")
+                .pppoePassword("nexus123")
+                .downloadSpeed(300)
+                .uploadSpeed(150)
+                .rxPowerDbm(new BigDecimal("-19.45"))
+                .status(OnuProvisioning.OnuStatus.PROVISIONED)
+                .build();
+        onuProvisioningRepository.save(onu);
+    }
+
+    private void seedFiscalCompany(Company company) {
+        FiscalCompany fc = FiscalCompany.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .cnpj(company.getDocument())
+                .razaoSocial(company.getName())
+                .nomeFantasia("Nexus Fibra")
+                .inscricaoEstadual("15888999")
+                .inscricaoMunicipal("998811")
+                .cnaePrincipal("6110-8/03")
+                .regimeTributario("SIMPLES_NACIONAL")
+                .aliquotaIcms(BigDecimal.ZERO)
+                .aliquotaFust(new BigDecimal("0.65"))
+                .aliquotaFunttel(new BigDecimal("0.50"))
+                .aliquotaPis(BigDecimal.ZERO)
+                .aliquotaCofins(BigDecimal.ZERO)
+                .logradouro("Av. Brasil")
+                .numero("1500")
+                .complemento("Sala 01")
+                .bairro("Centro")
+                .cidade("Altamira")
+                .uf("PA")
+                .cep("68370-000")
+                .codigoIbge("1500602")
+                .telefone(company.getPhone())
+                .emailFiscal(company.getEmail())
+                .nfcomAmbiente("HOMOLOGACAO")
+                .nfcomSerie("1")
+                .nfcomProximoNumero(1)
+                .isActive(true)
+                .hasCertificate(false)
+                .accountingName("Assessoria Contábil Silva & Associados")
+                .accountingEmails("fiscal@contabilidade.com.br")
+                .accountingSendDay(5)
+                .accountingAutoSend(true)
+                .build();
+        fiscalCompanyRepository.save(fc);
     }
 }

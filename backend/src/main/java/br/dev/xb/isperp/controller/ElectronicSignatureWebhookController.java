@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/webhooks/signatures")
+@RequestMapping({"/webhooks/signatures", "/api/webhooks/signatures"})
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

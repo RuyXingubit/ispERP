@@ -17,8 +17,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/technician/execution")
+@RequestMapping({"/technician/execution", "/api/technician/execution"})
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Tag(name = "Execução Técnica de Campo", description = "Endpoints para Auto-Discovery OLT, provisionamento 1-clique, verificação RADIUS e conclusão de O.S.")
 public class TechnicianFieldExecutionController {
 

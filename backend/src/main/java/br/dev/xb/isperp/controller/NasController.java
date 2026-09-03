@@ -15,8 +15,9 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/radius/nas")
+@RequestMapping({"/radius/nas", "/api/radius/nas"})
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @Tag(name = "RADIUS - NAS / BNG", description = "Gestão de Servidores NAS e Roteadores BNG do FreeRADIUS")
 public class NasController {
 
