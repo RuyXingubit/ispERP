@@ -70,3 +70,4 @@ temp/
 
 # Brainstorming & Unconsolidated Drafts
 docs/brainstorming/
+docs/*.html

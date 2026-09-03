@@ -107,6 +107,9 @@ flowchart LR
   - Gera 100% das interfaces TypeScript. Se o contrato mudar, o `tsc --noEmit` falha na hora.
 * **Servidor de Mocks (Prism):**
   - Permite rodar `npx prism mock contracts/openapi/openapi.bundled.json -p 4010` para testar telas do frontend com respostas sintéticas válidas.
+* **Visualizador de Documentação Interativa (Redocly):**
+  - Executar `./scripts/view-docs.sh` para abrir o servidor local com *live-reload* em `http://localhost:8085`.
+  - Executar `./scripts/view-docs.sh --html` para compilar um único arquivo HTML estático em `docs/api-reference.html`.
 
 ---
 
@@ -121,22 +124,26 @@ Sempre que uma nova funcionalidade, campo ou rota for necessária:
 3. **Passo 3 (Implementação Desacoplada):**
    - **No Backend:** Implementar a lógica de negócio no Controller/Service (sem perder tempo criando DTOs ou anotações HTTP manuais).
    - **No Frontend:** Consumir a função tipada nos componentes React (sem perder tempo criando interfaces ou métodos de Axios manuais).
-4. **Passo 4 (Loop Ágil):** Se durante a implementação do frontend faltar um campo, basta inseri-lo no YAML, rodar o codegen e continuar.
+4. **Passo 4 (Visualização & Validação):** Usar `./scripts/view-docs.sh` para inspecionar visualmente a documentação interativa.
 
 ---
 
 ## 7. Roteiro Estruturado de Migração
 
-A migração do ispERP para o modelo API-First é executada em 4 fases incrementais, sem paralisar o desenvolvimento do sistema:
+A migração do ispERP para o modelo API-First foi estruturada em fases incrementais:
 
-* **Fase 1 — Infraestrutura de Contratos (Atual):**
+* **Fase 1 — Infraestrutura de Contratos:** `[CONCLUÍDO]`
   - Criação da pasta `contracts/openapi/` e dos domínios críticos (`WorkOrders`, `Billing`, `Contracts`, `Customers`).
   - Criação do script de bundling e validação (`scripts/bundle-contracts.sh`).
-* **Fase 2 — Migração do Backend:**
-  - Configuração do plugin `org.openapi.generator` no `build.gradle`.
-  - Conexão dos Controllers Spring Boot existentes com as interfaces geradas (começando pelo módulo piloto de Ordens de Serviço).
-* **Fase 3 — Migração do Frontend:**
-  - Configuração do `Orval` no `frontend/package.json`.
-  - Substituição das chamadas manuais nos componentes React pelos clientes tipados gerados.
+* **Fase 2 — Migração do Backend:** `[CONCLUÍDO]`
+  - Configuração do plugin `org.openapi.generator:7.11.0` no Gradle.
+  - Conexão dos Controllers Spring Boot existentes com as interfaces geradas (módulo piloto de Ordens de Serviço e Execução Técnica de Campo).
+  - Criação de testes unitários (`WorkOrderControllerTest`).
+* **Fase 3 — Migração do Frontend:** `[CONCLUÍDO]`
+  - Configuração do `Orval` no `frontend/package.json` e `orval.config.ts`.
+  - Conexão do interceptor JWT de `api.ts` com o mutator do Orval.
+  - Migração de `workOrderService.ts` e `onboardingDispatchService.ts` para os métodos gerados, corrigindo verbos HTTP.
+* **Fase 4 — Expansão para os demais domínios (Faturamento, Contratos, Clientes):** `[PRÓXIMA]`
+  - Conectar os demais controllers legados (`InvoiceController`, `ContractController`, `CustomerController`) às interfaces geradas pelo contrato.
 * **Fase 4 — CI/CD & Governança Automática:**
   - Inclusão do job de validação de contratos no GitHub Actions (`fail-fast`), impedindo merges com divergências de contrato.
