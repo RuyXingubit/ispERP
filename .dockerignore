@@ -1,0 +1,33 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies
+**/node_modules
+node_modules
+frontend/node_modules
+
+# Frontend build output
+**/dist
+frontend/dist
+
+# Backend build (exclude everything except jar)
+backend/build/*
+!backend/build/libs/
+!backend/build/libs/*.jar
+backend/.gradle
+
+# Logs and environment
+**/*.log
+backend/logs
+.env
+
+# IDE and documentation
+.idea
+.vscode
+.agents
+docs
+README.md
+LICENSE
+PDR.md
+.DS_Store
