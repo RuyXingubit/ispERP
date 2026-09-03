@@ -21,9 +21,36 @@ Sistema ERP moderno de alto desempenho, desenvolvido especialmente para **Proved
 * **Migrações:** Flyway (V1 a V31 com histórico linear e verificações integradas)
 * **Segurança & Criptografia:** JWT (JJWT 0.13), AES-256 com PBKDF2 e assinaturas SHA-256
 * **Compressão & Storage:** ZStandard (ZSTD) para streaming em memória e AWS S3 SDK v2 (S3, Cloudflare R2, SeaweedFS)
+* **Contratos & API-First:** OpenAPI 3.0.3 (Design-First) + Redocly CLI + OpenAPI Generator (Spring Boot) + Orval (React / TypeScript)
 * **Testes Automatizados:** Testcontainers PostgreSQL 17 + JUnit 5 + Mockito (> 270 testes com 100% de aprovação)
 
 Consulte a pasta [`docs/`](docs/) para documentação detalhada de Arquitetura, PRD, Roadmap, Eventos e Pareceres Jurídicos.
+
+---
+
+## 📐 Arquitetura API-First & Contratos (Design-First)
+
+O **ispERP** adota rigorosamente a metodologia **API-First (Design-First)**. Toda e qualquer comunicação entre Frontend, Backend e futuros clientes móveis ou microsserviços é governada por **contratos OpenAPI 3.0.3** centralizados e modulares na pasta [`contracts/openapi/`](contracts/openapi/).
+
+```mermaid
+flowchart LR
+    YAML["1. Contrato YAML\n(contracts/openapi/)"] --> Codegen["2. ./scripts/generate-api.sh\n(Redocly + Gradle + Orval)"]
+    Codegen --> Backend["3. Backend Java 25\n(Implementa Interfaces *Api.java)"]
+    Codegen --> Frontend["4. Frontend React 19\n(Consome Clientes/Tipos do Orval)"]
+```
+
+* **Fonte Única da Verdade:** Nenhuma rota, endpoint, DTO ou parâmetro é criado manualmente no Java ou TypeScript sem existir previamente no contrato OpenAPI.
+* **Segurança por Padrão (Zero Trust DTOs):** Nenhuma entidade JPA (`@Entity`) é exposta diretamente nas APIs. Todos os dados trafegam via DTOs estritos e validados (`@Valid`, Bean Validation) gerados pelo contrato.
+* **Documentação Visual Interativa (Redocly):** Para visualizar a documentação da API em tempo real com *live-reload*:
+  ```bash
+  ./scripts/view-docs.sh
+  ```
+* **Geração Automatizada em 1 Comando:** Para atualizar os stubs Java e clientes TypeScript após editar qualquer contrato:
+  ```bash
+  ./scripts/generate-api.sh
+  ```
+
+Consulte a documentação completa em [`docs/API_FIRST_AND_CONTRACTS.md`](docs/API_FIRST_AND_CONTRACTS.md) e a regra mandatória de engenharia em [`.agents/rules/api-first-contracts.md`](.agents/rules/api-first-contracts.md).
 
 ---
 
@@ -179,15 +206,39 @@ npm run build
 ---
 
 ## 🤝 Como Contribuir
+
+Agradecemos imensamente contribuições da comunidade! Para manter a integridade, segurança e alta qualidade arquitetural do **ispERP**, siga as diretrizes abaixo:
+
+### 📐 Regra de Ouro: Workflow API-First
+Se a sua contribuição envolver criação, alteração ou exclusão de rotas, endpoints, parâmetros ou payloads:
+1. **Comece pelo Contrato:** Nunca crie anotações (`@GetMapping`, `@PostMapping`) ou interfaces manuais no frontend. Declare a alteração no domínio correspondente em `contracts/openapi/domains/<modulo>/`.
+2. **Execute o Codegen Unificado:**
+   ```bash
+   ./scripts/generate-api.sh
+   ```
+   *(Ele compila o bundle com Redocly, gera stubs Java no Backend e clientes tipados no Frontend).*
+3. **Implemente no Backend:** Conecte o Controller Spring Boot à interface gerada (ex: `implements WorkOrdersApi`).
+4. **Consuma no Frontend:** Importe as funções tipadas e modelos gerados a partir de `src/api/generated/`.
+5. **Escreva Testes Unitários:** Toda nova feature deve conter testes unitários correspondentes no Backend (`./gradlew test`) e checagem estrita de tipos no Frontend (`npm run typecheck`).
+
+### 🛠️ Passos para o Pull Request
 1. Faça um Fork do projeto.
-2. Crie uma branch para sua funcionalidade (`git checkout -b feature/MinhaFeature`).
-3. Faça commit seguindo as diretrizes de [Conventional Commits](https://www.conventionalcommits.org/):
-   * `feat:` Novas funcionalidades de domínio
+2. Crie uma branch para sua funcionalidade (`git checkout -b feat/minha-funcionalidade`).
+3. Valide a integridade do código localmente:
+   ```bash
+   # Backend (Testes unitários e de integração)
+   cd backend && ./gradlew test
+   
+   # Frontend (Typecheck e build de produção)
+   cd frontend && npm run typecheck && npm run build
+   ```
+4. Faça commit seguindo as diretrizes de [Conventional Commits](https://www.conventionalcommits.org/):
+   * `feat:` Novas funcionalidades ou endpoints
    * `fix:` Correção de bugs ou falhas
    * `perf:` Otimizações de desempenho
    * `docs:` Melhorias de documentação
    * `test:` Adição ou melhoria de suítes de testes
-4. Envie para o GitHub (`git push origin feature/MinhaFeature`) e abra um Pull Request.
+5. Envie para o seu Fork (`git push origin feat/minha-funcionalidade`) e abra um Pull Request detalhando as alterações.
 
 ---
 
