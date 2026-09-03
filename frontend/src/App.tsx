@@ -7,6 +7,7 @@ import { CircularProgress, Box, Typography } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
 
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import MainLayout from './components/Layout/MainLayout';
 import { setupService } from './services/setupService';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -136,14 +137,41 @@ function AppContent() {
             } 
           />
           <Route 
-            path="/dashboard" 
+            path="/portal/client" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
-                <Dashboard />
-              </ProtectedRoute>
+              <ClientPortal />
             } 
           />
+          <Route 
+            path="/public/validar-laudo/:token" 
+            element={<ReportValidation />} 
+          />
+          <Route 
+            path="/sign/:token" 
+            element={<PublicSignaturePage />} 
+          />
+
+          {/* Rotas Autenticadas com Menu Lateral Persistente */}
+          <Route
+            element={
+              !isSetupCompleted ? (
+                <Navigate to="/setup" replace />
+              ) : (
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              )
+            }
+          >
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
           <Route 
             path="/dashboard/usuarios" 
             element={
@@ -424,14 +452,6 @@ function AppContent() {
             } 
           />
           <Route 
-            path="/public/validar-laudo/:token" 
-            element={<ReportValidation />} 
-          />
-          <Route 
-            path="/sign/:token" 
-            element={<PublicSignaturePage />} 
-          />
-          <Route 
             path="/inventory" 
             element={
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
@@ -465,13 +485,6 @@ function AppContent() {
               <ProtectedRoute allowedRoles={['ADMIN', 'ATTENDANT', 'SUPPORT_N2', 'SUPPORT_ANALYST']}>
                 <TicketList />
               </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/portal/client" 
-            element={
-              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
-              <ClientPortal />
             } 
           />
           <Route 
@@ -510,6 +523,8 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
+          </Route>
+
           <Route 
             path="/" 
             element={

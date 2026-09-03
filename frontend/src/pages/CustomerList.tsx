@@ -52,23 +52,12 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import { formatCPF } from '../utils/cpfValidator';
 
-// Constantes de largura da sidebar (mesmas do componente Sidebar)
-const DRAWER_WIDTH = 280;
-const DRAWER_WIDTH_MOBILE = 260;
-
 const CustomerList = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
-
-  // Calcular largura dinâmica da sidebar
-  const sidebarWidth = isMobile ? DRAWER_WIDTH_MOBILE : DRAWER_WIDTH;
 
   // Estados da página
   const [customers, setCustomers] = useState([]);
@@ -79,32 +68,9 @@ const CustomerList = () => {
   const [showInactive, setShowInactive] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, customer: null });
 
-  // Ajustar sidebar baseado no tamanho da tela
-  useEffect(() => {
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-
   useEffect(() => {
     fetchCustomers();
   }, [showInactive]);
-
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleSidebarClose = () => {
-    setSidebarOpen(false);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success('Logout realizado com sucesso!');
-    } catch (error) {
-      console.error('Erro no logout:', error);
-      toast.error('Erro ao fazer logout');
-    }
-  };
 
   const fetchCustomers = async () => {
     try {
@@ -197,81 +163,13 @@ const CustomerList = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* Sidebar */}
-      <Sidebar
-        open={sidebarOpen}
-        onClose={handleSidebarClose}
-        onToggle={handleSidebarToggle}
-      />
-
-      {/* Conteúdo Principal */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          transition: theme.transitions.create(['margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          marginLeft: 0,
-        }}
-      >
-        {/* AppBar */}
-        <AppBar
-          position="fixed"
-          sx={{
-            zIndex: theme.zIndex.drawer + 1,
-            transition: theme.transitions.create(['margin', 'width'], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.leavingScreen,
-            }),
-            marginLeft: 0,
-            width: '100%',
-          }}
-        >
-          <Toolbar>
-            {/* Botão do Menu */}
-            {(!sidebarOpen || isMobile) && (
-              <IconButton
-                color="inherit"
-                aria-label="Abrir menu"
-                onClick={handleSidebarToggle}
-                edge="start"
-                sx={{ mr: 2 }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-
-            <PeopleIcon sx={{ mr: 1 }} />
-            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-              Gestão de Clientes
-            </Typography>
-
-            <Typography variant="body2" sx={{ mr: 2 }}>
-              Olá, {user?.name || 'Usuário'}!
-            </Typography>
-
-            <IconButton
-              color="inherit"
-              onClick={handleLogout}
-              aria-label="Sair do sistema"
-            >
-              <ExitToAppIcon />
-            </IconButton>
-          </Toolbar>
-        </AppBar>
-
-        {/* Conteúdo da Página */}
-        <Container 
-          maxWidth="xl" 
-          sx={{ 
-            mt: 10, // Margem superior para compensar a AppBar fixa
-            mb: 4,
-            px: { xs: 1, sm: 2 }
-          }}
-        >
+    <Container 
+      maxWidth="xl" 
+      sx={{ 
+        py: 3,
+        px: { xs: 1, sm: 2 }
+      }}
+    >
           {/* Cabeçalho da Página */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
@@ -498,8 +396,6 @@ const CustomerList = () => {
               )}
             </CardContent>
           </Card>
-        </Container>
-      </Box>
 
       {/* Dialog de Confirmação de Exclusão */}
       <Dialog
@@ -526,7 +422,7 @@ const CustomerList = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   );
 };
 

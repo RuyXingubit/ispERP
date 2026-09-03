@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Drawer,
   List,
@@ -64,15 +64,46 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
+  const location = useLocation();
 
   const userRole = user?.role || 'ADMIN';
   const isAdmin = userRole === 'ADMIN';
 
-  const [cadastroOpen, setCadastroOpen] = useState(false);
-  const [comercialOpen, setComercialOpen] = useState(true);
-  const [operacoesOpen, setOperacoesOpen] = useState(true);
-  const [financeiroOpen, setFinanceiroOpen] = useState(true);
-  const [redeOpen, setRedeOpen] = useState(true);
+  const [cadastroOpen, setCadastroOpen] = useState(() => {
+    const saved = localStorage.getItem('sidebar_cat_cadastro');
+    if (saved !== null) return saved === 'true';
+    return location.pathname.startsWith('/customers') || location.pathname.startsWith('/dashboard/usuarios') || location.pathname.startsWith('/dashboard/empresas');
+  });
+
+  const [comercialOpen, setComercialOpen] = useState(() => {
+    const saved = localStorage.getItem('sidebar_cat_comercial');
+    if (saved !== null) return saved === 'true';
+    return true;
+  });
+
+  const [operacoesOpen, setOperacoesOpen] = useState(() => {
+    const saved = localStorage.getItem('sidebar_cat_operacoes');
+    if (saved !== null) return saved === 'true';
+    return true;
+  });
+
+  const [financeiroOpen, setFinanceiroOpen] = useState(() => {
+    const saved = localStorage.getItem('sidebar_cat_financeiro');
+    if (saved !== null) return saved === 'true';
+    return true;
+  });
+
+  const [redeOpen, setRedeOpen] = useState(() => {
+    const saved = localStorage.getItem('sidebar_cat_rede');
+    if (saved !== null) return saved === 'true';
+    return true;
+  });
+
+  const toggleCategory = (key: string, current: boolean, setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    const next = !current;
+    setter(next);
+    localStorage.setItem(`sidebar_cat_${key}`, String(next));
+  };
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -336,7 +367,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
           <>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => setRedeOpen(!redeOpen)}
+                onClick={() => toggleCategory('rede', redeOpen, setRedeOpen)}
                 sx={{ minHeight: 44, px: 2 }}
               >
                 <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
@@ -356,7 +387,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
                   <ListItem key={index} disablePadding>
                     <ListItemButton
                       onClick={() => handleNavigate(item.path)}
-                      sx={{ pl: 4, py: 0.8, '&:hover': { bgcolor: 'action.hover' } }}
+                      selected={location.pathname === item.path}
+                      sx={{
+                        pl: 4,
+                        py: 0.8,
+                        '&.Mui-selected': {
+                          bgcolor: 'primary.50',
+                          borderRight: '3px solid',
+                          borderColor: 'primary.main',
+                          '& .MuiListItemIcon-root': { color: 'primary.main' },
+                          '& .MuiListItemText-primary': { fontWeight: 'bold', color: 'primary.main' },
+                        },
+                        '&:hover': { bgcolor: 'action.hover' },
+                      }}
                     >
                       <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
                         {item.icon}
@@ -377,7 +420,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
           <>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => setFinanceiroOpen(!financeiroOpen)}
+                onClick={() => toggleCategory('financeiro', financeiroOpen, setFinanceiroOpen)}
                 sx={{ minHeight: 44, px: 2 }}
               >
                 <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
@@ -399,7 +442,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
                     <ListItem key={index} disablePadding>
                       <ListItemButton
                         onClick={() => handleNavigate(item.path)}
-                        sx={{ pl: 4, py: 0.8, '&:hover': { bgcolor: 'action.hover' } }}
+                        selected={location.pathname === item.path}
+                        sx={{
+                          pl: 4,
+                          py: 0.8,
+                          '&.Mui-selected': {
+                            bgcolor: 'primary.50',
+                            borderRight: '3px solid',
+                            borderColor: 'primary.main',
+                            '& .MuiListItemIcon-root': { color: 'primary.main' },
+                            '& .MuiListItemText-primary': { fontWeight: 'bold', color: 'primary.main' },
+                          },
+                          '&:hover': { bgcolor: 'action.hover' },
+                        }}
                       >
                         <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
                           {item.icon}
@@ -420,7 +475,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
           <>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => setComercialOpen(!comercialOpen)}
+                onClick={() => toggleCategory('comercial', comercialOpen, setComercialOpen)}
                 sx={{ minHeight: 44, px: 2 }}
               >
                 <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
@@ -440,7 +495,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
                   <ListItem key={index} disablePadding>
                     <ListItemButton
                       onClick={() => handleNavigate(item.path)}
-                      sx={{ pl: 4, py: 0.8, '&:hover': { bgcolor: 'action.hover' } }}
+                      selected={location.pathname === item.path}
+                      sx={{
+                        pl: 4,
+                        py: 0.8,
+                        '&.Mui-selected': {
+                          bgcolor: 'primary.50',
+                          borderRight: '3px solid',
+                          borderColor: 'primary.main',
+                          '& .MuiListItemIcon-root': { color: 'primary.main' },
+                          '& .MuiListItemText-primary': { fontWeight: 'bold', color: 'primary.main' },
+                        },
+                        '&:hover': { bgcolor: 'action.hover' },
+                      }}
                     >
                       <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
                         {item.icon}
@@ -461,7 +528,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
           <>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => setOperacoesOpen(!operacoesOpen)}
+                onClick={() => toggleCategory('operacoes', operacoesOpen, setOperacoesOpen)}
                 sx={{ minHeight: 44, px: 2 }}
               >
                 <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
@@ -481,7 +548,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
                   <ListItem key={index} disablePadding>
                     <ListItemButton
                       onClick={() => handleNavigate(item.path)}
-                      sx={{ pl: 4, py: 0.8, '&:hover': { bgcolor: 'action.hover' } }}
+                      selected={location.pathname === item.path}
+                      sx={{
+                        pl: 4,
+                        py: 0.8,
+                        '&.Mui-selected': {
+                          bgcolor: 'primary.50',
+                          borderRight: '3px solid',
+                          borderColor: 'primary.main',
+                          '& .MuiListItemIcon-root': { color: 'primary.main' },
+                          '& .MuiListItemText-primary': { fontWeight: 'bold', color: 'primary.main' },
+                        },
+                        '&:hover': { bgcolor: 'action.hover' },
+                      }}
                     >
                       <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
                         {item.icon}
@@ -502,7 +581,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
           <>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => setCadastroOpen(!cadastroOpen)}
+                onClick={() => toggleCategory('cadastro', cadastroOpen, setCadastroOpen)}
                 sx={{ minHeight: 44, px: 2 }}
               >
                 <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'primary.main' }}>
@@ -529,7 +608,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
                     <ListItem key={index} disablePadding>
                       <ListItemButton
                         onClick={() => handleNavigate(item.path)}
-                        sx={{ pl: 4, py: 0.8, '&:hover': { bgcolor: 'action.hover' } }}
+                        selected={location.pathname === item.path}
+                        sx={{
+                          pl: 4,
+                          py: 0.8,
+                          '&.Mui-selected': {
+                            bgcolor: 'primary.50',
+                            borderRight: '3px solid',
+                            borderColor: 'primary.main',
+                            '& .MuiListItemIcon-root': { color: 'primary.main' },
+                            '& .MuiListItemText-primary': { fontWeight: 'bold', color: 'primary.main' },
+                          },
+                          '&:hover': { bgcolor: 'action.hover' },
+                        }}
                       >
                         <ListItemIcon sx={{ minWidth: 0, mr: 2, color: 'text.secondary' }}>
                           {item.icon}

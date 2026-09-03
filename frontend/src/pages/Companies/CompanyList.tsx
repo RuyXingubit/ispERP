@@ -20,30 +20,19 @@ import {
   DialogActions,
   TextField,
   Grid,
-  AppBar,
-  Toolbar,
-  useTheme,
-  useMediaQuery,
   CircularProgress,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Menu as MenuIcon,
-  ArrowBack as ArrowBackIcon,
   Business as BusinessIcon,
 } from '@mui/icons-material';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
-import Sidebar from '../../components/Sidebar';
 import companyService from '../../services/companyService';
-
-// Constantes de largura da sidebar (mesmas do componente Sidebar)
-const DRAWER_WIDTH = 280;
-const DRAWER_WIDTH_MOBILE = 260;
 
 const validationSchema = Yup.object({
   name: Yup.string().required('Nome da empresa é obrigatório'),
@@ -56,11 +45,6 @@ const validationSchema = Yup.object({
 
 const CompanyList = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -170,66 +154,7 @@ const CompanyList = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* Sidebar */}
-      <Sidebar
-        open={sidebarOpen}
-        onClose={handleSidebarClose}
-        onToggle={handleSidebarToggle}
-      />
-
-      {/* Conteúdo Principal */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          transition: theme.transitions.create(['margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          marginLeft: 0,
-        }}
-      >
-        {/* AppBar */}
-        <AppBar
-          position="fixed"
-          sx={{
-            zIndex: theme.zIndex.drawer + 1,
-            transition: theme.transitions.create(['margin', 'width'], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.leavingScreen,
-            }),
-            marginLeft: 0,
-            width: '100%',
-          }}
-        >
-          <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="toggle sidebar"
-              onClick={handleSidebarToggle}
-              edge="start"
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <IconButton
-              color="inherit"
-              aria-label="voltar"
-              onClick={() => navigate('/dashboard')}
-              edge="start"
-              sx={{ mr: 2 }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-              Gerenciamento de Empresas
-            </Typography>
-          </Toolbar>
-        </AppBar>
-
-        {/* Conteúdo */}
-        <Container maxWidth="lg" sx={{ mt: 10, mb: 4, px: { xs: 1, sm: 2 } }}>
+    <Container maxWidth="lg" sx={{ py: 3, px: { xs: 1, sm: 2 } }}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h4" component="h1">
               Empresas
@@ -292,11 +217,9 @@ const CompanyList = () => {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </Container>
-      </Box>
+            </Table>
+          </TableContainer>
+        )}
 
       {/* Dialog de Criação/Edição */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
@@ -415,7 +338,7 @@ const CompanyList = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   );
 };
 

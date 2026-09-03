@@ -14,16 +14,11 @@ import {
   IconButton,
   Alert,
   FormControlLabel,
-  Checkbox,
-  useTheme,
-  useMediaQuery,
+  Switch,
   CircularProgress,
   MenuItem,
 } from '@mui/material';
 import {
-  Person as PersonIcon,
-  Menu as MenuIcon,
-  ExitToApp as ExitToAppIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
   ArrowBack as ArrowBackIcon,
@@ -31,27 +26,15 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { customerService } from '../services/customerService';
 import { toast } from 'react-toastify';
-import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import { formatCPF, validateCPF, cleanCPF } from '../utils/cpfValidator';
-
-// Constantes de largura da sidebar (mesmas do componente Sidebar)
-const DRAWER_WIDTH = 280;
-const DRAWER_WIDTH_MOBILE = 260;
 
 const CustomerForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg'));
+  const { user } = useAuth();
   
   const isEditing = Boolean(id);
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
-
-  // Calcular largura dinâmica da sidebar
-  const sidebarWidth = isMobile ? DRAWER_WIDTH_MOBILE : DRAWER_WIDTH;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -99,32 +82,11 @@ const CustomerForm = () => {
     { value: 'TO', label: 'Tocantins' }
   ];
 
-  // Ajustar sidebar baseado no tamanho da tela
-  useEffect(() => {
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-
   useEffect(() => {
     if (isEditing) {
       fetchCustomer();
     }
   }, [id, isEditing]);
-
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleSidebarClose = () => {
-    setSidebarOpen(false);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Erro no logout:', error);
-    }
-  };
 
   const fetchCustomer = async () => {
     try {
@@ -249,118 +211,22 @@ const CustomerForm = () => {
 
   if (loading && isEditing) {
     return (
-      <Box sx={{ display: 'flex' }}>
-        <Sidebar
-          open={sidebarOpen}
-          onClose={handleSidebarClose}
-          onToggle={handleSidebarToggle}
-        />
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            transition: theme.transitions.create(['margin'], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.leavingScreen,
-            }),
-            marginLeft: 0,
-            minHeight: '100vh',
-            bgcolor: 'grey.50',
-          }}
-        >
-          <Container maxWidth="lg" sx={{ mt: { xs: 9, sm: 10 }, mb: 4, px: { xs: 1, sm: 2 } }}>
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-              <CircularProgress />
-            </Box>
-          </Container>
+      <Container maxWidth="lg" sx={{ py: 4, px: { xs: 1, sm: 2 } }}>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <CircularProgress />
         </Box>
-      </Box>
+      </Container>
     );
   }
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* Sidebar */}
-      <Sidebar
-        open={sidebarOpen}
-        onClose={handleSidebarClose}
-        onToggle={handleSidebarToggle}
-      />
-
-      {/* Conteúdo Principal */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          transition: theme.transitions.create(['margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          // Layout dinâmico baseado no estado da sidebar
-          marginLeft: 0,
-          minHeight: '100vh',
-          bgcolor: 'grey.50',
-        }}
-      >
-        {/* AppBar */}
-        <AppBar
-          position="fixed"
-          sx={{
-            zIndex: theme.zIndex.drawer - 1,
-            transition: theme.transitions.create(['width', 'margin'], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.leavingScreen,
-            }),
-            // Layout dinâmico baseado no estado da sidebar
-            marginLeft: 0,
-            width: '100%',
-          }}
-        >
-          <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
-            <IconButton
-              color="inherit"
-              aria-label="toggle drawer"
-              onClick={handleSidebarToggle}
-              edge="start"
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <PersonIcon sx={{ mr: 1, fontSize: { xs: 20, sm: 24 } }} />
-            <Typography 
-              variant={isMobile ? "subtitle1" : "h6"} 
-              noWrap 
-              component="div" 
-              sx={{ 
-                flexGrow: 1,
-                fontSize: { xs: '1rem', sm: '1.25rem' },
-                fontWeight: 'medium',
-              }}
-            >
-              {isEditing ? 'Editar Cliente' : 'Novo Cliente'}
-            </Typography>
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                mr: 2,
-                display: { xs: 'none', sm: 'block' },
-                fontSize: { sm: '0.875rem' },
-              }}
-            >
-              {user?.name}
-            </Typography>
-          </Toolbar>
-        </AppBar>
-
-        {/* Conteúdo */}
-        <Container 
-          maxWidth="lg" 
-          sx={{ 
-            mt: { xs: 9, sm: 10 }, 
-            mb: 4,
-            px: { xs: 1, sm: 2 },
-          }}
-        >
+    <Container 
+      maxWidth="lg" 
+      sx={{ 
+        py: 3, 
+        px: { xs: 1, sm: 2 },
+      }}
+    >
           {/* Botão Voltar */}
           <Box sx={{ mb: { xs: 2, sm: 3 } }}>
             <Button
@@ -684,8 +550,6 @@ const CustomerForm = () => {
             </CardContent>
           </Card>
         </Container>
-      </Box>
-    </Box>
   );
 };
 

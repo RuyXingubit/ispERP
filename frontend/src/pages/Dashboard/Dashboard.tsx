@@ -38,23 +38,11 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import Sidebar from '../../components/Sidebar';
 import dashboardBiService from '../../services/dashboardBiService';
 
-const DRAWER_WIDTH = 280;
-const DRAWER_WIDTH_MOBILE = 260;
-
 const Dashboard = () => {
-  const { user, logout } = useAuth();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState(null);
-
-  useEffect(() => {
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
 
   const loadMetrics = async () => {
     try {
@@ -72,24 +60,6 @@ const Dashboard = () => {
   useEffect(() => {
     loadMetrics();
   }, []);
-
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleSidebarClose = () => {
-    setSidebarOpen(false);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success('Logout realizado com sucesso!');
-    } catch (error) {
-      console.error('Erro no logout:', error);
-      toast.error('Erro ao fazer logout');
-    }
-  };
 
   const mrrFormatted = metrics?.mrr ? `R$ ${Number(metrics.mrr).toFixed(2).replace('.', ',')}` : 'R$ 0,00';
   const arrFormatted = metrics?.arr ? `R$ ${Number(metrics.arr).toFixed(2).replace('.', ',')}` : 'R$ 0,00';
@@ -142,91 +112,13 @@ const Dashboard = () => {
   ];
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Sidebar
-        open={sidebarOpen}
-        onClose={handleSidebarClose}
-        onToggle={handleSidebarToggle}
-      />
-
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          marginLeft: 0,
-          minHeight: '100vh',
-          bgcolor: 'grey.50',
-        }}
-      >
-        <AppBar
-          position="fixed"
-          sx={{
-            zIndex: theme.zIndex.drawer + 1,
-            marginLeft: 0,
-            width: '100%',
-          }}
-        >
-          <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
-            {(!sidebarOpen || isMobile) && (
-              <IconButton
-                color="inherit"
-                aria-label="Abrir menu"
-                onClick={handleSidebarToggle}
-                edge="start"
-                sx={{ mr: 2 }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-
-            <Typography 
-              variant="h6" 
-              noWrap 
-              component="div" 
-              sx={{ 
-                flexGrow: 1,
-                fontSize: { xs: '1rem', sm: '1.25rem' },
-                fontWeight: 'bold',
-              }}
-            >
-              ISP ERP • Cockpit Executivo & BI
-            </Typography>
-
-            <Chip
-              label={`Perfil: ${user?.role || 'ADMIN'}`}
-              color="secondary"
-              size="small"
-              sx={{ mr: 2, fontWeight: 'bold' }}
-            />
-
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                mr: 2,
-                display: { xs: 'none', sm: 'block' },
-              }}
-            >
-              Olá, {user?.name || 'Gestor'}!
-            </Typography>
-
-            <IconButton
-              color="inherit"
-              onClick={handleLogout}
-              aria-label="Sair do sistema"
-            >
-              <ExitToAppIcon />
-            </IconButton>
-          </Toolbar>
-        </AppBar>
-
-        <Container 
-          maxWidth="xl" 
-          sx={{ 
-            mt: { xs: 8, sm: 9 },
-            mb: 4,
-            px: { xs: 1, sm: 2, md: 3 },
-          }}
-        >
+    <Container 
+      maxWidth="xl" 
+      sx={{ 
+        py: 3,
+        px: { xs: 1, sm: 2, md: 3 },
+      }}
+    >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Box>
               <Typography variant="h4" fontWeight="bold" color="text.primary">
@@ -395,8 +287,6 @@ const Dashboard = () => {
             </>
           )}
         </Container>
-      </Box>
-    </Box>
   );
 };
 
