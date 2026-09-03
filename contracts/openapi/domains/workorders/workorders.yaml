@@ -3,7 +3,7 @@
 /work-orders:
   get:
     tags:
-      - Ordens de Serviço
+      - WorkOrders
     summary: Listar todas as ordens de serviço
     operationId: getAllWorkOrders
     description: Retorna a lista de O.S. cadastradas, com filtro opcional por status operacional.
@@ -32,7 +32,7 @@
 /work-orders/{id}:
   get:
     tags:
-      - Ordens de Serviço
+      - WorkOrders
     summary: Obter detalhes de uma ordem de serviço
     operationId: getWorkOrderById
     parameters:
@@ -58,7 +58,7 @@
 /work-orders/{id}/schedule:
   post:
     tags:
-      - Ordens de Serviço
+      - WorkOrders
     summary: Agendar ordem de serviço
     operationId: scheduleWorkOrder
     description: Define data, período e técnico responsável para atendimento da O.S.
@@ -91,7 +91,7 @@
 /work-orders/{id}/complete:
   post:
     tags:
-      - Ordens de Serviço
+      - WorkOrders
     summary: Concluir ordem de serviço
     operationId: completeWorkOrder
     description: Registra potência óptica, número de série da ONU e assinatura digital, finalizando a O.S.
@@ -124,7 +124,7 @@
 /technician/execution/{workOrderId}/unprovisioned-onus:
   get:
     tags:
-      - Execução Técnica de Campo
+      - TechnicianExecution
     summary: Listar ONUs descobertas na porta PON (Auto-Find)
     operationId: listUnprovisionedOnus
     parameters:
@@ -152,7 +152,7 @@
 /technician/execution/{workOrderId}/provision:
   post:
     tags:
-      - Execução Técnica de Campo
+      - TechnicianExecution
     summary: Provisionar ONU com VLAN e credenciais PPPoE
     operationId: provisionOnu
     parameters:
@@ -191,7 +191,7 @@
 /technician/execution/{workOrderId}/radius-status:
   get:
     tags:
-      - Execução Técnica de Campo
+      - TechnicianExecution
     summary: Checar status da sessão PPPoE no FreeRADIUS em tempo real
     operationId: getRadiusStatus
     parameters:

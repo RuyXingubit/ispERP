@@ -30,31 +30,31 @@
   ],
   "tags": [
     {
-      "name": "Ordens de Serviço",
-      "description": "Agendamento, roteirização e conclusão de O.S."
+      "name": "WorkOrders",
+      "description": "Ordens de Serviço (Agendamento, roteirização e conclusão de O.S.)"
     },
     {
-      "name": "Execução Técnica de Campo",
-      "description": "Auto-Discovery OLT, provisionamento ONU e testes RADIUS"
+      "name": "TechnicianExecution",
+      "description": "Execução Técnica de Campo (Auto-Discovery OLT, provisionamento ONU e testes RADIUS)"
     },
     {
-      "name": "Faturamento & Cobrança",
-      "description": "Faturas, PIX, liquidação e rotina recorrente"
+      "name": "Invoices",
+      "description": "Faturamento & Cobrança (Faturas, PIX, liquidação e rotina recorrente)"
     },
     {
-      "name": "Contratos",
-      "description": "Gestão de planos, minutas e status contratual"
+      "name": "Contracts",
+      "description": "Contratos (Gestão de planos, minutas e status contratual)"
     },
     {
-      "name": "Clientes",
-      "description": "Cadastro e busca de assinantes"
+      "name": "Customers",
+      "description": "Clientes (Cadastro e busca de assinantes)"
     }
   ],
   "paths": {
     "/work-orders": {
       "get": {
         "tags": [
-          "Ordens de Serviço"
+          "WorkOrders"
         ],
         "summary": "Listar todas as ordens de serviço",
         "operationId": "getAllWorkOrders",
@@ -99,7 +99,7 @@
     "/work-orders/{id}": {
       "get": {
         "tags": [
-          "Ordens de Serviço"
+          "WorkOrders"
         ],
         "summary": "Obter detalhes de uma ordem de serviço",
         "operationId": "getWorkOrderById",
@@ -140,7 +140,7 @@
     "/work-orders/{id}/schedule": {
       "post": {
         "tags": [
-          "Ordens de Serviço"
+          "WorkOrders"
         ],
         "summary": "Agendar ordem de serviço",
         "operationId": "scheduleWorkOrder",
@@ -192,7 +192,7 @@
     "/work-orders/{id}/complete": {
       "post": {
         "tags": [
-          "Ordens de Serviço"
+          "WorkOrders"
         ],
         "summary": "Concluir ordem de serviço",
         "operationId": "completeWorkOrder",
@@ -244,7 +244,7 @@
     "/technician/execution/{workOrderId}/unprovisioned-onus": {
       "get": {
         "tags": [
-          "Execução Técnica de Campo"
+          "TechnicianExecution"
         ],
         "summary": "Listar ONUs descobertas na porta PON (Auto-Find)",
         "operationId": "listUnprovisionedOnus",
@@ -288,7 +288,7 @@
     "/technician/execution/{workOrderId}/provision": {
       "post": {
         "tags": [
-          "Execução Técnica de Campo"
+          "TechnicianExecution"
         ],
         "summary": "Provisionar ONU com VLAN e credenciais PPPoE",
         "operationId": "provisionOnu",
@@ -349,7 +349,7 @@
     "/technician/execution/{workOrderId}/radius-status": {
       "get": {
         "tags": [
-          "Execução Técnica de Campo"
+          "TechnicianExecution"
         ],
         "summary": "Checar status da sessão PPPoE no FreeRADIUS em tempo real",
         "operationId": "getRadiusStatus",
@@ -390,7 +390,7 @@
     "/invoices": {
       "get": {
         "tags": [
-          "Faturamento & Cobrança"
+          "Invoices"
         ],
         "summary": "Listar faturas",
         "operationId": "getAllInvoices",
@@ -435,7 +435,7 @@
     "/invoices/{id}": {
       "get": {
         "tags": [
-          "Faturamento & Cobrança"
+          "Invoices"
         ],
         "summary": "Obter detalhes da fatura",
         "operationId": "getInvoiceById",
@@ -476,7 +476,7 @@
     "/invoices/customer/{customerId}": {
       "get": {
         "tags": [
-          "Faturamento & Cobrança"
+          "Invoices"
         ],
         "summary": "Listar faturas de um cliente",
         "operationId": "getInvoicesByCustomerId",
@@ -520,7 +520,7 @@
     "/invoices/{id}/pay": {
       "post": {
         "tags": [
-          "Faturamento & Cobrança"
+          "Invoices"
         ],
         "summary": "Baixar pagamento da fatura",
         "operationId": "payInvoice",
@@ -572,7 +572,7 @@
     "/invoices/{id}/cancel": {
       "post": {
         "tags": [
-          "Faturamento & Cobrança"
+          "Invoices"
         ],
         "summary": "Cancelar fatura",
         "operationId": "cancelInvoice",
@@ -613,7 +613,7 @@
     "/invoices/trigger-recurring-billing": {
       "post": {
         "tags": [
-          "Faturamento & Cobrança"
+          "Invoices"
         ],
         "summary": "Disparar rotina de faturamento recorrente",
         "operationId": "triggerRecurringBilling",
@@ -655,7 +655,7 @@
     "/contracts": {
       "get": {
         "tags": [
-          "Contratos"
+          "Contracts"
         ],
         "summary": "Listar todos os contratos",
         "operationId": "getAllContracts",
@@ -689,7 +689,7 @@
     "/contracts/{id}": {
       "get": {
         "tags": [
-          "Contratos"
+          "Contracts"
         ],
         "summary": "Obter contrato por ID",
         "operationId": "getContractById",
@@ -730,7 +730,7 @@
     "/contracts/customer/{customerId}": {
       "get": {
         "tags": [
-          "Contratos"
+          "Contracts"
         ],
         "summary": "Listar contratos de um cliente",
         "operationId": "getContractsByCustomerId",
@@ -774,7 +774,7 @@
     "/contracts/status/{status}": {
       "get": {
         "tags": [
-          "Contratos"
+          "Contracts"
         ],
         "summary": "Listar contratos por status",
         "operationId": "getContractsByStatus",
@@ -818,7 +818,7 @@
     "/contracts/{id}/status": {
       "patch": {
         "tags": [
-          "Contratos"
+          "Contracts"
         ],
         "summary": "Atualizar status do contrato",
         "operationId": "updateContractStatus",
@@ -879,7 +879,7 @@
     "/customers": {
       "get": {
         "tags": [
-          "Clientes"
+          "Customers"
         ],
         "summary": "Listar todos os clientes",
         "operationId": "getAllCustomers",
@@ -911,7 +911,7 @@
       },
       "post": {
         "tags": [
-          "Clientes"
+          "Customers"
         ],
         "summary": "Cadastrar novo cliente",
         "operationId": "createCustomer",
@@ -952,7 +952,7 @@
     "/customers/{id}": {
       "get": {
         "tags": [
-          "Clientes"
+          "Customers"
         ],
         "summary": "Obter dados do cliente por ID",
         "operationId": "getCustomerById",
@@ -991,7 +991,7 @@
       },
       "put": {
         "tags": [
-          "Clientes"
+          "Customers"
         ],
         "summary": "Atualizar cadastro do cliente",
         "operationId": "updateCustomer",
@@ -1040,7 +1040,7 @@
       },
       "delete": {
         "tags": [
-          "Clientes"
+          "Customers"
         ],
         "summary": "Excluir ou arquivar cliente",
         "operationId": "deleteCustomer",
@@ -1074,7 +1074,7 @@
     "/customers/search": {
       "get": {
         "tags": [
-          "Clientes"
+          "Customers"
         ],
         "summary": "Busca unificada de clientes",
         "operationId": "searchCustomers",
@@ -1138,7 +1138,7 @@
     "/customers/{id}/activate": {
       "patch": {
         "tags": [
-          "Clientes"
+          "Customers"
         ],
         "summary": "Ativar cliente",
         "operationId": "activateCustomer",
@@ -1172,7 +1172,7 @@
     "/customers/{id}/deactivate": {
       "patch": {
         "tags": [
-          "Clientes"
+          "Customers"
         ],
         "summary": "Desativar cliente",
         "operationId": "deactivateCustomer",

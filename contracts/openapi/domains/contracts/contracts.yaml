@@ -3,7 +3,7 @@
 /contracts:
   get:
     tags:
-      - Contratos
+      - Contracts
     summary: Listar todos os contratos
     operationId: getAllContracts
     responses:
@@ -25,7 +25,7 @@
 /contracts/{id}:
   get:
     tags:
-      - Contratos
+      - Contracts
     summary: Obter contrato por ID
     operationId: getContractById
     parameters:
@@ -51,7 +51,7 @@
 /contracts/customer/{customerId}:
   get:
     tags:
-      - Contratos
+      - Contracts
     summary: Listar contratos de um cliente
     operationId: getContractsByCustomerId
     parameters:
@@ -79,7 +79,7 @@
 /contracts/status/{status}:
   get:
     tags:
-      - Contratos
+      - Contracts
     summary: Listar contratos por status
     operationId: getContractsByStatus
     parameters:
@@ -107,7 +107,7 @@
 /contracts/{id}/status:
   patch:
     tags:
-      - Contratos
+      - Contracts
     summary: Atualizar status do contrato
     operationId: updateContractStatus
     description: "Altera o estado do contrato (ex: ativar após instalação, suspender por corte, cancelar)."

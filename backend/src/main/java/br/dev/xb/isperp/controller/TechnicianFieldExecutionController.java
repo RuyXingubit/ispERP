@@ -1,11 +1,14 @@
 package br.dev.xb.isperp.controller;
 
+import br.dev.xb.isperp.api.contract.TechnicianExecutionApi;
+import br.dev.xb.isperp.api.dto.OltUnprovisionedOnu;
+import br.dev.xb.isperp.api.dto.ProvisionOnu200Response;
+import br.dev.xb.isperp.api.dto.ProvisionOnuRequest;
+import br.dev.xb.isperp.api.dto.RadiusStatusResponse;
 import br.dev.xb.isperp.dto.OltUnprovisionedOnuResponse;
 import br.dev.xb.isperp.dto.TechnicianExecutionCompleteRequest;
 import br.dev.xb.isperp.entity.WorkOrder;
 import br.dev.xb.isperp.service.TechnicianFieldExecutionService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,45 +18,69 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping({"/technician/execution", "/api/technician/execution"})
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
-@Tag(name = "Execução Técnica de Campo", description = "Endpoints para Auto-Discovery OLT, provisionamento 1-clique, verificação RADIUS e conclusão de O.S.")
-public class TechnicianFieldExecutionController {
+@SuppressWarnings("null")
+public class TechnicianFieldExecutionController implements TechnicianExecutionApi {
 
     private final TechnicianFieldExecutionService fieldExecutionService;
 
-    @GetMapping("/{workOrderId}/unprovisioned-onus")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN', 'SUPPORT_N2', 'SUPPORT_ANALYST')")
-    @Operation(summary = "Listar ONUs descobertas automaticamente (Auto-Find) na porta PON da OLT")
-    public ResponseEntity<List<OltUnprovisionedOnuResponse>> listUnprovisionedOnus(@PathVariable UUID workOrderId) {
-        return ResponseEntity.ok(fieldExecutionService.listUnprovisionedOnus(workOrderId));
+    public ResponseEntity<List<OltUnprovisionedOnu>> listUnprovisionedOnus(UUID workOrderId) {
+        List<OltUnprovisionedOnuResponse> onus = fieldExecutionService.listUnprovisionedOnus(workOrderId);
+        List<OltUnprovisionedOnu> mapped = onus.stream().map(o -> {
+            OltUnprovisionedOnu dto = new OltUnprovisionedOnu();
+            dto.setNetworkDeviceId(o.getNetworkDeviceId());
+            dto.setOltName(o.getOltName());
+            dto.setSlotNumber(o.getSlotNumber());
+            dto.setPortNumber(o.getPortNumber());
+            dto.setPonName(o.getPonName());
+            dto.setOnuSerial(o.getOnuSerial());
+            dto.setOnuMac(o.getOnuMac());
+            dto.setRxPowerDbm(o.getRxPowerDbm() != null ? o.getRxPowerDbm().doubleValue() : null);
+            dto.setDetectedAt(o.getDetectedAt());
+            return dto;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(mapped);
     }
 
-    @PostMapping("/{workOrderId}/provision")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN', 'SUPPORT_N2', 'SUPPORT_ANALYST')")
-    @Operation(summary = "Provisionar ONU selecionada com VLAN e credenciais PPPoE no FreeRADIUS")
-    public ResponseEntity<Map<String, Object>> provisionOnu(
-            @PathVariable UUID workOrderId,
-            @RequestParam String onuSerial,
-            @RequestParam(required = false, defaultValue = "100") Integer vlanId,
-            @RequestParam(required = false) String pppoeUsername,
-            @RequestParam(required = false) String pppoePassword) {
-        return ResponseEntity.ok(fieldExecutionService.provisionOnu(workOrderId, onuSerial, vlanId, pppoeUsername, pppoePassword));
+    public ResponseEntity<ProvisionOnu200Response> provisionOnu(UUID workOrderId, ProvisionOnuRequest request) {
+        Map<String, Object> result = fieldExecutionService.provisionOnu(
+                workOrderId,
+                request.getOnuSerial(),
+                request.getVlanId(),
+                request.getPppoeUsername(),
+                request.getPppoePassword()
+        );
+        Boolean success = (Boolean) result.getOrDefault("success", true);
+        String message = (String) result.getOrDefault("message", "ONU provisionada com sucesso.");
+        return ResponseEntity.ok(new ProvisionOnu200Response(success, message));
     }
 
-    @GetMapping("/{workOrderId}/radius-status")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN', 'SUPPORT_N2', 'SUPPORT_ANALYST')")
-    @Operation(summary = "Verificar em tempo real se a sessão PPPoE do assinante autenticou no FreeRADIUS")
-    public ResponseEntity<Map<String, Object>> checkRadiusStatus(@PathVariable UUID workOrderId) {
-        return ResponseEntity.ok(fieldExecutionService.checkRadiusSessionStatus(workOrderId));
+    public ResponseEntity<RadiusStatusResponse> getRadiusStatus(UUID workOrderId) {
+        Map<String, Object> result = fieldExecutionService.checkRadiusSessionStatus(workOrderId);
+        Boolean authenticated = (Boolean) result.getOrDefault("authenticated", false);
+        RadiusStatusResponse response = new RadiusStatusResponse(workOrderId, authenticated);
+        response.setUsername((String) result.get("username"));
+        response.setFramedIpAddress((String) result.get("framedIpAddress"));
+        response.setMacAddress((String) result.get("macAddress"));
+        response.setNasIpAddress((String) result.get("nasIpAddress"));
+        if (result.get("uptimeSeconds") instanceof Number n) {
+            response.setUptimeSeconds(n.intValue());
+        }
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{workOrderId}/complete")
+    @PostMapping({"/technician/execution/{workOrderId}/complete", "/api/technician/execution/{workOrderId}/complete"})
     @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN', 'SUPPORT_N2', 'SUPPORT_ANALYST')")
-    @Operation(summary = "Concluir O.S. com evidências fotográficas, potência dBm, assinatura digital e ativação do cliente")
     public ResponseEntity<WorkOrder> completeInstallation(
             @PathVariable UUID workOrderId,
             @Valid @RequestBody TechnicianExecutionCompleteRequest request) {

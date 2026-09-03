@@ -3,7 +3,7 @@
 /invoices:
   get:
     tags:
-      - Faturamento & Cobrança
+      - Invoices
     summary: Listar faturas
     operationId: getAllInvoices
     description: Retorna o histórico de faturas geradas com filtro opcional por status.
@@ -32,7 +32,7 @@
 /invoices/{id}:
   get:
     tags:
-      - Faturamento & Cobrança
+      - Invoices
     summary: Obter detalhes da fatura
     operationId: getInvoiceById
     parameters:
@@ -58,7 +58,7 @@
 /invoices/customer/{customerId}:
   get:
     tags:
-      - Faturamento & Cobrança
+      - Invoices
     summary: Listar faturas de um cliente
     operationId: getInvoicesByCustomerId
     parameters:
@@ -86,7 +86,7 @@
 /invoices/{id}/pay:
   post:
     tags:
-      - Faturamento & Cobrança
+      - Invoices
     summary: Baixar pagamento da fatura
     operationId: payInvoice
     description: Liquida a fatura informando o meio de pagamento e valor recebido.
@@ -119,7 +119,7 @@
 /invoices/{id}/cancel:
   post:
     tags:
-      - Faturamento & Cobrança
+      - Invoices
     summary: Cancelar fatura
     operationId: cancelInvoice
     parameters:
@@ -145,7 +145,7 @@
 /invoices/trigger-recurring-billing:
   post:
     tags:
-      - Faturamento & Cobrança
+      - Invoices
     summary: Disparar rotina de faturamento recorrente
     operationId: triggerRecurringBilling
     description: Executa a geração de faturas do ciclo mensal para todos os contratos ativos.

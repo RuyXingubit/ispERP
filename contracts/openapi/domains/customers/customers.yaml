@@ -3,7 +3,7 @@
 /customers:
   get:
     tags:
-      - Clientes
+      - Customers
     summary: Listar todos os clientes
     operationId: getAllCustomers
     responses:
@@ -24,7 +24,7 @@
 
   post:
     tags:
-      - Clientes
+      - Customers
     summary: Cadastrar novo cliente
     operationId: createCustomer
     requestBody:
@@ -50,7 +50,7 @@
 /customers/{id}:
   get:
     tags:
-      - Clientes
+      - Customers
     summary: Obter dados do cliente por ID
     operationId: getCustomerById
     parameters:
@@ -75,7 +75,7 @@
 
   put:
     tags:
-      - Clientes
+      - Customers
     summary: Atualizar cadastro do cliente
     operationId: updateCustomer
     parameters:
@@ -106,7 +106,7 @@
 
   delete:
     tags:
-      - Clientes
+      - Customers
     summary: Excluir ou arquivar cliente
     operationId: deleteCustomer
     parameters:
@@ -128,7 +128,7 @@
 /customers/search:
   get:
     tags:
-      - Clientes
+      - Customers
     summary: Busca unificada de clientes
     operationId: searchCustomers
     description: Permite localizar clientes por texto livre no nome, CPF/CNPJ ou telefone.
@@ -170,7 +170,7 @@
 /customers/{id}/activate:
   patch:
     tags:
-      - Clientes
+      - Customers
     summary: Ativar cliente
     operationId: activateCustomer
     parameters:
@@ -192,7 +192,7 @@
 /customers/{id}/deactivate:
   patch:
     tags:
-      - Clientes
+      - Customers
     summary: Desativar cliente
     operationId: deactivateCustomer
     parameters:

@@ -22,16 +22,16 @@ security:
   - bearerAuth: []
 
 tags:
-  - name: Ordens de Serviço
-    description: Agendamento, roteirização e conclusão de O.S.
-  - name: Execução Técnica de Campo
-    description: Auto-Discovery OLT, provisionamento ONU e testes RADIUS
-  - name: Faturamento & Cobrança
-    description: Faturas, PIX, liquidação e rotina recorrente
-  - name: Contratos
-    description: Gestão de planos, minutas e status contratual
-  - name: Clientes
-    description: Cadastro e busca de assinantes
+  - name: WorkOrders
+    description: Ordens de Serviço (Agendamento, roteirização e conclusão de O.S.)
+  - name: TechnicianExecution
+    description: Execução Técnica de Campo (Auto-Discovery OLT, provisionamento ONU e testes RADIUS)
+  - name: Invoices
+    description: Faturamento & Cobrança (Faturas, PIX, liquidação e rotina recorrente)
+  - name: Contracts
+    description: Contratos (Gestão de planos, minutas e status contratual)
+  - name: Customers
+    description: Clientes (Cadastro e busca de assinantes)
 
 paths:
   # Ordens de Serviço & Execução de Campo
