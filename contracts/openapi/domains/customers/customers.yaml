@@ -47,6 +47,55 @@
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
 
+/customers/active:
+  get:
+    tags:
+      - Customers
+    summary: Listar clientes ativos
+    operationId: getActiveCustomers
+    responses:
+      '200':
+        description: Lista de clientes ativos.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/CustomerResponse'
+      '401':
+        description: Não autenticado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/customers/cpf/{cpf}:
+  get:
+    tags:
+      - Customers
+    summary: Obter cliente por CPF
+    operationId: getCustomerByCpf
+    parameters:
+      - name: cpf
+        in: path
+        required: true
+        schema:
+          type: string
+        description: CPF do cliente (com ou sem máscara).
+    responses:
+      '200':
+        description: Cliente localizado.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CustomerResponse'
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
 /customers/{id}:
   get:
     tags:
@@ -162,6 +211,64 @@
                 $ref: './schemas.yaml#/CustomerResponse'
       '400':
         description: Parâmetro de busca ausente ou inválido.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/customers/search/name:
+  get:
+    tags:
+      - Customers
+    summary: Buscar clientes por nome
+    operationId: searchCustomersByName
+    parameters:
+      - name: name
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Nome do cliente para busca.
+    responses:
+      '200':
+        description: Clientes encontrados pelo nome.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/CustomerResponse'
+      '400':
+        description: Parâmetro inválido.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/customers/search/cpf:
+  get:
+    tags:
+      - Customers
+    summary: Buscar clientes por CPF
+    operationId: searchCustomersByCpf
+    parameters:
+      - name: cpf
+        in: query
+        required: true
+        schema:
+          type: string
+        description: CPF do cliente para busca.
+    responses:
+      '200':
+        description: Clientes encontrados pelo CPF.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/CustomerResponse'
+      '400':
+        description: Parâmetro inválido.
         content:
           application/json:
             schema:

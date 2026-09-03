@@ -52,7 +52,8 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import api from '../services/api';
+import { customerService } from '../services/customerService';
+import { CustomerResponse } from '../api/generated/models';
 import { formatCPF } from '../utils/cpfValidator';
 
 const CustomerList = () => {
@@ -60,13 +61,13 @@ const CustomerList = () => {
   const navigate = useNavigate();
 
   // Estados da página
-  const [customers, setCustomers] = useState([]);
+  const [customers, setCustomers] = useState<CustomerResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('name');
   const [showInactive, setShowInactive] = useState(false);
-  const [deleteDialog, setDeleteDialog] = useState({ open: false, customer: null });
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; customer: CustomerResponse | null }>({ open: false, customer: null });
 
   useEffect(() => {
     fetchCustomers();
@@ -75,9 +76,8 @@ const CustomerList = () => {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const endpoint = showInactive ? '/customers' : '/customers/active';
-      const response = await api.get(endpoint);
-      setCustomers(response.data);
+      const data = showInactive ? await customerService.getAll() : await customerService.getActive();
+      setCustomers(data);
       setError('');
     } catch (error) {
       console.error('Erro ao buscar clientes:', error);
@@ -96,10 +96,10 @@ const CustomerList = () => {
 
     try {
       setLoading(true);
-      const response = await api.get(`/customers/search/${searchType}`, {
-        params: { [searchType]: searchTerm }
-      });
-      setCustomers(response.data);
+      const data = searchType === 'cpf'
+        ? await customerService.searchByCpf(searchTerm)
+        : await customerService.searchByName(searchTerm);
+      setCustomers(data);
       setError('');
     } catch (error) {
       console.error('Erro ao buscar clientes:', error);
@@ -117,14 +117,15 @@ const CustomerList = () => {
     fetchCustomers();
   };
 
-  const handleDeleteClick = (customer) => {
+  const handleDeleteClick = (customer: CustomerResponse) => {
     setDeleteDialog({ open: true, customer });
   };
 
   const handleDeleteConfirm = async () => {
     const { customer } = deleteDialog;
+    if (!customer) return;
     try {
-      await api.delete(`/customers/${customer.id}`);
+      await customerService.delete(customer.id);
       toast.success('Cliente excluído com sucesso!');
       fetchCustomers();
     } catch (error) {
@@ -139,10 +140,13 @@ const CustomerList = () => {
     setDeleteDialog({ open: false, customer: null });
   };
 
-  const handleToggleActive = async (id, isActive) => {
+  const handleToggleActive = async (id: string, isActive: boolean) => {
     try {
-      const endpoint = isActive ? 'deactivate' : 'activate';
-      await api.patch(`/customers/${id}/${endpoint}`);
+      if (isActive) {
+        await customerService.deactivate(id);
+      } else {
+        await customerService.activate(id);
+      }
       toast.success(`Cliente ${isActive ? 'desativado' : 'ativado'} com sucesso!`);
       fetchCustomers();
     } catch (error) {

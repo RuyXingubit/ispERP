@@ -83,10 +83,18 @@ paths:
   # Clientes
   /customers:
     $ref: './domains/customers/customers.yaml#/~1customers'
+  /customers/active:
+    $ref: './domains/customers/customers.yaml#/~1customers~1active'
+  /customers/cpf/{cpf}:
+    $ref: './domains/customers/customers.yaml#/~1customers~1cpf~1{cpf}'
   /customers/{id}:
     $ref: './domains/customers/customers.yaml#/~1customers~1{id}'
   /customers/search:
     $ref: './domains/customers/customers.yaml#/~1customers~1search'
+  /customers/search/name:
+    $ref: './domains/customers/customers.yaml#/~1customers~1search~1name'
+  /customers/search/cpf:
+    $ref: './domains/customers/customers.yaml#/~1customers~1search~1cpf'
   /customers/{id}/activate:
     $ref: './domains/customers/customers.yaml#/~1customers~1{id}~1activate'
   /customers/{id}/deactivate:

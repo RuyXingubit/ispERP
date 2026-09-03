@@ -10,6 +10,8 @@ import type {
   CustomerCreateRequest,
   CustomerResponse,
   CustomerUpdateRequest,
+  SearchCustomersByCpfParams,
+  SearchCustomersByNameParams,
   SearchCustomersParams,
   UUIDv7
 } from '../../models';
@@ -42,6 +44,28 @@ const createCustomer = (
       {url: `/customers`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: customerCreateRequest
+    },
+      options);
+    }
+  /**
+ * @summary Listar clientes ativos
+ */
+const getActiveCustomers = (
+    
+ options?: SecondParameter<typeof customInstance>,) => {
+      return customInstance<CustomerResponse[]>(
+      {url: `/customers/active`, method: 'GET'
+    },
+      options);
+    }
+  /**
+ * @summary Obter cliente por CPF
+ */
+const getCustomerByCpf = (
+    cpf: string,
+ options?: SecondParameter<typeof customInstance>,) => {
+      return customInstance<CustomerResponse>(
+      {url: `/customers/cpf/${cpf}`, method: 'GET'
     },
       options);
     }
@@ -95,6 +119,30 @@ const searchCustomers = (
       options);
     }
   /**
+ * @summary Buscar clientes por nome
+ */
+const searchCustomersByName = (
+    params: SearchCustomersByNameParams,
+ options?: SecondParameter<typeof customInstance>,) => {
+      return customInstance<CustomerResponse[]>(
+      {url: `/customers/search/name`, method: 'GET',
+        params
+    },
+      options);
+    }
+  /**
+ * @summary Buscar clientes por CPF
+ */
+const searchCustomersByCpf = (
+    params: SearchCustomersByCpfParams,
+ options?: SecondParameter<typeof customInstance>,) => {
+      return customInstance<CustomerResponse[]>(
+      {url: `/customers/search/cpf`, method: 'GET',
+        params
+    },
+      options);
+    }
+  /**
  * @summary Ativar cliente
  */
 const activateCustomer = (
@@ -116,12 +164,16 @@ const deactivateCustomer = (
     },
       options);
     }
-  return {getAllCustomers,createCustomer,getCustomerById,updateCustomer,deleteCustomer,searchCustomers,activateCustomer,deactivateCustomer}};
+  return {getAllCustomers,createCustomer,getActiveCustomers,getCustomerByCpf,getCustomerById,updateCustomer,deleteCustomer,searchCustomers,searchCustomersByName,searchCustomersByCpf,activateCustomer,deactivateCustomer}};
 export type GetAllCustomersResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['getAllCustomers']>>>
 export type CreateCustomerResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['createCustomer']>>>
+export type GetActiveCustomersResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['getActiveCustomers']>>>
+export type GetCustomerByCpfResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['getCustomerByCpf']>>>
 export type GetCustomerByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['getCustomerById']>>>
 export type UpdateCustomerResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['updateCustomer']>>>
 export type DeleteCustomerResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['deleteCustomer']>>>
 export type SearchCustomersResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['searchCustomers']>>>
+export type SearchCustomersByNameResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['searchCustomersByName']>>>
+export type SearchCustomersByCpfResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['searchCustomersByCpf']>>>
 export type ActivateCustomerResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['activateCustomer']>>>
 export type DeactivateCustomerResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCustomers>['deactivateCustomer']>>>

@@ -27,6 +27,8 @@ export * from './provisionOnu200';
 export * from './provisionOnuRequest';
 export * from './radiusStatusResponse';
 export * from './scheduleWorkOrderRequest';
+export * from './searchCustomersByCpfParams';
+export * from './searchCustomersByNameParams';
 export * from './searchCustomersParams';
 export * from './triggerRecurringBillingResponse';
 export * from './uUIDv7';

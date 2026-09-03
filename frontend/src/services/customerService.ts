@@ -1,38 +1,65 @@
-import api from './api';
-import { Customer } from '../types/customer';
+import { getCustomers } from '../api/generated/endpoints/customers/customers';
+import {
+  CustomerResponse,
+  CustomerCreateRequest,
+  CustomerUpdateRequest,
+} from '../api/generated/models';
+
+const customersApi = getCustomers();
 
 export const customerService = {
-  getAll: async (): Promise<Customer[]> => {
-    const response = await api.get<Customer[]>('/customers');
-    return response.data;
+  // Chamadas oficiais geradas pelo Contrato OpenAPI (API-First)
+  getAll: async (): Promise<CustomerResponse[]> => {
+    return customersApi.getAllCustomers();
   },
 
-  getAllCustomers: async () => {
-    return api.get<Customer[]>('/customers');
+  getAllCustomers: async (): Promise<{ data: CustomerResponse[] }> => {
+    const data = await customersApi.getAllCustomers();
+    return { data };
   },
 
-  getById: async (id: string): Promise<Customer> => {
-    const response = await api.get<Customer>(`/customers/${id}`);
-    return response.data;
+  getActive: async (): Promise<CustomerResponse[]> => {
+    return customersApi.getActiveCustomers();
   },
 
-  create: async (customerData: Partial<Customer>): Promise<Customer> => {
-    const response = await api.post<Customer>('/customers', customerData);
-    return response.data;
+  getById: async (id: string): Promise<CustomerResponse> => {
+    return customersApi.getCustomerById(id);
   },
 
-  update: async (id: string, customerData: Partial<Customer>): Promise<Customer> => {
-    const response = await api.put<Customer>(`/customers/${id}`, customerData);
-    return response.data;
+  getByCpf: async (cpf: string): Promise<CustomerResponse> => {
+    return customersApi.getCustomerByCpf(cpf);
+  },
+
+  create: async (customerData: CustomerCreateRequest | any): Promise<CustomerResponse> => {
+    return customersApi.createCustomer(customerData);
+  },
+
+  update: async (id: string, customerData: CustomerUpdateRequest | any): Promise<CustomerResponse> => {
+    return customersApi.updateCustomer(id, customerData);
   },
 
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/customers/${id}`);
+    return customersApi.deleteCustomer(id);
   },
 
-  search: async (query: string): Promise<Customer[]> => {
-    const response = await api.get<Customer[]>(`/customers/search?q=${encodeURIComponent(query)}`);
-    return response.data;
+  search: async (query: string): Promise<CustomerResponse[]> => {
+    return customersApi.searchCustomers({ q: query });
+  },
+
+  searchByName: async (name: string): Promise<CustomerResponse[]> => {
+    return customersApi.searchCustomersByName({ name });
+  },
+
+  searchByCpf: async (cpf: string): Promise<CustomerResponse[]> => {
+    return customersApi.searchCustomersByCpf({ cpf });
+  },
+
+  activate: async (id: string): Promise<void> => {
+    return customersApi.activateCustomer(id);
+  },
+
+  deactivate: async (id: string): Promise<void> => {
+    return customersApi.deactivateCustomer(id);
   },
 };
 
