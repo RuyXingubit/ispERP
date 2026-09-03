@@ -84,4 +84,16 @@ export const contractSignatureService = {
     const res = await api.post<SignatureSession>(`/public/signatures/${token}/simulate-pix`, data);
     return res.data;
   },
+
+  selectFallbackMethod: async (
+    token: string,
+    fallbackMethod: string,
+    justification?: string
+  ): Promise<SignatureSession> => {
+    const res = await api.post<SignatureSession>(`/public/signatures/${token}/fallback`, {
+      fallbackMethod,
+      justification
+    });
+    return res.data;
+  },
 };

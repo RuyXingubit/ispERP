@@ -1,5 +1,6 @@
 package br.dev.xb.isperp.dto;
 
+import br.dev.xb.isperp.signature.FallbackMethod;
 import br.dev.xb.isperp.signature.SignatureStatus;
 import lombok.*;
 import org.jspecify.annotations.Nullable;
@@ -32,6 +33,10 @@ public class SignatureSessionResponse {
     private @Nullable String payerBankName;
     private @Nullable String rejectionReason;
     private @Nullable String signedPdfUrl;
+    private @Nullable FallbackMethod fallbackMethod;
+    private @Nullable BigDecimal onboardingCreditAmount;
+    private @Nullable UUID discountAppliedInvoiceId;
+    private @Nullable String forensicCertificatePdfUrl;
     private OffsetDateTime expiresAt;
     private @Nullable OffsetDateTime signedAt;
     private OffsetDateTime createdAt;

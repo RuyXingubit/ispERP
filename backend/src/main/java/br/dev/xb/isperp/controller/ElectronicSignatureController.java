@@ -69,4 +69,23 @@ public class ElectronicSignatureController {
         request.setTxid(session.getPixTxid());
         return ResponseEntity.ok(signatureService.processPixSignatureWebhook(request));
     }
+
+    @PostMapping("/api/public/signatures/{token}/fallback")
+    public ResponseEntity<SignatureSessionResponse> selectFallbackMethod(
+            @PathVariable String token,
+            @Valid @RequestBody FallbackSelectionRequest request
+    ) {
+        return ResponseEntity.ok(signatureService.selectFallbackMethod(token, request.getFallbackMethod(), request.getJustification()));
+    }
+
+    @GetMapping("/api/public/signatures/{token}/pdf")
+    public ResponseEntity<byte[]> getSignedPdf(@PathVariable String token) {
+        SignaturePublicViewResponse view = signatureService.getPublicSignatureView(token, null, null, null, null);
+        String content = view.getRenderedContent() != null ? view.getRenderedContent() : "CONTRATO ASSINADO";
+        byte[] pdfBytes = content.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        return ResponseEntity.ok()
+                .header("Content-Type", "text/markdown; charset=UTF-8")
+                .header("Content-Disposition", "attachment; filename=\"contrato-" + token + ".md\"")
+                .body(pdfBytes);
+    }
 }

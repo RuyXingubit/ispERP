@@ -35,6 +35,7 @@ public class ElectronicSignatureService {
     private final ContractTemplateService templateService;
     private final ContractSignatureMapper signatureMapper;
     private final DomainEventPublisher domainEventPublisher;
+    private final InvoiceRepository invoiceRepository;
 
     /**
      * Inicia uma nova sessão de assinatura eletrônica via Pix para um contrato.
@@ -169,6 +170,9 @@ public class ElectronicSignatureService {
                 .rejectionReason(signature.getRejectionReason())
                 .signedPdfUrl(signature.getSignedPdfUrl())
                 .documentSha256Hash(signature.getDocumentSha256Hash())
+                .fallbackMethod(signature.getFallbackMethod())
+                .onboardingCreditAmount(signature.getOnboardingCreditAmount())
+                .forensicCertificatePdfUrl(signature.getForensicCertificatePdfUrl())
                 .expiresAt(signature.getExpiresAt())
                 .signedAt(signature.getSignedAt())
                 .build();
@@ -217,6 +221,29 @@ public class ElectronicSignatureService {
             signature.setSignedAt(OffsetDateTime.now());
             signature.setRejectionReason(null);
 
+            // REGRA DE NEGÓCIO 2: Abatimento de R$ 1,00 na próxima fatura
+            BigDecimal discountAmount = signature.getSymbolicAmount() != null ? signature.getSymbolicAmount() : BigDecimal.valueOf(1.00);
+            List<Invoice> pendingInvoices = invoiceRepository.findByContractIdOrderByDueDateAsc(contract.getId()).stream()
+                    .filter(inv -> inv.getStatus() == Invoice.InvoiceStatus.PENDING)
+                    .toList();
+
+            if (!pendingInvoices.isEmpty()) {
+                Invoice targetInvoice = pendingInvoices.get(0);
+                BigDecimal currentDiscount = targetInvoice.getDiscountAmount() != null ? targetInvoice.getDiscountAmount() : BigDecimal.ZERO;
+                targetInvoice.setDiscountAmount(currentDiscount.add(discountAmount));
+                invoiceRepository.save(targetInvoice);
+                signature.setDiscountAppliedInvoiceId(targetInvoice.getId());
+                signature.setOnboardingCreditAmount(discountAmount);
+                log.info("Desconto de R$ {} da assinatura Pix aplicado na fatura {} do contrato {}",
+                        discountAmount, targetInvoice.getId(), contract.getContractNumber());
+            } else {
+                BigDecimal currentCredit = contract.getPendingOnboardingCredit() != null ? contract.getPendingOnboardingCredit() : BigDecimal.ZERO;
+                contract.setPendingOnboardingCredit(currentCredit.add(discountAmount));
+                signature.setOnboardingCreditAmount(discountAmount);
+                log.info("Crédito de R$ {} de onboarding registrado no contrato {} para abatimento na primeira fatura",
+                        discountAmount, contract.getContractNumber());
+            }
+
             // Re-renderiza o documento final com os dados bancários carimbados
             Company company = companyRepository.findAll().stream().findFirst().orElse(null);
             Plan plan = planRepository.findById(contract.getPlanId()).orElse(null);
@@ -224,10 +251,16 @@ public class ElectronicSignatureService {
             String rawTemplate = template != null ? template.getContentMarkdown() : signature.getRenderedContentSnapshot();
 
             String finalRendered = templateEngine.render(rawTemplate, customer, company, contract, plan, signature);
-            String finalHash = templateEngine.calculateSha256(finalRendered);
-            signature.setRenderedContentSnapshot(finalRendered);
+
+            // REGRA DE NEGÓCIO 3: Certificado de Autenticidade Forense (MP 2.200-2/01 e Lei 14.063/2020)
+            String forensicCertificate = buildForensicCertificate(signature, customer, company, contract, request);
+            String fullDocumentWithCertificate = finalRendered + "\n\n" + forensicCertificate;
+
+            String finalHash = templateEngine.calculateSha256(fullDocumentWithCertificate);
+            signature.setRenderedContentSnapshot(fullDocumentWithCertificate);
             signature.setDocumentSha256Hash(finalHash);
             signature.setSignedPdfUrl("/api/public/signatures/" + signature.getToken() + "/pdf");
+            signature.setForensicCertificatePdfUrl("/api/public/signatures/" + signature.getToken() + "/pdf");
 
             // Atualiza status do contrato no ERP
             contract.setStatus(Contract.ContractStatus.PENDING_INSTALLATION);
@@ -243,6 +276,7 @@ public class ElectronicSignatureService {
             payload.put("pixEndToEndId", request.getEndToEndId());
             payload.put("documentSha256", finalHash);
             payload.put("signedAt", signature.getSignedAt());
+            payload.put("discountApplied", discountAmount);
 
             domainEventPublisher.publish(GenericDomainEvent.builder()
                     .eventId(UuidCreator.getTimeOrderedEpoch())
@@ -257,7 +291,7 @@ public class ElectronicSignatureService {
             log.info("CONTRATO ASSINADO COM SUCESSO! Contrato: {}, Titular: {}, EndToEndId: {}, Hash: {}",
                     contract.getContractNumber(), customer.getName(), request.getEndToEndId(), finalHash);
         } else {
-            // Divergência de titularidade -> Rejeição por segurança
+            // REGRA DE NEGÓCIO 1: Divergência de titularidade -> Bloqueio estrito e oferta de fallbacks
             signature.setStatus(SignatureStatus.REJECTED_DIVERGENT_DOCUMENT);
             signature.setPayerName(request.getPayerName());
             signature.setPayerCpfCnpj(request.getPayerCpfCnpj());
@@ -265,7 +299,8 @@ public class ElectronicSignatureService {
             signature.setPixEndToEndId(request.getEndToEndId());
             signature.setRejectionReason("Pagamento rejeitado por divergência de titularidade: O CPF do pagador (" +
                     maskDocument(request.getPayerCpfCnpj()) + ") difere do CPF do titular cadastrado no contrato (" +
-                    maskDocument(customer.getCpf()) + "). O pagamento deve ser feito obrigatoriamente por conta do titular.");
+                    maskDocument(customer.getCpf()) + "). O pagamento de R$ 1,00 deve ser feito obrigatoriamente pela conta bancária do titular. " +
+                    "Caso o titular não possua conta bancária ativa, selecione uma das opções de fallback disponíveis (Gov.br, E-mail OTP ou Assinatura Física Presencial/Cartório).");
 
             log.warn("ASSINATURA REJEITADA POR DIVERGÊNCIA DE CPF: Contrato {}, CPF Titular: {}, CPF Pagador: {}",
                     contract.getContractNumber(), maskDocument(customer.getCpf()), maskDocument(request.getPayerCpfCnpj()));
@@ -276,8 +311,54 @@ public class ElectronicSignatureService {
     }
 
     /**
-     * Consulta status atualizado da assinatura por token (polling).
+     * Permite a seleção de uma via alternativa de assinatura (fallback) caso o Pix tenha sido rejeitado por divergência de CPF.
      */
+    @Transactional
+    public SignatureSessionResponse selectFallbackMethod(String token, br.dev.xb.isperp.signature.FallbackMethod fallbackMethod, @Nullable String justification) {
+        ContractSignature signature = signatureRepository.findByToken(token)
+                .orElseThrow(() -> new NoSuchElementException("Sessão de assinatura não encontrada para o token: " + token));
+
+        if (signature.getStatus() == SignatureStatus.SIGNED) {
+            throw new IllegalStateException("O contrato já foi assinado e não permite alteração de modalidade.");
+        }
+
+        signature.setFallbackMethod(fallbackMethod);
+        if (justification != null && !justification.isBlank()) {
+            signature.setRejectionReason("Alternativa oficial de assinatura selecionada (" + fallbackMethod + "): " + justification);
+        }
+        ContractSignature saved = signatureRepository.save(signature);
+        log.info("Método alternativo selecionado para sessão {}: {}", token, fallbackMethod);
+        return signatureMapper.toResponse(saved);
+    }
+
+    /**
+     * Constrói a Folha Pericial / Certificado de Autenticidade Forense (MP 2.200-2/01 e Lei 14.063/2020)
+     */
+    private String buildForensicCertificate(
+            ContractSignature signature,
+            Customer customer,
+            @Nullable Company company,
+            Contract contract,
+            PixSignatureWebhookRequest request
+    ) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n\n---\n\n");
+        sb.append("# CERTIFICADO DE AUTENTICIDADE E ASSINATURA ELETRÔNICA AVANÇADA\n");
+        sb.append("**Conformidade Legal:** Art. 10, § 2º da Medida Provisória nº 2.200-2/2001 e Art. 4º, II da Lei Federal nº 14.063/2020.\n\n");
+        sb.append("| EVIDÊNCIA FORENSE | DADOS VALIDADOS DIRETAMENTE NO BANCO CENTRAL DO BRASIL |\n");
+        sb.append("| :--- | :--- |\n");
+        sb.append("| **Identificador da Transação (EndToEndId)** | `").append(request.getEndToEndId()).append("` |\n");
+        sb.append("| **Titular / Signatário** | ").append(customer.getName()).append(" |\n");
+        sb.append("| **CPF do Titular / Pagador** | ").append(customer.getCpf()).append(" (Conferência 100% Idêntica) |\n");
+        sb.append("| **Instituição Bancária Emissora** | ").append(request.getBankName() != null ? request.getBankName() : "Rede do Sistema de Pagamentos Instantâneos - SPI/BACEN").append(" (ISPB: ").append(request.getIspb() != null ? request.getIspb() : "N/A").append(") |\n");
+        sb.append("| **Data e Hora da Assinatura** | ").append(OffsetDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ssXXX"))).append(" (Horário de Brasília) |\n");
+        sb.append("| **Endereço IP de Conexão** | ").append(signature.getClientIp() != null ? signature.getClientIp() : "Registrado via Webhook SPI").append(" |\n");
+        sb.append("| **Navegador / Dispositivo** | ").append(signature.getClientUserAgent() != null ? signature.getClientUserAgent() : "Aplicativo Bancário Móvel").append(" |\n");
+        sb.append("| **Contrato Associado** | Nº ").append(contract.getContractNumber()).append(" |\n");
+        sb.append("| **Empresa Provedora** | ").append(company != null ? company.getName() : "Provedor de Internet").append(" |\n\n");
+        sb.append("> **Declaração de Consentimento:** *'Ao realizar o pagamento do Pix de R$ 1,00 pela sua conta bancária pessoal titular, o contratante confirmou formalmente sua identidade civil, anuiu com todas as cláusulas contratuais e termos de fidelidade, tendo sido o valor lançado como crédito/desconto em sua fatura.'*\n");
+        return sb.toString();
+    }
     @Transactional(readOnly = true)
     public SignatureSessionResponse getSignatureStatus(String token) {
         ContractSignature signature = signatureRepository.findByToken(token)

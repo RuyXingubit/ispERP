@@ -92,6 +92,21 @@ public class ContractSignature {
     @Column(name = "signed_pdf_url", columnDefinition = "TEXT")
     private @Nullable String signedPdfUrl;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fallback_method", nullable = false, length = 50)
+    @Builder.Default
+    private br.dev.xb.isperp.signature.FallbackMethod fallbackMethod = br.dev.xb.isperp.signature.FallbackMethod.PIX;
+
+    @Column(name = "discount_applied_invoice_id")
+    private @Nullable UUID discountAppliedInvoiceId;
+
+    @Column(name = "onboarding_credit_amount", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal onboardingCreditAmount = BigDecimal.ZERO;
+
+    @Column(name = "forensic_certificate_pdf_url", columnDefinition = "TEXT")
+    private @Nullable String forensicCertificatePdfUrl;
+
     @Column(name = "expires_at", nullable = false)
     private OffsetDateTime expiresAt;
 

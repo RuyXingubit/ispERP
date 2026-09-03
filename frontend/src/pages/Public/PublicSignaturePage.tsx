@@ -187,8 +187,16 @@ export const PublicSignaturePage: React.FC = () => {
             <div className="space-y-2">
               <h2 className="text-2xl font-black text-white">Contrato Assinado com Sucesso!</h2>
               <p className="text-sm text-slate-300 max-w-md mx-auto">
-                A transação via Pix foi confirmada pelo Banco Central e autenticou sua manifestação de vontade com plena validade jurídica.
+                A transação via Pix foi confirmada pelo Banco Central e autenticou sua manifestação de vontade com plena validade jurídica (MP 2.200-2/01 e Lei 14.063/2020).
               </p>
+            </div>
+
+            {/* Aviso Oficial do Desconto de R$ 1,00 */}
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs max-w-md mx-auto flex items-center gap-3">
+              <span className="text-lg">💰</span>
+              <span className="text-left">
+                <strong>Desconto Confirmado:</strong> O valor de R$ {signatureData.symbolicAmount?.toFixed(2) || '1,00'} pago nesta autenticação foi convertido em <strong>desconto automático na sua primeira mensalidade</strong>.
+              </span>
             </div>
 
             <div className="bg-slate-950/80 rounded-xl p-4 border border-slate-800 max-w-md mx-auto text-left space-y-2 text-xs font-mono text-slate-300">
@@ -221,26 +229,69 @@ export const PublicSignaturePage: React.FC = () => {
                 href={signatureData.signedPdfUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-0.5"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-0.5 cursor-pointer"
               >
                 <FaFilePdf />
-                Baixar Contrato e Certificado em PDF
+                Baixar Contrato e Certificado Forense em PDF
               </a>
             )}
           </div>
         ) : (
           <>
-            {/* REJECTION DIVERGENT CPF WARNING */}
+            {/* REJECTION DIVERGENT CPF WARNING & ALTERNATIVE FALLBACK SELECTION */}
             {isRejected && (
-              <div className="bg-rose-950/90 border-2 border-rose-500/80 rounded-2xl p-5 text-rose-200 space-y-2 shadow-xl animate-bounce-short">
+              <div className="bg-rose-950/90 border-2 border-rose-500/80 rounded-2xl p-6 text-rose-200 space-y-4 shadow-xl animate-fade-in">
                 <div className="flex items-center gap-2 font-bold text-white text-base">
-                  <FaExclamationTriangle className="text-rose-400" />
-                  Assinatura Rejeitada por Divergência de Titularidade
+                  <FaExclamationTriangle className="text-rose-400 text-xl shrink-0" />
+                  Assinatura Não Concluída por Divergência de Titularidade (CPF)
                 </div>
-                <p className="text-xs leading-relaxed">{signatureData.rejectionReason}</p>
-                <p className="text-xs text-rose-300 font-semibold pt-1">
-                  💡 Por favor, efetue um novo pagamento utilizando a conta bancária do titular ({signatureData.customerName} - CPF: {signatureData.customerDocumentMasked}).
-                </p>
+                <p className="text-xs leading-relaxed text-rose-100">{signatureData.rejectionReason}</p>
+                
+                <div className="p-4 rounded-xl bg-slate-900/90 border border-rose-500/40 space-y-3 text-xs text-slate-300">
+                  <span className="font-bold text-white block">
+                    Não possui conta bancária no seu próprio nome? Escolha uma alternativa oficial:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                    <button
+                      onClick={async () => {
+                        if (!token) return;
+                        await contractSignatureService.selectFallbackMethod(token, 'GOV_BR', 'Solicitada assinatura pelo assinador oficial Gov.br');
+                        fetchPublicView();
+                      }}
+                      className="p-3 bg-slate-800 hover:bg-indigo-600/30 border border-slate-700 hover:border-indigo-500 rounded-xl text-center text-xs font-semibold text-white transition cursor-pointer"
+                    >
+                      🏛️ Assinar via Gov.br
+                      <span className="block text-[10px] text-slate-400 font-normal mt-0.5">Selo Prata ou Ouro</span>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!token) return;
+                        await contractSignatureService.selectFallbackMethod(token, 'EMAIL_OTP', 'Solicitado envio de link com código de segurança no e-mail');
+                        fetchPublicView();
+                      }}
+                      className="p-3 bg-slate-800 hover:bg-indigo-600/30 border border-slate-700 hover:border-indigo-500 rounded-xl text-center text-xs font-semibold text-white transition cursor-pointer"
+                    >
+                      📧 Assinar por E-mail (OTP)
+                      <span className="block text-[10px] text-slate-400 font-normal mt-0.5">Token de segurança</span>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!token) return;
+                        await contractSignatureService.selectFallbackMethod(token, 'PHYSICAL_NOTARY', 'Solicitada via impressa para assinatura presencial / cartório');
+                        fetchPublicView();
+                      }}
+                      className="p-3 bg-slate-800 hover:bg-indigo-600/30 border border-slate-700 hover:border-indigo-500 rounded-xl text-center text-xs font-semibold text-white transition cursor-pointer"
+                    >
+                      📑 Presencial / Cartório
+                      <span className="block text-[10px] text-slate-400 font-normal mt-0.5">Assinatura no papel</span>
+                    </button>
+                  </div>
+                  {signatureData.fallbackMethod && signatureData.fallbackMethod !== 'PIX' && (
+                    <div className="p-2.5 rounded-lg bg-indigo-950/60 border border-indigo-500/40 text-indigo-300 text-[11px] font-mono">
+                      Opção registrada: <strong>{signatureData.fallbackMethod}</strong>. O atendente do provedor foi notificado para dar andamento nesta modalidade.
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

@@ -88,6 +88,10 @@ public class Contract {
     @Column(name = "cto_port_number")
     private Integer ctoPortNumber;
 
+    @Column(name = "pending_onboarding_credit", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal pendingOnboardingCredit = BigDecimal.ZERO;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

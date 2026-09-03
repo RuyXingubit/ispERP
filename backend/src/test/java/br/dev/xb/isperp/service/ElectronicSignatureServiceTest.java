@@ -52,6 +52,9 @@ class ElectronicSignatureServiceTest {
     @Mock
     private DomainEventPublisher domainEventPublisher;
 
+    @Mock
+    private InvoiceRepository invoiceRepository;
+
     private final ContractTemplateEngine templateEngine = new ContractTemplateEngine();
     private final ContractSignatureMapper signatureMapper = Mappers.getMapper(ContractSignatureMapper.class);
 
@@ -69,7 +72,8 @@ class ElectronicSignatureServiceTest {
                 templateEngine,
                 templateService,
                 signatureMapper,
-                domainEventPublisher
+                domainEventPublisher,
+                invoiceRepository
         );
     }
 

@@ -11,6 +11,12 @@ export type SignatureStatus =
   | 'EXPIRED'
   | 'CANCELED';
 
+export type FallbackMethod = 
+  | 'PIX'
+  | 'EMAIL_OTP'
+  | 'GOV_BR'
+  | 'PHYSICAL_NOTARY';
+
 export interface ContractTemplate {
   id: string;
   companyId?: string;
@@ -60,6 +66,9 @@ export interface SignatureSession {
   payerBankName?: string;
   rejectionReason?: string;
   signedPdfUrl?: string;
+  fallbackMethod?: FallbackMethod;
+  onboardingCreditAmount?: number;
+  forensicCertificatePdfUrl?: string;
   expiresAt: string;
   signedAt?: string;
   createdAt: string;
@@ -82,6 +91,9 @@ export interface SignaturePublicView {
   rejectionReason?: string;
   signedPdfUrl?: string;
   documentSha256Hash?: string;
+  fallbackMethod?: FallbackMethod;
+  onboardingCreditAmount?: number;
+  forensicCertificatePdfUrl?: string;
   expiresAt: string;
   signedAt?: string;
 }

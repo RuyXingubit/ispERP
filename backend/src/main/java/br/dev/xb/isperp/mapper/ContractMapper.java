@@ -18,6 +18,7 @@ public interface ContractMapper {
     @Mapping(target = "ctoId", ignore = true)
     @Mapping(target = "ctoPortNumber", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "pendingOnboardingCredit", ignore = true)
     Contract toEntity(ContractDTO dto);
 
     List<ContractDTO> toDtoList(List<Contract> contracts);

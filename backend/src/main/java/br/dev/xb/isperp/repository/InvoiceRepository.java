@@ -19,6 +19,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID>, JpaSpec
 
     List<Invoice> findByContractIdOrderByDueDateDesc(UUID contractId);
 
+    List<Invoice> findByContractIdOrderByDueDateAsc(UUID contractId);
+
     List<Invoice> findByStatusOrderByDueDateAsc(Invoice.InvoiceStatus status);
 
     Optional<Invoice> findByExternalTransactionId(String externalTransactionId);

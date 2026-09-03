@@ -590,6 +590,24 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
   - `NetworkProjectServiceTest` e `SentinelWatchdogServiceTest` passando 100%.
   - `NetworkProjectsAndSentinelIntegrationTest`: Teste com Testcontainers e PostgreSQL 17 real validando todo o ciclo ponta a ponta.
 
+---
+
+## 🎯 Milestone 32: Assinatura Eletrônica Baseada em Autenticação Pix (MP 2.200-2/01 & Lei 14.063/2020) (Concluído)
+> **Objetivo:** Assinatura digital instantânea via micro-transação Pix (R$ 1,00) com validação de titularidade do CPF diretamente no Banco Central, abatimento automático de R$ 1,00 na fatura, rotas oficiais de fallback (Gov.br, E-mail/OTP, Cartório) e emissão de folha pericial forense com Hash SHA-256 e EndToEndId.
+
+- [x] **Migração Flyway:**
+  - `V30__enhance_contract_signatures_and_onboarding_discounts.sql`: Campos `fallback_method`, `discount_applied_invoice_id`, `onboarding_credit_amount`, `forensic_certificate_pdf_url` e `pending_onboarding_credit`.
+- [x] **Backend Core (Java 25 + Spring Boot 4.1.1):**
+  - Validação estrita de titularidade do CPF do pagador (SPI/BACEN) contra o CPF cadastrado no contrato.
+  - Bloqueio imediato na divergência com status `REJECTED_DIVERGENT_DOCUMENT` e oferecimento de rotas de fallback.
+  - Conversão automática do R$ 1,00 pago em desconto na próxima fatura `PENDING` ou crédito de onboarding.
+  - Geração de Folha de Rosto / Certificado de Autenticidade Forense anexada ao contrato com Hash SHA-256 e End-to-End ID do BACEN.
+  - Endpoints REST para seleção de fallback (`/api/public/signatures/{token}/fallback`) e download do PDF assinado (`/api/public/signatures/{token}/pdf`).
+- [x] **Frontend do Assinante (React 19 / TypeScript):**
+  - `PublicSignaturePage.tsx` (`/sign/:token`): Tela pública com leitor do contrato, QR Code Pix dinâmico, polling reativo, card de confirmação do desconto de R$ 1,00 na mensalidade e seletor dos 3 fallbacks na rejeição por divergência de CPF.
+- [x] **Testes Automatizados:**
+  - `ElectronicSignaturePixIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando rejeição de CPF terceiro, desconto na fatura e emissão do certificado pericial. Suíte de mais de 250 testes verdes.
+
 
 
 
