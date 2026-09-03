@@ -1,9 +1,7 @@
 package br.dev.xb.isperp.seeder;
 
 import br.dev.xb.isperp.entity.*;
-import br.dev.xb.isperp.entity.financial.ChartOfAccount;
 import br.dev.xb.isperp.entity.financial.NetworkProject;
-import br.dev.xb.isperp.entity.financial.PayableInvoice;
 import br.dev.xb.isperp.entity.financial.UserCashCustody;
 import br.dev.xb.isperp.entity.financial.UserMaterialCustody;
 import br.dev.xb.isperp.repository.*;
@@ -49,8 +47,6 @@ class DevDataSeederServiceTest {
     private InvoiceRepository invoiceRepository;
     @Mock
     private PayableInvoiceRepository payableInvoiceRepository;
-    @Mock
-    private ExpenseInstallmentRepository expenseInstallmentRepository;
     @Mock
     private ChartOfAccountRepository chartOfAccountRepository;
     @Mock

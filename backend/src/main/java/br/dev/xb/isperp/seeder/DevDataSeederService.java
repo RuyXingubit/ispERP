@@ -43,7 +43,6 @@ public class DevDataSeederService implements ApplicationRunner {
     private final ContractRepository contractRepository;
     private final InvoiceRepository invoiceRepository;
     private final PayableInvoiceRepository payableInvoiceRepository;
-    private final ExpenseInstallmentRepository expenseInstallmentRepository;
     private final ChartOfAccountRepository chartOfAccountRepository;
     private final NetworkProjectRepository networkProjectRepository;
     private final FtthCtoRepository ftthCtoRepository;
