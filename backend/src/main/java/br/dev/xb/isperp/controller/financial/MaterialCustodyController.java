@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/financial/custody/materials")
+@RequestMapping("/financial/custody/materials")
 @RequiredArgsConstructor
 @Tag(name = "Custódia Material por CPF", description = "Endpoints para controle de carga patrimonial de equipamentos e ferramentas no CPF do técnico")
 public class MaterialCustodyController {

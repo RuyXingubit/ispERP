@@ -10,7 +10,7 @@ import jakarta.validation.Valid;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/initial-setup")
+@RequestMapping({"/initial-setup", "/setup"})
 @CrossOrigin(origins = "*")
 @SuppressWarnings("null")
 public class InitialSetupController {
@@ -18,13 +18,13 @@ public class InitialSetupController {
     @Autowired
     private InitialSetupService initialSetupService;
 
-    @GetMapping("/status")
+    @GetMapping({"/status", ""})
     public ResponseEntity<Map<String, Object>> getSetupStatus() {
         boolean isCompleted = initialSetupService.isSetupCompleted();
         return ResponseEntity.ok(Map.of("isSetupCompleted", isCompleted));
     }
 
-    @PostMapping
+    @PostMapping({"", "/complete"})
     public ResponseEntity<Map<String, Object>> performInitialSetup(@Valid @RequestBody InitialSetupRequest request) {
         try {
             if (initialSetupService.isSetupCompleted()) {

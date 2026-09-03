@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/financial/chart-of-accounts")
+@RequestMapping("/financial/chart-of-accounts")
 @RequiredArgsConstructor
 @Tag(name = "Plano de Contas Dinâmico", description = "Endpoints para manutenção da árvore hierárquica contábil de telecomunicações")
 public class ChartOfAccountController {

@@ -13,7 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/financial/deleveraging")
+@RequestMapping("/financial/deleveraging")
 @RequiredArgsConstructor
 @Tag(name = "Motor de Desalavancagem e Curva de Saída do Vermelho", description = "Projeção contínua de caixa para 36 meses, ponto do fundo do poço e simulador E Se")
 public class DeleveragingController {

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/financial/custody/cash")
+@RequestMapping("/financial/custody/cash")
 @RequiredArgsConstructor
 @Tag(name = "Custódia de Dinheiro Vivo", description = "Endpoints para rastreabilidade de dinheiro vivo por CPF, duplo aceite e conciliação bancária")
 public class CashCustodyController {

@@ -60,35 +60,89 @@ Consulte a pasta [`docs/`](docs/) para documentação detalhada de Arquitetura, 
 
 ---
 
-## 🚀 Como Usar
+## 🚀 Como Executar Localmente
 
 ### Pré-requisitos
 * Docker e Docker Compose instalados
-* Java JDK 25+
-* Node.js 24+
+* Java JDK 25+ (opcional para desenvolvimento local sem container)
+* Node.js 24+ (opcional para desenvolvimento local sem container)
 
-### 1. Inicialização Rápida com Docker
+---
+
+### 1. Ambiente Local Completo com Simulador Operacional (Recomendado)
+
+O projeto possui um **Simulador Operacional de 1 Ano (`DevDataSeederService`)** ativo sob o profile `dev`. Ele popula automaticamente a provedora fictícia **Nexus Fibra Telecomunicações Ltda.** com histórico contínuo de 12 meses de faturamento, DRE, contas a pagar, projetos FTTH e equipes de campo.
+
 ```bash
-# Clonar o repositório
+# 1. Clonar o repositório
 git clone https://github.com/RuyXingubit/ispERP.git
 cd ispERP
 
-# Configurar variáveis de ambiente
+# 2. Configurar variáveis de ambiente
 cp .env.example .env
 
-# Subir containers (PostgreSQL 17, Backend e Frontend)
-docker-compose up -d
+# 3. Subir toda a stack (PostgreSQL 17, Backend Spring Boot e Frontend Nginx/React)
+docker compose up -d
 ```
-O sistema estará disponível em:
-* **Frontend:** `http://localhost:3000`
-* **Swagger API Docs:** `http://localhost:8080/swagger-ui.html`
 
-### 2. Ambiente de Desenvolvimento Local (Sem Docker)
+O sistema estará disponível em:
+* **Frontend Web:** [http://localhost:3000](http://localhost:3000)
+* **API REST & Health:** [http://localhost:8080/api/actuator/health](http://localhost:8080/api/actuator/health)
+* **Swagger API Docs:** [http://localhost:8080/api/swagger-ui.html](http://localhost:8080/api/swagger-ui.html)
+
+> [!TIP]
+> **Como resetar o banco de teste para o estado inicial:**
+> Para limpar os dados e forçar uma reexecução do seeder de 1 ano do zero:
+> ```bash
+> docker compose down -v && docker compose up -d
+> ```
+
+---
+
+### 👥 Credenciais do Quadro de Colaboradores (Ambiente Local)
+
+Todos os usuários do ambiente de teste utilizam a senha padrão: **`password123`**
+
+| Colaborador | Usuário / Email | Papel (Role) | Atribuição no Sistema / Cenário de Teste |
+| :--- | :--- | :--- | :--- |
+| **Administrador Master** | `admin@nexusfibra.com.br` | `ADMIN` | Acesso irrestrito a configurações, segurança e auditoria |
+| **Roberto Silveira (CFO)** | `cfo@nexusfibra.com.br` | `FINANCIAL` | Cockpit DRE, Desalavancagem 36M, Conciliação e Contas a Pagar |
+| **Maria Clara** | `atendente.maria@nexusfibra.com.br` | `SUPPORT_ANALYST` | Atendimento comercial N2, vendas e contratos |
+| **João Paulo** | `atendente.joao@nexusfibra.com.br` | `ADMINISTRATIVE_ASSISTANT` | Suporte SAC N1 e emissão de 2ª via de faturas |
+| **Camila Santos** | `atendente.camila@nexusfibra.com.br` | `ATTENDANT` | Régua de cobrança e negociação de faturas |
+| **Carlos Alberto** | `tecnico.carlos@nexusfibra.com.br` | `TECHNICIAN` | Equipe Alfa (Veículo 01) • **R$ 150,00 em dinheiro vivo** em mãos |
+| **Lucas Mendes** | `tecnico.lucas@nexusfibra.com.br` | `TECHNICIAN` | Equipe Alfa (Veículo 01) • Almoxarifado móvel |
+| **Marcos Rocha** | `tecnico.marcos@nexusfibra.com.br` | `TECHNICIAN` | Equipe Bravo (Veículo 02) • Máquina de fusão em custódia |
+| **André Luis** | `tecnico.andre@nexusfibra.com.br` | `TECHNICIAN` | Equipe Bravo (Veículo 02) • Almoxarifado móvel |
+
+---
+
+### 📦 Massa Operacional Pré-Carregada (1 Ano de Histórico)
+
+* **Financeiro & DRE em Tempo Real:**
+  * **92 faturas pagas retroativamente** mês a mês, alimentando receitas líquidas reais no DRE.
+  * **Contas a Pagar:** Financiamento de OLT Huawei em 24 parcelas de R$ 2.000 (12 quitadas, 12 pendentes alimentando passivo).
+  * **Custos Fixos Pagos:** Link de Trânsito IP (R$ 3.500/mês) e Compartilhamento de Postes (R$ 1.200/mês) quitados nos 12 meses.
+* **Mapa de Guerra de Payback FTTH:**
+  * **Expansão Bairro Jardins:** Orçamento de R$ 48.000, 2 CTOs implantadas (32 portas).
+  * **Expansão Bairro Alvorada:** Orçamento de R$ 65.000, 1 CTO implantada (16 portas).
+  * **Alerta Comercial Ativo:** Identificação de capacidade ociosa para panfletagem e vendas direcionadas.
+* **Custódia por CPF & Passagem de Turno:**
+  * Técnico Carlos Alberto com **R$ 150,00 em dinheiro vivo** em custódia patrimonial para teste de transferência de gaveta e duplo aceite em `/financial/custody/cash`.
+  * Máquinas de fusão (Fujikura 70S e Inno View 5) sob custódia direta no CPF dos técnicos.
+* **Cenários Prontos para Teste na Interface:**
+  1. **Inadimplência e Desbloqueio em Confiança:** Cliente *Marcos Vinicius Inadimplente* com fatura vencida há 12 dias (`OVERDUE`) e contrato suspenso no RADIUS.
+  2. **Assinatura Eletrônica Pix Pendente:** Cliente *Thiago Alencar* com contrato aguardando assinatura digital com validação Pix.
+  3. **Despacho de Instalação do Dia:** Cliente *Patrícia Ribeiro* com Ordem de Serviço matutina agendada para Carlos Alberto no Painel de Despacho.
+
+---
+
+### 2. Desenvolvimento Local (Sem Docker)
 
 #### Backend (Spring Boot 4.1.1):
 ```bash
 cd backend
-./gradlew bootRun
+./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
 #### Frontend (React 19 + Vite 8):
@@ -98,13 +152,15 @@ npm install
 npm run dev
 ```
 
-### 3. Testes Automatizados (TDD)
+---
+
+### 3. Testes Automatizados e Integridade (TDD)
 ```bash
-# Backend (Unitários + Testcontainers com PostgreSQL 17 real)
+# Backend (Suíte completa de 272 testes com banco real)
 cd backend
 ./gradlew test
 
-# Frontend (Typecheck TypeScript e Build de Produção)
+# Frontend (Typecheck TypeScript e Build de Produção com Rolldown)
 cd frontend
 npm run typecheck
 npm run build
@@ -112,11 +168,13 @@ npm run build
 
 ---
 
-## 🔐 Primeiro Acesso (Wizard de Setup)
-Na primeira execução, o sistema redireciona automaticamente para o fluxo interativo `/setup`:
-1. Cadastro do primeiro usuário Administrador master.
-2. Parametrização das informações cadastrais da empresa/ISP.
-3. Definição das diretrizes visuais e operacionais.
+## 🔐 Primeiro Acesso vs. Modo Desenvolvimento
+
+* **Ambiente de Desenvolvimento (`dev`):** Como a empresa de testes (Nexus Fibra Telecom) já é injetada automaticamente no startup pelo seeder, o assistente `/setup` é automaticamente pulado, direcionando o usuário diretamente para o Login/Home.
+* **Ambiente de Produção (`prod`):** Ao subir em servidor limpo sem seeder, o sistema identifica que não há registros e redireciona automaticamente para o fluxo interativo `/setup`:
+  1. Cadastro do primeiro usuário Administrador master.
+  2. Parametrização dos dados fiscais da empresa/ISP.
+  3. Personalização do tema e logotipo.
 
 ---
 

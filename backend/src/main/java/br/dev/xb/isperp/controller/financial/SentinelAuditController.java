@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/financial/sentinel")
+@RequestMapping("/financial/sentinel")
 @RequiredArgsConstructor
 @Tag(name = "Sentinela IA (Auditoria Forense)", description = "Varredura automatizada contra desvios de conduta, caixa 2 e retenção indevida de valores")
 public class SentinelAuditController {

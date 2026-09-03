@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/financial/backup")
+@RequestMapping("/financial/backup")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class BackupDisasterRecoveryController {

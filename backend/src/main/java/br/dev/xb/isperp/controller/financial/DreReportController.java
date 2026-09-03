@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/financial/reports/dre")
+@RequestMapping("/financial/reports/dre")
 @RequiredArgsConstructor
 @Tag(name = "DRE Telecom em Tempo Real", description = "Demonstração do Resultado do Exercício com EBITDA e Margens em Regime de Competência e Caixa")
 public class DreReportController {

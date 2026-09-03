@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/financial/network-projects")
+@RequestMapping("/financial/network-projects")
 @RequiredArgsConstructor
 @Tag(name = "Payback de Projetos de Rede (Mapa de Guerra)", description = "Associação de CTOs a centros de custo de expansão, cálculo de payback por bairro e direcionador comercial")
 public class NetworkProjectController {

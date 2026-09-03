@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/financial/work-orders")
+@RequestMapping("/financial/work-orders")
 @RequiredArgsConstructor
 @Tag(name = "Taxas de O.S. & Esteira de Isenção", description = "Endpoints para tarifação de serviços técnicos, solicitação de isenção e auditoria gerencial")
 public class WorkOrderFeeController {

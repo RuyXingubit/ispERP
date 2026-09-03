@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/financial/payables")
+@RequestMapping("/financial/payables")
 @RequiredArgsConstructor
 @Tag(name = "Contas a Pagar & Parcelamentos", description = "Endpoints para gestão de compras, CAPEX e parcelamento de dívidas com fornecedores")
 public class PayableInvoiceController {

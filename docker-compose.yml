@@ -18,43 +18,43 @@ services:
       timeout: 5s
       retries: 5
 
-  seaweedfs:
-    image: chrislusf/seaweedfs:latest
-    container_name: isperp-seaweedfs
-    command: "server -dir=/data -s3 -s3.port=8333"
-    ports:
-      - "8333:8333"
-    volumes:
-      - seaweedfs_data:/data
-    networks:
-      - isperp-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8333/"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-
-  freeradius:
-    image: freeradius/freeradius-server:latest
-    container_name: isperp-freeradius
-    ports:
-      - "1812:1812/udp"
-      - "1813:1813/udp"
-      - "3799:3799/udp"
-    environment:
-      DATABASE_TYPE: postgresql
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USER: ${DB_USERNAME:-isperp}
-      DATABASE_PASS: ${DB_PASSWORD:-password}
-      DATABASE_NAME: ${DB_NAME:-isperp}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - isperp-network
-    restart: unless-stopped
+#  seaweedfs:
+#    image: chrislusf/seaweedfs:latest
+#    container_name: isperp-seaweedfs
+#    command: "server -dir=/data -s3 -s3.port=8333"
+#    ports:
+#      - "8333:8333"
+#    volumes:
+#      - seaweedfs_data:/data
+#    networks:
+#      - isperp-network
+#    restart: unless-stopped
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:8333/"]
+#      interval: 15s
+#      timeout: 5s
+#      retries: 3
+#
+#  freeradius:
+#    image: freeradius/freeradius-server:latest
+#    container_name: isperp-freeradius
+#    ports:
+#      - "1812:1812/udp"
+#      - "1813:1813/udp"
+#      - "3799:3799/udp"
+#    environment:
+#      DATABASE_TYPE: postgresql
+#      DATABASE_HOST: postgres
+#      DATABASE_PORT: 5432
+#      DATABASE_USER: ${DB_USERNAME:-isperp}
+#      DATABASE_PASS: ${DB_PASSWORD:-password}
+#      DATABASE_NAME: ${DB_NAME:-isperp}
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    networks:
+#      - isperp-network
+#    restart: unless-stopped
 
   backend:
     build:
@@ -62,15 +62,13 @@ services:
       dockerfile: docker/Dockerfile.backend
     container_name: isperp-backend
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: "docker,dev"
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-isperp}
       DB_USERNAME: ${DB_USERNAME:-isperp}
       DB_PASSWORD: ${DB_PASSWORD:-password}
-      STORAGE_TYPE: ${STORAGE_TYPE:-s3}
-      STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT:-http://seaweedfs:8333}
-      STORAGE_S3_BUCKET: ${STORAGE_S3_BUCKET:-isperp-files}
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
       JWT_SECRET: ${JWT_SECRET:-myVerySecureSecretKeyThatIsAtLeast256BitsLongForJWTSecurityAndMustBeAtLeast32CharactersLongToMeetTheRequirements}
     ports:
       - "8080:8080"
@@ -108,8 +106,6 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
-  seaweedfs_data:
     driver: local
 
 networks:
