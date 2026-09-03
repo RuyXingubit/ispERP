@@ -44,6 +44,8 @@ public class SecurityConfig {
                     "/actuator/**",
                     "/api/webhooks/**",
                     "/portal/client/**",
+                    "/bi/**",
+                    "/dashboard/**",
                     "/api/bi/**",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",

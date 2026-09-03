@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/bi")
+@RequestMapping({"/bi", "/dashboard"})
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
@@ -23,7 +23,7 @@ public class DashboardBiController {
     /**
      * Retorna o consolidado de métricas executivas e BI do provedor (MRR, Churn, Inadimplência, ARPU, NOC).
      */
-    @GetMapping("/dashboard")
+    @GetMapping({"/dashboard", "/metrics"})
     public ResponseEntity<DashboardBiDTO> getDashboardBi() {
         DashboardBiDTO metrics = dashboardBiService.getDashboardMetrics();
         return ResponseEntity.ok(metrics);
