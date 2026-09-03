@@ -1,0 +1,68 @@
+# Schemas do Domínio de Contratos
+
+ContractStatus:
+  type: string
+  enum:
+    - PENDING_SIGNATURE
+    - PENDING_INSTALLATION
+    - ACTIVE
+    - SUSPENDED
+    - CANCELLED
+  description: Situação do contrato de prestação de serviços.
+
+ContractResponse:
+  type: object
+  required:
+    - id
+    - customerId
+    - planId
+    - contractNumber
+    - status
+    - monthlyFee
+    - dueDay
+    - installationAddress
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    planId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    saleId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractNumber:
+      type: string
+      example: "CTR-2026-00891"
+    status:
+      $ref: '#/ContractStatus'
+    monthlyFee:
+      type: number
+      format: double
+      example: 99.90
+    dueDay:
+      type: integer
+      example: 10
+    customSuspensionDays:
+      type: integer
+      nullable: true
+      example: 15
+    installationAddress:
+      type: string
+      example: "Av. Principal, 1200, Bairro Centro"
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+
+UpdateContractStatusRequest:
+  type: object
+  required:
+    - status
+  properties:
+    status:
+      $ref: '#/ContractStatus'
+    reason:
+      type: string
+      nullable: true
+      description: "Justificativa para a alteração de status (ex: inadimplência, pedido do assinante)."
+      example: "Solicitação expressa do cliente via central de atendimento."

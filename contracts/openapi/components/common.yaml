@@ -1,0 +1,41 @@
+# Schemas e Tipos Comuns do ispERP
+UUIDv7:
+  type: string
+  format: uuid
+  pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+  description: Identificador único universal ordenável por tempo (RFC 9562 v7).
+  example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+
+PageResponse:
+  type: object
+  required:
+    - totalElements
+    - totalPages
+    - size
+    - number
+  properties:
+    totalElements:
+      type: integer
+      format: int64
+      description: Quantidade total de registros na base.
+      example: 150
+    totalPages:
+      type: integer
+      description: Quantidade total de páginas disponíveis.
+      example: 8
+    size:
+      type: integer
+      description: Quantidade de itens por página.
+      example: 20
+    number:
+      type: integer
+      description: Índice da página atual (inicia em 0).
+      example: 0
+    first:
+      type: boolean
+      description: Indica se é a primeira página.
+      example: true
+    last:
+      type: boolean
+      description: Indica se é a última página.
+      example: false

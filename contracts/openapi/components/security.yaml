@@ -1,0 +1,8 @@
+# Esquema de Autenticação JWT Bearer
+bearerAuth:
+  type: http
+  scheme: bearer
+  bearerFormat: JWT
+  description: >
+    Token JWT gerado no endpoint /api/auth/login.
+    Formato: `Bearer <token>` no header Authorization.

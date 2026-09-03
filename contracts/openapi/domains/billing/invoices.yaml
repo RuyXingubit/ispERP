@@ -1,0 +1,170 @@
+# Endpoints do Domínio de Faturamento e Cobrança
+
+/invoices:
+  get:
+    tags:
+      - Faturamento & Cobrança
+    summary: Listar faturas
+    operationId: getAllInvoices
+    description: Retorna o histórico de faturas geradas com filtro opcional por status.
+    parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          $ref: './schemas.yaml#/InvoiceStatus'
+    responses:
+      '200':
+        description: Lista de faturas retornada com sucesso.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/InvoiceResponse'
+      '401':
+        description: Não autenticado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/invoices/{id}:
+  get:
+    tags:
+      - Faturamento & Cobrança
+    summary: Obter detalhes da fatura
+    operationId: getInvoiceById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Fatura encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/InvoiceResponse'
+      '404':
+        description: Fatura não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/invoices/customer/{customerId}:
+  get:
+    tags:
+      - Faturamento & Cobrança
+    summary: Listar faturas de um cliente
+    operationId: getInvoicesByCustomerId
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Faturas do cliente.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/InvoiceResponse'
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/invoices/{id}/pay:
+  post:
+    tags:
+      - Faturamento & Cobrança
+    summary: Baixar pagamento da fatura
+    operationId: payInvoice
+    description: Liquida a fatura informando o meio de pagamento e valor recebido.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/PayInvoiceRequest'
+    responses:
+      '200':
+        description: Fatura baixada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/InvoiceResponse'
+      '400':
+        description: Erro na liquidação da fatura.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/invoices/{id}/cancel:
+  post:
+    tags:
+      - Faturamento & Cobrança
+    summary: Cancelar fatura
+    operationId: cancelInvoice
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Fatura cancelada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/InvoiceResponse'
+      '400':
+        description: Fatura já liquidada ou em estado não cancelável.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/invoices/trigger-recurring-billing:
+  post:
+    tags:
+      - Faturamento & Cobrança
+    summary: Disparar rotina de faturamento recorrente
+    operationId: triggerRecurringBilling
+    description: Executa a geração de faturas do ciclo mensal para todos os contratos ativos.
+    responses:
+      '200':
+        description: Rotina disparada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/TriggerRecurringBillingResponse'
+      '400':
+        description: Erro nos parâmetros da rotina recorrente.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '500':
+        description: Erro interno no processamento do lote.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

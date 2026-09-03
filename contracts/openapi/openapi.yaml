@@ -1,0 +1,149 @@
+openapi: 3.0.3
+info:
+  title: ispERP API
+  version: 1.0.0
+  description: >
+    Especificação formal dos contratos de API do ispERP (Sistema ERP Modular para Provedores de Internet).
+    Governada pela diretriz mandatória de API-First (.agents/rules/api-first-contracts.md).
+  contact:
+    name: Equipe de Engenharia ispERP
+    url: https://github.com/RuyXingubit/ispERP
+  license:
+    name: GPL-3.0
+    url: https://www.gnu.org/licenses/gpl-3.0.html
+
+servers:
+  - url: http://localhost:8080/api
+    description: Servidor de Desenvolvimento Local
+  - url: /api
+    description: Servidor Padrão (Ambiente de Produção / Docker)
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Ordens de Serviço
+    description: Agendamento, roteirização e conclusão de O.S.
+  - name: Execução Técnica de Campo
+    description: Auto-Discovery OLT, provisionamento ONU e testes RADIUS
+  - name: Faturamento & Cobrança
+    description: Faturas, PIX, liquidação e rotina recorrente
+  - name: Contratos
+    description: Gestão de planos, minutas e status contratual
+  - name: Clientes
+    description: Cadastro e busca de assinantes
+
+paths:
+  # Ordens de Serviço & Execução de Campo
+  /work-orders:
+    $ref: './domains/workorders/workorders.yaml#/~1work-orders'
+  /work-orders/{id}:
+    $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}'
+  /work-orders/{id}/schedule:
+    $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}~1schedule'
+  /work-orders/{id}/complete:
+    $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}~1complete'
+  /technician/execution/{workOrderId}/unprovisioned-onus:
+    $ref: './domains/workorders/workorders.yaml#/~1technician~1execution~1{workOrderId}~1unprovisioned-onus'
+  /technician/execution/{workOrderId}/provision:
+    $ref: './domains/workorders/workorders.yaml#/~1technician~1execution~1{workOrderId}~1provision'
+  /technician/execution/{workOrderId}/radius-status:
+    $ref: './domains/workorders/workorders.yaml#/~1technician~1execution~1{workOrderId}~1radius-status'
+
+  # Faturamento & Cobrança
+  /invoices:
+    $ref: './domains/billing/invoices.yaml#/~1invoices'
+  /invoices/{id}:
+    $ref: './domains/billing/invoices.yaml#/~1invoices~1{id}'
+  /invoices/customer/{customerId}:
+    $ref: './domains/billing/invoices.yaml#/~1invoices~1customer~1{customerId}'
+  /invoices/{id}/pay:
+    $ref: './domains/billing/invoices.yaml#/~1invoices~1{id}~1pay'
+  /invoices/{id}/cancel:
+    $ref: './domains/billing/invoices.yaml#/~1invoices~1{id}~1cancel'
+  /invoices/trigger-recurring-billing:
+    $ref: './domains/billing/invoices.yaml#/~1invoices~1trigger-recurring-billing'
+
+  # Contratos
+  /contracts:
+    $ref: './domains/contracts/contracts.yaml#/~1contracts'
+  /contracts/{id}:
+    $ref: './domains/contracts/contracts.yaml#/~1contracts~1{id}'
+  /contracts/customer/{customerId}:
+    $ref: './domains/contracts/contracts.yaml#/~1contracts~1customer~1{customerId}'
+  /contracts/status/{status}:
+    $ref: './domains/contracts/contracts.yaml#/~1contracts~1status~1{status}'
+  /contracts/{id}/status:
+    $ref: './domains/contracts/contracts.yaml#/~1contracts~1{id}~1status'
+
+  # Clientes
+  /customers:
+    $ref: './domains/customers/customers.yaml#/~1customers'
+  /customers/{id}:
+    $ref: './domains/customers/customers.yaml#/~1customers~1{id}'
+  /customers/search:
+    $ref: './domains/customers/customers.yaml#/~1customers~1search'
+  /customers/{id}/activate:
+    $ref: './domains/customers/customers.yaml#/~1customers~1{id}~1activate'
+  /customers/{id}/deactivate:
+    $ref: './domains/customers/customers.yaml#/~1customers~1{id}~1deactivate'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './components/security.yaml#/bearerAuth'
+
+  schemas:
+    # Comuns & Erros
+    UUIDv7:
+      $ref: './components/common.yaml#/UUIDv7'
+    PageResponse:
+      $ref: './components/common.yaml#/PageResponse'
+    ProblemDetails:
+      $ref: './components/errors.yaml#/ProblemDetails'
+    InvalidParam:
+      $ref: './components/errors.yaml#/InvalidParam'
+
+    # WorkOrders & Field Execution
+    WorkOrderStatus:
+      $ref: './domains/workorders/schemas.yaml#/WorkOrderStatus'
+    WorkOrderType:
+      $ref: './domains/workorders/schemas.yaml#/WorkOrderType'
+    WorkOrderResponse:
+      $ref: './domains/workorders/schemas.yaml#/WorkOrderResponse'
+    ScheduleWorkOrderRequest:
+      $ref: './domains/workorders/schemas.yaml#/ScheduleWorkOrderRequest'
+    CompleteWorkOrderRequest:
+      $ref: './domains/workorders/schemas.yaml#/CompleteWorkOrderRequest'
+    OltUnprovisionedOnu:
+      $ref: './domains/workorders/schemas.yaml#/OltUnprovisionedOnu'
+    ProvisionOnuRequest:
+      $ref: './domains/workorders/schemas.yaml#/ProvisionOnuRequest'
+    RadiusStatusResponse:
+      $ref: './domains/workorders/schemas.yaml#/RadiusStatusResponse'
+
+    # Billing
+    InvoiceStatus:
+      $ref: './domains/billing/schemas.yaml#/InvoiceStatus'
+    InvoiceResponse:
+      $ref: './domains/billing/schemas.yaml#/InvoiceResponse'
+    PayInvoiceRequest:
+      $ref: './domains/billing/schemas.yaml#/PayInvoiceRequest'
+    TriggerRecurringBillingResponse:
+      $ref: './domains/billing/schemas.yaml#/TriggerRecurringBillingResponse'
+
+    # Contracts
+    ContractStatus:
+      $ref: './domains/contracts/schemas.yaml#/ContractStatus'
+    ContractResponse:
+      $ref: './domains/contracts/schemas.yaml#/ContractResponse'
+    UpdateContractStatusRequest:
+      $ref: './domains/contracts/schemas.yaml#/UpdateContractStatusRequest'
+
+    # Customers
+    CustomerResponse:
+      $ref: './domains/customers/schemas.yaml#/CustomerResponse'
+    CustomerCreateRequest:
+      $ref: './domains/customers/schemas.yaml#/CustomerCreateRequest'
+    CustomerUpdateRequest:
+      $ref: './domains/customers/schemas.yaml#/CustomerUpdateRequest'

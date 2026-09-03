@@ -1,0 +1,118 @@
+# Schemas do Domínio de Faturamento e Cobrança
+
+InvoiceStatus:
+  type: string
+  enum:
+    - PENDING
+    - PAID
+    - CANCELLED
+    - OVERDUE
+  description: Situação cadastral e financeira da fatura.
+
+InvoiceResponse:
+  type: object
+  required:
+    - id
+    - contractId
+    - customerId
+    - amount
+    - dueDate
+    - status
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    amount:
+      type: number
+      format: double
+      description: Valor principal da fatura em reais.
+      example: 99.90
+    discountAmount:
+      type: number
+      format: double
+      nullable: true
+      example: 0.00
+    penaltyAmount:
+      type: number
+      format: double
+      nullable: true
+      example: 2.00
+    interestAmount:
+      type: number
+      format: double
+      nullable: true
+      example: 1.50
+    dueDate:
+      type: string
+      format: date
+      description: Data de vencimento da fatura.
+      example: "2026-09-15"
+    status:
+      $ref: '#/InvoiceStatus'
+    pixQrCodeUrl:
+      type: string
+      format: uri
+      nullable: true
+      description: Imagem do QR Code PIX Dinâmico gerado pelo Gateway.
+    pixCopiaECola:
+      type: string
+      nullable: true
+      description: String EMV do PIX Copia-e-Cola para pagamento no app bancário.
+      example: "00020101021226830014br.gov.bcb.pix2561qrcodes.isperp.dev/pix/..."
+    barcode:
+      type: string
+      nullable: true
+      description: Código de barras numérico para boletos.
+      example: "23793.38128 60000.000003 01000.644201 1 98450000009990"
+    digitableLine:
+      type: string
+      nullable: true
+      description: Linha digitável formatada do boleto bancário.
+    paidAt:
+      type: string
+      format: date-time
+      nullable: true
+      description: Timestamp do recebimento e liquidação.
+    paidAmount:
+      type: number
+      format: double
+      nullable: true
+      description: Valor total efetivamente recebido.
+      example: 99.90
+    paymentMethod:
+      type: string
+      nullable: true
+      description: Meio de pagamento utilizado (PIX, BOLETO, CARTAO, DINHEIRO).
+      example: "PIX"
+    pdfUrl:
+      type: string
+      format: uri
+      nullable: true
+      description: Link para download do espelho da fatura em PDF.
+
+PayInvoiceRequest:
+  type: object
+  properties:
+    paidAmount:
+      type: number
+      format: double
+      nullable: true
+      description: Valor recebido. Se omitido, assume o valor nominal da fatura.
+      example: 99.90
+    paymentMethod:
+      type: string
+      default: "PIX"
+      description: Meio de liquidação (PIX, DINHEIRO, TRANSFERENCIA_BANCARIA, CARTAO_CREDITO).
+      example: "PIX"
+
+TriggerRecurringBillingResponse:
+  type: object
+  required:
+    - message
+  properties:
+    message:
+      type: string
+      example: "Rotina de faturamento recorrente executada com sucesso"

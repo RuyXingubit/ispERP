@@ -1,0 +1,144 @@
+# Endpoints do Domínio de Contratos
+
+/contracts:
+  get:
+    tags:
+      - Contratos
+    summary: Listar todos os contratos
+    operationId: getAllContracts
+    responses:
+      '200':
+        description: Lista de contratos retornada com sucesso.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ContractResponse'
+      '401':
+        description: Não autenticado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/contracts/{id}:
+  get:
+    tags:
+      - Contratos
+    summary: Obter contrato por ID
+    operationId: getContractById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Contrato encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractResponse'
+      '404':
+        description: Contrato não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/contracts/customer/{customerId}:
+  get:
+    tags:
+      - Contratos
+    summary: Listar contratos de um cliente
+    operationId: getContractsByCustomerId
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Contratos associados ao cliente.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ContractResponse'
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/contracts/status/{status}:
+  get:
+    tags:
+      - Contratos
+    summary: Listar contratos por status
+    operationId: getContractsByStatus
+    parameters:
+      - name: status
+        in: path
+        required: true
+        schema:
+          $ref: './schemas.yaml#/ContractStatus'
+    responses:
+      '200':
+        description: Contratos filtrados por status.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ContractResponse'
+      '400':
+        description: Status inválido informado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/contracts/{id}/status:
+  patch:
+    tags:
+      - Contratos
+    summary: Atualizar status do contrato
+    operationId: updateContractStatus
+    description: "Altera o estado do contrato (ex: ativar após instalação, suspender por corte, cancelar)."
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: status
+        in: query
+        required: false
+        schema:
+          $ref: './schemas.yaml#/ContractStatus'
+        description: Status desejado (compatibilidade com query parameter).
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/UpdateContractStatusRequest'
+    responses:
+      '200':
+        description: Status atualizado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractResponse'
+      '400':
+        description: Status inválido ou transição não permitida.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

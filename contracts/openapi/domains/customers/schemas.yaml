@@ -1,0 +1,149 @@
+# Schemas do Domínio de Clientes
+
+CustomerResponse:
+  type: object
+  required:
+    - id
+    - name
+    - cpf
+    - active
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "João Pereira de Souza"
+    cpf:
+      type: string
+      description: CPF formatado ou numérico.
+      example: "123.456.789-00"
+    email:
+      type: string
+      format: email
+      nullable: true
+      example: "joao.souza@gmail.com"
+    phone:
+      type: string
+      nullable: true
+      example: "(91) 98123-4567"
+    address:
+      type: string
+      nullable: true
+      example: "Rua dos Lírios, 45, Bairro Umarizal"
+    city:
+      type: string
+      nullable: true
+      example: "Belém"
+    state:
+      type: string
+      nullable: true
+      example: "PA"
+    zipCode:
+      type: string
+      nullable: true
+      example: "66050-000"
+    latitude:
+      type: number
+      format: double
+      nullable: true
+      example: -1.445210
+    longitude:
+      type: number
+      format: double
+      nullable: true
+      example: -48.489120
+    isGovernment:
+      type: boolean
+      nullable: true
+      example: false
+    alwaysIssueNfcom:
+      type: boolean
+      nullable: true
+      example: false
+    active:
+      type: boolean
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+
+CustomerCreateRequest:
+  type: object
+  required:
+    - name
+    - cpf
+  properties:
+    name:
+      type: string
+      description: Nome completo da pessoa física ou razão social.
+      example: "João Pereira de Souza"
+    cpf:
+      type: string
+      description: Cadastro de Pessoa Física (CPF válido com 11 dígitos).
+      example: "123.456.789-00"
+    email:
+      type: string
+      format: email
+      nullable: true
+      example: "joao.souza@gmail.com"
+    phone:
+      type: string
+      nullable: true
+      example: "(91) 98123-4567"
+    address:
+      type: string
+      nullable: true
+      example: "Rua dos Lírios, 45, Bairro Umarizal"
+    city:
+      type: string
+      nullable: true
+      example: "Belém"
+    state:
+      type: string
+      nullable: true
+      example: "PA"
+    zipCode:
+      type: string
+      nullable: true
+      example: "66050-000"
+    latitude:
+      type: number
+      format: double
+      nullable: true
+    longitude:
+      type: number
+      format: double
+      nullable: true
+
+CustomerUpdateRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      example: "João Pereira de Souza"
+    email:
+      type: string
+      format: email
+      example: "joao.souza@gmail.com"
+    phone:
+      type: string
+      example: "(91) 98123-4567"
+    address:
+      type: string
+      example: "Rua dos Lírios, 45, Bairro Umarizal"
+    city:
+      type: string
+      example: "Belém"
+    state:
+      type: string
+      example: "PA"
+    zipCode:
+      type: string
+      example: "66050-000"
+    latitude:
+      type: number
+      format: double
+    longitude:
+      type: number
+      format: double

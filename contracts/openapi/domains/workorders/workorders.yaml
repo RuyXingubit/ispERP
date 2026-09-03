@@ -1,0 +1,215 @@
+# Endpoints do Domínio de Ordens de Serviço e Execução Técnica
+
+/work-orders:
+  get:
+    tags:
+      - Ordens de Serviço
+    summary: Listar todas as ordens de serviço
+    operationId: getAllWorkOrders
+    description: Retorna a lista de O.S. cadastradas, com filtro opcional por status operacional.
+    parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          $ref: './schemas.yaml#/WorkOrderStatus'
+    responses:
+      '200':
+        description: Lista de ordens de serviço retornada com sucesso.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/WorkOrderResponse'
+      '401':
+        description: Não autenticado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/work-orders/{id}:
+  get:
+    tags:
+      - Ordens de Serviço
+    summary: Obter detalhes de uma ordem de serviço
+    operationId: getWorkOrderById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Ordem de serviço encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WorkOrderResponse'
+      '404':
+        description: Ordem de serviço não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/work-orders/{id}/schedule:
+  post:
+    tags:
+      - Ordens de Serviço
+    summary: Agendar ordem de serviço
+    operationId: scheduleWorkOrder
+    description: Define data, período e técnico responsável para atendimento da O.S.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ScheduleWorkOrderRequest'
+    responses:
+      '200':
+        description: Agendamento realizado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WorkOrderResponse'
+      '400':
+        description: Dados de agendamento inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/work-orders/{id}/complete:
+  post:
+    tags:
+      - Ordens de Serviço
+    summary: Concluir ordem de serviço
+    operationId: completeWorkOrder
+    description: Registra potência óptica, número de série da ONU e assinatura digital, finalizando a O.S.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CompleteWorkOrderRequest'
+    responses:
+      '200':
+        description: Ordem de serviço concluída com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WorkOrderResponse'
+      '400':
+        description: Erro na conclusão da O.S.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/technician/execution/{workOrderId}/unprovisioned-onus:
+  get:
+    tags:
+      - Execução Técnica de Campo
+    summary: Listar ONUs descobertas na porta PON (Auto-Find)
+    operationId: listUnprovisionedOnus
+    parameters:
+      - name: workOrderId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Lista de ONUs não provisionadas na OLT.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/OltUnprovisionedOnu'
+      '404':
+        description: Ordem de serviço não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/technician/execution/{workOrderId}/provision:
+  post:
+    tags:
+      - Execução Técnica de Campo
+    summary: Provisionar ONU com VLAN e credenciais PPPoE
+    operationId: provisionOnu
+    parameters:
+      - name: workOrderId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ProvisionOnuRequest'
+    responses:
+      '200':
+        description: ONU provisionada com sucesso na OLT e ativação no FreeRADIUS.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: "ONU provisionada na VLAN 100 com sucesso."
+      '400':
+        description: Erro ao provisionar ONU.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/technician/execution/{workOrderId}/radius-status:
+  get:
+    tags:
+      - Execução Técnica de Campo
+    summary: Checar status da sessão PPPoE no FreeRADIUS em tempo real
+    operationId: getRadiusStatus
+    parameters:
+      - name: workOrderId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Status da conexão do assinante.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/RadiusStatusResponse'
+      '404':
+        description: Ordem de serviço não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

@@ -1,0 +1,2087 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ispERP API",
+    "version": "1.0.0",
+    "description": "Especificação formal dos contratos de API do ispERP (Sistema ERP Modular para Provedores de Internet). Governada pela diretriz mandatória de API-First (.agents/rules/api-first-contracts.md).\n",
+    "contact": {
+      "name": "Equipe de Engenharia ispERP",
+      "url": "https://github.com/RuyXingubit/ispERP"
+    },
+    "license": {
+      "name": "GPL-3.0",
+      "url": "https://www.gnu.org/licenses/gpl-3.0.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api",
+      "description": "Servidor de Desenvolvimento Local"
+    },
+    {
+      "url": "/api",
+      "description": "Servidor Padrão (Ambiente de Produção / Docker)"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Ordens de Serviço",
+      "description": "Agendamento, roteirização e conclusão de O.S."
+    },
+    {
+      "name": "Execução Técnica de Campo",
+      "description": "Auto-Discovery OLT, provisionamento ONU e testes RADIUS"
+    },
+    {
+      "name": "Faturamento & Cobrança",
+      "description": "Faturas, PIX, liquidação e rotina recorrente"
+    },
+    {
+      "name": "Contratos",
+      "description": "Gestão de planos, minutas e status contratual"
+    },
+    {
+      "name": "Clientes",
+      "description": "Cadastro e busca de assinantes"
+    }
+  ],
+  "paths": {
+    "/work-orders": {
+      "get": {
+        "tags": [
+          "Ordens de Serviço"
+        ],
+        "summary": "Listar todas as ordens de serviço",
+        "operationId": "getAllWorkOrders",
+        "description": "Retorna a lista de O.S. cadastradas, com filtro opcional por status operacional.",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/WorkOrderStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de ordens de serviço retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkOrderResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/work-orders/{id}": {
+      "get": {
+        "tags": [
+          "Ordens de Serviço"
+        ],
+        "summary": "Obter detalhes de uma ordem de serviço",
+        "operationId": "getWorkOrderById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ordem de serviço encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ordem de serviço não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/work-orders/{id}/schedule": {
+      "post": {
+        "tags": [
+          "Ordens de Serviço"
+        ],
+        "summary": "Agendar ordem de serviço",
+        "operationId": "scheduleWorkOrder",
+        "description": "Define data, período e técnico responsável para atendimento da O.S.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleWorkOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Agendamento realizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados de agendamento inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/work-orders/{id}/complete": {
+      "post": {
+        "tags": [
+          "Ordens de Serviço"
+        ],
+        "summary": "Concluir ordem de serviço",
+        "operationId": "completeWorkOrder",
+        "description": "Registra potência óptica, número de série da ONU e assinatura digital, finalizando a O.S.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteWorkOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ordem de serviço concluída com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na conclusão da O.S.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/technician/execution/{workOrderId}/unprovisioned-onus": {
+      "get": {
+        "tags": [
+          "Execução Técnica de Campo"
+        ],
+        "summary": "Listar ONUs descobertas na porta PON (Auto-Find)",
+        "operationId": "listUnprovisionedOnus",
+        "parameters": [
+          {
+            "name": "workOrderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de ONUs não provisionadas na OLT.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OltUnprovisionedOnu"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ordem de serviço não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/technician/execution/{workOrderId}/provision": {
+      "post": {
+        "tags": [
+          "Execução Técnica de Campo"
+        ],
+        "summary": "Provisionar ONU com VLAN e credenciais PPPoE",
+        "operationId": "provisionOnu",
+        "parameters": [
+          {
+            "name": "workOrderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProvisionOnuRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ONU provisionada com sucesso na OLT e ativação no FreeRADIUS.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "ONU provisionada na VLAN 100 com sucesso."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro ao provisionar ONU.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/technician/execution/{workOrderId}/radius-status": {
+      "get": {
+        "tags": [
+          "Execução Técnica de Campo"
+        ],
+        "summary": "Checar status da sessão PPPoE no FreeRADIUS em tempo real",
+        "operationId": "getRadiusStatus",
+        "parameters": [
+          {
+            "name": "workOrderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status da conexão do assinante.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RadiusStatusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ordem de serviço não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invoices": {
+      "get": {
+        "tags": [
+          "Faturamento & Cobrança"
+        ],
+        "summary": "Listar faturas",
+        "operationId": "getAllInvoices",
+        "description": "Retorna o histórico de faturas geradas com filtro opcional por status.",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/InvoiceStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de faturas retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invoices/{id}": {
+      "get": {
+        "tags": [
+          "Faturamento & Cobrança"
+        ],
+        "summary": "Obter detalhes da fatura",
+        "operationId": "getInvoiceById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fatura encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Fatura não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invoices/customer/{customerId}": {
+      "get": {
+        "tags": [
+          "Faturamento & Cobrança"
+        ],
+        "summary": "Listar faturas de um cliente",
+        "operationId": "getInvoicesByCustomerId",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Faturas do cliente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvoiceResponse"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cliente não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invoices/{id}/pay": {
+      "post": {
+        "tags": [
+          "Faturamento & Cobrança"
+        ],
+        "summary": "Baixar pagamento da fatura",
+        "operationId": "payInvoice",
+        "description": "Liquida a fatura informando o meio de pagamento e valor recebido.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayInvoiceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fatura baixada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na liquidação da fatura.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invoices/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Faturamento & Cobrança"
+        ],
+        "summary": "Cancelar fatura",
+        "operationId": "cancelInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fatura cancelada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Fatura já liquidada ou em estado não cancelável.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invoices/trigger-recurring-billing": {
+      "post": {
+        "tags": [
+          "Faturamento & Cobrança"
+        ],
+        "summary": "Disparar rotina de faturamento recorrente",
+        "operationId": "triggerRecurringBilling",
+        "description": "Executa a geração de faturas do ciclo mensal para todos os contratos ativos.",
+        "responses": {
+          "200": {
+            "description": "Rotina disparada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriggerRecurringBillingResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro nos parâmetros da rotina recorrente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno no processamento do lote.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts": {
+      "get": {
+        "tags": [
+          "Contratos"
+        ],
+        "summary": "Listar todos os contratos",
+        "operationId": "getAllContracts",
+        "responses": {
+          "200": {
+            "description": "Lista de contratos retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/{id}": {
+      "get": {
+        "tags": [
+          "Contratos"
+        ],
+        "summary": "Obter contrato por ID",
+        "operationId": "getContractById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contrato encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contrato não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/customer/{customerId}": {
+      "get": {
+        "tags": [
+          "Contratos"
+        ],
+        "summary": "Listar contratos de um cliente",
+        "operationId": "getContractsByCustomerId",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contratos associados ao cliente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractResponse"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cliente não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/status/{status}": {
+      "get": {
+        "tags": [
+          "Contratos"
+        ],
+        "summary": "Listar contratos por status",
+        "operationId": "getContractsByStatus",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ContractStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contratos filtrados por status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status inválido informado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/{id}/status": {
+      "patch": {
+        "tags": [
+          "Contratos"
+        ],
+        "summary": "Atualizar status do contrato",
+        "operationId": "updateContractStatus",
+        "description": "Altera o estado do contrato (ex: ativar após instalação, suspender por corte, cancelar).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ContractStatus"
+            },
+            "description": "Status desejado (compatibilidade com query parameter)."
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContractStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status inválido ou transição não permitida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers": {
+      "get": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Listar todos os clientes",
+        "operationId": "getAllCustomers",
+        "responses": {
+          "200": {
+            "description": "Lista de clientes cadastrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomerResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Cadastrar novo cliente",
+        "operationId": "createCustomer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cliente criado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados cadastrais inválidos ou CPF duplicado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}": {
+      "get": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Obter dados do cliente por ID",
+        "operationId": "getCustomerById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cliente localizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cliente não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Atualizar cadastro do cliente",
+        "operationId": "updateCustomer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dados atualizados com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na validação dos dados atualizados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Excluir ou arquivar cliente",
+        "operationId": "deleteCustomer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Cliente removido com sucesso."
+          },
+          "404": {
+            "description": "Cliente não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/search": {
+      "get": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Busca unificada de clientes",
+        "operationId": "searchCustomers",
+        "description": "Permite localizar clientes por texto livre no nome, CPF/CNPJ ou telefone.",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Termo de busca (nome, CPF ou documento)."
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Busca restrita ao nome (legado)."
+          },
+          {
+            "name": "cpf",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Busca restrita ao CPF (legado)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultados encontrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomerResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetro de busca ausente ou inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}/activate": {
+      "patch": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Ativar cliente",
+        "operationId": "activateCustomer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cliente ativado com sucesso."
+          },
+          "404": {
+            "description": "Cliente não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}/deactivate": {
+      "patch": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Desativar cliente",
+        "operationId": "deactivateCustomer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cliente desativado com sucesso."
+          },
+          "404": {
+            "description": "Cliente não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT gerado no endpoint /api/auth/login. Formato: `Bearer <token>` no header Authorization.\n"
+      }
+    },
+    "schemas": {
+      "UUIDv7": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+        "description": "Identificador único universal ordenável por tempo (RFC 9562 v7).",
+        "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+      },
+      "PageResponse": {
+        "type": "object",
+        "required": [
+          "totalElements",
+          "totalPages",
+          "size",
+          "number"
+        ],
+        "properties": {
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Quantidade total de registros na base.",
+            "example": 150
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Quantidade total de páginas disponíveis.",
+            "example": 8
+          },
+          "size": {
+            "type": "integer",
+            "description": "Quantidade de itens por página.",
+            "example": 20
+          },
+          "number": {
+            "type": "integer",
+            "description": "Índice da página atual (inicia em 0).",
+            "example": 0
+          },
+          "first": {
+            "type": "boolean",
+            "description": "Indica se é a primeira página.",
+            "example": true
+          },
+          "last": {
+            "type": "boolean",
+            "description": "Indica se é a última página.",
+            "example": false
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "required": [
+          "title",
+          "status",
+          "timestamp"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI que identifica a categoria do erro.",
+            "example": "https://isperp.dev/errors/validation"
+          },
+          "title": {
+            "type": "string",
+            "description": "Resumo legível do erro.",
+            "example": "Parâmetros de requisição inválidos"
+          },
+          "status": {
+            "type": "integer",
+            "description": "Código de status HTTP.",
+            "example": 400
+          },
+          "detail": {
+            "type": "string",
+            "description": "Explicação específica sobre a ocorrência.",
+            "example": "O CPF informado possui formato incorreto."
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI do recurso afetado.",
+            "example": "/api/customers"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Horário UTC da ocorrência.",
+            "example": "2026-09-03T18:00:00Z"
+          },
+          "invalidParams": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvalidParam"
+            }
+          }
+        }
+      },
+      "InvalidParam": {
+        "type": "object",
+        "required": [
+          "name",
+          "reason"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome do campo com erro.",
+            "example": "cpfCnpj"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Motivo da rejeição.",
+            "example": "deve conter 11 (CPF) ou 14 (CNPJ) dígitos numéricos"
+          }
+        }
+      },
+      "WorkOrderStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING_SCHEDULE",
+          "SCHEDULED",
+          "IN_PROGRESS",
+          "COMPLETED",
+          "CANCELLED",
+          "BLOCKED"
+        ],
+        "description": "Estado atual do ciclo de vida da Ordem de Serviço."
+      },
+      "WorkOrderType": {
+        "type": "string",
+        "enum": [
+          "INSTALACAO",
+          "MANUTENCAO",
+          "MUDANCA_ENDERECO",
+          "RETIRADA",
+          "REPARO_FIBRA",
+          "AUDITORIA"
+        ],
+        "description": "Tipo de intervenção técnica a ser realizada."
+      },
+      "WorkOrderResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "contractId",
+          "customerId",
+          "type",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "type": {
+            "$ref": "#/components/schemas/WorkOrderType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkOrderStatus"
+          },
+          "scheduledDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2026-09-10"
+          },
+          "scheduledPeriod": {
+            "type": "string",
+            "nullable": true,
+            "example": "MANHA"
+          },
+          "technicianName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Carlos Silva"
+          },
+          "onuMac": {
+            "type": "string",
+            "nullable": true,
+            "example": "48:57:02:11:22:33"
+          },
+          "onuSerial": {
+            "type": "string",
+            "nullable": true,
+            "example": "ZTEGC89A12B3"
+          },
+          "fiberSignalDbm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -19.5
+          },
+          "onuRxPowerDbm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -19.45
+          },
+          "radiusAuthenticated": {
+            "type": "boolean",
+            "nullable": true,
+            "example": true
+          },
+          "technicianLatitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -1.4558
+          },
+          "technicianLongitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -48.4902
+          },
+          "installationPhotoUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "customerSignatureName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Maria de Fátima Oliveira"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Instalação concluída com potência perfeita na CTO-04."
+          }
+        }
+      },
+      "ScheduleWorkOrderRequest": {
+        "type": "object",
+        "required": [
+          "scheduledDate",
+          "scheduledPeriod",
+          "technicianName"
+        ],
+        "properties": {
+          "scheduledDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Data prevista para atendimento.",
+            "example": "2026-09-10"
+          },
+          "scheduledPeriod": {
+            "type": "string",
+            "description": "Período do dia (MANHA, TARDE, NOITE, SABADO_MANHA).",
+            "example": "MANHA"
+          },
+          "technicianName": {
+            "type": "string",
+            "description": "Nome do técnico designado.",
+            "example": "Carlos Silva"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Instruções de acesso ou orientações para a equipe.",
+            "example": "Casa de esquina, portão azul."
+          }
+        }
+      },
+      "CompleteWorkOrderRequest": {
+        "type": "object",
+        "required": [
+          "onuMac",
+          "onuSerial",
+          "fiberSignalDbm"
+        ],
+        "properties": {
+          "onuMac": {
+            "type": "string",
+            "description": "Endereço MAC da ONU instalada.",
+            "example": "48:57:02:11:22:33"
+          },
+          "onuSerial": {
+            "type": "string",
+            "description": "Serial PON da ONU (ex. ZTEG, ALCL, HWTC).",
+            "example": "ZTEGC89A12B3"
+          },
+          "fiberSignalDbm": {
+            "type": "number",
+            "format": "double",
+            "description": "Atenuação óptica medida pelo power meter no conector da ONU.",
+            "example": -19.5
+          },
+          "technicianLatitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -1.455832
+          },
+          "technicianLongitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -48.490211
+          },
+          "installationPhotoUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL da foto da instalação e CTO no storage S3."
+          },
+          "digitalSignatureBase64": {
+            "type": "string",
+            "nullable": true,
+            "description": "Assinatura do cliente em Canvas Base64."
+          },
+          "customerSignatureName": {
+            "type": "string",
+            "nullable": true,
+            "description": "Nome legível de quem assinou o termo."
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Observações finais do técnico."
+          }
+        }
+      },
+      "OltUnprovisionedOnu": {
+        "type": "object",
+        "required": [
+          "networkDeviceId",
+          "oltName",
+          "slotNumber",
+          "portNumber",
+          "onuSerial"
+        ],
+        "properties": {
+          "networkDeviceId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "oltName": {
+            "type": "string",
+            "example": "OLT-CENTRAL-HUAWEI-5800"
+          },
+          "slotNumber": {
+            "type": "integer",
+            "example": 1
+          },
+          "portNumber": {
+            "type": "integer",
+            "example": 4
+          },
+          "ponName": {
+            "type": "string",
+            "nullable": true,
+            "example": "PON 1/4"
+          },
+          "onuSerial": {
+            "type": "string",
+            "example": "ZTEGC89A12B3"
+          },
+          "onuMac": {
+            "type": "string",
+            "nullable": true,
+            "example": "48:57:02:11:22:33"
+          },
+          "rxPowerDbm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -19.45
+          },
+          "detectedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ProvisionOnuRequest": {
+        "type": "object",
+        "required": [
+          "onuSerial"
+        ],
+        "properties": {
+          "onuSerial": {
+            "type": "string",
+            "description": "Serial PON da ONU descoberta no Auto-Find.",
+            "example": "ZTEGC89A12B3"
+          },
+          "vlanId": {
+            "type": "integer",
+            "default": 100,
+            "description": "ID da VLAN de dados.",
+            "example": 100
+          },
+          "pppoeUsername": {
+            "type": "string",
+            "nullable": true,
+            "description": "Login PPPoE do assinante no RADIUS.",
+            "example": "cliente123@provedor.com.br"
+          },
+          "pppoePassword": {
+            "type": "string",
+            "nullable": true,
+            "description": "Senha PPPoE gerada no contrato.",
+            "example": "Segura@2026"
+          }
+        }
+      },
+      "RadiusStatusResponse": {
+        "type": "object",
+        "required": [
+          "workOrderId",
+          "authenticated"
+        ],
+        "properties": {
+          "workOrderId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "authenticated": {
+            "type": "boolean",
+            "description": "Indica se há sessão PPPoE ativa no FreeRADIUS.",
+            "example": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "example": "cliente123@provedor.com.br"
+          },
+          "framedIpAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "100.64.12.45"
+          },
+          "macAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "48:57:02:11:22:33"
+          },
+          "nasIpAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "10.0.0.1"
+          },
+          "uptimeSeconds": {
+            "type": "integer",
+            "nullable": true,
+            "example": 120
+          }
+        }
+      },
+      "InvoiceStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "PAID",
+          "CANCELLED",
+          "OVERDUE"
+        ],
+        "description": "Situação cadastral e financeira da fatura."
+      },
+      "InvoiceResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "contractId",
+          "customerId",
+          "amount",
+          "dueDate",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double",
+            "description": "Valor principal da fatura em reais.",
+            "example": 99.9
+          },
+          "discountAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 0
+          },
+          "penaltyAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 2
+          },
+          "interestAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 1.5
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de vencimento da fatura.",
+            "example": "2026-09-15"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InvoiceStatus"
+          },
+          "pixQrCodeUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Imagem do QR Code PIX Dinâmico gerado pelo Gateway."
+          },
+          "pixCopiaECola": {
+            "type": "string",
+            "nullable": true,
+            "description": "String EMV do PIX Copia-e-Cola para pagamento no app bancário.",
+            "example": "00020101021226830014br.gov.bcb.pix2561qrcodes.isperp.dev/pix/..."
+          },
+          "barcode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Código de barras numérico para boletos.",
+            "example": "23793.38128 60000.000003 01000.644201 1 98450000009990"
+          },
+          "digitableLine": {
+            "type": "string",
+            "nullable": true,
+            "description": "Linha digitável formatada do boleto bancário."
+          },
+          "paidAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp do recebimento e liquidação."
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Valor total efetivamente recebido.",
+            "example": 99.9
+          },
+          "paymentMethod": {
+            "type": "string",
+            "nullable": true,
+            "description": "Meio de pagamento utilizado (PIX, BOLETO, CARTAO, DINHEIRO).",
+            "example": "PIX"
+          },
+          "pdfUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "Link para download do espelho da fatura em PDF."
+          }
+        }
+      },
+      "PayInvoiceRequest": {
+        "type": "object",
+        "properties": {
+          "paidAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Valor recebido. Se omitido, assume o valor nominal da fatura.",
+            "example": 99.9
+          },
+          "paymentMethod": {
+            "type": "string",
+            "default": "PIX",
+            "description": "Meio de liquidação (PIX, DINHEIRO, TRANSFERENCIA_BANCARIA, CARTAO_CREDITO).",
+            "example": "PIX"
+          }
+        }
+      },
+      "TriggerRecurringBillingResponse": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Rotina de faturamento recorrente executada com sucesso"
+          }
+        }
+      },
+      "ContractStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING_SIGNATURE",
+          "PENDING_INSTALLATION",
+          "ACTIVE",
+          "SUSPENDED",
+          "CANCELLED"
+        ],
+        "description": "Situação do contrato de prestação de serviços."
+      },
+      "ContractResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "customerId",
+          "planId",
+          "contractNumber",
+          "status",
+          "monthlyFee",
+          "dueDay",
+          "installationAddress"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "planId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "saleId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractNumber": {
+            "type": "string",
+            "example": "CTR-2026-00891"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContractStatus"
+          },
+          "monthlyFee": {
+            "type": "number",
+            "format": "double",
+            "example": 99.9
+          },
+          "dueDay": {
+            "type": "integer",
+            "example": 10
+          },
+          "customSuspensionDays": {
+            "type": "integer",
+            "nullable": true,
+            "example": 15
+          },
+          "installationAddress": {
+            "type": "string",
+            "example": "Av. Principal, 1200, Bairro Centro"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateContractStatusRequest": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ContractStatus"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Justificativa para a alteração de status (ex: inadimplência, pedido do assinante).",
+            "example": "Solicitação expressa do cliente via central de atendimento."
+          }
+        }
+      },
+      "CustomerResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "cpf",
+          "active"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "João Pereira de Souza"
+          },
+          "cpf": {
+            "type": "string",
+            "description": "CPF formatado ou numérico.",
+            "example": "123.456.789-00"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": "joao.souza@gmail.com"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "(91) 98123-4567"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "Rua dos Lírios, 45, Bairro Umarizal"
+          },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "example": "Belém"
+          },
+          "state": {
+            "type": "string",
+            "nullable": true,
+            "example": "PA"
+          },
+          "zipCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "66050-000"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -1.44521
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -48.48912
+          },
+          "isGovernment": {
+            "type": "boolean",
+            "nullable": true,
+            "example": false
+          },
+          "alwaysIssueNfcom": {
+            "type": "boolean",
+            "nullable": true,
+            "example": false
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CustomerCreateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "cpf"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome completo da pessoa física ou razão social.",
+            "example": "João Pereira de Souza"
+          },
+          "cpf": {
+            "type": "string",
+            "description": "Cadastro de Pessoa Física (CPF válido com 11 dígitos).",
+            "example": "123.456.789-00"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": "joao.souza@gmail.com"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "(91) 98123-4567"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "Rua dos Lírios, 45, Bairro Umarizal"
+          },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "example": "Belém"
+          },
+          "state": {
+            "type": "string",
+            "nullable": true,
+            "example": "PA"
+          },
+          "zipCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "66050-000"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "CustomerUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "João Pereira de Souza"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "joao.souza@gmail.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "(91) 98123-4567"
+          },
+          "address": {
+            "type": "string",
+            "example": "Rua dos Lírios, 45, Bairro Umarizal"
+          },
+          "city": {
+            "type": "string",
+            "example": "Belém"
+          },
+          "state": {
+            "type": "string",
+            "example": "PA"
+          },
+          "zipCode": {
+            "type": "string",
+            "example": "66050-000"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      }
+    }
+  }
+}

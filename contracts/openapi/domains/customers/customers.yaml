@@ -1,0 +1,212 @@
+# Endpoints do Domínio de Clientes
+
+/customers:
+  get:
+    tags:
+      - Clientes
+    summary: Listar todos os clientes
+    operationId: getAllCustomers
+    responses:
+      '200':
+        description: Lista de clientes cadastrados.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/CustomerResponse'
+      '401':
+        description: Não autenticado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  post:
+    tags:
+      - Clientes
+    summary: Cadastrar novo cliente
+    operationId: createCustomer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CustomerCreateRequest'
+    responses:
+      '201':
+        description: Cliente criado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CustomerResponse'
+      '400':
+        description: Dados cadastrais inválidos ou CPF duplicado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/customers/{id}:
+  get:
+    tags:
+      - Clientes
+    summary: Obter dados do cliente por ID
+    operationId: getCustomerById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Cliente localizado.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CustomerResponse'
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  put:
+    tags:
+      - Clientes
+    summary: Atualizar cadastro do cliente
+    operationId: updateCustomer
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CustomerUpdateRequest'
+    responses:
+      '200':
+        description: Dados atualizados com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CustomerResponse'
+      '400':
+        description: Erro na validação dos dados atualizados.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  delete:
+    tags:
+      - Clientes
+    summary: Excluir ou arquivar cliente
+    operationId: deleteCustomer
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '204':
+        description: Cliente removido com sucesso.
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/customers/search:
+  get:
+    tags:
+      - Clientes
+    summary: Busca unificada de clientes
+    operationId: searchCustomers
+    description: Permite localizar clientes por texto livre no nome, CPF/CNPJ ou telefone.
+    parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Termo de busca (nome, CPF ou documento).
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Busca restrita ao nome (legado).
+      - name: cpf
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Busca restrita ao CPF (legado).
+    responses:
+      '200':
+        description: Resultados encontrados.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/CustomerResponse'
+      '400':
+        description: Parâmetro de busca ausente ou inválido.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/customers/{id}/activate:
+  patch:
+    tags:
+      - Clientes
+    summary: Ativar cliente
+    operationId: activateCustomer
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Cliente ativado com sucesso.
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/customers/{id}/deactivate:
+  patch:
+    tags:
+      - Clientes
+    summary: Desativar cliente
+    operationId: deactivateCustomer
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Cliente desativado com sucesso.
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

@@ -1,0 +1,54 @@
+# Padronização de Erros RFC 7807 (Problem Details)
+ProblemDetails:
+  type: object
+  required:
+    - title
+    - status
+    - timestamp
+  properties:
+    type:
+      type: string
+      format: uri
+      description: URI que identifica a categoria do erro.
+      example: "https://isperp.dev/errors/validation"
+    title:
+      type: string
+      description: Resumo legível do erro.
+      example: "Parâmetros de requisição inválidos"
+    status:
+      type: integer
+      description: Código de status HTTP.
+      example: 400
+    detail:
+      type: string
+      description: Explicação específica sobre a ocorrência.
+      example: "O CPF informado possui formato incorreto."
+    instance:
+      type: string
+      format: uri-reference
+      description: URI do recurso afetado.
+      example: "/api/customers"
+    timestamp:
+      type: string
+      format: date-time
+      description: Horário UTC da ocorrência.
+      example: "2026-09-03T18:00:00Z"
+    invalidParams:
+      type: array
+      items:
+        $ref: '#/InvalidParam'
+
+InvalidParam:
+  type: object
+  required:
+    - name
+    - reason
+  properties:
+    name:
+      type: string
+      description: Nome do campo com erro.
+      example: "cpfCnpj"
+    reason:
+      type: string
+      description: Motivo da rejeição.
+      example: "deve conter 11 (CPF) ou 14 (CNPJ) dígitos numéricos"

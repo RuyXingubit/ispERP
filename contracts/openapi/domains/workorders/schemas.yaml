@@ -1,0 +1,272 @@
+# Schemas de Ordens de Serviço e Execução Técnica de Campo
+
+WorkOrderStatus:
+  type: string
+  enum:
+    - PENDING_SCHEDULE
+    - SCHEDULED
+    - IN_PROGRESS
+    - COMPLETED
+    - CANCELLED
+    - BLOCKED
+  description: Estado atual do ciclo de vida da Ordem de Serviço.
+
+WorkOrderType:
+  type: string
+  enum:
+    - INSTALACAO
+    - MANUTENCAO
+    - MUDANCA_ENDERECO
+    - RETIRADA
+    - REPARO_FIBRA
+    - AUDITORIA
+  description: Tipo de intervenção técnica a ser realizada.
+
+WorkOrderResponse:
+  type: object
+  required:
+    - id
+    - contractId
+    - customerId
+    - type
+    - status
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    type:
+      $ref: '#/WorkOrderType'
+    status:
+      $ref: '#/WorkOrderStatus'
+    scheduledDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-09-10"
+    scheduledPeriod:
+      type: string
+      nullable: true
+      example: "MANHA"
+    technicianName:
+      type: string
+      nullable: true
+      example: "Carlos Silva"
+    onuMac:
+      type: string
+      nullable: true
+      example: "48:57:02:11:22:33"
+    onuSerial:
+      type: string
+      nullable: true
+      example: "ZTEGC89A12B3"
+    fiberSignalDbm:
+      type: number
+      format: double
+      nullable: true
+      example: -19.50
+    onuRxPowerDbm:
+      type: number
+      format: double
+      nullable: true
+      example: -19.45
+    radiusAuthenticated:
+      type: boolean
+      nullable: true
+      example: true
+    technicianLatitude:
+      type: number
+      format: double
+      nullable: true
+      example: -1.45580000
+    technicianLongitude:
+      type: number
+      format: double
+      nullable: true
+      example: -48.49020000
+    installationPhotoUrl:
+      type: string
+      format: uri
+      nullable: true
+    customerSignatureName:
+      type: string
+      nullable: true
+      example: "Maria de Fátima Oliveira"
+    notes:
+      type: string
+      nullable: true
+      example: "Instalação concluída com potência perfeita na CTO-04."
+
+ScheduleWorkOrderRequest:
+  type: object
+  required:
+    - scheduledDate
+    - scheduledPeriod
+    - technicianName
+  properties:
+    scheduledDate:
+      type: string
+      format: date
+      description: Data prevista para atendimento.
+      example: "2026-09-10"
+    scheduledPeriod:
+      type: string
+      description: Período do dia (MANHA, TARDE, NOITE, SABADO_MANHA).
+      example: "MANHA"
+    technicianName:
+      type: string
+      description: Nome do técnico designado.
+      example: "Carlos Silva"
+    notes:
+      type: string
+      nullable: true
+      description: Instruções de acesso ou orientações para a equipe.
+      example: "Casa de esquina, portão azul."
+
+CompleteWorkOrderRequest:
+  type: object
+  required:
+    - onuMac
+    - onuSerial
+    - fiberSignalDbm
+  properties:
+    onuMac:
+      type: string
+      description: Endereço MAC da ONU instalada.
+      example: "48:57:02:11:22:33"
+    onuSerial:
+      type: string
+      description: Serial PON da ONU (ex. ZTEG, ALCL, HWTC).
+      example: "ZTEGC89A12B3"
+    fiberSignalDbm:
+      type: number
+      format: double
+      description: Atenuação óptica medida pelo power meter no conector da ONU.
+      example: -19.50
+    technicianLatitude:
+      type: number
+      format: double
+      nullable: true
+      example: -1.455832
+    technicianLongitude:
+      type: number
+      format: double
+      nullable: true
+      example: -48.490211
+    installationPhotoUrl:
+      type: string
+      nullable: true
+      description: URL da foto da instalação e CTO no storage S3.
+    digitalSignatureBase64:
+      type: string
+      nullable: true
+      description: Assinatura do cliente em Canvas Base64.
+    customerSignatureName:
+      type: string
+      nullable: true
+      description: Nome legível de quem assinou o termo.
+    notes:
+      type: string
+      nullable: true
+      description: Observações finais do técnico.
+
+OltUnprovisionedOnu:
+  type: object
+  required:
+    - networkDeviceId
+    - oltName
+    - slotNumber
+    - portNumber
+    - onuSerial
+  properties:
+    networkDeviceId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    oltName:
+      type: string
+      example: "OLT-CENTRAL-HUAWEI-5800"
+    slotNumber:
+      type: integer
+      example: 1
+    portNumber:
+      type: integer
+      example: 4
+    ponName:
+      type: string
+      nullable: true
+      example: "PON 1/4"
+    onuSerial:
+      type: string
+      example: "ZTEGC89A12B3"
+    onuMac:
+      type: string
+      nullable: true
+      example: "48:57:02:11:22:33"
+    rxPowerDbm:
+      type: number
+      format: double
+      nullable: true
+      example: -19.45
+    detectedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+ProvisionOnuRequest:
+  type: object
+  required:
+    - onuSerial
+  properties:
+    onuSerial:
+      type: string
+      description: Serial PON da ONU descoberta no Auto-Find.
+      example: "ZTEGC89A12B3"
+    vlanId:
+      type: integer
+      default: 100
+      description: ID da VLAN de dados.
+      example: 100
+    pppoeUsername:
+      type: string
+      nullable: true
+      description: Login PPPoE do assinante no RADIUS.
+      example: "cliente123@provedor.com.br"
+    pppoePassword:
+      type: string
+      nullable: true
+      description: Senha PPPoE gerada no contrato.
+      example: "Segura@2026"
+
+RadiusStatusResponse:
+  type: object
+  required:
+    - workOrderId
+    - authenticated
+  properties:
+    workOrderId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    authenticated:
+      type: boolean
+      description: Indica se há sessão PPPoE ativa no FreeRADIUS.
+      example: true
+    username:
+      type: string
+      nullable: true
+      example: "cliente123@provedor.com.br"
+    framedIpAddress:
+      type: string
+      nullable: true
+      example: "100.64.12.45"
+    macAddress:
+      type: string
+      nullable: true
+      example: "48:57:02:11:22:33"
+    nasIpAddress:
+      type: string
+      nullable: true
+      example: "10.0.0.1"
+    uptimeSeconds:
+      type: integer
+      nullable: true
+      example: 120
