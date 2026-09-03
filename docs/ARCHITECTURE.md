@@ -407,3 +407,107 @@ sequenceDiagram
   - Eliminação de falsos despachos de técnicos de fusão durante apagões elétricos da concessionária de energia.
   - Estabilidade e segurança total das controladoras de OLTs mesmo em redes com mais de 100.000 clientes.
 
+---
+
+### ADR 028: Custódia Patrimonial Estrita por CPF, Livro-Caixa Individual e Duplo Aceite de Gaveta
+- **Contexto:** Em operações de telecom, a perda de dinheiro vivo de faturas pagas em campo e o sumiço de equipamentos decorriam da ausência de responsabilização direta por indivíduo ("o dinheiro ou ONT ficou no veículo do plantão").
+- **Decisão:** Adotar o princípio civil inegociável: *"Veículo não tem CPF. Todo valor em dinheiro e equipamento possui responsabilidade civil vinculada ao CPF do colaborador."*
+- **Diretrizes de Implementação:**
+  1. **Schema de Custódia com UUIDv7:** Tabelas `user_cash_custodies`, `cash_transfer_logs`, `bank_deposit_confirmations` e `user_material_custodies` criadas na migração Flyway `V27`.
+  2. **Mecanismo de Duplo Aceite Obrigatório:** O saldo de gaveta e a posse de peças entre técnicos em campo só migram no banco quando o recebedor confere o valor/itens e clica em aceitar.
+  3. **Segregação de Funções & Conciliação Cega:** Depósitos bancários de prestação de contas só baixam a custódia do colaborador após conferência e aprovação manual do CFO contra o extrato real da conta corrente.
+  4. **Baixa Automática na Conclusão da O.S.:** Na conclusão técnica em campo, os materiais utilizados são baixados automaticamente da custódia do técnico para o cliente final.
+- **Consequências:**
+  - Eliminação de extravios de dinheiro vivo em atendimentos e plantões.
+  - Rastreabilidade pericial byte-a-byte do inventário em trânsito com os técnicos.
+
+---
+
+### ADR 029: Plano de Contas Dinâmico de 5 Níveis Telecom, Contas a Pagar & Esteira de Isenção de Taxas
+- **Contexto:** Provedores necessitam de uma árvore contábil padronizada para telecomunicação (separação canônica de Receitas, Impostos, Trânsito/Interconexão, OPEX e CAPEX), além de controle rígido de contas a pagar de infraestrutura e uma trava contra concessões indiscriminadas de isenções de taxas de O.S.
+- **Decisão:** Desenvolver o módulo contábil no backend Java 25 / PostgreSQL 17+ com seeder oficial de telecom e esteira auditada de isenção de taxas.
+- **Diretrizes de Implementação:**
+  1. **Schema Contábil & Despesas com UUIDv7:** Tabelas `chart_of_accounts`, `payable_invoices` e `expense_installments` criadas na migração Flyway `V28`.
+  2. **Árvore Hierárquica de 5 Níveis:** Diferenciação estrita de nós sintéticos (agrupadores) e analíticos (que recebem lançamentos), com seeder canônico de telecom.
+  3. **Cronograma de Amortização & Juros:** Despesas de longo prazo divididas automaticamente em parcelas com controle de liquidação e comprovante anexado.
+  4. **Esteira Anti-Fraude de Isenção de Taxas (`WorkOrderFeeService.java`):** Solicitação de isenção comercial com auditoria obrigatória de gestor e disparo do evento `WORK_ORDER_FEE_WAIVED` para notificação oficial ao cliente via WhatsApp, impedindo cobranças "por fora".
+- **Consequências:**
+  - Visibilidade analítica detalhada de custos fixos vs variáveis do provedor.
+  - Fim de concessões verbais ou não auditadas de isenção de taxas técnicas.
+
+---
+
+### ADR 030: Cockpit DRE em Tempo Real (Competência vs Caixa) & Motor de Desalavancagem 36M
+- **Contexto:** Provedores de internet em fase de expansão frequentemente enfrentam o "paradoxo do crescimento": muitas vendas e alto MRR, mas aperto severo de caixa por descasamento entre o CAPEX de instalação e o recebimento das mensalidades. O dono necessita de clareza imediata sobre EBITDA real e horizonte temporal de alforria financeira.
+- **Decisão:** Criar o `DreReportService` dinâmico e o `DeleveragingEngineService` determinístico com projeção matemática contínua de 36 meses.
+- **Diretrizes de Implementação:**
+  1. **DRE em Cascata:** Cálculo instantâneo da Receita Bruta ➔ Impostos ➔ Custos Diretos de Conexão ➔ Margem de Contribuição ➔ OPEX Operacional ➔ **EBITDA** ➔ Fluxo de Caixa Livre nos Regimes de Competência e Caixa.
+  2. **Os 3 Números Sagrados:** Cálculo determinístico do Fundo do Poço financeiro (*Maximum Drawdown*), da Data da Alforria Financeira e da folga mínima de liquidez.
+  3. **Simulador Interativo "E Se...?":** Avaliação de risco em memória para novos investimentos (ex: compra de nova OLT ou ampliação de frota) sem persistência no banco de dados.
+- **Consequências:**
+  - Tomada de decisão executiva baseada em matemática financeira rigorosa e EBITDA real.
+  - Prevenção ativa de insolvência durante picos de aquisição de clientes.
+
+---
+
+### ADR 031: Payback por Projeto FTTH / Centros de Custo & Sentinela IA Pericial
+- **Contexto:** A expansão de redes ópticas passivas envolve aportes significativos de capital. O provedor precisa saber com precisão cirúrgica em quantos meses cada bairro se paga e onde focar o time comercial. Simultaneamente, comportamentos atípicos e fraudes internas precisam ser identificados antes de gerarem rombos.
+- **Decisão:** Relacionar caixas CTO a centros de custo de projetos de rede (`network_projects`), calcular ocupação de portas e acionar o Sentinela IA pericial.
+- **Diretrizes de Implementação:**
+  1. **Schema de Projetos & Auditoria com UUIDv7:** Tabelas `network_projects` e `sentinel_audit_logs` criadas na migração Flyway `V29`.
+  2. **Direcionador Comercial:** Cálculo em tempo real de portas ocupadas vs ociosas, gerando alertas proativos (*"🚨 DINHEIRO DORMINDO NO POSTE: Bairro com baixa ocupação. Direcionar vendas aqui!"*).
+  3. **Sentinela IA (`SentinelWatchdogService.java`):** Algoritmo analítico que executa varreduras periciais contínuas contra anomalias (retenção excessiva de dinheiro vivo por técnico, desvio de materiais e padrão suspeito de isenções de taxas).
+- **Consequências:**
+  - Otimização do retorno sobre o capital investido (ROIC) em expansões de fibra óptica.
+  - Detecção pericial precoce de irregularidades operacionais e de estoque.
+
+---
+
+### ADR 032: Assinatura Eletrônica Baseada em Autenticação Pix (SPI / BACEN) e Certificado Forense
+- **Contexto:** Assinaturas digitais de contratos baseadas apenas em cliques web ou códigos SMS enfrentam fragilidade jurídica em litígios (alegação de "não fui eu que cliquei"). Era necessária uma forma de assinatura com comprovação irrefutável de autoria, baixo atrito e custo acessível conforme a MP 2.200-2/01 e Lei Federal nº 14.063/2020.
+- **Decisão:** Desenvolver um fluxo de assinatura eletrônica avançada ancorado na autenticação bancária de micro-transação Pix (R$ 1,00) via Sistema de Pagamentos Instantâneos (SPI) do Banco Central do Brasil.
+- **Diretrizes de Implementação:**
+  1. **Schema de Assinatura Forense com UUIDv7:** Campos em `contracts` e `contract_signatures` via Flyway `V30`.
+  2. **Validação Estrita de CPF no SPI/BACEN:** O CPF retornado pelo BACEN na liquidação do Pix DEVE bater com o CPF cadastrado no contrato. Na divergência (pagamento de terceiros), o contrato é rejeitado imediatamente com status `REJECTED_DIVERGENT_DOCUMENT` e são ofertadas rotas oficiais de fallback (Gov.br, E-mail OTP ou Cartório).
+  3. **Abatimento Automático:** O R$ 1,00 pago na assinatura é convertido automaticamente em desconto na próxima fatura `PENDING` ou crédito de onboarding do assinante.
+  4. **Certificado Pericial Forense:** Geração de documento probatório com Hash SHA-256 do contrato, End-to-End ID do BACEN, IP, Timestamp UTC e dados bancários do signatário.
+- **Consequências:**
+  - Validade jurídica irrefutável e incontestável em qualquer juizado cível.
+  - Zero custo de terceiros com plataformas proprietárias de assinatura digital.
+  - Experiência fluida para o cliente final sem burocracia de criação de contas.
+
+---
+
+### ADR 033: Backup Multi-Destino, Streaming ZStandard em Memória, Criptografia Militar AES-256 (PBKDF2) & Disaster Recovery
+- **Contexto:** Bancos de dados de telecomunicações acumulam grandes volumes de dados (faturas, conexões do Marco Civil, logs contábeis). Gerar arquivos de despejo (dumps) intermediários no disco local causa estouro de storage (Disk Full), travando a operação do provedor. Além disso, a LGPD exige criptografia ponta a ponta e a operação requer capacidade de resgate mesmo sem a aplicação estar de pé.
+- **Decisão:** Desenvolver um motor nativo de Disaster Recovery com streaming contínuo em memória, compressão ZStandard, criptografia militar AES-256 e múltiplos destinos de armazenamento.
+- **Diretrizes de Implementação:**
+  1. **Schema de Políticas & Destinos com UUIDv7:** Tabelas `backup_policies`, `backup_destinations` e `backup_execution_logs` criadas na migração Flyway `V31`.
+  2. **Pipeline Contínuo sem Escrita em Disco:**
+     `pg_dump ➔ ZstdOutputStream (ZSTD) ➔ CipherOutputStream (AES-256 CBC) ➔ DigestOutputStream (SHA-256) ➔ S3 / R2 / MinIO / SFTP / Local`.
+  3. **Derivação Militar PBKDF2:** Chave mestra de 256 bits derivada com PBKDF2WithHmacSHA256, 100.000 iterações, Salt e IV aleatórios de 16 bytes embutidos no cabeçalho do arquivo cifrado.
+  4. **Teste Contínuo de Restauração (*Dry-Run Restore*):** Descriptografia e descompressão em tempo real em stream de verificação para garantir integridade byte a byte do arquivo gerado.
+  5. **Kit de Resgate de Emergência em Markdown:** Geração de manual executável com comandos OpenSSL e Zstandard para restauração direta no terminal Linux sem depender do monólito.
+- **Consequências:**
+  - Risco zero de queda da VPS por estouro de disco durante rotinas de backup.
+  - Máxima segurança e confidencialidade em armazenamentos em nuvens públicas.
+  - Garantia de continuidade do negócio mesmo em cenários de desastre catastrófico.
+
+---
+
+### ADR 034: Arquitetura Frontend de Alta Performance: Migração para Vite 8 (Rolldown/Rust), Code-Splitting e Lazy Loading por Rota
+- **Contexto:** Com a expansão do ispERP para mais de 40 módulos corporativos (NOC, FTTH, DRE, Payback, Sentinela, Backup, Faturamento), o carregamento estático único (*Eager Loading*) elevou o bundle principal para 2.45 MB, penalizando o tempo de abertura no login e em dispositivos móveis de técnicos em campo.
+- **Decisão:** Migrar o pipeline de build para Vite 8.2 com motor Rust Rolldown, implementar Code-Splitting total com `React.lazy()` e `<Suspense>` no roteamento e configurar fatiamento customizado de vendors (`manualChunks`).
+- **Diretrizes de Implementação:**
+  1. **Migração do Bundler:** Adoção do Vite 8.2 + Rolldown com compilação ultra-rápida em Rust (~650ms para build de produção).
+  2. **Lazy Loading de Rotas no `App.tsx`:** Todas as páginas administrativas e públicas são carregadas sob demanda, acompanhadas de componente unificado `PageLoadingFallback`.
+  3. **Isolamento de Chunks Pesados no `vite.config.ts`:**
+     - `vendor-react`: React, React-DOM e React-Router-DOM (~89 kB gzip).
+     - `vendor-mui`: Componentes do Material-UI (~107 kB gzip).
+     - `vendor-maps`: MapLibre GL isolado (~258 kB gzip), carregado estritamente quando o mapa FTTH é aberto.
+- **Consequências:**
+  - Redução drástica do bundle inicial de 2.45 MB para apenas 21 kB (-99.1%).
+  - Eliminação completa de avisos de chunks pesados no bundler.
+  - Carregamento instantâneo em redes móveis 4G/5G de campo e na tela pública de assinatura Pix.
+
+
