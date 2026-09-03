@@ -66,3 +66,6 @@ logs/
 # Temporary files
 tmp/
 temp/
+
+# Brainstorming & Unconsolidated Drafts
+docs/brainstorming/

@@ -46,6 +46,9 @@ public class User {
     @Builder.Default
     private UserRole role = UserRole.USER;
     
+    @Column(name = "cpf", length = 14)
+    private String cpf;
+    
     @Column(name = "active", nullable = false)
     @Builder.Default
     private Boolean active = true;

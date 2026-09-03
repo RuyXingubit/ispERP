@@ -31,6 +31,7 @@ import {
   Build as OperationsIcon,
   Engineering as WorkOrderIcon,
   AccountBalance as FinancialIcon,
+  AccountBalanceWallet as WalletIcon,
   Receipt as InvoiceIcon,
   Payment as GatewayIcon,
   Router as NetworkIcon,
@@ -124,6 +125,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
 
   const financeiroItems: MenuItem[] = [
     {
+      text: 'Custódia de Caixa & CPF',
+      icon: <WalletIcon />,
+      path: '/financial/custody',
+    },
+    {
       text: 'Faturas & Cobranças',
       icon: <InvoiceIcon />,
       path: '/invoices',
@@ -132,6 +138,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
       text: 'Módulo Fiscal & NFCom',
       icon: <InvoiceIcon />,
       path: '/fiscal',
+    },
+    {
+      text: 'Plano de Contas',
+      icon: <InvoiceIcon />,
+      path: '/financial/chart-of-accounts',
+    },
+    {
+      text: 'Contas a Pagar & CAPEX',
+      icon: <InvoiceIcon />,
+      path: '/financial/payables',
+    },
+    {
+      text: 'Isenção de Taxas de O.S.',
+      icon: <InvoiceIcon />,
+      path: '/financial/fee-waivers',
     },
     {
       text: 'Gateways de Pagamento',

@@ -2,6 +2,8 @@ package br.dev.xb.isperp.entity;
 
 public enum UserRole {
     ADMIN,
+    CFO,
+    DIRECTOR,
     USER,
     ATTENDANT,
     FINANCIAL,

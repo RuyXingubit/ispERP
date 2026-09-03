@@ -30,6 +30,12 @@ public interface WorkOrderMapper {
     @Mapping(target = "ctoId", ignore = true)
     @Mapping(target = "ctoPortNumber", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "standardFeeAmount", ignore = true)
+    @Mapping(target = "feeStatus", ignore = true)
+    @Mapping(target = "waiverReason", ignore = true)
+    @Mapping(target = "waiverRequestedByUserId", ignore = true)
+    @Mapping(target = "waiverAuditedByUserId", ignore = true)
+    @Mapping(target = "waiverAuditedAt", ignore = true)
     WorkOrder toEntity(WorkOrderDTO dto);
 
     List<WorkOrderDTO> toDtoList(List<WorkOrder> workOrders);

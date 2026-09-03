@@ -13,6 +13,7 @@ import org.jspecify.annotations.Nullable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -97,6 +98,32 @@ public class WorkOrder {
     @Nullable
     @Column(name = "technician_longitude", precision = 11, scale = 8)
     private BigDecimal technicianLongitude;
+
+    @Nullable
+    @Column(name = "standard_fee_amount", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal standardFeeAmount = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fee_status", length = 50)
+    @Builder.Default
+    private br.dev.xb.isperp.entity.financial.FeeStatus feeStatus = br.dev.xb.isperp.entity.financial.FeeStatus.NOT_APPLICABLE;
+
+    @Nullable
+    @Column(name = "waiver_reason", columnDefinition = "TEXT")
+    private String waiverReason;
+
+    @Nullable
+    @Column(name = "waiver_requested_by_user_id")
+    private UUID waiverRequestedByUserId;
+
+    @Nullable
+    @Column(name = "waiver_audited_by_user_id")
+    private UUID waiverAuditedByUserId;
+
+    @Nullable
+    @Column(name = "waiver_audited_at")
+    private OffsetDateTime waiverAuditedAt;
 
     @Nullable
     @Column(name = "gps_captured_at")

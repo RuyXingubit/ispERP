@@ -138,6 +138,14 @@ public class Invoice {
     @Column(name = "nfcom_pdf_url", length = 500)
     private String nfcomPdfUrl;
 
+    @Nullable
+    @Column(name = "settled_in_cash_by_user_id")
+    private UUID settledInCashByUserId;
+
+    @Nullable
+    @Column(name = "receipt_number", length = 50)
+    private String receiptNumber;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "nfcom_status", nullable = false, length = 30)
     @Builder.Default

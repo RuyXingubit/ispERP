@@ -509,5 +509,61 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 - [x] **Testes Automatizados:**
   - Testes cobrindo dimensionamento de materiais, despacho inteligente, provisionamento OLT, autenticação RADIUS e ciclo completo de onboarding.
 
+---
+
+## 🎯 Milestone 28: Blindagem Patrimonial & Custódia Estrita por CPF (Concluído)
+> **Objetivo:** Estabelecer governança rígida sobre valores e materiais. Princípio: "Veículo não tem CPF. Todo valor e equipamento possui responsabilidade civil vinculada ao CPF do colaborador." Fim do extravio de dinheiro e sumiço de equipamentos em campo.
+
+- [x] **Banco de Dados (Flyway `V27`):**
+  - `user_cash_custodies`: Livro-caixa individual de dinheiro vivo sob guarda de cada colaborador.
+  - `cash_transfer_logs`: Histórico de transferência entre colaboradores com duplo aceite obrigatório.
+  - `bank_deposit_confirmations`: Prestação de contas com comprovante de depósito e conciliação restrita a CFO/Auditor.
+  - `user_material_custodies`: Carga patrimonial de equipamentos (ONTs, ferramentas, drop) vinculada ao CPF do técnico.
+  - `material_transfer_logs`: Repasse de peças entre técnicos em campo com duplo aceite.
+- [x] **Backend Core (Java 25 + Spring Boot 4.1.1):**
+  - `CashCustodyService`: Quitação de fatura em dinheiro com débito na custódia do colaborador e disparo do evento `INVOICE_PAID`.
+  - Mecanismo de **Duplo Aceite**: Saldo de gaveta só migra quando o recebedor confere as cédulas e confirma.
+  - **Segregação de Funções:** Depósito bancário só baixa a custódia do colaborador após conferência e aprovação do CFO contra o extrato real.
+  - `MaterialCustodyService`: Carga de materiais no CPF e baixa automática na conclusão da O.S.
+  - Controladores REST: `CashCustodyController` e `MaterialCustodyController`.
+- [x] **Frontend React 19 / TypeScript:**
+  - [`CashCustodyManager.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Financial/CashCustodyManager.tsx) (`/financial/custody`): Interface corporativa moderna de alta densidade com livro-caixa por colaborador, passagem de gaveta com duplo aceite, esteira de conciliação bancária para CFO e controle de carga de materiais.
+- [x] **Testes Automatizados (TDD):**
+  - `CashCustodyServiceTest` e `MaterialCustodyServiceTest` cobrindo 100% dos fluxos de recebimento, duplo aceite, conciliação e travas de segurança. Suíte completa de 214+ testes do monólito verde.
+
+---
+
+## 🎯 Milestone 29: Plano de Contas Dinâmico (5 Níveis Telecom), Contas a Pagar & Esteira de Isenção de Taxas (Concluído)
+> **Objetivo:** Fundação contábil e de despesas do provedor: árvore de 5 níveis com padrão canônico de telecom, contas a pagar, parcelamentos de longo prazo com amortização e juros, e a esteira de isenção de taxas de O.S. com notificação anti-fraude ao cliente.
+
+- [x] **Banco de Dados (Flyway `V28`):**
+  - `chart_of_accounts`: Árvore hierárquica contábil auto-referenciada (`parent_id`, `code`, `name`, `type`, `dre_category`, `is_synthetic`, `is_analytical`).
+  - `payable_invoices` & `expense_installments`: Gestão de despesas e compras de infraestrutura com cronograma de amortização de parcelas.
+  - Campos em `work_orders`: `standard_fee_amount`, `fee_status`, `waiver_reason`, `waiver_requested_by_user_id`, `waiver_audited_by_user_id`, `waiver_audited_at`.
+  - Seeder Oficial Telecom (5 grupos canônicos: Receitas, Impostos, Interconexão, OPEX e CAPEX).
+- [x] **Backend Core (Java 25 + Spring Boot 4.1.1):**
+  - `ChartOfAccountService`: Manutenção da árvore contábil, validação de nós analíticos vs sintéticos.
+  - `PayableInvoiceService`: Gestão de contas a pagar, geração automática de parcelas e quitação com atualização de status.
+  - `WorkOrderFeeService`: Tarifação padrão de serviços de O.S., solicitação de isenção comercial e auditoria gerencial com publicação de evento `WORK_ORDER_FEE_WAIVED` para WhatsApp oficial.
+  - Controladores REST: `ChartOfAccountController`, `PayableInvoiceController` e `WorkOrderFeeController`.
+- [x] **Frontend React 19 / TypeScript:**
+  - `ChartOfAccountsManager.tsx` (`/financial/chart-of-accounts`): Árvore contábil expansível de 5 níveis com badges coloridas por grupo e modal de cadastro.
+  - `PayablesManager.tsx` (`/financial/payables`): Gestão de despesas, visualizador de parcelas futuras e baixa de pagamentos com comprovante.
+  - `WorkOrderFeeWaivers.tsx` (`/financial/fee-waivers`): Painel de aprovação gerencial de isenção de taxas com disparo de aviso oficial anti-fraude.
+- [x] **Testes Automatizados:**
+  - `ChartOfAccountServiceTest`, `PayableInvoiceServiceTest` e `WorkOrderFeeServiceTest` passando 100%.
+  - `ChartOfAccountsAndPayablesIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando seeder, parcelas e esteira de isenção. Suíte completa de mais de 250 testes verde.
+
+---
+
+## 🎯 Milestone 30: O Santo Graal: DRE em Tempo Real & Motor de Desalavancagem ("Saída do Vermelho") (Planejado)
+> **Objetivo:** Cockpit executivo do dono com EBITDA real de telecom, curva de desalavancagem de 36 meses, identificação matemática do ponto do fundo do poço e simulador de novos investimentos "E Se...?".
+
+---
+
+## 🎯 Milestone 31: Payback por Projeto de Rede (Mapa de Guerra Comercial) & Sentinela IA (Planejado)
+> **Objetivo:** Vínculo de caixas CTO a centros de custo de projetos de expansão com cálculo de payback e direcionador comercial, além do Sentinela Anti-Fraude com Gemini Flash.
+
+
 
 

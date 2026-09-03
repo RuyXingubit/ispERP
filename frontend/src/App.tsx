@@ -25,6 +25,10 @@ import TechnicianPortal from './pages/Technician/TechnicianPortal';
 import InvoiceList from './pages/Financial/InvoiceList';
 import GatewayConfig from './pages/Financial/GatewayConfig';
 import FiscalDashboard from './pages/Financial/FiscalDashboard';
+import CashCustodyManager from './pages/Financial/CashCustodyManager';
+import { ChartOfAccountsManager } from './pages/Financial/ChartOfAccountsManager';
+import { PayablesManager } from './pages/Financial/PayablesManager';
+import { WorkOrderFeeWaivers } from './pages/Financial/WorkOrderFeeWaivers';
 import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import IpamManager from './pages/Network/IpamManager';
@@ -248,6 +252,42 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'ADMINISTRATIVE_ASSISTANT']}>
                 <FiscalDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/financial/custody" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'ATTENDANT', 'TECHNICIAN']}>
+                <CashCustodyManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/financial/chart-of-accounts" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                <ChartOfAccountsManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/financial/payables" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                <PayablesManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/financial/fee-waivers" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'ATTENDANT']}>
+                <WorkOrderFeeWaivers />
               </ProtectedRoute>
             } 
           />
