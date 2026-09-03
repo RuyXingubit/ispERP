@@ -17,6 +17,9 @@ import {
   Switch,
   CircularProgress,
   MenuItem,
+  Checkbox,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -30,6 +33,8 @@ import api from '../services/api';
 import { formatCPF, validateCPF, cleanCPF } from '../utils/cpfValidator';
 
 const CustomerForm = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();

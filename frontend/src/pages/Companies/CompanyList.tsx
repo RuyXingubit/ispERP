@@ -52,14 +52,6 @@ const CompanyList = () => {
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Calcular largura dinâmica da sidebar
-  const sidebarWidth = isMobile ? DRAWER_WIDTH_MOBILE : DRAWER_WIDTH;
-
-  // Ajustar sidebar baseado no tamanho da tela
-  useEffect(() => {
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-
   // Carregar empresas
   useEffect(() => {
     loadCompanies();
@@ -69,21 +61,13 @@ const CompanyList = () => {
     try {
       setLoading(true);
       const data = await companyService.getAll();
-      setCompanies(data || []);
+      setCompanies(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao carregar empresas:', error);
       toast.error('Erro ao carregar empresas');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleSidebarClose = () => {
-    setSidebarOpen(false);
   };
 
   const handleAddCompany = () => {

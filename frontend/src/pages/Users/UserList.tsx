@@ -77,14 +77,6 @@ const UserList = () => {
     }
   };
 
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleSidebarClose = () => {
-    setSidebarOpen(false);
-  };
-
   const handleAddUser = () => {
     setSelectedUser(null);
     setIsEditing(false);
