@@ -69,5 +69,24 @@ export const financialService = {
       { headers: { 'X-User-Id': managerUserId } }
     );
     return res.data;
+  },
+
+  // 4. DRE Telecom em Tempo Real
+  getDre: async (startDate: string, endDate: string, method: 'ACCRUAL' | 'CASH' = 'ACCRUAL'): Promise<DreReportDto> => {
+    const res = await api.get<DreReportDto>('/financial/reports/dre', {
+      params: { startDate, endDate, method }
+    });
+    return res.data;
+  },
+
+  // 5. Motor de Desalavancagem (Curva 36 Meses & Simulador)
+  getDeleveragingProjection: async (): Promise<DeleveragingProjectionDto> => {
+    const res = await api.get<DeleveragingProjectionDto>('/financial/deleveraging/projection');
+    return res.data;
+  },
+
+  simulateInvestment: async (request: SimulationRequest): Promise<SimulationResponse> => {
+    const res = await api.post<SimulationResponse>('/financial/deleveraging/simulate', request);
+    return res.data;
   }
 };

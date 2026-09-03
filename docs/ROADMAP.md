@@ -556,8 +556,20 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 30: O Santo Graal: DRE em Tempo Real & Motor de Desalavancagem ("Saída do Vermelho") (Planejado)
+## 🎯 Milestone 30: O Santo Graal: DRE em Tempo Real & Motor de Desalavancagem ("Saída do Vermelho") (Concluído)
 > **Objetivo:** Cockpit executivo do dono com EBITDA real de telecom, curva de desalavancagem de 36 meses, identificação matemática do ponto do fundo do poço e simulador de novos investimentos "E Se...?".
+
+- [x] **Backend Core (Java 25 + Spring Boot 4.1.1):**
+  - `DreReportService`: Cálculo dinâmico do EBITDA, Margem de Contribuição e Fluxo de Caixa Livre nos Regimes de Competência e Caixa.
+  - `DeleveragingEngineService`: Motor determinístico de 36 meses combinando MRR com churn, OPEX fixo e amortização de CAPEX, calculando o Fundo do Poço (Maximum Drawdown) e a Data da Alforria Financeira.
+  - Simulador Interativo "E Se...?": Parecer de risco de solvência e cálculo do atraso temporal de alforria para novos investimentos sem persistência.
+  - Controladores REST: `DreReportController` (`/api/financial/reports/dre`) e `DeleveragingController` (`/api/financial/deleveraging`).
+- [x] **Frontend Corporativo (React 19 / TypeScript):**
+  - `DeleveragingDashboard.tsx` (`/financial/deleveraging`): Cockpit executivo dos 3 Números Sagrados (EBITDA, Fundo do Poço e Data da Alforria), visualizador da curva de 36 meses e simulador "E Se...?".
+  - `DreReportViewer.tsx` (`/financial/dre`): Visualização contábil em cascata com chaveador Competência vs Caixa.
+- [x] **Testes Automatizados:**
+  - `DreReportServiceTest` e `DeleveragingEngineServiceTest` cobrindo 100% das fórmulas de EBITDA e projeção.
+  - `DeleveragingAndDreIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando DRE e curva contínua.
 
 ---
 

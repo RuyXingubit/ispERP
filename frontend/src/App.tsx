@@ -29,6 +29,8 @@ import CashCustodyManager from './pages/Financial/CashCustodyManager';
 import { ChartOfAccountsManager } from './pages/Financial/ChartOfAccountsManager';
 import { PayablesManager } from './pages/Financial/PayablesManager';
 import { WorkOrderFeeWaivers } from './pages/Financial/WorkOrderFeeWaivers';
+import { DeleveragingDashboard } from './pages/Financial/DeleveragingDashboard';
+import { DreReportViewer } from './pages/Financial/DreReportViewer';
 import OnuList from './pages/Network/OnuList';
 import NetworkDeviceList from './pages/Network/NetworkDeviceList';
 import IpamManager from './pages/Network/IpamManager';
@@ -288,6 +290,24 @@ function AppContent() {
               !isSetupCompleted ? <Navigate to="/setup" replace /> : 
               <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL', 'ATTENDANT']}>
                 <WorkOrderFeeWaivers />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/financial/deleveraging" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                <DeleveragingDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/financial/dre" 
+            element={
+              !isSetupCompleted ? <Navigate to="/setup" replace /> : 
+              <ProtectedRoute allowedRoles={['ADMIN', 'FINANCIAL']}>
+                <DreReportViewer />
               </ProtectedRoute>
             } 
           />

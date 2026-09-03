@@ -94,3 +94,70 @@ export interface WorkOrderFeeDto {
   waiverAuditedByName?: string | null;
   waiverAuditedAt?: string | null;
 }
+
+export type AccountingMethod = 'ACCRUAL' | 'CASH';
+
+export interface DreReportDto {
+  periodStart: string;
+  periodEnd: string;
+  accountingMethod: AccountingMethod;
+  grossRevenue: number;
+  taxDeductions: number;
+  netRevenue: number;
+  directCostsInterconnection: number;
+  contributionMargin: number;
+  opexHr: number;
+  opexPoles: number;
+  opexFleet: number;
+  opexMarketing: number;
+  opexAdmin: number;
+  totalOpex: number;
+  ebitda: number;
+  ebitdaMarginPercentage: number;
+  capexAmortization: number;
+  freeCashFlow: number;
+}
+
+export interface MonthlyProjectionPointDto {
+  yearMonth: string;
+  monthIndex: number;
+  projectedMrr: number;
+  projectedOpex: number;
+  activeCapexInstallments: number;
+  netMonthlyCashFlow: number;
+  accumulatedCashBalance: number;
+  estimatedActiveSubscribers: number;
+  isWorstMonth: boolean;
+  isBreakEvenMonth: boolean;
+}
+
+export interface DeleveragingProjectionDto {
+  currentEbitda: number;
+  currentMrr: number;
+  monthlyChurnRatePercentage: number;
+  startingCashBalance: number;
+  worstMonthYearMonth: string;
+  worstMonthProjectedBalance: number;
+  breakEvenYearMonth: string;
+  monthsUntilFreedom: number;
+  timeline: MonthlyProjectionPointDto[];
+}
+
+export interface SimulationRequest {
+  description: string;
+  totalAmount: number;
+  installmentsCount: number;
+  firstDueDate: string;
+}
+
+export interface SimulationResponse {
+  feasible: boolean;
+  monthlyInstallmentAmount: number;
+  simulatedWorstMonth: string;
+  simulatedWorstBalance: number;
+  balanceImpactAtWorstMonth: number;
+  originalBreakEvenMonth: string;
+  simulatedBreakEvenMonth: string;
+  delayInMonthsForFreedom: number;
+  riskAnalysisSummary: string;
+}

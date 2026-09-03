@@ -125,6 +125,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
 
   const financeiroItems: MenuItem[] = [
     {
+      text: 'Desalavancagem & EBITDA',
+      icon: <WalletIcon />,
+      path: '/financial/deleveraging',
+    },
+    {
+      text: 'DRE em Tempo Real',
+      icon: <InvoiceIcon />,
+      path: '/financial/dre',
+    },
+    {
       text: 'Custódia de Caixa & CPF',
       icon: <WalletIcon />,
       path: '/financial/custody',
