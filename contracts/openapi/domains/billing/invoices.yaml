@@ -83,6 +83,73 @@
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
 
+/invoices/contract/{contractId}:
+  get:
+    tags:
+      - Invoices
+    summary: Listar faturas de um contrato
+    operationId: getInvoicesByContractId
+    parameters:
+      - name: contractId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Faturas do contrato retornadas com sucesso.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/InvoiceResponse'
+      '404':
+        description: Contrato não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/invoices/generate/contract/{contractId}:
+  post:
+    tags:
+      - Invoices
+    summary: Gerar fatura avulsa para um contrato
+    operationId: generateInvoiceManually
+    parameters:
+      - name: contractId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: dueDate
+        in: query
+        required: false
+        description: Data de vencimento da fatura gerada (padrão é D+10 dias).
+        schema:
+          type: string
+          format: date
+    responses:
+      '201':
+        description: Fatura gerada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/InvoiceResponse'
+      '400':
+        description: Parâmetros inválidos ou erro na geração.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Contrato não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
 /invoices/{id}/pay:
   post:
     tags:

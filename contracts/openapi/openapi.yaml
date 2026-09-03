@@ -57,6 +57,10 @@ paths:
     $ref: './domains/billing/invoices.yaml#/~1invoices~1{id}'
   /invoices/customer/{customerId}:
     $ref: './domains/billing/invoices.yaml#/~1invoices~1customer~1{customerId}'
+  /invoices/contract/{contractId}:
+    $ref: './domains/billing/invoices.yaml#/~1invoices~1contract~1{contractId}'
+  /invoices/generate/contract/{contractId}:
+    $ref: './domains/billing/invoices.yaml#/~1invoices~1generate~1contract~1{contractId}'
   /invoices/{id}/pay:
     $ref: './domains/billing/invoices.yaml#/~1invoices~1{id}~1pay'
   /invoices/{id}/cancel:

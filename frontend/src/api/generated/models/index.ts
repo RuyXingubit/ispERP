@@ -13,6 +13,7 @@ export * from './contractStatus';
 export * from './customerCreateRequest';
 export * from './customerResponse';
 export * from './customerUpdateRequest';
+export * from './generateInvoiceManuallyParams';
 export * from './getAllInvoicesParams';
 export * from './getAllWorkOrdersParams';
 export * from './invalidParam';

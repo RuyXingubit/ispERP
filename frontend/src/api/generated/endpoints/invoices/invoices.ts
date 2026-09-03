@@ -7,6 +7,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
+  GenerateInvoiceManuallyParams,
   GetAllInvoicesParams,
   InvoiceResponse,
   PayInvoiceRequest,
@@ -57,6 +58,30 @@ const getInvoicesByCustomerId = (
       options);
     }
   /**
+ * @summary Listar faturas de um contrato
+ */
+const getInvoicesByContractId = (
+    contractId: UUIDv7,
+ options?: SecondParameter<typeof customInstance>,) => {
+      return customInstance<InvoiceResponse[]>(
+      {url: `/invoices/contract/${contractId}`, method: 'GET'
+    },
+      options);
+    }
+  /**
+ * @summary Gerar fatura avulsa para um contrato
+ */
+const generateInvoiceManually = (
+    contractId: UUIDv7,
+    params?: GenerateInvoiceManuallyParams,
+ options?: SecondParameter<typeof customInstance>,) => {
+      return customInstance<InvoiceResponse>(
+      {url: `/invoices/generate/contract/${contractId}`, method: 'POST',
+        params
+    },
+      options);
+    }
+  /**
  * Liquida a fatura informando o meio de pagamento e valor recebido.
  * @summary Baixar pagamento da fatura
  */
@@ -94,10 +119,12 @@ const triggerRecurringBilling = (
     },
       options);
     }
-  return {getAllInvoices,getInvoiceById,getInvoicesByCustomerId,payInvoice,cancelInvoice,triggerRecurringBilling}};
+  return {getAllInvoices,getInvoiceById,getInvoicesByCustomerId,getInvoicesByContractId,generateInvoiceManually,payInvoice,cancelInvoice,triggerRecurringBilling}};
 export type GetAllInvoicesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInvoices>['getAllInvoices']>>>
 export type GetInvoiceByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInvoices>['getInvoiceById']>>>
 export type GetInvoicesByCustomerIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInvoices>['getInvoicesByCustomerId']>>>
+export type GetInvoicesByContractIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInvoices>['getInvoicesByContractId']>>>
+export type GenerateInvoiceManuallyResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInvoices>['generateInvoiceManually']>>>
 export type PayInvoiceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInvoices>['payInvoice']>>>
 export type CancelInvoiceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInvoices>['cancelInvoice']>>>
 export type TriggerRecurringBillingResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInvoices>['triggerRecurringBilling']>>>
