@@ -113,6 +113,18 @@ sourceSets {
 
 compileJava.dependsOn tasks.openApiGenerate
 
+eclipse {
+    classpath {
+        file {
+            whenMerged { cp ->
+                cp.entries.findAll { it.path.contains('generated') }.each {
+                    it.entryAttributes['ignore_optional_problems'] = 'true'
+                }
+            }
+        }
+    }
+}
+
 tasks.named('test') {
     useJUnitPlatform()
     
