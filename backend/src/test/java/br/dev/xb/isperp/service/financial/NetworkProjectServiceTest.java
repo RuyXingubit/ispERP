@@ -1,7 +1,6 @@
 package br.dev.xb.isperp.service.financial;
 
 import br.dev.xb.isperp.dto.financial.NetworkProjectPaybackDto;
-import br.dev.xb.isperp.dto.financial.NetworkProjectRequest;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.FtthCto;
 import br.dev.xb.isperp.entity.financial.NetworkProject;
@@ -19,12 +18,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)

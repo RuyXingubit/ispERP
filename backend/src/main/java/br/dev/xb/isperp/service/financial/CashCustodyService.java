@@ -5,7 +5,6 @@ import br.dev.xb.isperp.entity.Invoice;
 import br.dev.xb.isperp.entity.User;
 import br.dev.xb.isperp.entity.UserRole;
 import br.dev.xb.isperp.entity.financial.*;
-import br.dev.xb.isperp.event.DomainEvent;
 import br.dev.xb.isperp.event.GenericDomainEvent;
 import br.dev.xb.isperp.exception.ResourceNotFoundException;
 import br.dev.xb.isperp.mapper.CustodyMapper;

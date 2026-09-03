@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Path;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,9 +41,6 @@ class BackupAndDisasterRecoveryIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private BackupPolicyRepository policyRepository;
-
-    @Autowired
-    private BackupDestinationRepository destinationRepository;
 
     @Autowired
     private BackupExecutionLogRepository logRepository;

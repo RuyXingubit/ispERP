@@ -10,8 +10,6 @@ import br.dev.xb.isperp.entity.backup.BackupPolicy;
 import br.dev.xb.isperp.repository.backup.BackupDestinationRepository;
 import br.dev.xb.isperp.repository.backup.BackupExecutionLogRepository;
 import br.dev.xb.isperp.repository.backup.BackupPolicyRepository;
-import com.github.luben.zstd.ZstdInputStream;
-import com.github.luben.zstd.ZstdOutputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
@@ -24,7 +22,6 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
-import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
@@ -177,14 +174,26 @@ public class BackupStreamingPipelineService {
 
     private OutputStream wrapCompressor(OutputStream target, CompressionAlgorithm algorithm) throws IOException {
         if (algorithm == CompressionAlgorithm.ZSTD) {
-            return new ZstdOutputStream(target);
+            try {
+                Class<?> zstdClass = Class.forName("com.github.luben.zstd.ZstdOutputStream");
+                return (OutputStream) zstdClass.getConstructor(OutputStream.class).newInstance(target);
+            } catch (Exception e) {
+                log.warn("ZstdOutputStream não pôde ser instanciado via reflection, usando GZIPOutputStream: {}", e.getMessage());
+                return new GZIPOutputStream(target);
+            }
         }
         return new GZIPOutputStream(target);
     }
 
     private InputStream wrapDecompressor(InputStream source, CompressionAlgorithm algorithm) throws IOException {
         if (algorithm == CompressionAlgorithm.ZSTD) {
-            return new ZstdInputStream(source);
+            try {
+                Class<?> zstdClass = Class.forName("com.github.luben.zstd.ZstdInputStream");
+                return (InputStream) zstdClass.getConstructor(InputStream.class).newInstance(source);
+            } catch (Exception e) {
+                log.warn("ZstdInputStream não pôde ser instanciado via reflection, usando GZIPInputStream: {}", e.getMessage());
+                return new GZIPInputStream(source);
+            }
         }
         return new GZIPInputStream(source);
     }

@@ -16,8 +16,6 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

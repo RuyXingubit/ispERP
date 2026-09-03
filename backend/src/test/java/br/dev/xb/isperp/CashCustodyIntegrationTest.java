@@ -7,7 +7,6 @@ import br.dev.xb.isperp.repository.*;
 import br.dev.xb.isperp.repository.financial.*;
 import br.dev.xb.isperp.service.financial.CashCustodyService;
 import br.dev.xb.isperp.service.financial.MaterialCustodyService;
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,12 +44,6 @@ class CashCustodyIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserCashCustodyRepository cashCustodyRepository;
-
-    @Autowired
-    private CashTransferLogRepository cashTransferLogRepository;
-
-    @Autowired
-    private BankDepositConfirmationRepository bankDepositRepository;
 
     @Autowired
     private UserMaterialCustodyRepository materialCustodyRepository;

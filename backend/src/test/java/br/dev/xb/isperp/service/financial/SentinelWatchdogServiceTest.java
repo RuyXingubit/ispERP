@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.service.financial;
 
-import br.dev.xb.isperp.dto.financial.SentinelAuditLogDto;
 import br.dev.xb.isperp.entity.User;
 import br.dev.xb.isperp.entity.financial.SentinelAuditLog;
 import br.dev.xb.isperp.entity.financial.SentinelSeverity;

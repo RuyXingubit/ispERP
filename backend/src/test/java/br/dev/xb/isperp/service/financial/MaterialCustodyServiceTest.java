@@ -1,7 +1,6 @@
 package br.dev.xb.isperp.service.financial;
 
 import br.dev.xb.isperp.dto.financial.MaterialCustodyDto;
-import br.dev.xb.isperp.dto.financial.MaterialTransferRequest;
 import br.dev.xb.isperp.dto.financial.MaterialTransferResponseDto;
 import br.dev.xb.isperp.entity.User;
 import br.dev.xb.isperp.entity.UserRole;
@@ -26,7 +25,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 

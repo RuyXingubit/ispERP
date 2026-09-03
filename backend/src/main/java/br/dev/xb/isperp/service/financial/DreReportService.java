@@ -68,6 +68,7 @@ public class DreReportService {
                     case OPEX_MARKETING -> opexMarketing = opexMarketing.add(amount);
                     case OPEX_ADMIN -> opexAdmin = opexAdmin.add(amount);
                     case CAPEX_NETWORK, CAPEX_EQUIPMENT, CAPEX_FLEET -> capexAmortization = capexAmortization.add(amount);
+                    case GROSS_REVENUE -> {}
                 }
             }
         } else {
@@ -96,6 +97,7 @@ public class DreReportService {
                     case OPEX_MARKETING -> opexMarketing = opexMarketing.add(amount);
                     case OPEX_ADMIN -> opexAdmin = opexAdmin.add(amount);
                     case CAPEX_NETWORK, CAPEX_EQUIPMENT, CAPEX_FLEET -> capexAmortization = capexAmortization.add(amount);
+                    case GROSS_REVENUE -> {}
                 }
             }
         }
