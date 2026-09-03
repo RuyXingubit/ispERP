@@ -183,7 +183,7 @@ const UserList = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3, px: { xs: 1, sm: 2 } }}>
+    <Container maxWidth="xl" sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h4" component="h1">
               Usuários

@@ -221,10 +221,10 @@ const CustomerForm = () => {
 
   return (
     <Container 
-      maxWidth="lg" 
+      maxWidth="xl" 
       sx={{ 
         py: 3, 
-        px: { xs: 1, sm: 2 },
+        px: { xs: 2, sm: 3 },
       }}
     >
           {/* Botão Voltar */}

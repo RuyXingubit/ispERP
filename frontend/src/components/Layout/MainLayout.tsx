@@ -124,11 +124,10 @@ export const MainLayout: React.FC = () => {
           flexGrow: 1,
           minWidth: 0,
           minHeight: '100vh',
-          width: isDrawerVisibleInDesktop ? `calc(100% - ${DRAWER_WIDTH}px)` : '100%',
-          ml: isDrawerVisibleInDesktop ? `${DRAWER_WIDTH}px` : 0,
-          transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
+          ml: !isMobile && !sidebarOpen ? `-${DRAWER_WIDTH}px` : 0,
+          transition: theme.transitions.create('margin', {
+            easing: sidebarOpen ? theme.transitions.easing.easeOut : theme.transitions.easing.sharp,
+            duration: sidebarOpen ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen,
           }),
         }}
       >
