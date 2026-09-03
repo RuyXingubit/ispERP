@@ -39,6 +39,7 @@ import {
   Storage as OltIcon,
   HeadsetMic as SupportIcon,
   CloudQueue as CloudIcon,
+  Security as SecurityIcon,
 } from '@mui/icons-material';
 
 import { useAuth } from '../../contexts/AuthContext';
@@ -267,6 +268,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onToggle }) => 
       text: 'Armazenamento & S3',
       icon: <CloudIcon />,
       path: '/settings/storage',
+    },
+    {
+      text: 'Backup & Disaster Recovery',
+      icon: <SecurityIcon />,
+      path: '/settings/backup',
     },
     {
       text: 'Configurações do Site',

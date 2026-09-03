@@ -4,7 +4,14 @@ import {
   PayableInvoiceDto, 
   PayableInvoiceRequest, 
   ExpenseInstallmentDto, 
-  WorkOrderFeeDto 
+  WorkOrderFeeDto,
+  DreReportDto,
+  DeleveragingProjectionDto,
+  SimulationRequest,
+  SimulationResponse,
+  NetworkProjectPaybackDto,
+  NetworkProjectRequest,
+  SentinelAuditLogDto
 } from '../types/financial';
 
 export const financialService = {

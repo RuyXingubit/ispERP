@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Box, Typography, Chip, Paper } from '@mui/material';
+import { Box, Typography, Chip, Paper, Divider } from '@mui/material';
 import { DirectionsCar as CarIcon, AccessTime as TimeIcon, Navigation as NavIcon } from '@mui/icons-material';
 
 export interface MapPoint {
