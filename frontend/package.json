@@ -8,6 +8,7 @@
     "start": "vite",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
+    "codegen": "orval --config ./orval.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "orval": "^7.6.0",
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
   }

@@ -1,4 +1,5 @@
 import api from './api';
+import { getTechnicianExecution } from '../api/generated/endpoints/technician-execution/technician-execution';
 import {
   InstallationMaterialDemand,
   TechnicianDispatchCandidate,
@@ -6,6 +7,8 @@ import {
   RadiusSessionStatus,
   TechnicianExecutionCompleteRequest,
 } from '../types/onboarding-dispatch';
+
+const technicianExecutionApi = getTechnicianExecution();
 
 export const onboardingDispatchService = {
   // Despacho de Instalações
@@ -31,10 +34,10 @@ export const onboardingDispatchService = {
     return response.data;
   },
 
-  // Execução de Campo pelo Técnico
+  // Execução de Campo pelo Técnico (Plugado nos Contratos OpenAPI)
   async listUnprovisionedOnus(workOrderId: string): Promise<OltUnprovisionedOnu[]> {
-    const response = await api.get<OltUnprovisionedOnu[]>(`/technician/execution/${workOrderId}/unprovisioned-onus`);
-    return response.data;
+    const data = await technicianExecutionApi.listUnprovisionedOnus(workOrderId);
+    return data as unknown as OltUnprovisionedOnu[];
   },
 
   async provisionOnu(
@@ -46,15 +49,17 @@ export const onboardingDispatchService = {
       pppoePassword?: string;
     }
   ): Promise<any> {
-    const response = await api.post(`/technician/execution/${workOrderId}/provision`, null, {
-      params: data,
+    return technicianExecutionApi.provisionOnu(workOrderId, {
+      onuSerial: data.onuSerial,
+      vlanId: data.vlanId,
+      pppoeUsername: data.pppoeUsername,
+      pppoePassword: data.pppoePassword,
     });
-    return response.data;
   },
 
   async getRadiusStatus(workOrderId: string): Promise<RadiusSessionStatus> {
-    const response = await api.get<RadiusSessionStatus>(`/technician/execution/${workOrderId}/radius-status`);
-    return response.data;
+    const data = await technicianExecutionApi.getRadiusStatus(workOrderId);
+    return data as unknown as RadiusSessionStatus;
   },
 
   async completeInstallation(

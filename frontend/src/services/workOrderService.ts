@@ -1,50 +1,75 @@
+import { getWorkOrders } from '../api/generated/endpoints/work-orders/work-orders';
+import {
+  WorkOrderResponse,
+  ScheduleWorkOrderRequest,
+  CompleteWorkOrderRequest,
+  WorkOrderStatus,
+  WorkOrderType,
+} from '../api/generated/models';
 import api from './api';
-import { WorkOrder, CompleteWorkOrderPayload } from '../types/workorder';
+
+const workOrdersApi = getWorkOrders();
 
 export const workOrderService = {
-  getAll: async (): Promise<WorkOrder[]> => {
-    const response = await api.get<WorkOrder[]>('/work-orders');
+  // Chamadas oficiais geradas diretamente pelo Contrato OpenAPI (API-First)
+  getAll: async (status?: WorkOrderStatus): Promise<WorkOrderResponse[]> => {
+    return workOrdersApi.getAllWorkOrders(status ? { status } : undefined);
+  },
+
+  getAllWorkOrders: async (status?: WorkOrderStatus): Promise<{ data: WorkOrderResponse[] }> => {
+    const data = await workOrdersApi.getAllWorkOrders(status ? { status } : undefined);
+    return { data };
+  },
+
+  getById: async (id: string): Promise<WorkOrderResponse> => {
+    return workOrdersApi.getWorkOrderById(id);
+  },
+
+  scheduleWorkOrder: async (
+    id: string,
+    scheduleData: ScheduleWorkOrderRequest
+  ): Promise<WorkOrderResponse> => {
+    return workOrdersApi.scheduleWorkOrder(id, scheduleData);
+  },
+
+  completeWorkOrder: async (
+    id: string,
+    completeData: CompleteWorkOrderRequest
+  ): Promise<WorkOrderResponse> => {
+    return workOrdersApi.completeWorkOrder(id, completeData);
+  },
+
+  complete: async (id: string, notes?: string): Promise<WorkOrderResponse> => {
+    return workOrdersApi.completeWorkOrder(id, {
+      onuMac: '00:00:00:00:00:00',
+      onuSerial: 'MANUAL',
+      fiberSignalDbm: -19.5,
+      notes,
+    });
+  },
+
+  // Métodos legados mantidos para retrocompatibilidade
+  create: async (data: any): Promise<WorkOrderResponse> => {
+    const response = await api.post<WorkOrderResponse>('/work-orders', data);
     return response.data;
   },
 
-  getAllWorkOrders: async () => {
-    return api.get<WorkOrder[]>('/work-orders');
-  },
-
-  getById: async (id: string): Promise<WorkOrder> => {
-    const response = await api.get<WorkOrder>(`/work-orders/${id}`);
+  update: async (id: string, data: any): Promise<WorkOrderResponse> => {
+    const response = await api.put<WorkOrderResponse>(`/work-orders/${id}`, data);
     return response.data;
   },
 
-  create: async (data: Partial<WorkOrder>): Promise<WorkOrder> => {
-    const response = await api.post<WorkOrder>('/work-orders', data);
-    return response.data;
-  },
-
-  update: async (id: string, data: Partial<WorkOrder>): Promise<WorkOrder> => {
-    const response = await api.put<WorkOrder>(`/work-orders/${id}`, data);
-    return response.data;
-  },
-
-  assign: async (id: string, technicianId: string): Promise<WorkOrder> => {
-    const response = await api.put<WorkOrder>(`/work-orders/${id}/assign`, { technicianId });
-    return response.data;
-  },
-
-  scheduleWorkOrder: async (id: string, scheduleData: { scheduledDate: string; scheduledPeriod: string; technicianName: string }) => {
-    const response = await api.put<WorkOrder>(`/work-orders/${id}/schedule`, scheduleData);
-    return response.data;
-  },
-
-  complete: async (id: string, notes?: string): Promise<WorkOrder> => {
-    const response = await api.put<WorkOrder>(`/work-orders/${id}/complete`, { notes });
-    return response.data;
-  },
-
-  completeWorkOrder: async (id: string, payload: Partial<CompleteWorkOrderPayload> | Record<string, unknown>): Promise<WorkOrder> => {
-    const response = await api.put<WorkOrder>(`/work-orders/${id}/complete`, payload);
+  assign: async (id: string, technicianId: string): Promise<WorkOrderResponse> => {
+    const response = await api.put<WorkOrderResponse>(`/work-orders/${id}/assign`, { technicianId });
     return response.data;
   },
 };
 
 export default workOrderService;
+export type {
+  WorkOrderResponse,
+  ScheduleWorkOrderRequest,
+  CompleteWorkOrderRequest,
+  WorkOrderStatus,
+  WorkOrderType,
+};
