@@ -1,0 +1,317 @@
+/helpdesk/tickets:
+  get:
+    tags:
+      - Helpdesk
+    summary: Listar todos os chamados de suporte
+    operationId: getAllTickets
+    responses:
+      '200':
+        description: Lista de chamados
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/HelpdeskTicketResponse'
+
+  post:
+    tags:
+      - Helpdesk
+    summary: Abrir novo chamado de suporte
+    operationId: createTicket
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/TicketCreateRequest'
+    responses:
+      '201':
+        description: Chamado aberto com sucesso com protocolo ANATEL e SLA gerados
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/HelpdeskTicketResponse'
+      '400':
+        description: Dados inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/helpdesk/tickets/{id}:
+  get:
+    tags:
+      - Helpdesk
+    summary: Buscar chamado por ID
+    operationId: getTicketById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Detalhes do chamado
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/HelpdeskTicketResponse'
+      '404':
+        description: Chamado não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/helpdesk/tickets/protocol/{protocol}:
+  get:
+    tags:
+      - Helpdesk
+    summary: Buscar chamado pelo número de protocolo ANATEL
+    operationId: getTicketByProtocol
+    parameters:
+      - name: protocol
+        in: path
+        required: true
+        schema:
+          type: string
+          example: "2026090400001"
+    responses:
+      '200':
+        description: Chamado encontrado
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/HelpdeskTicketResponse'
+      '404':
+        description: Protocolo não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/helpdesk/tickets/customer/{customerId}:
+  get:
+    tags:
+      - Helpdesk
+    summary: Listar histórico de chamados de um cliente
+    operationId: getTicketsByCustomer
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Lista de chamados do cliente
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/HelpdeskTicketResponse'
+
+/helpdesk/tickets/{id}/escalate-n2:
+  post:
+    tags:
+      - Helpdesk
+    summary: Escalonar chamado de suporte para Nível 2 (N2 / NOC)
+    operationId: escalateToN2
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/EscalateN2Request'
+    responses:
+      '200':
+        description: Chamado escalonado para N2 com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/HelpdeskTicketResponse'
+      '404':
+        description: Chamado não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/helpdesk/tickets/{id}/resolve-n2:
+  post:
+    tags:
+      - Helpdesk
+    summary: Registrar parecer técnico e resolução pelo Nível 2
+    operationId: resolveByN2
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ResolveN2Request'
+    responses:
+      '200':
+        description: Chamado resolvido pelo N2 com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/HelpdeskTicketResponse'
+      '404':
+        description: Chamado não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/helpdesk/tickets/{id}/escalate-work-order:
+  post:
+    tags:
+      - Helpdesk
+    summary: Escalonar chamado gerando Ordem de Serviço de campo
+    operationId: escalateToWorkOrder
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/EscalateWorkOrderRequest'
+    responses:
+      '201':
+        description: Ordem de serviço de visita técnica criada e vinculada ao chamado
+        content:
+          application/json:
+            schema:
+              $ref: '../workorders/schemas.yaml#/WorkOrderResponse'
+      '404':
+        description: Chamado não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/helpdesk/tickets/{id}/interactions:
+  get:
+    tags:
+      - Helpdesk
+    summary: Listar histórico de interações e notas técnicas do chamado
+    operationId: getInteractions
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: includeInternal
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+        description: Se verdadeiro, inclui notas internas dos técnicos; se falso, apenas mensagens visíveis ao cliente.
+    responses:
+      '200':
+        description: Histórico de interações
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/TicketInteractionResponse'
+      '404':
+        description: Chamado não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  post:
+    tags:
+      - Helpdesk
+    summary: Adicionar nova interação ou nota interna ao chamado
+    operationId: addInteraction
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/TicketInteractionCreateRequest'
+    responses:
+      '201':
+        description: Interação adicionada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/TicketInteractionResponse'
+      '404':
+        description: Chamado não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/helpdesk/tickets/{id}/close:
+  post:
+    tags:
+      - Helpdesk
+    summary: Encerrar chamado de suporte com nota de satisfação
+    operationId: closeTicket
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CloseTicketRequest'
+    responses:
+      '200':
+        description: Chamado encerrado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/HelpdeskTicketResponse'
+      '404':
+        description: Chamado não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

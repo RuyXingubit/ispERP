@@ -1,0 +1,309 @@
+# Schemas de Suporte Técnico, Atendimento e Chamados ANATEL
+
+TicketCategory:
+  type: string
+  enum:
+    - FINANCIAL
+    - CONNECTION_OUTAGE
+    - SLOW_SPEED
+    - ROUTER_CONFIG
+    - ADDRESS_CHANGE
+    - ROOM_TRANSFER
+    - CANCELLATION_REQUEST
+    - OTHER
+  description: Categoria do chamado de helpdesk.
+
+TicketPriority:
+  type: string
+  enum:
+    - LOW
+    - NORMAL
+    - HIGH
+    - URGENT
+  description: Nível de prioridade operacional do chamado.
+
+TicketStatus:
+  type: string
+  enum:
+    - OPEN
+    - IN_PROGRESS
+    - WAITING_CUSTOMER
+    - WAITING_FIELD_VISIT
+    - RESOLVED
+    - CLOSED
+    - CANCELLED
+  description: Estado atual do chamado de suporte.
+
+TicketChannel:
+  type: string
+  enum:
+    - WHATSAPP_BOT
+    - PORTAL
+    - PHONE
+    - IN_PERSON
+    - EMAIL
+  description: Canal de entrada do chamado.
+
+InteractionSenderType:
+  type: string
+  enum:
+    - ATTENDANT
+    - SUPPORT_N2
+    - SUPPORT_ANALYST
+    - CUSTOMER
+    - SYSTEM_BOT
+  description: Tipo de remetente da interação / mensagem.
+
+HelpdeskTicketResponse:
+  type: object
+  required:
+    - id
+    - protocol
+    - customerId
+    - category
+    - priority
+    - status
+    - channel
+    - subject
+    - description
+    - slaDeadline
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    protocol:
+      type: string
+      example: "2026090400001"
+      description: Protocolo numérico oficial ANATEL gerado no padrão YYYYMMDDNNNNN.
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+    category:
+      $ref: '#/TicketCategory'
+    priority:
+      $ref: '#/TicketPriority'
+    status:
+      $ref: '#/TicketStatus'
+    channel:
+      $ref: '#/TicketChannel'
+    subject:
+      type: string
+      example: "Sem conexão após queda de energia"
+    description:
+      type: string
+      example: "Cliente relata que o LED PON da ONU está piscando vermelho."
+    assignedToUserId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+    workOrderId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+    slaDeadline:
+      type: string
+      format: date-time
+      example: "2026-09-06T14:30:00Z"
+    resolutionNotes:
+      type: string
+      nullable: true
+      example: "Reconfigurado sinal na porta PON da OLT."
+    anatelSatisfactionRating:
+      type: integer
+      minimum: 1
+      maximum: 5
+      nullable: true
+      example: 5
+      description: Avaliação de satisfação do cliente de 1 a 5.
+    resolvedAt:
+      type: string
+      format: date-time
+      nullable: true
+    closedAt:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-09-04T10:00:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+TicketCreateRequest:
+  type: object
+  required:
+    - customerId
+    - category
+    - subject
+    - description
+  properties:
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+    category:
+      $ref: '#/TicketCategory'
+    priority:
+      $ref: '#/TicketPriority'
+    channel:
+      $ref: '#/TicketChannel'
+    subject:
+      type: string
+      example: "Queda total de conexão"
+    description:
+      type: string
+      example: "Sem sinal de internet desde as 08:00."
+    attendantUserId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+    attendantName:
+      type: string
+      nullable: true
+      example: "Maria Santos"
+
+TicketInteractionResponse:
+  type: object
+  required:
+    - id
+    - ticketId
+    - isInternalNote
+    - senderType
+    - senderName
+    - message
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    ticketId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    userId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+    isInternalNote:
+      type: boolean
+      example: false
+      description: Indica se é nota técnica interna invisível ao cliente.
+    senderType:
+      $ref: '#/InteractionSenderType'
+    senderName:
+      type: string
+      example: "Suporte N2"
+    message:
+      type: string
+      example: "Sinal óptico conferido em -21 dBm. Port profile ajustado."
+    attachmentUrl:
+      type: string
+      nullable: true
+      example: "https://storage.isperp.com/tickets/anexo_123.png"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2026-09-04T10:15:00Z"
+
+TicketInteractionCreateRequest:
+  type: object
+  required:
+    - senderType
+    - senderName
+    - message
+  properties:
+    userId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+    senderType:
+      $ref: '#/InteractionSenderType'
+    senderName:
+      type: string
+      example: "Carlos Atendente"
+    message:
+      type: string
+      example: "Cliente foi orientado a reiniciar o roteador."
+    isInternalNote:
+      type: boolean
+      default: false
+    attachmentUrl:
+      type: string
+      nullable: true
+
+EscalateN2Request:
+  type: object
+  properties:
+    attendantUserId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+    attendantName:
+      type: string
+      nullable: true
+      example: "Atendente N1"
+    reason:
+      type: string
+      nullable: true
+      example: "Suspeita de atenuação excessiva na CTO."
+
+ResolveN2Request:
+  type: object
+  properties:
+    n2UserId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+    n2Name:
+      type: string
+      nullable: true
+      example: "Analista NOC"
+    resolutionNotes:
+      type: string
+      nullable: true
+      example: "Reconfiguração remota aplicada com sucesso."
+
+EscalateWorkOrderRequest:
+  type: object
+  properties:
+    n2UserId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+    n2Name:
+      type: string
+      nullable: true
+      example: "Analista N2"
+    technicalReason:
+      type: string
+      nullable: true
+      example: "Fibra rompida no poste em frente à residência."
+
+CloseTicketRequest:
+  type: object
+  properties:
+    satisfactionRating:
+      type: integer
+      minimum: 1
+      maximum: 5
+      nullable: true
+      example: 5
+    closureNotes:
+      type: string
+      nullable: true
+      example: "Atendimento finalizado com sucesso e conexão normalizada."

@@ -45,7 +45,7 @@ import {
   Badge as BadgeIcon,
 } from '@mui/icons-material';
 import clientPortalService from '../../services/clientPortalService';
-import { helpdeskService } from '../../services/helpdeskService';
+import { helpdeskService, TicketCategory } from '../../services/helpdeskService';
 import { customerService } from '../../services/customerService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -108,7 +108,7 @@ const ClientPortal = () => {
   // Tickets State
   const [myTickets, setMyTickets] = useState<any[]>([]);
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
-  const [newTicketCategory, setNewTicketCategory] = useState('SLOW_SPEED');
+  const [newTicketCategory, setNewTicketCategory] = useState<TicketCategory>('SLOW_SPEED');
   const [newTicketSubject, setNewTicketSubject] = useState('');
   const [newTicketDesc, setNewTicketDesc] = useState('');
   const [ticketSubmitting, setTicketSubmitting] = useState(false);
@@ -1301,7 +1301,7 @@ const ClientPortal = () => {
             fullWidth
             label="Tipo de Solicitação"
             value={newTicketCategory}
-            onChange={(e) => setNewTicketCategory(e.target.value)}
+            onChange={(e) => setNewTicketCategory(e.target.value as TicketCategory)}
             sx={{ mb: 2 }}
           >
             <MenuItem value="SLOW_SPEED">Lentidão na Conexão (SLA 48h)</MenuItem>

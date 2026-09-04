@@ -1,78 +1,97 @@
-import api from './api';
-import { HelpdeskTicket, TicketInteraction, TicketPriority, TicketCategory } from '../types/helpdesk';
+import { getHelpdesk } from '../api/generated/endpoints/helpdesk/helpdesk';
+import type {
+  HelpdeskTicketResponse,
+  TicketInteractionResponse,
+  TicketCreateRequest,
+  TicketInteractionCreateRequest,
+  EscalateN2Request,
+  ResolveN2Request,
+  EscalateWorkOrderRequest,
+  CloseTicketRequest,
+  TicketCategory,
+  TicketPriority,
+  TicketStatus,
+  TicketChannel,
+  InteractionSenderType,
+} from '../api/generated/models';
+
+export type HelpdeskTicket = HelpdeskTicketResponse;
+export type TicketInteraction = TicketInteractionResponse;
+export type {
+  HelpdeskTicketResponse,
+  TicketInteractionResponse,
+  TicketCreateRequest,
+  TicketInteractionCreateRequest,
+  EscalateN2Request,
+  ResolveN2Request,
+  EscalateWorkOrderRequest,
+  CloseTicketRequest,
+  TicketCategory,
+  TicketPriority,
+  TicketStatus,
+  TicketChannel,
+  InteractionSenderType,
+};
+
+const helpdeskApi = getHelpdesk();
 
 export const helpdeskService = {
-  getTickets: async (params?: {
-    status?: string;
-    priority?: TicketPriority;
-    category?: TicketCategory;
-    customerId?: string;
-  }): Promise<HelpdeskTicket[]> => {
-    const response = await api.get<HelpdeskTicket[]>('/helpdesk/tickets', { params });
-    return response.data;
+  getAllTickets: async (): Promise<HelpdeskTicketResponse[]> => {
+    return helpdeskApi.getAllTickets();
   },
 
-  getAllTickets: async (params?: any): Promise<HelpdeskTicket[]> => {
-    const response = await api.get<HelpdeskTicket[]>('/helpdesk/tickets', { params });
-    return response.data;
+  getTickets: async (params?: { customerId?: string }): Promise<HelpdeskTicketResponse[]> => {
+    if (params?.customerId) {
+      return helpdeskApi.getTicketsByCustomer(params.customerId);
+    }
+    return helpdeskApi.getAllTickets();
   },
 
-  getTicketsByCustomer: async (customerId: string): Promise<HelpdeskTicket[]> => {
-    const response = await api.get<HelpdeskTicket[]>('/helpdesk/tickets', { params: { customerId } });
-    return response.data;
+  getTicketsByCustomer: async (customerId: string): Promise<HelpdeskTicketResponse[]> => {
+    return helpdeskApi.getTicketsByCustomer(customerId);
   },
 
-  getTicketById: async (id: string): Promise<HelpdeskTicket> => {
-    const response = await api.get<HelpdeskTicket>(`/helpdesk/tickets/${id}`);
-    return response.data;
+  getTicketById: async (id: string): Promise<HelpdeskTicketResponse> => {
+    return helpdeskApi.getTicketById(id);
   },
 
-  getInteractions: async (ticketId: string): Promise<TicketInteraction[]> => {
-    const response = await api.get<TicketInteraction[]>(`/helpdesk/tickets/${ticketId}/interactions`);
-    return response.data;
+  getTicketByProtocol: async (protocol: string): Promise<HelpdeskTicketResponse> => {
+    return helpdeskApi.getTicketByProtocol(protocol);
   },
 
-  createTicket: async (ticket: Partial<HelpdeskTicket> & Record<string, any>): Promise<HelpdeskTicket> => {
-    const response = await api.post<HelpdeskTicket>('/helpdesk/tickets', ticket);
-    return response.data;
+  createTicket: async (ticket: TicketCreateRequest): Promise<HelpdeskTicketResponse> => {
+    return helpdeskApi.createTicket(ticket);
+  },
+
+  getInteractions: async (ticketId: string, includeInternal = true): Promise<TicketInteractionResponse[]> => {
+    return helpdeskApi.getInteractions(ticketId, { includeInternal });
   },
 
   addInteraction: async (
     ticketId: string,
-    interaction: Partial<TicketInteraction> & Record<string, any>
-  ): Promise<TicketInteraction> => {
-    const response = await api.post<TicketInteraction>(
-      `/helpdesk/tickets/${ticketId}/interactions`,
-      interaction
-    );
-    return response.data;
+    interaction: TicketInteractionCreateRequest
+  ): Promise<TicketInteractionResponse> => {
+    return helpdeskApi.addInteraction(ticketId, interaction);
   },
 
-  resolveTicket: async (ticketId: string, resolutionNotes: string): Promise<HelpdeskTicket> => {
-    const response = await api.post<HelpdeskTicket>(`/helpdesk/tickets/${ticketId}/resolve`, {
-      resolutionNotes,
-    });
-    return response.data;
+  escalateToN2: async (ticketId: string, reason?: string, attendantName?: string): Promise<HelpdeskTicketResponse> => {
+    return helpdeskApi.escalateToN2(ticketId, { reason, attendantName });
   },
 
-  escalateToN2: async (ticketId: string, reason: string): Promise<HelpdeskTicket> => {
-    const response = await api.post<HelpdeskTicket>(`/helpdesk/tickets/${ticketId}/escalate-n2`, { reason });
-    return response.data;
+  resolveByN2: async (ticketId: string, resolutionNotes?: string, n2Name?: string): Promise<HelpdeskTicketResponse> => {
+    return helpdeskApi.resolveByN2(ticketId, { resolutionNotes, n2Name });
   },
 
-  resolveByN2: async (ticketId: string, notes: string): Promise<HelpdeskTicket> => {
-    const response = await api.post<HelpdeskTicket>(`/helpdesk/tickets/${ticketId}/resolve-n2`, { notes });
-    return response.data;
+  escalateToWorkOrder: async (ticketId: string, payload: EscalateWorkOrderRequest): Promise<any> => {
+    return helpdeskApi.escalateToWorkOrder(ticketId, payload);
   },
 
-  escalateToWorkOrder: async (ticketId: string, payload: Record<string, any>): Promise<any> => {
-    const response = await api.post(`/helpdesk/tickets/${ticketId}/escalate-wo`, payload);
-    return response.data;
-  },
-
-  closeTicket: async (ticketId: string): Promise<HelpdeskTicket> => {
-    const response = await api.post<HelpdeskTicket>(`/helpdesk/tickets/${ticketId}/close`);
-    return response.data;
+  closeTicket: async (
+    ticketId: string,
+    closureNotes?: string,
+    satisfactionRating?: number
+  ): Promise<HelpdeskTicketResponse> => {
+    return helpdeskApi.closeTicket(ticketId, { closureNotes, satisfactionRating });
   },
 };
 

@@ -52,6 +52,8 @@ tags:
     description: Cadastro e Gestão de Empresas / Filiais do Provedor
   - name: Sales
     description: Propostas Comerciais e Vendas de Planos
+  - name: Helpdesk
+    description: Suporte Técnico, Atendimento ao Cliente e Chamados ANATEL
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -193,6 +195,26 @@ paths:
     $ref: './domains/sales/sales.yaml#/~1sales'
   /sales/{id}:
     $ref: './domains/sales/sales.yaml#/~1sales~1{id}'
+
+  # Helpdesk & Atendimento ao Cliente
+  /helpdesk/tickets:
+    $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets'
+  /helpdesk/tickets/{id}:
+    $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets~1{id}'
+  /helpdesk/tickets/protocol/{protocol}:
+    $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets~1protocol~1{protocol}'
+  /helpdesk/tickets/customer/{customerId}:
+    $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets~1customer~1{customerId}'
+  /helpdesk/tickets/{id}/escalate-n2:
+    $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets~1{id}~1escalate-n2'
+  /helpdesk/tickets/{id}/resolve-n2:
+    $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets~1{id}~1resolve-n2'
+  /helpdesk/tickets/{id}/escalate-work-order:
+    $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets~1{id}~1escalate-work-order'
+  /helpdesk/tickets/{id}/interactions:
+    $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets~1{id}~1interactions'
+  /helpdesk/tickets/{id}/close:
+    $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets~1{id}~1close'
 
 components:
   securitySchemes:
@@ -339,4 +361,32 @@ components:
       $ref: './domains/sales/schemas.yaml#/SaleResponse'
     CreateSaleRequest:
       $ref: './domains/sales/schemas.yaml#/CreateSaleRequest'
+
+    # Helpdesk
+    TicketCategory:
+      $ref: './domains/helpdesk/schemas.yaml#/TicketCategory'
+    TicketPriority:
+      $ref: './domains/helpdesk/schemas.yaml#/TicketPriority'
+    TicketStatus:
+      $ref: './domains/helpdesk/schemas.yaml#/TicketStatus'
+    TicketChannel:
+      $ref: './domains/helpdesk/schemas.yaml#/TicketChannel'
+    InteractionSenderType:
+      $ref: './domains/helpdesk/schemas.yaml#/InteractionSenderType'
+    HelpdeskTicketResponse:
+      $ref: './domains/helpdesk/schemas.yaml#/HelpdeskTicketResponse'
+    TicketCreateRequest:
+      $ref: './domains/helpdesk/schemas.yaml#/TicketCreateRequest'
+    TicketInteractionResponse:
+      $ref: './domains/helpdesk/schemas.yaml#/TicketInteractionResponse'
+    TicketInteractionCreateRequest:
+      $ref: './domains/helpdesk/schemas.yaml#/TicketInteractionCreateRequest'
+    EscalateN2Request:
+      $ref: './domains/helpdesk/schemas.yaml#/EscalateN2Request'
+    ResolveN2Request:
+      $ref: './domains/helpdesk/schemas.yaml#/ResolveN2Request'
+    EscalateWorkOrderRequest:
+      $ref: './domains/helpdesk/schemas.yaml#/EscalateWorkOrderRequest'
+    CloseTicketRequest:
+      $ref: './domains/helpdesk/schemas.yaml#/CloseTicketRequest'
 

@@ -88,6 +88,10 @@
     {
       "name": "Sales",
       "description": "Propostas Comerciais e Vendas de Planos"
+    },
+    {
+      "name": "Helpdesk",
+      "description": "Suporte Técnico, Atendimento ao Cliente e Chamados ANATEL"
     }
   ],
   "paths": {
@@ -3248,6 +3252,501 @@
           }
         }
       }
+    },
+    "/helpdesk/tickets": {
+      "get": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Listar todos os chamados de suporte",
+        "operationId": "getAllTickets",
+        "responses": {
+          "200": {
+            "description": "Lista de chamados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HelpdeskTicketResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Abrir novo chamado de suporte",
+        "operationId": "createTicket",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Chamado aberto com sucesso com protocolo ANATEL e SLA gerados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpdeskTicketResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets/{id}": {
+      "get": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Buscar chamado por ID",
+        "operationId": "getTicketById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do chamado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpdeskTicketResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chamado não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets/protocol/{protocol}": {
+      "get": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Buscar chamado pelo número de protocolo ANATEL",
+        "operationId": "getTicketByProtocol",
+        "parameters": [
+          {
+            "name": "protocol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "2026090400001"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chamado encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpdeskTicketResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Protocolo não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets/customer/{customerId}": {
+      "get": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Listar histórico de chamados de um cliente",
+        "operationId": "getTicketsByCustomer",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de chamados do cliente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HelpdeskTicketResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets/{id}/escalate-n2": {
+      "post": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Escalonar chamado de suporte para Nível 2 (N2 / NOC)",
+        "operationId": "escalateToN2",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EscalateN2Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chamado escalonado para N2 com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpdeskTicketResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chamado não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets/{id}/resolve-n2": {
+      "post": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Registrar parecer técnico e resolução pelo Nível 2",
+        "operationId": "resolveByN2",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveN2Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chamado resolvido pelo N2 com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpdeskTicketResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chamado não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets/{id}/escalate-work-order": {
+      "post": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Escalonar chamado gerando Ordem de Serviço de campo",
+        "operationId": "escalateToWorkOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EscalateWorkOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ordem de serviço de visita técnica criada e vinculada ao chamado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chamado não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets/{id}/interactions": {
+      "get": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Listar histórico de interações e notas técnicas do chamado",
+        "operationId": "getInteractions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeInternal",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            },
+            "description": "Se verdadeiro, inclui notas internas dos técnicos; se falso, apenas mensagens visíveis ao cliente."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Histórico de interações",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketInteractionResponse"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chamado não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Adicionar nova interação ou nota interna ao chamado",
+        "operationId": "addInteraction",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketInteractionCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Interação adicionada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketInteractionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chamado não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/helpdesk/tickets/{id}/close": {
+      "post": {
+        "tags": [
+          "Helpdesk"
+        ],
+        "summary": "Encerrar chamado de suporte com nota de satisfação",
+        "operationId": "closeTicket",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseTicketRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chamado encerrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpdeskTicketResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chamado não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5800,6 +6299,385 @@
             "type": "string",
             "nullable": true,
             "example": "Vendedor Roberto"
+          }
+        }
+      },
+      "TicketCategory": {
+        "type": "string",
+        "enum": [
+          "FINANCIAL",
+          "CONNECTION_OUTAGE",
+          "SLOW_SPEED",
+          "ROUTER_CONFIG",
+          "ADDRESS_CHANGE",
+          "ROOM_TRANSFER",
+          "CANCELLATION_REQUEST",
+          "OTHER"
+        ],
+        "description": "Categoria do chamado de helpdesk."
+      },
+      "TicketPriority": {
+        "type": "string",
+        "enum": [
+          "LOW",
+          "NORMAL",
+          "HIGH",
+          "URGENT"
+        ],
+        "description": "Nível de prioridade operacional do chamado."
+      },
+      "TicketStatus": {
+        "type": "string",
+        "enum": [
+          "OPEN",
+          "IN_PROGRESS",
+          "WAITING_CUSTOMER",
+          "WAITING_FIELD_VISIT",
+          "RESOLVED",
+          "CLOSED",
+          "CANCELLED"
+        ],
+        "description": "Estado atual do chamado de suporte."
+      },
+      "TicketChannel": {
+        "type": "string",
+        "enum": [
+          "WHATSAPP_BOT",
+          "PORTAL",
+          "PHONE",
+          "IN_PERSON",
+          "EMAIL"
+        ],
+        "description": "Canal de entrada do chamado."
+      },
+      "InteractionSenderType": {
+        "type": "string",
+        "enum": [
+          "ATTENDANT",
+          "SUPPORT_N2",
+          "SUPPORT_ANALYST",
+          "CUSTOMER",
+          "SYSTEM_BOT"
+        ],
+        "description": "Tipo de remetente da interação / mensagem."
+      },
+      "HelpdeskTicketResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "protocol",
+          "customerId",
+          "category",
+          "priority",
+          "status",
+          "channel",
+          "subject",
+          "description",
+          "slaDeadline",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "protocol": {
+            "type": "string",
+            "example": "2026090400001",
+            "description": "Protocolo numérico oficial ANATEL gerado no padrão YYYYMMDDNNNNN."
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+          },
+          "category": {
+            "$ref": "#/components/schemas/TicketCategory"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/TicketPriority"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TicketStatus"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/TicketChannel"
+          },
+          "subject": {
+            "type": "string",
+            "example": "Sem conexão após queda de energia"
+          },
+          "description": {
+            "type": "string",
+            "example": "Cliente relata que o LED PON da ONU está piscando vermelho."
+          },
+          "assignedToUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+          },
+          "workOrderId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+          },
+          "slaDeadline": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-06T14:30:00Z"
+          },
+          "resolutionNotes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Reconfigurado sinal na porta PON da OLT."
+          },
+          "anatelSatisfactionRating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "nullable": true,
+            "example": 5,
+            "description": "Avaliação de satisfação do cliente de 1 a 5."
+          },
+          "resolvedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "closedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-04T10:00:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "TicketCreateRequest": {
+        "type": "object",
+        "required": [
+          "customerId",
+          "category",
+          "subject",
+          "description"
+        ],
+        "properties": {
+          "customerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+          },
+          "category": {
+            "$ref": "#/components/schemas/TicketCategory"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/TicketPriority"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/TicketChannel"
+          },
+          "subject": {
+            "type": "string",
+            "example": "Queda total de conexão"
+          },
+          "description": {
+            "type": "string",
+            "example": "Sem sinal de internet desde as 08:00."
+          },
+          "attendantUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+          },
+          "attendantName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Maria Santos"
+          }
+        }
+      },
+      "TicketInteractionResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "ticketId",
+          "isInternalNote",
+          "senderType",
+          "senderName",
+          "message",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "ticketId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+          },
+          "isInternalNote": {
+            "type": "boolean",
+            "example": false,
+            "description": "Indica se é nota técnica interna invisível ao cliente."
+          },
+          "senderType": {
+            "$ref": "#/components/schemas/InteractionSenderType"
+          },
+          "senderName": {
+            "type": "string",
+            "example": "Suporte N2"
+          },
+          "message": {
+            "type": "string",
+            "example": "Sinal óptico conferido em -21 dBm. Port profile ajustado."
+          },
+          "attachmentUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://storage.isperp.com/tickets/anexo_123.png"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-04T10:15:00Z"
+          }
+        }
+      },
+      "TicketInteractionCreateRequest": {
+        "type": "object",
+        "required": [
+          "senderType",
+          "senderName",
+          "message"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+          },
+          "senderType": {
+            "$ref": "#/components/schemas/InteractionSenderType"
+          },
+          "senderName": {
+            "type": "string",
+            "example": "Carlos Atendente"
+          },
+          "message": {
+            "type": "string",
+            "example": "Cliente foi orientado a reiniciar o roteador."
+          },
+          "isInternalNote": {
+            "type": "boolean",
+            "default": false
+          },
+          "attachmentUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "EscalateN2Request": {
+        "type": "object",
+        "properties": {
+          "attendantUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+          },
+          "attendantName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Atendente N1"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Suspeita de atenuação excessiva na CTO."
+          }
+        }
+      },
+      "ResolveN2Request": {
+        "type": "object",
+        "properties": {
+          "n2UserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+          },
+          "n2Name": {
+            "type": "string",
+            "nullable": true,
+            "example": "Analista NOC"
+          },
+          "resolutionNotes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Reconfiguração remota aplicada com sucesso."
+          }
+        }
+      },
+      "EscalateWorkOrderRequest": {
+        "type": "object",
+        "properties": {
+          "n2UserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01918a5e-3841-7c91-91ea-42f1aa7a0001"
+          },
+          "n2Name": {
+            "type": "string",
+            "nullable": true,
+            "example": "Analista N2"
+          },
+          "technicalReason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Fibra rompida no poste em frente à residência."
+          }
+        }
+      },
+      "CloseTicketRequest": {
+        "type": "object",
+        "properties": {
+          "satisfactionRating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "nullable": true,
+            "example": 5
+          },
+          "closureNotes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Atendimento finalizado com sucesso e conexão normalizada."
           }
         }
       },
