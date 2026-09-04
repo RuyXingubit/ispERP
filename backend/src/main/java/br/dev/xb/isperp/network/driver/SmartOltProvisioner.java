@@ -52,12 +52,11 @@ public class SmartOltProvisioner implements NetworkProvisioner {
         log.info("SmartOLT: Diagnosticando sinal óptico para ONU MAC={}", onuMac);
         return OnuStatusResponse.builder()
                 .onuMac(onuMac)
-                .status("ONLINE")
-                .rxPowerDbm(new BigDecimal("-19.45"))
-                .txPowerDbm(new BigDecimal("2.10"))
+                .status("UNKNOWN")
+                .rxPowerDbm(null)
+                .txPowerDbm(null)
                 .oltName(device.getName())
-                .ponPort(1)
-                .details("Sinal óptico excelente (-19.45 dBm). PON Slot 1/1/1")
+                .details("Telemetria da ONU requer integração ativa com o agente SNMP/API da OLT")
                 .build();
     }
 }

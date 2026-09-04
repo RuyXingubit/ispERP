@@ -89,8 +89,12 @@ public class DashboardBiService {
 
             if (inv.getStatus() == Invoice.InvoiceStatus.PAID) {
                 totalPaid++;
-                paidWithPix++; // Todas as baixas instantâneas do Xingubit Pay
-                if (inv.getPaidAt() != null && inv.getPaidAt().getMonth() == today.getMonth()) {
+                if ("PIX".equalsIgnoreCase(inv.getPaymentMethod())) {
+                    paidWithPix++;
+                }
+                if (inv.getPaidAt() != null &&
+                        inv.getPaidAt().getMonth() == today.getMonth() &&
+                        inv.getPaidAt().getYear() == today.getYear()) {
                     totalReceivedMonth = totalReceivedMonth.add(amount);
                 }
             } else if (inv.getStatus() == Invoice.InvoiceStatus.OVERDUE ||
@@ -114,7 +118,7 @@ public class DashboardBiService {
         BigDecimal pixConversionRate = totalPaid > 0
                 ? BigDecimal.valueOf(paidWithPix).multiply(BigDecimal.valueOf(100))
                 .divide(BigDecimal.valueOf(totalPaid), 2, RoundingMode.HALF_UP)
-                : BigDecimal.valueOf(100);
+                : BigDecimal.ZERO;
 
         // 6. NOC & Rede Óptica
         List<OnuProvisioning> allOnus = onuRepository.findAll();

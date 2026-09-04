@@ -60,14 +60,12 @@ public class TechnicianDispatchService {
             long onuCount = 0;
             if (wId != null) {
                 onuCount = serializedAssetRepository.findByCurrentWarehouseIdAndStatus(wId, SerializedAsset.AssetStatus.DISPONIVEL_DEPOSITO).size();
-            } else {
-                onuCount = 3; // Padrão para simulação de técnicos ativos
             }
 
             boolean hasOnu = onuCount > 0;
-            int dropBalance = 300; // Saldo estimado em metros na bobina do veículo
+            int dropBalance = (wId != null) ? demand.getEstimatedDropMeters() : 0;
             boolean hasDropCable = dropBalance >= demand.getEstimatedDropMeters();
-            boolean hasConnectors = true;
+            boolean hasConnectors = hasOnu;
             boolean hasCompleteKit = hasOnu && hasDropCable && hasConnectors;
 
             // Posição do técnico (última O.S. ou padrão Belém/Pará)
@@ -75,8 +73,8 @@ public class TechnicianDispatchService {
             BigDecimal techLon = BigDecimal.valueOf(-48.4902);
             String lastServiceAddress = "Centro Operacional ISP";
 
-            // Se o cliente tiver coordenadas, calcula distância
-            Double distKm = 2.5;
+            // Se o cliente tiver coordenadas cadastradas, calcula distância real
+            Double distKm = null;
             if (customer.getLatitude() != null && customer.getLongitude() != null) {
                 double dMeters = calculateHaversineDistanceMeters(
                         techLat.doubleValue(), techLon.doubleValue(),
@@ -85,8 +83,8 @@ public class TechnicianDispatchService {
                 distKm = Math.round((dMeters / 1000.0) * 10.0) / 10.0;
             }
 
-            // Cálculo do score (Kit completo + Proximidade)
-            double score = (hasCompleteKit ? 60.0 : 20.0) + Math.max(0.0, 40.0 - (distKm * 2.5));
+            // Cálculo do score (Kit completo + Proximidade real se houver coordenadas)
+            double score = (hasCompleteKit ? 60.0 : 20.0) + (distKm != null ? Math.max(0.0, 40.0 - (distKm * 2.5)) : 0.0);
 
             candidates.add(TechnicianDispatchCandidateResponse.builder()
                     .technicianId(tech.getId())

@@ -58,36 +58,11 @@ public class TechnicianFieldExecutionService {
                     .portNumber(port)
                     .ponName(ponName)
                     .onuSerial(wo.getOnuSerial())
-                    .onuMac(wo.getOnuMac() != null ? wo.getOnuMac() : "F8:E7:1E:AA:BB:CC")
-                    .rxPowerDbm(wo.getFiberSignalDbm() != null ? wo.getFiberSignalDbm() : BigDecimal.valueOf(-19.45))
+                    .onuMac(wo.getOnuMac())
+                    .rxPowerDbm(wo.getFiberSignalDbm())
                     .detectedAt(OffsetDateTime.now())
                     .build());
         }
-
-        // Mock realista de Auto-Discovery da porta PON da OLT
-        discovered.add(OltUnprovisionedOnuResponse.builder()
-                .networkDeviceId(networkDeviceId)
-                .oltName(oltName)
-                .slotNumber(slot)
-                .portNumber(port)
-                .ponName(ponName)
-                .onuSerial("HWTC" + wo.getId().toString().substring(0, 8).toUpperCase())
-                .onuMac("F8:E7:1E:" + wo.getId().toString().substring(0, 2).toUpperCase() + ":3A:4B")
-                .rxPowerDbm(BigDecimal.valueOf(-19.80))
-                .detectedAt(OffsetDateTime.now().minusMinutes(2))
-                .build());
-
-        discovered.add(OltUnprovisionedOnuResponse.builder()
-                .networkDeviceId(networkDeviceId)
-                .oltName(oltName)
-                .slotNumber(slot)
-                .portNumber(port)
-                .ponName(ponName)
-                .onuSerial("FHTT88A9B1C2")
-                .onuMac("00:1A:2B:3C:4D:5E")
-                .rxPowerDbm(BigDecimal.valueOf(-20.15))
-                .detectedAt(OffsetDateTime.now().minusMinutes(5))
-                .build());
 
         return discovered;
     }
@@ -199,17 +174,15 @@ public class TechnicianFieldExecutionService {
         if (activeSession.isPresent()) {
             RadAcct session = activeSession.get();
             result.put("online", true);
-            result.put("framedIpAddress", session.getFramedIpAddress() != null ? session.getFramedIpAddress() : "100.64.12.85");
+            result.put("framedIpAddress", session.getFramedIpAddress());
             result.put("acctStartTime", session.getAcctStartTime());
-            result.put("nasIpAddress", session.getNasIpAddress() != null ? session.getNasIpAddress() : "10.0.0.1 (BNG-CENTRAL)");
+            result.put("nasIpAddress", session.getNasIpAddress());
             result.put("message", "Sessão RADIUS PPPoE ativa e conectada ao BNG!");
         } else {
-            // Se já foi provisionado recentemente na O.S., simula conexão ativa com IP CGNAT para validação do técnico
-            boolean isProvisioned = (wo.getOnuSerial() != null && !wo.getOnuSerial().isBlank());
-            result.put("online", isProvisioned);
-            result.put("framedIpAddress", isProvisioned ? "100.64.10.42" : null);
-            result.put("nasIpAddress", isProvisioned ? "10.0.0.1 (BNG-CENTRAL-01)" : null);
-            result.put("message", isProvisioned ? "Sessão RADIUS PPPoE autenticada com sucesso!" : "Aguardando autenticação PPPoE...");
+            result.put("online", false);
+            result.put("framedIpAddress", null);
+            result.put("nasIpAddress", null);
+            result.put("message", "Nenhuma sessão RADIUS PPPoE ativa detectada no BNG.");
         }
 
         return result;
@@ -232,8 +205,8 @@ public class TechnicianFieldExecutionService {
         // 1. Atualiza e conclui O.S.
         wo.setOnuSerial(request.getOnuSerial());
         wo.setOnuMac(request.getOnuMac());
-        wo.setFiberSignalDbm(request.getFiberSignalDbm() != null ? request.getFiberSignalDbm() : BigDecimal.valueOf(-19.50));
-        wo.setOnuRxPowerDbm(wo.getFiberSignalDbm());
+        wo.setFiberSignalDbm(request.getFiberSignalDbm());
+        wo.setOnuRxPowerDbm(request.getFiberSignalDbm());
         wo.setRadiusAuthenticated(true);
         wo.setInstallationPhotoUrl(request.getInstallationPhotoUrl());
         wo.setDigitalSignatureBase64(request.getDigitalSignatureBase64());

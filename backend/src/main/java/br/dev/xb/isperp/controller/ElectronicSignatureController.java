@@ -60,16 +60,6 @@ public class ElectronicSignatureController {
         return ResponseEntity.ok(signatureService.getSignatureStatus(token));
     }
 
-    @PostMapping("/api/public/signatures/{token}/simulate-pix")
-    public ResponseEntity<SignatureSessionResponse> simulatePixPayment(
-            @PathVariable String token,
-            @RequestBody PixSignatureWebhookRequest request
-    ) {
-        SignatureSessionResponse session = signatureService.getSignatureStatus(token);
-        request.setTxid(session.getPixTxid());
-        return ResponseEntity.ok(signatureService.processPixSignatureWebhook(request));
-    }
-
     @PostMapping("/api/public/signatures/{token}/fallback")
     public ResponseEntity<SignatureSessionResponse> selectFallbackMethod(
             @PathVariable String token,
