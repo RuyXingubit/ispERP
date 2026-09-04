@@ -1,64 +1,54 @@
-import api from './api';
+import { getPlans } from '../api/generated/endpoints/plans/plans';
+import type {
+  PlanResponse,
+  PlanCreateRequest,
+  PlanUpdateRequest,
+} from '../api/generated/models';
 
-export interface Plan {
-  id?: string;
-  name: string;
-  description?: string;
-  downloadSpeed: number;
-  uploadSpeed: number;
-  price: number;
-  active?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
+export type Plan = PlanResponse;
+export type { PlanCreateRequest, PlanUpdateRequest };
+
+const plansApi = getPlans();
 
 export const planService = {
-  getAll: async (): Promise<Plan[]> => {
-    const response = await api.get<Plan[]>('/plans');
-    return response.data;
+  getAll: async (): Promise<PlanResponse[]> => {
+    return plansApi.getAllPlans();
   },
 
-  getAllPlans: async (): Promise<Plan[]> => {
-    const response = await api.get<Plan[]>('/plans');
-    return response.data;
+  getAllPlans: async (): Promise<PlanResponse[]> => {
+    return plansApi.getAllPlans();
   },
 
-  getActivePlans: async (): Promise<Plan[]> => {
-    const response = await api.get<Plan[]>('/plans');
-    return response.data;
+  getActivePlans: async (): Promise<PlanResponse[]> => {
+    return plansApi.getActivePlans();
   },
 
-  getById: async (id: string): Promise<Plan> => {
-    const response = await api.get<Plan>(`/plans/${id}`);
-    return response.data;
+  getById: async (id: string): Promise<PlanResponse> => {
+    return plansApi.getPlanById(id);
   },
 
-  create: async (planData: Partial<Plan>): Promise<Plan> => {
-    const response = await api.post<Plan>('/plans', planData);
-    return response.data;
+  create: async (planData: PlanCreateRequest): Promise<PlanResponse> => {
+    return plansApi.createPlan(planData);
   },
 
-  createPlan: async (planData: Partial<Plan>): Promise<Plan> => {
-    const response = await api.post<Plan>('/plans', planData);
-    return response.data;
+  createPlan: async (planData: PlanCreateRequest): Promise<PlanResponse> => {
+    return plansApi.createPlan(planData);
   },
 
-  update: async (id: string, planData: Partial<Plan>): Promise<Plan> => {
-    const response = await api.put<Plan>(`/plans/${id}`, planData);
-    return response.data;
+  update: async (id: string, planData: PlanUpdateRequest): Promise<PlanResponse> => {
+    return plansApi.updatePlan(id, planData);
   },
 
-  updatePlan: async (id: string, planData: Partial<Plan>): Promise<Plan> => {
-    const response = await api.put<Plan>(`/plans/${id}`, planData);
-    return response.data;
+  updatePlan: async (id: string, planData: PlanUpdateRequest): Promise<PlanResponse> => {
+    return plansApi.updatePlan(id, planData);
   },
 
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/plans/${id}`);
+    return plansApi.deletePlan(id);
   },
 
   deletePlan: async (id: string): Promise<void> => {
-    await api.delete(`/plans/${id}`);
+    return plansApi.deletePlan(id);
   },
 };
 

@@ -1,15 +1,14 @@
 package br.dev.xb.isperp.mapper;
 
-import br.dev.xb.isperp.api.dto.PlanCreateRequest;
-import br.dev.xb.isperp.api.dto.PlanResponse;
-import br.dev.xb.isperp.api.dto.PlanUpdateRequest;
-import br.dev.xb.isperp.entity.Plan;
+import br.dev.xb.isperp.api.dto.CompanyCreateRequest;
+import br.dev.xb.isperp.api.dto.CompanyResponse;
+import br.dev.xb.isperp.api.dto.CompanyUpdateRequest;
+import br.dev.xb.isperp.entity.Company;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -19,31 +18,21 @@ import java.util.List;
         componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
-public interface PlanMapper {
+public interface CompanyMapper {
 
-    PlanResponse toResponse(Plan plan);
+    CompanyResponse toResponse(Company company);
 
-    List<PlanResponse> toResponseList(List<Plan> plans);
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    Plan toEntity(PlanCreateRequest request);
+    List<CompanyResponse> toResponseList(List<Company> companies);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    void updateEntityFromRequest(PlanUpdateRequest request, @MappingTarget Plan plan);
+    Company toEntity(CompanyCreateRequest request);
 
-    default Double bigDecimalToDouble(BigDecimal val) {
-        if (val == null) return null;
-        return val.doubleValue();
-    }
-
-    default BigDecimal doubleToBigDecimal(Double val) {
-        if (val == null) return null;
-        return BigDecimal.valueOf(val);
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateEntityFromRequest(CompanyUpdateRequest request, @MappingTarget Company company);
 
     default OffsetDateTime localDateTimeToOffsetDateTime(LocalDateTime localDateTime) {
         if (localDateTime == null) return null;

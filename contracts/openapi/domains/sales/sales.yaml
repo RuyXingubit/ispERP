@@ -1,0 +1,67 @@
+/sales:
+  get:
+    tags:
+      - Sales
+    summary: Listar todas as vendas / propostas comerciais
+    operationId: getAllSales
+    responses:
+      '200':
+        description: Lista de vendas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/SaleResponse'
+
+  post:
+    tags:
+      - Sales
+    summary: Submeter nova proposta de venda
+    operationId: submitSale
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CreateSaleRequest'
+    responses:
+      '201':
+        description: Venda criada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SaleResponse'
+      '400':
+        description: Dados inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/sales/{id}:
+  get:
+    tags:
+      - Sales
+    summary: Buscar venda por ID
+    operationId: getSaleById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Detalhes da venda
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SaleResponse'
+      '404':
+        description: Venda não encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

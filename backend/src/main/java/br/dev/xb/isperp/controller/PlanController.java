@@ -1,6 +1,11 @@
 package br.dev.xb.isperp.controller;
 
+import br.dev.xb.isperp.api.contract.PlansApi;
+import br.dev.xb.isperp.api.dto.PlanCreateRequest;
+import br.dev.xb.isperp.api.dto.PlanResponse;
+import br.dev.xb.isperp.api.dto.PlanUpdateRequest;
 import br.dev.xb.isperp.entity.Plan;
+import br.dev.xb.isperp.mapper.PlanMapper;
 import br.dev.xb.isperp.service.PlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -17,47 +21,63 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @SuppressWarnings("null")
-public class PlanController {
+public class PlanController implements PlansApi {
 
     private final PlanService planService;
+    private final PlanMapper planMapper;
 
+    @Override
     @GetMapping
-    public ResponseEntity<List<Plan>> getAllPlans() {
-        return ResponseEntity.ok(planService.getAllPlans());
+    public ResponseEntity<List<PlanResponse>> getAllPlans() {
+        return ResponseEntity.ok(planMapper.toResponseList(planService.getAllPlans()));
     }
 
+    @Override
     @GetMapping("/active")
-    public ResponseEntity<List<Plan>> getActivePlans() {
-        return ResponseEntity.ok(planService.getActivePlans());
+    public ResponseEntity<List<PlanResponse>> getActivePlans() {
+        return ResponseEntity.ok(planMapper.toResponseList(planService.getActivePlans()));
     }
 
+    @Override
     @GetMapping("/{id}")
-    public ResponseEntity<Plan> getPlanById(@PathVariable UUID id) {
-        Optional<Plan> plan = planService.getPlanById(id);
-        return plan.map(ResponseEntity::ok)
+    public ResponseEntity<PlanResponse> getPlanById(@PathVariable UUID id) {
+        return planService.getPlanById(id)
+                .map(planMapper::toResponse)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Override
     @PostMapping
-    public ResponseEntity<?> createPlan(@Valid @RequestBody Plan plan) {
+    public ResponseEntity<PlanResponse> createPlan(@Valid @RequestBody PlanCreateRequest request) {
         try {
-            Plan created = planService.createPlan(plan);
-            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+            Plan entity = planMapper.toEntity(request);
+            Plan created = planService.createPlan(entity);
+            return ResponseEntity.status(HttpStatus.CREATED).body(planMapper.toResponse(created));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
+    @Override
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePlan(@PathVariable UUID id, @Valid @RequestBody Plan planDetails) {
+    public ResponseEntity<PlanResponse> updatePlan(@PathVariable UUID id, @Valid @RequestBody PlanUpdateRequest request) {
         try {
+            Plan planDetails = new Plan();
+            planMapper.updateEntityFromRequest(request, planDetails);
             Plan updated = planService.updatePlan(id, planDetails);
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok(planMapper.toResponse(updated));
+        } catch (RuntimeException e) {
+            if ("Plano não encontrado".equals(e.getMessage())) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePlan(@PathVariable UUID id) {
         try {

@@ -76,6 +76,18 @@
     {
       "name": "RadiusLifecycle",
       "description": "Gestão de políticas de auto-corte, bloqueios e auditoria de ações PoD"
+    },
+    {
+      "name": "Plans",
+      "description": "Catálogo de Planos de Internet e Valores"
+    },
+    {
+      "name": "Companies",
+      "description": "Cadastro e Gestão de Empresas / Filiais do Provedor"
+    },
+    {
+      "name": "Sales",
+      "description": "Propostas Comerciais e Vendas de Planos"
     }
   ],
   "paths": {
@@ -2680,6 +2692,562 @@
           }
         }
       }
+    },
+    "/plans": {
+      "get": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Listar todos os planos cadastrados",
+        "operationId": "getAllPlans",
+        "responses": {
+          "200": {
+            "description": "Lista de planos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Cadastrar novo plano",
+        "operationId": "createPlan",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Plano criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plans/active": {
+      "get": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Listar apenas planos ativos",
+        "operationId": "getActivePlans",
+        "responses": {
+          "200": {
+            "description": "Lista de planos ativos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plans/{id}": {
+      "get": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Buscar plano por ID",
+        "operationId": "getPlanById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do plano",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Plano não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Atualizar plano por ID",
+        "operationId": "updatePlan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Plano atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Plano não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Plans"
+        ],
+        "summary": "Remover plano por ID",
+        "operationId": "deletePlan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Plano removido com sucesso"
+          },
+          "404": {
+            "description": "Plano não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies": {
+      "get": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Listar todas as empresas/filiais cadastradas",
+        "operationId": "getAllCompanies",
+        "responses": {
+          "200": {
+            "description": "Lista de empresas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompanyResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Cadastrar nova empresa/filial",
+        "operationId": "createCompany",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Empresa criada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/primary": {
+      "get": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Buscar a empresa principal (Matriz)",
+        "operationId": "getPrimaryCompany",
+        "responses": {
+          "200": {
+            "description": "Dados da empresa principal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nenhuma empresa cadastrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{id}": {
+      "get": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Buscar empresa/filial por ID",
+        "operationId": "getCompanyById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes da empresa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Empresa não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Atualizar dados de empresa/filial por ID",
+        "operationId": "updateCompany",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Empresa atualizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Empresa não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Companies"
+        ],
+        "summary": "Remover empresa/filial por ID",
+        "operationId": "deleteCompany",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Empresa removida com sucesso"
+          },
+          "404": {
+            "description": "Empresa não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sales": {
+      "get": {
+        "tags": [
+          "Sales"
+        ],
+        "summary": "Listar todas as vendas / propostas comerciais",
+        "operationId": "getAllSales",
+        "responses": {
+          "200": {
+            "description": "Lista de vendas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SaleResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Sales"
+        ],
+        "summary": "Submeter nova proposta de venda",
+        "operationId": "submitSale",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSaleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Venda criada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sales/{id}": {
+      "get": {
+        "tags": [
+          "Sales"
+        ],
+        "summary": "Buscar venda por ID",
+        "operationId": "getSaleById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes da venda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Venda não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4734,6 +5302,504 @@
           "number": {
             "type": "integer",
             "example": 0
+          }
+        }
+      },
+      "PlanResponse": {
+        "type": "object",
+        "description": "Dados cadastrais do Plano de Acesso à Internet",
+        "required": [
+          "id",
+          "name",
+          "downloadSpeed",
+          "uploadSpeed",
+          "price",
+          "active",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b2a"
+          },
+          "name": {
+            "type": "string",
+            "example": "Fibra Turbo 500 Mega"
+          },
+          "downloadSpeed": {
+            "type": "integer",
+            "description": "Velocidade nominal de download em Mbps",
+            "example": 500
+          },
+          "uploadSpeed": {
+            "type": "integer",
+            "description": "Velocidade nominal de upload em Mbps",
+            "example": 250
+          },
+          "price": {
+            "type": "number",
+            "format": "double",
+            "description": "Mensalidade em Reais (BRL)",
+            "example": 99.9
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Plano residencial de ultra velocidade com Wi-Fi 6 incluso"
+          },
+          "svaIncluded": {
+            "type": "string",
+            "nullable": true,
+            "example": "Paramount+, Noggin"
+          },
+          "suspensionDays": {
+            "type": "integer",
+            "default": 5,
+            "example": 5
+          },
+          "alwaysIssueNfcom": {
+            "type": "boolean",
+            "default": false,
+            "example": false
+          },
+          "active": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "PlanCreateRequest": {
+        "type": "object",
+        "description": "Parâmetros para criação de novo plano",
+        "required": [
+          "name",
+          "downloadSpeed",
+          "uploadSpeed",
+          "price"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Fibra Turbo 500 Mega"
+          },
+          "downloadSpeed": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 500
+          },
+          "uploadSpeed": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 250
+          },
+          "price": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0.01,
+            "example": 99.9
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Plano residencial de ultra velocidade"
+          },
+          "svaIncluded": {
+            "type": "string",
+            "nullable": true
+          },
+          "suspensionDays": {
+            "type": "integer",
+            "default": 5,
+            "example": 5
+          },
+          "alwaysIssueNfcom": {
+            "type": "boolean",
+            "default": false
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "PlanUpdateRequest": {
+        "type": "object",
+        "description": "Parâmetros para atualização de plano existente",
+        "required": [
+          "name",
+          "downloadSpeed",
+          "uploadSpeed",
+          "price"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Fibra Turbo 600 Mega"
+          },
+          "downloadSpeed": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 600
+          },
+          "uploadSpeed": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 300
+          },
+          "price": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0.01,
+            "example": 109.9
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "svaIncluded": {
+            "type": "string",
+            "nullable": true
+          },
+          "suspensionDays": {
+            "type": "integer",
+            "default": 5
+          },
+          "alwaysIssueNfcom": {
+            "type": "boolean",
+            "default": false
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "CompanyResponse": {
+        "type": "object",
+        "description": "Dados cadastrais da Empresa / Filial do Provedor",
+        "required": [
+          "id",
+          "name",
+          "active",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b2b"
+          },
+          "name": {
+            "type": "string",
+            "example": "Nexus Fibra Telecomunicações LTDA"
+          },
+          "document": {
+            "type": "string",
+            "nullable": true,
+            "description": "CNPJ da empresa",
+            "example": "12.345.678/0001-90"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "Av. Principal, 1000, Centro, Altamira - PA"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "(93) 3515-0000"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": "contato@nexusfibra.com.br"
+          },
+          "website": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://nexusfibra.com.br"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CompanyCreateRequest": {
+        "type": "object",
+        "description": "Parâmetros para criação de empresa/filial",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Nexus Fibra Telecomunicações LTDA"
+          },
+          "document": {
+            "type": "string",
+            "nullable": true,
+            "example": "12.345.678/0001-90"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "Av. Principal, 1000, Centro, Altamira - PA"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "(93) 3515-0000"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": "contato@nexusfibra.com.br"
+          },
+          "website": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://nexusfibra.com.br"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "CompanyUpdateRequest": {
+        "type": "object",
+        "description": "Parâmetros para atualização de empresa/filial",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Nexus Fibra Telecomunicações LTDA"
+          },
+          "document": {
+            "type": "string",
+            "nullable": true,
+            "example": "12.345.678/0001-90"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "Av. Principal, 1000, Centro, Altamira - PA"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "(93) 3515-0000"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": "contato@nexusfibra.com.br"
+          },
+          "website": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://nexusfibra.com.br"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "SaleStatusEnum": {
+        "type": "string",
+        "enum": [
+          "SUBMITTED",
+          "PENDING_PAYMENT_SIGNATURE",
+          "PROCESSED",
+          "CANCELED"
+        ],
+        "description": "Estado do fluxo da venda / proposta comercial"
+      },
+      "SaleResponse": {
+        "type": "object",
+        "description": "Dados da venda / proposta comercial registrada",
+        "required": [
+          "id",
+          "planId",
+          "customerName",
+          "customerCpf",
+          "customerPhone",
+          "installationAddress",
+          "city",
+          "state",
+          "zipCode",
+          "preferredDueDate",
+          "notificationChannel",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b2c"
+          },
+          "planId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b2a"
+          },
+          "customerName": {
+            "type": "string",
+            "example": "Mariana Souza"
+          },
+          "customerCpf": {
+            "type": "string",
+            "example": "987.654.321-00"
+          },
+          "customerEmail": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": "mariana.souza@email.com"
+          },
+          "customerPhone": {
+            "type": "string",
+            "example": "(93) 98400-1122"
+          },
+          "installationAddress": {
+            "type": "string",
+            "example": "Rua das Acácias, 45"
+          },
+          "city": {
+            "type": "string",
+            "example": "Altamira"
+          },
+          "state": {
+            "type": "string",
+            "example": "PA"
+          },
+          "zipCode": {
+            "type": "string",
+            "example": "68370-000"
+          },
+          "preferredDueDate": {
+            "type": "integer",
+            "example": 10
+          },
+          "notificationChannel": {
+            "type": "string",
+            "example": "WHATSAPP"
+          },
+          "sellerName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Vendedor Roberto"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SaleStatusEnum"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateSaleRequest": {
+        "type": "object",
+        "description": "Parâmetros para submissão de nova proposta de venda",
+        "required": [
+          "planId",
+          "customerName",
+          "customerCpf",
+          "customerPhone",
+          "installationAddress",
+          "city",
+          "state",
+          "zipCode"
+        ],
+        "properties": {
+          "planId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b2a"
+          },
+          "customerName": {
+            "type": "string",
+            "example": "Mariana Souza"
+          },
+          "customerCpf": {
+            "type": "string",
+            "example": "987.654.321-00"
+          },
+          "customerEmail": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": "mariana.souza@email.com"
+          },
+          "customerPhone": {
+            "type": "string",
+            "example": "(93) 98400-1122"
+          },
+          "installationAddress": {
+            "type": "string",
+            "example": "Rua das Acácias, 45"
+          },
+          "city": {
+            "type": "string",
+            "example": "Altamira"
+          },
+          "state": {
+            "type": "string",
+            "example": "PA"
+          },
+          "zipCode": {
+            "type": "string",
+            "example": "68370-000"
+          },
+          "preferredDueDate": {
+            "type": "integer",
+            "default": 10,
+            "example": 10
+          },
+          "notificationChannel": {
+            "type": "string",
+            "default": "WHATSAPP",
+            "example": "WHATSAPP"
+          },
+          "sellerName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Vendedor Roberto"
           }
         }
       },

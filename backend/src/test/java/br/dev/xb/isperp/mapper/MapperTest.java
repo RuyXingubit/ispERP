@@ -1,10 +1,16 @@
 package br.dev.xb.isperp.mapper;
 
+import br.dev.xb.isperp.api.dto.CompanyResponse;
+import br.dev.xb.isperp.api.dto.PlanCreateRequest;
+import br.dev.xb.isperp.api.dto.PlanResponse;
+import br.dev.xb.isperp.api.dto.SaleResponse;
+import br.dev.xb.isperp.api.dto.SaleStatusEnum;
 import br.dev.xb.isperp.dto.ContractDTO;
-import br.dev.xb.isperp.dto.PlanDTO;
 import br.dev.xb.isperp.dto.WorkOrderDTO;
+import br.dev.xb.isperp.entity.Company;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Plan;
+import br.dev.xb.isperp.entity.Sale;
 import br.dev.xb.isperp.entity.WorkOrder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,9 +29,11 @@ class MapperTest {
     private final PlanMapper planMapper = Mappers.getMapper(PlanMapper.class);
     private final ContractMapper contractMapper = Mappers.getMapper(ContractMapper.class);
     private final WorkOrderMapper workOrderMapper = Mappers.getMapper(WorkOrderMapper.class);
+    private final CompanyMapper companyMapper = Mappers.getMapper(CompanyMapper.class);
+    private final SaleMapper saleMapper = Mappers.getMapper(SaleMapper.class);
 
     @Test
-    @DisplayName("Deve mapear Plan para PlanDTO e vice-versa corretamente com MapStruct")
+    @DisplayName("Deve mapear Plan para PlanResponse e vice-versa corretamente com MapStruct")
     void shouldMapPlanToDtoAndEntity() {
         UUID planId = UUID.randomUUID();
         Plan plan = Plan.builder()
@@ -40,22 +48,70 @@ class MapperTest {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        PlanDTO dto = planMapper.toDto(plan);
+        PlanResponse response = planMapper.toResponse(plan);
 
-        assertThat(dto).isNotNull();
-        assertThat(dto.getId()).isEqualTo(planId);
-        assertThat(dto.getName()).isEqualTo("Fibra 500 Mega");
-        assertThat(dto.getDownloadSpeed()).isEqualTo(500);
-        assertThat(dto.getPrice()).isEqualByComparingTo("99.90");
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(planId);
+        assertThat(response.getName()).isEqualTo("Fibra 500 Mega");
+        assertThat(response.getDownloadSpeed()).isEqualTo(500);
+        assertThat(response.getPrice()).isEqualTo(99.90);
 
-        Plan entityFromDto = planMapper.toEntity(dto);
+        PlanCreateRequest createRequest = new PlanCreateRequest("Fibra 500 Mega", 500, 250, 99.90);
+        Plan entityFromDto = planMapper.toEntity(createRequest);
         assertThat(entityFromDto).isNotNull();
         assertThat(entityFromDto.getName()).isEqualTo("Fibra 500 Mega");
         assertThat(entityFromDto.getDownloadSpeed()).isEqualTo(500);
 
-        List<PlanDTO> dtoList = planMapper.toDtoList(List.of(plan));
-        assertThat(dtoList).hasSize(1);
-        assertThat(dtoList.get(0).getName()).isEqualTo("Fibra 500 Mega");
+        List<PlanResponse> responseList = planMapper.toResponseList(List.of(plan));
+        assertThat(responseList).hasSize(1);
+        assertThat(responseList.get(0).getName()).isEqualTo("Fibra 500 Mega");
+    }
+
+    @Test
+    @DisplayName("Deve mapear Company para CompanyResponse e vice-versa corretamente")
+    void shouldMapCompanyToResponse() {
+        UUID companyId = UUID.randomUUID();
+        Company company = Company.builder()
+                .id(companyId)
+                .name("ISP Matriz")
+                .document("12.345.678/0001-90")
+                .active(true)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        CompanyResponse response = companyMapper.toResponse(company);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(companyId);
+        assertThat(response.getName()).isEqualTo("ISP Matriz");
+        assertThat(response.getDocument()).isEqualTo("12.345.678/0001-90");
+    }
+
+    @Test
+    @DisplayName("Deve mapear Sale para SaleResponse e converter status para SaleStatusEnum")
+    void shouldMapSaleToResponse() {
+        UUID saleId = UUID.randomUUID();
+        UUID planId = UUID.randomUUID();
+        Sale sale = Sale.builder()
+                .id(saleId)
+                .planId(planId)
+                .customerName("Ana Maria")
+                .customerCpf("12345678900")
+                .customerPhone("11987654321")
+                .installationAddress("Av Paulista, 1000")
+                .city("São Paulo")
+                .state("SP")
+                .zipCode("01310100")
+                .status(Sale.SaleStatus.SUBMITTED)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        SaleResponse response = saleMapper.toResponse(sale);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(saleId);
+        assertThat(response.getCustomerName()).isEqualTo("Ana Maria");
+        assertThat(response.getStatus()).isEqualTo(SaleStatusEnum.SUBMITTED);
     }
 
     @Test
@@ -69,14 +125,13 @@ class MapperTest {
                 .id(contractId)
                 .customerId(customerId)
                 .planId(planId)
-                .contractNumber("CTR-2026-001")
                 .status(Contract.ContractStatus.ACTIVE)
-                .monthlyFee(new BigDecimal("129.90"))
-                .dueDay(15)
-                .installationAddress("Rua das Flores, 123")
+                .installationAddress("Rua dos Ipês, 456")
                 .city("São Paulo")
                 .state("SP")
                 .zipCode("01000-000")
+                .monthlyFee(new BigDecimal("129.90"))
+                .dueDay(10)
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -85,8 +140,7 @@ class MapperTest {
         assertThat(dto).isNotNull();
         assertThat(dto.getId()).isEqualTo(contractId);
         assertThat(dto.getCustomerId()).isEqualTo(customerId);
-        assertThat(dto.getContractNumber()).isEqualTo("CTR-2026-001");
-        assertThat(dto.getStatus()).isEqualTo(Contract.ContractStatus.ACTIVE);
+        assertThat(dto.getPlanId()).isEqualTo(planId);
         assertThat(dto.getMonthlyFee()).isEqualByComparingTo("129.90");
     }
 

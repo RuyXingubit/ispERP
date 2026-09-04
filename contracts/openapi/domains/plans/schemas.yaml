@@ -1,0 +1,143 @@
+PlanResponse:
+  type: object
+  description: Dados cadastrais do Plano de Acesso à Internet
+  required:
+    - id
+    - name
+    - downloadSpeed
+    - uploadSpeed
+    - price
+    - active
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b2a"
+    name:
+      type: string
+      example: "Fibra Turbo 500 Mega"
+    downloadSpeed:
+      type: integer
+      description: Velocidade nominal de download em Mbps
+      example: 500
+    uploadSpeed:
+      type: integer
+      description: Velocidade nominal de upload em Mbps
+      example: 250
+    price:
+      type: number
+      format: double
+      description: Mensalidade em Reais (BRL)
+      example: 99.90
+    description:
+      type: string
+      nullable: true
+      example: "Plano residencial de ultra velocidade com Wi-Fi 6 incluso"
+    svaIncluded:
+      type: string
+      nullable: true
+      example: "Paramount+, Noggin"
+    suspensionDays:
+      type: integer
+      default: 5
+      example: 5
+    alwaysIssueNfcom:
+      type: boolean
+      default: false
+      example: false
+    active:
+      type: boolean
+      default: true
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+PlanCreateRequest:
+  type: object
+  description: Parâmetros para criação de novo plano
+  required:
+    - name
+    - downloadSpeed
+    - uploadSpeed
+    - price
+  properties:
+    name:
+      type: string
+      example: "Fibra Turbo 500 Mega"
+    downloadSpeed:
+      type: integer
+      minimum: 1
+      example: 500
+    uploadSpeed:
+      type: integer
+      minimum: 1
+      example: 250
+    price:
+      type: number
+      format: double
+      minimum: 0.01
+      example: 99.90
+    description:
+      type: string
+      nullable: true
+      example: "Plano residencial de ultra velocidade"
+    svaIncluded:
+      type: string
+      nullable: true
+    suspensionDays:
+      type: integer
+      default: 5
+      example: 5
+    alwaysIssueNfcom:
+      type: boolean
+      default: false
+    active:
+      type: boolean
+      default: true
+
+PlanUpdateRequest:
+  type: object
+  description: Parâmetros para atualização de plano existente
+  required:
+    - name
+    - downloadSpeed
+    - uploadSpeed
+    - price
+  properties:
+    name:
+      type: string
+      example: "Fibra Turbo 600 Mega"
+    downloadSpeed:
+      type: integer
+      minimum: 1
+      example: 600
+    uploadSpeed:
+      type: integer
+      minimum: 1
+      example: 300
+    price:
+      type: number
+      format: double
+      minimum: 0.01
+      example: 109.90
+    description:
+      type: string
+      nullable: true
+    svaIncluded:
+      type: string
+      nullable: true
+    suspensionDays:
+      type: integer
+      default: 5
+    alwaysIssueNfcom:
+      type: boolean
+      default: false
+    active:
+      type: boolean
+      default: true

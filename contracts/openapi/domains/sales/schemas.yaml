@@ -1,0 +1,136 @@
+SaleStatusEnum:
+  type: string
+  enum:
+    - SUBMITTED
+    - PENDING_PAYMENT_SIGNATURE
+    - PROCESSED
+    - CANCELED
+  description: Estado do fluxo da venda / proposta comercial
+
+SaleResponse:
+  type: object
+  description: Dados da venda / proposta comercial registrada
+  required:
+    - id
+    - planId
+    - customerName
+    - customerCpf
+    - customerPhone
+    - installationAddress
+    - city
+    - state
+    - zipCode
+    - preferredDueDate
+    - notificationChannel
+    - status
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b2c"
+    planId:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b2a"
+    customerName:
+      type: string
+      example: "Mariana Souza"
+    customerCpf:
+      type: string
+      example: "987.654.321-00"
+    customerEmail:
+      type: string
+      format: email
+      nullable: true
+      example: "mariana.souza@email.com"
+    customerPhone:
+      type: string
+      example: "(93) 98400-1122"
+    installationAddress:
+      type: string
+      example: "Rua das Acácias, 45"
+    city:
+      type: string
+      example: "Altamira"
+    state:
+      type: string
+      example: "PA"
+    zipCode:
+      type: string
+      example: "68370-000"
+    preferredDueDate:
+      type: integer
+      example: 10
+    notificationChannel:
+      type: string
+      example: "WHATSAPP"
+    sellerName:
+      type: string
+      nullable: true
+      example: "Vendedor Roberto"
+    status:
+      $ref: '#/SaleStatusEnum'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+CreateSaleRequest:
+  type: object
+  description: Parâmetros para submissão de nova proposta de venda
+  required:
+    - planId
+    - customerName
+    - customerCpf
+    - customerPhone
+    - installationAddress
+    - city
+    - state
+    - zipCode
+  properties:
+    planId:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b2a"
+    customerName:
+      type: string
+      example: "Mariana Souza"
+    customerCpf:
+      type: string
+      example: "987.654.321-00"
+    customerEmail:
+      type: string
+      format: email
+      nullable: true
+      example: "mariana.souza@email.com"
+    customerPhone:
+      type: string
+      example: "(93) 98400-1122"
+    installationAddress:
+      type: string
+      example: "Rua das Acácias, 45"
+    city:
+      type: string
+      example: "Altamira"
+    state:
+      type: string
+      example: "PA"
+    zipCode:
+      type: string
+      example: "68370-000"
+    preferredDueDate:
+      type: integer
+      default: 10
+      example: 10
+    notificationChannel:
+      type: string
+      default: "WHATSAPP"
+      example: "WHATSAPP"
+    sellerName:
+      type: string
+      nullable: true
+      example: "Vendedor Roberto"

@@ -1,20 +1,30 @@
-import api from './api';
+import { getSales } from '../api/generated/endpoints/sales/sales';
+import type {
+  CreateSaleRequest,
+  SaleResponse,
+} from '../api/generated/models';
 
-export interface SaleProspect {
-  id?: string;
-  name: string;
-  cpf: string;
-  phone: string;
-  email?: string;
-  cep: string;
-  address: string;
-  planId: string;
-  dueDate: number;
-}
+export type { CreateSaleRequest, SaleResponse };
+export type SaleProspect = CreateSaleRequest;
+
+const salesApi = getSales();
 
 export const saleService = {
-  createSale: (saleData: SaleProspect) => api.post('/sales', saleData),
-  submitSale: (saleData: SaleProspect) => api.post('/sales', saleData),
+  getAllSales: async (): Promise<SaleResponse[]> => {
+    return salesApi.getAllSales();
+  },
+
+  getSaleById: async (id: string): Promise<SaleResponse> => {
+    return salesApi.getSaleById(id);
+  },
+
+  submitSale: async (saleData: CreateSaleRequest): Promise<SaleResponse> => {
+    return salesApi.submitSale(saleData);
+  },
+
+  createSale: async (saleData: CreateSaleRequest): Promise<SaleResponse> => {
+    return salesApi.submitSale(saleData);
+  },
 };
 
 export default saleService;

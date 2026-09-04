@@ -8,11 +8,15 @@
  */
 
 export * from './blockOnuParams';
+export * from './companyCreateRequest';
+export * from './companyResponse';
+export * from './companyUpdateRequest';
 export * from './completeWorkOrderRequest';
 export * from './contractCreateRequest';
 export * from './contractResponse';
 export * from './contractStatus';
 export * from './contractUpdateRequest';
+export * from './createSaleRequest';
 export * from './customerCreateRequest';
 export * from './customerResponse';
 export * from './customerUpdateRequest';
@@ -37,6 +41,9 @@ export * from './onuStatusEnum';
 export * from './onuStatusResponse';
 export * from './pageResponse';
 export * from './payInvoiceRequest';
+export * from './planCreateRequest';
+export * from './planResponse';
+export * from './planUpdateRequest';
 export * from './problemDetails';
 export * from './provisionOnu200';
 export * from './provisionOnuRequest';
@@ -53,6 +60,8 @@ export * from './radiusPolicyConfigRequest';
 export * from './radiusPolicyConfigResponse';
 export * from './radiusSessionResponse';
 export * from './radiusStatusResponse';
+export * from './saleResponse';
+export * from './saleStatusEnum';
 export * from './scheduleWorkOrderRequest';
 export * from './searchCustomersByCpfParams';
 export * from './searchCustomersByNameParams';

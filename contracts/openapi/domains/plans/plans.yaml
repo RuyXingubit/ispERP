@@ -1,0 +1,143 @@
+/plans:
+  get:
+    tags:
+      - Plans
+    summary: Listar todos os planos cadastrados
+    operationId: getAllPlans
+    responses:
+      '200':
+        description: Lista de planos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/PlanResponse'
+
+  post:
+    tags:
+      - Plans
+    summary: Cadastrar novo plano
+    operationId: createPlan
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/PlanCreateRequest'
+    responses:
+      '201':
+        description: Plano criado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PlanResponse'
+      '400':
+        description: Dados inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/plans/active:
+  get:
+    tags:
+      - Plans
+    summary: Listar apenas planos ativos
+    operationId: getActivePlans
+    responses:
+      '200':
+        description: Lista de planos ativos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/PlanResponse'
+
+/plans/{id}:
+  get:
+    tags:
+      - Plans
+    summary: Buscar plano por ID
+    operationId: getPlanById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Detalhes do plano
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PlanResponse'
+      '404':
+        description: Plano não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  put:
+    tags:
+      - Plans
+    summary: Atualizar plano por ID
+    operationId: updatePlan
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/PlanUpdateRequest'
+    responses:
+      '200':
+        description: Plano atualizado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PlanResponse'
+      '400':
+        description: Dados inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Plano não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  delete:
+    tags:
+      - Plans
+    summary: Remover plano por ID
+    operationId: deletePlan
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Plano removido com sucesso
+      '404':
+        description: Plano não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

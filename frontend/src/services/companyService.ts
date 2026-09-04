@@ -1,41 +1,38 @@
-import api from './api';
+import { getCompanies } from '../api/generated/endpoints/companies/companies';
+import type {
+  CompanyResponse,
+  CompanyCreateRequest,
+  CompanyUpdateRequest,
+} from '../api/generated/models';
 
-export interface Company {
-  id?: string;
-  name: string;
-  document?: string;
-  cnpj?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  website?: string;
-  active?: boolean;
-  createdAt?: string;
-}
+export type Company = CompanyResponse;
+export type { CompanyCreateRequest, CompanyUpdateRequest };
+
+const companiesApi = getCompanies();
 
 export const companyService = {
-  getAll: async (): Promise<Company[]> => {
-    const res = await api.get<Company[]>('/companies');
-    return res.data;
+  getAll: async (): Promise<CompanyResponse[]> => {
+    return companiesApi.getAllCompanies();
   },
-  getPrimary: async (): Promise<Company> => {
-    const res = await api.get<Company>('/companies/primary');
-    return res.data;
+
+  getPrimary: async (): Promise<CompanyResponse> => {
+    return companiesApi.getPrimaryCompany();
   },
-  getById: async (id: string): Promise<Company> => {
-    const res = await api.get<Company>(`/companies/${id}`);
-    return res.data;
+
+  getById: async (id: string): Promise<CompanyResponse> => {
+    return companiesApi.getCompanyById(id);
   },
-  create: async (company: Partial<Company>): Promise<Company> => {
-    const res = await api.post<Company>('/companies', company);
-    return res.data;
+
+  create: async (company: CompanyCreateRequest): Promise<CompanyResponse> => {
+    return companiesApi.createCompany(company);
   },
-  update: async (id: string, company: Partial<Company>): Promise<Company> => {
-    const res = await api.put<Company>(`/companies/${id}`, company);
-    return res.data;
+
+  update: async (id: string, company: CompanyUpdateRequest): Promise<CompanyResponse> => {
+    return companiesApi.updateCompany(id, company);
   },
+
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/companies/${id}`);
+    return companiesApi.deleteCompany(id);
   },
 };
 

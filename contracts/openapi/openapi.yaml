@@ -46,6 +46,12 @@ tags:
     description: Sessões PPPoE ativas, histórico e desconexão PoD
   - name: RadiusLifecycle
     description: Gestão de políticas de auto-corte, bloqueios e auditoria de ações PoD
+  - name: Plans
+    description: Catálogo de Planos de Internet e Valores
+  - name: Companies
+    description: Cadastro e Gestão de Empresas / Filiais do Provedor
+  - name: Sales
+    description: Propostas Comerciais e Vendas de Planos
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -165,6 +171,28 @@ paths:
     $ref: './domains/radius/radius.yaml#/~1radius~1lifecycle~1action'
   /radius/lifecycle/run-autoblock:
     $ref: './domains/radius/radius.yaml#/~1radius~1lifecycle~1run-autoblock'
+
+  # Planos de Acesso à Internet
+  /plans:
+    $ref: './domains/plans/plans.yaml#/~1plans'
+  /plans/active:
+    $ref: './domains/plans/plans.yaml#/~1plans~1active'
+  /plans/{id}:
+    $ref: './domains/plans/plans.yaml#/~1plans~1{id}'
+
+  # Empresas / Filiais
+  /companies:
+    $ref: './domains/companies/companies.yaml#/~1companies'
+  /companies/primary:
+    $ref: './domains/companies/companies.yaml#/~1companies~1primary'
+  /companies/{id}:
+    $ref: './domains/companies/companies.yaml#/~1companies~1{id}'
+
+  # Vendas / Propostas Comerciais
+  /sales:
+    $ref: './domains/sales/sales.yaml#/~1sales'
+  /sales/{id}:
+    $ref: './domains/sales/sales.yaml#/~1sales~1{id}'
 
 components:
   securitySchemes:
@@ -287,4 +315,28 @@ components:
       $ref: './domains/radius/schemas.yaml#/RadiusLifecycleLogResponse'
     RadiusLifecycleLogsPageResponse:
       $ref: './domains/radius/schemas.yaml#/RadiusLifecycleLogsPageResponse'
+
+    # Plans
+    PlanResponse:
+      $ref: './domains/plans/schemas.yaml#/PlanResponse'
+    PlanCreateRequest:
+      $ref: './domains/plans/schemas.yaml#/PlanCreateRequest'
+    PlanUpdateRequest:
+      $ref: './domains/plans/schemas.yaml#/PlanUpdateRequest'
+
+    # Companies
+    CompanyResponse:
+      $ref: './domains/companies/schemas.yaml#/CompanyResponse'
+    CompanyCreateRequest:
+      $ref: './domains/companies/schemas.yaml#/CompanyCreateRequest'
+    CompanyUpdateRequest:
+      $ref: './domains/companies/schemas.yaml#/CompanyUpdateRequest'
+
+    # Sales
+    SaleStatusEnum:
+      $ref: './domains/sales/schemas.yaml#/SaleStatusEnum'
+    SaleResponse:
+      $ref: './domains/sales/schemas.yaml#/SaleResponse'
+    CreateSaleRequest:
+      $ref: './domains/sales/schemas.yaml#/CreateSaleRequest'
 

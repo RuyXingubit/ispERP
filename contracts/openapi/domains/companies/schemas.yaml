@@ -1,0 +1,117 @@
+CompanyResponse:
+  type: object
+  description: Dados cadastrais da Empresa / Filial do Provedor
+  required:
+    - id
+    - name
+    - active
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b2b"
+    name:
+      type: string
+      example: "Nexus Fibra Telecomunicações LTDA"
+    document:
+      type: string
+      nullable: true
+      description: CNPJ da empresa
+      example: "12.345.678/0001-90"
+    address:
+      type: string
+      nullable: true
+      example: "Av. Principal, 1000, Centro, Altamira - PA"
+    phone:
+      type: string
+      nullable: true
+      example: "(93) 3515-0000"
+    email:
+      type: string
+      format: email
+      nullable: true
+      example: "contato@nexusfibra.com.br"
+    website:
+      type: string
+      nullable: true
+      example: "https://nexusfibra.com.br"
+    active:
+      type: boolean
+      default: true
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+CompanyCreateRequest:
+  type: object
+  description: Parâmetros para criação de empresa/filial
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      example: "Nexus Fibra Telecomunicações LTDA"
+    document:
+      type: string
+      nullable: true
+      example: "12.345.678/0001-90"
+    address:
+      type: string
+      nullable: true
+      example: "Av. Principal, 1000, Centro, Altamira - PA"
+    phone:
+      type: string
+      nullable: true
+      example: "(93) 3515-0000"
+    email:
+      type: string
+      format: email
+      nullable: true
+      example: "contato@nexusfibra.com.br"
+    website:
+      type: string
+      nullable: true
+      example: "https://nexusfibra.com.br"
+    active:
+      type: boolean
+      default: true
+
+CompanyUpdateRequest:
+  type: object
+  description: Parâmetros para atualização de empresa/filial
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      example: "Nexus Fibra Telecomunicações LTDA"
+    document:
+      type: string
+      nullable: true
+      example: "12.345.678/0001-90"
+    address:
+      type: string
+      nullable: true
+      example: "Av. Principal, 1000, Centro, Altamira - PA"
+    phone:
+      type: string
+      nullable: true
+      example: "(93) 3515-0000"
+    email:
+      type: string
+      format: email
+      nullable: true
+      example: "contato@nexusfibra.com.br"
+    website:
+      type: string
+      nullable: true
+      example: "https://nexusfibra.com.br"
+    active:
+      type: boolean
+      default: true
