@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/models/user_role.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../attendance/presentation/attendance_hub_modal.dart';
 
 /// Shell de navegação adaptativo (Sidebar em Desktop/Web; BottomBar em Mobile).
 class ShellScaffold extends ConsumerWidget {
@@ -67,6 +68,13 @@ class ShellScaffold extends ConsumerWidget {
             body: child,
             bottomNavigationBar: _buildMobileBottomBar(context, userRole, currentPath),
             drawer: _buildMobileDrawer(context, ref, authState, userRole),
+            floatingActionButton: FloatingActionButton.extended(
+              backgroundColor: AppTheme.primaryBlue,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.support_agent_rounded),
+              label: const Text('Atendimento', style: TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: () => AttendanceHubModal.show(context),
+            ),
           );
         }
       },
@@ -132,6 +140,25 @@ class ShellScaffold extends ConsumerWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+          // Botão Central de Destaque: [ Iniciar Atendimento ]
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 6.0),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryBlue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 2,
+              ),
+              icon: const Icon(Icons.support_agent_rounded, size: 20),
+              label: const Text(
+                'Iniciar Atendimento',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              onPressed: () => AttendanceHubModal.show(context),
             ),
           ),
           const Divider(height: 1),
@@ -223,6 +250,9 @@ class ShellScaffold extends ConsumerWidget {
       }
     }
 
+    items.add(const Padding(padding: EdgeInsets.symmetric(vertical: 4), child: Divider(height: 1)));
+    items.add(_buildNavItem(context, '/my-cash-custody', 'Meu Caixa & Custódia', Icons.account_balance_wallet_outlined, currentPath == '/my-cash-custody'));
+
     return items;
   }
 
@@ -306,6 +336,22 @@ class ShellScaffold extends ConsumerWidget {
               ),
             ),
             const Divider(),
+            ListTile(
+              leading: const Icon(Icons.support_agent_rounded, color: AppTheme.primaryBlue),
+              title: const Text('Iniciar Atendimento', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryBlue)),
+              onTap: () {
+                Navigator.pop(context);
+                AttendanceHubModal.show(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_balance_wallet_outlined),
+              title: const Text('Meu Caixa & Custódia'),
+              onTap: () {
+                Navigator.pop(context);
+                context.go('/my-cash-custody');
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.dns_outlined),
               title: const Text('Trocar de Servidor'),
