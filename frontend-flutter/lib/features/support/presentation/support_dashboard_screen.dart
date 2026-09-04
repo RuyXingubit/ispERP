@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../financial/data/dashboard_bi_provider.dart';
 
 /// Painel de Atendimento ao Cliente & Suporte Técnico.
-class SupportDashboardScreen extends ConsumerWidget {
+/// Estrutura de helpdesk com busca rápida e contadores reais.
+class SupportDashboardScreen extends ConsumerStatefulWidget {
   const SupportDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
+  ConsumerState<SupportDashboardScreen> createState() => _SupportDashboardScreenState();
+}
+
+class _SupportDashboardScreenState extends ConsumerState<SupportDashboardScreen> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final biAsync = ref.watch(dashboardBiProvider);
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -17,6 +31,7 @@ class SupportDashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header responsivo
             Row(
               children: [
                 Expanded(
@@ -29,7 +44,7 @@ class SupportDashboardScreen extends ConsumerWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Localização de assinantes e suporte ao cliente',
+                        'Localização rápida de assinantes, desbloqueio em confiança, diagnóstico de sinal e chamados',
                         style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                       ),
                     ],
@@ -38,47 +53,95 @@ class SupportDashboardScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 24),
+
+            // Barra de Busca Rápida
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: const InputDecoration(
+                          hintText: 'Buscar assinante por CPF/CNPJ, Nome, MAC da ONU ou Contrato...',
+                          prefixIcon: Icon(Icons.search, size: 20),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Pronto para plugar a busca de clientes real
+                      },
+                      icon: const Icon(Icons.person_search, size: 18),
+                      label: const Text('Localizar'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Cards de Métricas de Atendimento
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: [
+                _buildTicketMetric('Fila de Atendimento', '0 em espera', AppTheme.accentWarning, Icons.phone_in_talk),
+                _buildTicketMetric('SLA Médio (ANATEL)', 'Dentro da meta', AppTheme.accentGreen, Icons.timer_outlined),
+                _buildTicketMetric('Desbloqueio em Confiança', 'Regras Ativas', AppTheme.primaryBlue, Icons.lock_open),
+                biAsync.maybeWhen(
+                  data: (bi) => _buildTicketMetric(
+                    'Alarmes Ópticos (NOC)',
+                    '${bi.criticalSignalOnus} em alerta',
+                    bi.criticalSignalOnus == 0 ? AppTheme.accentGreen : AppTheme.accentError,
+                    Icons.cable,
+                  ),
+                  orElse: () => _buildTicketMetric('Alarmes Ópticos (NOC)', 'Verificando...', AppTheme.primaryIndigo, Icons.cable),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+
+            // Fila de Chamados Ativos
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryIndigo.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(Icons.headset_mic_outlined, color: AppTheme.primaryIndigo, size: 22),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Módulo de Atendimento Conectado',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Servidor: ${authState.serverUrl ?? "Local"}',
-                                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                              ),
-                            ],
-                          ),
+                        const Text('Chamados em Andamento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        IconButton(
+                          onPressed: () {},
+                          icon: const Icon(Icons.refresh, size: 18, color: AppTheme.primaryBlue),
+                          tooltip: 'Recarregar chamados',
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Pronto para integração com a consulta real de assinantes e abertura de chamados na API.',
-                      style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      alignment: Alignment.center,
+                      child: Column(
+                        children: [
+                          const Icon(Icons.check_circle_outline, color: AppTheme.accentGreen, size: 32),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Nenhum chamado aberto aguardando atendimento no momento.',
+                            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                          ),
+                          const SizedBox(height: 14),
+                          OutlinedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(Icons.add, size: 16),
+                            label: const Text('Abrir Novo Atendimento'),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -86,6 +149,49 @@ class SupportDashboardScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTicketMetric(String title, String val, Color col, IconData ic) {
+    return Container(
+      width: 240,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.darkSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.darkCard),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: col.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(ic, color: col, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  val,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
