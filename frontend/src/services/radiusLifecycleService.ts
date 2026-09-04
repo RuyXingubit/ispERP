@@ -1,5 +1,5 @@
-import api from './api';
-import {
+import { getRadiusLifecycle } from '../api/generated/endpoints/radius-lifecycle/radius-lifecycle';
+import type {
   RadiusPolicyConfig,
   RadiusPolicyConfigRequest,
   RadiusLifecycleSummary,
@@ -8,35 +8,36 @@ import {
   RadiusManualActionResponse,
 } from '../types';
 
+const lifecycleApi = getRadiusLifecycle();
+
 export const radiusLifecycleService = {
   getSummary: async (): Promise<RadiusLifecycleSummary> => {
-    const res = await api.get<RadiusLifecycleSummary>('/radius/lifecycle/summary');
-    return res.data;
+    return (await lifecycleApi.getRadiusLifecycleSummary()) as unknown as RadiusLifecycleSummary;
   },
 
   getPolicyConfig: async (): Promise<RadiusPolicyConfig> => {
-    const res = await api.get<RadiusPolicyConfig>('/radius/lifecycle/policy');
-    return res.data;
+    return (await lifecycleApi.getRadiusPolicy()) as unknown as RadiusPolicyConfig;
   },
 
   updatePolicyConfig: async (data: RadiusPolicyConfigRequest): Promise<RadiusPolicyConfig> => {
-    const res = await api.put<RadiusPolicyConfig>('/radius/lifecycle/policy', data);
-    return res.data;
+    return (await lifecycleApi.updateRadiusPolicy(data as any)) as unknown as RadiusPolicyConfig;
   },
 
   getLogs: async (page = 0, size = 20): Promise<{ content: RadiusLifecycleLog[]; totalElements: number }> => {
-    const res = await api.get<{ content: RadiusLifecycleLog[]; totalElements: number }>(
-      `/radius/lifecycle/logs?page=${page}&size=${size}`
-    );
-    return res.data;
+    const res = await lifecycleApi.getRadiusLifecycleLogs({ page, size });
+    return {
+      content: (res.content || []) as unknown as RadiusLifecycleLog[],
+      totalElements: res.totalElements || 0,
+    };
   },
 
   executeManualAction: async (data: RadiusManualActionRequest): Promise<RadiusManualActionResponse> => {
-    const res = await api.post<RadiusManualActionResponse>('/radius/lifecycle/action', data);
-    return res.data;
+    return (await lifecycleApi.executeRadiusManualAction(data as any)) as unknown as RadiusManualActionResponse;
   },
 
   runAutoBlockNow: async (): Promise<void> => {
-    await api.post('/radius/lifecycle/run-autoblock');
+    await lifecycleApi.runRadiusAutoBlock();
   },
 };
+
+export default radiusLifecycleService;

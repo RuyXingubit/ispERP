@@ -1,0 +1,553 @@
+NasVendorType:
+  type: string
+  enum:
+    - MIKROTIK
+    - HUAWEI
+    - JUNIPER
+    - ACCEL_PPP
+    - CISCO
+    - A10
+    - HILLSTONE
+    - GENERIC
+  description: Fabricante / Sistema Operacional do BNG
+
+NasRequest:
+  type: object
+  description: Payload para criação ou atualização de um BNG / NAS no FreeRADIUS
+  required:
+    - nasname
+    - secret
+  properties:
+    companyId:
+      type: string
+      format: uuid
+      nullable: true
+    nasname:
+      type: string
+      description: Endereço IP ou Hostname do BNG
+      example: "10.0.0.1"
+    shortname:
+      type: string
+      nullable: true
+      example: "bng-core-01"
+    type:
+      type: string
+      default: "other"
+      example: "mikrotik"
+    ports:
+      type: integer
+      nullable: true
+      example: 1812
+    secret:
+      type: string
+      description: Segredo compartilhado RADIUS (Shared Secret)
+      example: "nexus_radius_secret_123"
+    server:
+      type: string
+      nullable: true
+    community:
+      type: string
+      nullable: true
+    description:
+      type: string
+      nullable: true
+      example: "BNG Concentrador PPPoE Zona Norte"
+    vendorType:
+      $ref: '#/NasVendorType'
+
+NasResponse:
+  type: object
+  description: Dados cadastrais do BNG / NAS
+  required:
+    - id
+    - nasname
+    - type
+    - secret
+    - vendorType
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b1e"
+    companyId:
+      type: string
+      format: uuid
+      nullable: true
+    nasname:
+      type: string
+      example: "10.0.0.1"
+    shortname:
+      type: string
+      nullable: true
+      example: "bng-core-01"
+    type:
+      type: string
+      example: "mikrotik"
+    ports:
+      type: integer
+      nullable: true
+      example: 1812
+    secret:
+      type: string
+      example: "nexus_radius_secret_123"
+    server:
+      type: string
+      nullable: true
+    community:
+      type: string
+      nullable: true
+    description:
+      type: string
+      nullable: true
+      example: "BNG Concentrador PPPoE Zona Norte"
+    vendorType:
+      $ref: '#/NasVendorType'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+RadiusSessionResponse:
+  type: object
+  description: Detalhes de uma sessão PPPoE/IPoE de cliente no RADIUS Accounting
+  required:
+    - radacctId
+    - acctSessionId
+    - username
+    - nasIpAddress
+    - acctInputOctets
+    - acctOutputOctets
+    - isOnline
+  properties:
+    radacctId:
+      type: integer
+      format: int64
+      example: 10425
+    acctSessionId:
+      type: string
+      example: "81a0002f"
+    username:
+      type: string
+      example: "joao.silva@nexusfibra"
+    nasIpAddress:
+      type: string
+      example: "10.0.0.1"
+    nasShortname:
+      type: string
+      nullable: true
+      example: "bng-core-01"
+    acctStartTime:
+      type: string
+      format: date-time
+      nullable: true
+    acctUpdateTime:
+      type: string
+      format: date-time
+      nullable: true
+    acctStopTime:
+      type: string
+      format: date-time
+      nullable: true
+    acctSessionTime:
+      type: integer
+      nullable: true
+      description: Duração da sessão em segundos
+      example: 86400
+    acctInputOctets:
+      type: integer
+      format: int64
+      description: Bytes baixados (Download)
+      example: 524288000
+    acctOutputOctets:
+      type: integer
+      format: int64
+      description: Bytes enviados (Upload)
+      example: 104857600
+    callingStationId:
+      type: string
+      nullable: true
+      description: MAC address do roteador/ONT do cliente
+      example: "48:57:02:1A:BC:DE"
+    framedIpAddress:
+      type: string
+      nullable: true
+      example: "100.64.12.34"
+    framedIpv6Prefix:
+      type: string
+      nullable: true
+      example: "2804:xxxx::/64"
+    delegatedIpv6Prefix:
+      type: string
+      nullable: true
+      example: "2804:xxxx:1::/56"
+    isOnline:
+      type: boolean
+      example: true
+    customerName:
+      type: string
+      nullable: true
+      example: "João Silva"
+    customerCpfCnpj:
+      type: string
+      nullable: true
+      example: "123.456.789-00"
+
+RadiusDisconnectRequest:
+  type: object
+  description: Parâmetros para envio de pacote PoD (Packet of Disconnect)
+  required:
+    - username
+  properties:
+    username:
+      type: string
+      example: "joao.silva@nexusfibra"
+    nasIpAddress:
+      type: string
+      nullable: true
+      example: "10.0.0.1"
+    acctSessionId:
+      type: string
+      nullable: true
+      example: "81a0002f"
+    framedIpAddress:
+      type: string
+      nullable: true
+      example: "100.64.12.34"
+
+RadiusDisconnectResponse:
+  type: object
+  description: Resultado do comando PoD enviado ao BNG
+  required:
+    - username
+    - success
+    - message
+  properties:
+    username:
+      type: string
+      example: "joao.silva@nexusfibra"
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: "Pacote PoD enviado com sucesso. Usuário desconectado do BNG."
+
+RadiusBlockMode:
+  type: string
+  enum:
+    - CAPTIVE_PORTAL
+    - BANDWIDTH_REDUCTION
+    - COMPLETE_DISCONNECT
+  description: Modo de bloqueio financeiro aplicado no BNG
+
+RadiusLifecycleActionType:
+  type: string
+  enum:
+    - AUTO_BLOCK
+    - PAYMENT_UNBLOCK
+    - TRUST_UNBLOCK
+    - MANUAL_BLOCK
+    - MANUAL_UNBLOCK
+    - PROVISIONING_SYNC
+    - POD_DISCONNECT
+  description: Tipo de ação executada no ciclo de vida RADIUS
+
+RadiusLifecycleSummaryResponse:
+  type: object
+  description: Resumo estatístico do ciclo de vida RADIUS e auto-corte
+  required:
+    - totalPppoeUsers
+    - totalActiveUsers
+    - totalBlockedUsers
+    - totalTrustUnblocked
+    - todayAutoBlocksCount
+    - todayUnblocksCount
+    - toleranceDays
+    - autoBlockEnabled
+  properties:
+    totalPppoeUsers:
+      type: integer
+      format: int64
+      example: 1250
+    totalActiveUsers:
+      type: integer
+      format: int64
+      example: 1180
+    totalBlockedUsers:
+      type: integer
+      format: int64
+      example: 70
+    totalTrustUnblocked:
+      type: integer
+      format: int64
+      example: 15
+    todayAutoBlocksCount:
+      type: integer
+      format: int64
+      example: 5
+    todayUnblocksCount:
+      type: integer
+      format: int64
+      example: 8
+    toleranceDays:
+      type: integer
+      example: 5
+    autoBlockEnabled:
+      type: boolean
+      example: true
+
+RadiusPolicyConfigResponse:
+  type: object
+  description: Configuração das regras e políticas de auto-corte do RADIUS
+  required:
+    - id
+    - autoBlockEnabled
+    - toleranceDays
+    - blockMode
+    - reducedDownloadKbps
+    - reducedUploadKbps
+    - unblockOnPayment
+    - sendPodOnBlock
+    - sendPodOnUnblock
+    - blockStartHour
+    - blockEndHour
+    - allowBlockOnFriday
+    - protectEveOfHolidays
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b1f"
+    autoBlockEnabled:
+      type: boolean
+      example: true
+    toleranceDays:
+      type: integer
+      example: 5
+    blockMode:
+      $ref: '#/RadiusBlockMode'
+    reducedDownloadKbps:
+      type: integer
+      example: 1024
+    reducedUploadKbps:
+      type: integer
+      example: 512
+    unblockOnPayment:
+      type: boolean
+      example: true
+    sendPodOnBlock:
+      type: boolean
+      example: true
+    sendPodOnUnblock:
+      type: boolean
+      example: true
+    blockStartHour:
+      type: integer
+      example: 8
+    blockEndHour:
+      type: integer
+      example: 18
+    allowBlockOnFriday:
+      type: boolean
+      example: false
+    protectEveOfHolidays:
+      type: boolean
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+RadiusPolicyConfigRequest:
+  type: object
+  description: Parâmetros para atualização da política de auto-corte
+  required:
+    - autoBlockEnabled
+    - toleranceDays
+    - blockMode
+  properties:
+    autoBlockEnabled:
+      type: boolean
+      example: true
+    toleranceDays:
+      type: integer
+      minimum: 1
+      example: 5
+    blockMode:
+      $ref: '#/RadiusBlockMode'
+    reducedDownloadKbps:
+      type: integer
+      default: 1024
+      example: 1024
+    reducedUploadKbps:
+      type: integer
+      default: 512
+      example: 512
+    unblockOnPayment:
+      type: boolean
+      default: true
+    sendPodOnBlock:
+      type: boolean
+      default: true
+    sendPodOnUnblock:
+      type: boolean
+      default: true
+    blockStartHour:
+      type: integer
+      minimum: 0
+      maximum: 23
+      default: 8
+      example: 8
+    blockEndHour:
+      type: integer
+      minimum: 0
+      maximum: 23
+      default: 18
+      example: 18
+    allowBlockOnFriday:
+      type: boolean
+      default: false
+    protectEveOfHolidays:
+      type: boolean
+      default: true
+
+RadiusManualActionRequest:
+  type: object
+  description: Parâmetros para execução manual de bloqueio ou desbloqueio
+  required:
+    - contractId
+    - action
+  properties:
+    contractId:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b1c"
+    action:
+      type: string
+      description: "BLOCK ou UNBLOCK"
+      example: "BLOCK"
+    reason:
+      type: string
+      nullable: true
+      example: "Inadimplência manual via atendente"
+    vendorType:
+      $ref: '#/NasVendorType'
+      nullable: true
+    sendPod:
+      type: boolean
+      nullable: true
+      default: true
+
+RadiusManualActionResponse:
+  type: object
+  description: Resultado da ação manual executada
+  required:
+    - contractId
+    - username
+    - actionApplied
+    - success
+    - message
+  properties:
+    contractId:
+      type: string
+      format: uuid
+    username:
+      type: string
+      example: "joao.silva@nexusfibra"
+    actionApplied:
+      type: string
+      example: "BLOCK"
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: "Ação executada com sucesso"
+    podResult:
+      type: string
+      nullable: true
+      example: "PoD ACK recebido"
+
+RadiusLifecycleLogResponse:
+  type: object
+  description: Log de auditoria de eventos no ciclo de vida RADIUS
+  required:
+    - id
+    - contractId
+    - customerId
+    - username
+    - actionType
+    - success
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+    contractId:
+      type: string
+      format: uuid
+    customerId:
+      type: string
+      format: uuid
+    customerName:
+      type: string
+      nullable: true
+      example: "João Silva"
+    username:
+      type: string
+      example: "joao.silva@nexusfibra"
+    actionType:
+      $ref: '#/RadiusLifecycleActionType'
+    reason:
+      type: string
+      nullable: true
+      example: "Inadimplência - Fatura vencida há 5 dias"
+    nasIp:
+      type: string
+      nullable: true
+      example: "10.0.0.1"
+    success:
+      type: boolean
+      example: true
+    details:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+
+RadiusLifecycleLogsPageResponse:
+  type: object
+  description: Página de logs do ciclo de vida RADIUS
+  required:
+    - content
+    - totalElements
+    - totalPages
+    - size
+    - number
+  properties:
+    content:
+      type: array
+      items:
+        $ref: '#/RadiusLifecycleLogResponse'
+    totalElements:
+      type: integer
+      format: int64
+      example: 100
+    totalPages:
+      type: integer
+      example: 5
+    size:
+      type: integer
+      example: 20
+    number:
+      type: integer
+      example: 0

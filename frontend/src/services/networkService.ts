@@ -1,40 +1,67 @@
-import api from './api';
+import { getNetworkDevices } from '../api/generated/endpoints/network-devices/network-devices';
+import { getOnus } from '../api/generated/endpoints/onus/onus';
+import type {
+  NetworkDeviceResponse,
+  NetworkDeviceCreateRequest,
+  OnuResponse,
+  OnuStatusResponse,
+} from '../api/generated/models';
 
-export interface NetworkDevice {
-  id?: string;
-  name: string;
-  ipAddress: string;
-  vendor: string;
-  model: string;
-  snmpCommunity?: string;
-  active?: boolean;
-}
+export type NetworkDevice = NetworkDeviceResponse;
+export type { NetworkDeviceCreateRequest };
+export type OnuProvisioning = OnuResponse;
+export type { OnuStatusResponse };
 
-export interface OnuProvisioning {
-  id?: string;
-  contractId: string;
-  serialNumber: string;
-  oltId?: string;
-  ponPort?: string;
-  status?: string;
-  signalRx?: number;
-  signalTx?: number;
-}
+const networkDevicesApi = getNetworkDevices();
+const onusApi = getOnus();
 
 export const networkService = {
   // Dispositivos de Rede (OLTs)
-  getAllDevices: () => api.get<NetworkDevice[]>('/network-devices'),
-  getDeviceById: (id: string) => api.get<NetworkDevice>(`/network-devices/${id}`),
-  saveDevice: (device: Partial<NetworkDevice>) => api.post<NetworkDevice>('/network-devices', device),
+  getAllDevices: async (): Promise<{ data: NetworkDeviceResponse[] }> => {
+    const data = await networkDevicesApi.getAllDevices();
+    return { data };
+  },
+
+  getDeviceById: async (id: string): Promise<{ data: NetworkDeviceResponse }> => {
+    const data = await networkDevicesApi.getDeviceById(id);
+    return { data };
+  },
+
+  saveDevice: async (device: any): Promise<{ data: NetworkDeviceResponse }> => {
+    const data = await networkDevicesApi.saveDevice(device);
+    return { data };
+  },
 
   // Provisionamentos de ONU
-  getAllOnus: () => api.get<OnuProvisioning[]>('/onus'),
-  getOnuById: (id: string) => api.get<OnuProvisioning>(`/onus/${id}`),
-  getOnuByContractId: (contractId: string) => api.get<OnuProvisioning>(`/onus/contract/${contractId}`),
-  blockOnu: (contractId: string, reason = 'Inadimplência') =>
-    api.post(`/onus/contract/${contractId}/block?reason=${encodeURIComponent(reason)}`),
-  unblockOnu: (contractId: string) => api.post(`/onus/contract/${contractId}/unblock`),
-  diagnoseOnu: (id: string) => api.get(`/onus/${id}/diagnose`),
+  getAllOnus: async (): Promise<{ data: OnuResponse[] }> => {
+    const data = await onusApi.getAllOnus();
+    return { data };
+  },
+
+  getOnuById: async (id: string): Promise<{ data: OnuResponse }> => {
+    const data = await onusApi.getOnuById(id);
+    return { data };
+  },
+
+  getOnuByContractId: async (contractId: string): Promise<{ data: OnuResponse }> => {
+    const data = await onusApi.getOnuByContractId(contractId);
+    return { data };
+  },
+
+  blockOnu: async (contractId: string, reason = 'Inadimplência'): Promise<{ data: OnuResponse }> => {
+    const data = await onusApi.blockOnu(contractId, { reason });
+    return { data };
+  },
+
+  unblockOnu: async (contractId: string): Promise<{ data: OnuResponse }> => {
+    const data = await onusApi.unblockOnu(contractId);
+    return { data };
+  },
+
+  diagnoseOnu: async (id: string): Promise<{ data: OnuStatusResponse }> => {
+    const data = await onusApi.diagnoseOnu(id);
+    return { data };
+  },
 };
 
 export default networkService;

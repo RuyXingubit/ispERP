@@ -1,0 +1,75 @@
+/network-devices:
+  get:
+    tags:
+      - NetworkDevices
+    summary: Listar todos os dispositivos de rede (OLTs / BNGs)
+    description: Retorna a lista de concentradores e OLTs com credenciais mascaradas
+    operationId: getAllDevices
+    responses:
+      '200':
+        description: Lista de dispositivos cadastrados
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/NetworkDeviceResponse'
+
+  post:
+    tags:
+      - NetworkDevices
+    summary: Cadastrar novo dispositivo de rede
+    operationId: saveDevice
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/NetworkDeviceCreateRequest'
+    responses:
+      '201':
+        description: Dispositivo cadastrado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NetworkDeviceResponse'
+      '200':
+        description: Dispositivo salvo com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NetworkDeviceResponse'
+      '400':
+        description: Dados inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/network-devices/{id}:
+  get:
+    tags:
+      - NetworkDevices
+    summary: Buscar dispositivo de rede por ID
+    operationId: getDeviceById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ID do dispositivo
+    responses:
+      '200':
+        description: Detalhes do dispositivo
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NetworkDeviceResponse'
+      '404':
+        description: Dispositivo não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

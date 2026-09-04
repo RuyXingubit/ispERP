@@ -1,0 +1,156 @@
+/onus:
+  get:
+    tags:
+      - Onus
+    summary: Listar todos os provisionamentos de ONU
+    operationId: getAllOnus
+    responses:
+      '200':
+        description: Lista de provisionamentos de ONU
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/OnuResponse'
+
+/onus/{id}:
+  get:
+    tags:
+      - Onus
+    summary: Buscar provisionamento de ONU por ID
+    operationId: getOnuById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Detalhes do provisionamento da ONU
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/OnuResponse'
+      '404':
+        description: Provisionamento não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/onus/contract/{contractId}:
+  get:
+    tags:
+      - Onus
+    summary: Buscar provisionamento de ONU pelo ID do contrato
+    operationId: getOnuByContractId
+    parameters:
+      - name: contractId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Detalhes do provisionamento da ONU
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/OnuResponse'
+      '404':
+        description: Nenhum provisionamento encontrado para este contrato
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/onus/contract/{contractId}/block:
+  post:
+    tags:
+      - Onus
+    summary: Bloquear acesso à internet da ONU na OLT
+    operationId: blockOnu
+    parameters:
+      - name: contractId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: reason
+        in: query
+        required: false
+        schema:
+          type: string
+          default: "Inadimplência"
+    responses:
+      '200':
+        description: ONU bloqueada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/OnuResponse'
+      '400':
+        description: Falha ao executar bloqueio
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/onus/contract/{contractId}/unblock:
+  post:
+    tags:
+      - Onus
+    summary: Desbloquear acesso à internet da ONU na OLT
+    operationId: unblockOnu
+    parameters:
+      - name: contractId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: ONU desbloqueada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/OnuResponse'
+      '400':
+        description: Falha ao executar desbloqueio
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/onus/{id}/diagnose:
+  get:
+    tags:
+      - Onus
+    summary: Diagnosticar telemetria e sinal óptico da ONU
+    operationId: diagnoseOnu
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Diagnóstico de sinal da ONU
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/OnuStatusResponse'
+      '400':
+        description: Falha ao diagnosticar sinal da ONU
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

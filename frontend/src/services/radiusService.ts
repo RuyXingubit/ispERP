@@ -1,51 +1,49 @@
-import api from './api';
-import {
-  Nas,
+import { getNas } from '../api/generated/endpoints/nas/nas';
+import { getRadiusSessions } from '../api/generated/endpoints/radius-sessions/radius-sessions';
+import type {
   NasRequest,
-  RadiusSession,
   RadiusDisconnectRequest,
   RadiusDisconnectResponse,
-} from '../types/radius';
+} from '../api/generated/models';
+import type { Nas, RadiusSession } from '../types/radius';
+
+const nasApi = getNas();
+const sessionsApi = getRadiusSessions();
 
 export const radiusService = {
   // NAS / BNGs
   getAllNas: async (): Promise<Nas[]> => {
-    const response = await api.get<Nas[]>('/api/radius/nas');
-    return response.data;
+    return (await nasApi.getAllNas()) as unknown as Nas[];
   },
 
   getNasById: async (id: string): Promise<Nas> => {
-    const response = await api.get<Nas>(`/api/radius/nas/${id}`);
-    return response.data;
+    return (await nasApi.getNasById(id)) as unknown as Nas;
   },
 
   createNas: async (data: NasRequest): Promise<Nas> => {
-    const response = await api.post<Nas>('/api/radius/nas', data);
-    return response.data;
+    return (await nasApi.createNas(data)) as unknown as Nas;
   },
 
   updateNas: async (id: string, data: NasRequest): Promise<Nas> => {
-    const response = await api.put<Nas>(`/api/radius/nas/${id}`, data);
-    return response.data;
+    return (await nasApi.updateNas(id, data)) as unknown as Nas;
   },
 
   deleteNas: async (id: string): Promise<void> => {
-    await api.delete(`/api/radius/nas/${id}`);
+    await nasApi.deleteNas(id);
   },
 
   // Sessions
   getActiveSessions: async (): Promise<RadiusSession[]> => {
-    const response = await api.get<RadiusSession[]>('/api/radius/sessions/active');
-    return response.data;
+    return (await sessionsApi.getActiveSessions()) as unknown as RadiusSession[];
   },
 
   getSessionHistory: async (username: string): Promise<RadiusSession[]> => {
-    const response = await api.get<RadiusSession[]>(`/api/radius/sessions/history/${username}`);
-    return response.data;
+    return (await sessionsApi.getSessionHistory(username)) as unknown as RadiusSession[];
   },
 
   disconnectUser: async (data: RadiusDisconnectRequest): Promise<RadiusDisconnectResponse> => {
-    const response = await api.post<RadiusDisconnectResponse>('/api/radius/disconnect', data);
-    return response.data;
+    return await sessionsApi.disconnectUser(data);
   },
 };
+
+export default radiusService;

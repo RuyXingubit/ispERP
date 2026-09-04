@@ -14,7 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/radius/lifecycle")
+@RequestMapping({"/radius/lifecycle", "/api/radius/lifecycle"})
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @Tag(name = "RADIUS Lifecycle & Auto-Corte", description = "Endpoints para gestão de políticas de inadimplência, auto-corte, desbloqueio e auditoria de ações PoD")
 @SuppressWarnings("null")

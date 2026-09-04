@@ -1,0 +1,301 @@
+/radius/nas:
+  get:
+    tags:
+      - Nas
+    summary: Listar todos os NAS/BNGs cadastrados
+    operationId: getAllNas
+    responses:
+      '200':
+        description: Lista de servidores NAS
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/NasResponse'
+
+  post:
+    tags:
+      - Nas
+    summary: Cadastrar um novo NAS/BNG
+    operationId: createNas
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/NasRequest'
+    responses:
+      '201':
+        description: NAS cadastrado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NasResponse'
+      '400':
+        description: Dados inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/radius/nas/{id}:
+  get:
+    tags:
+      - Nas
+    summary: Buscar detalhes de um NAS por ID
+    operationId: getNasById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Detalhes do NAS
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NasResponse'
+      '404':
+        description: NAS não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  put:
+    tags:
+      - Nas
+    summary: Atualizar dados de um NAS/BNG
+    operationId: updateNas
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/NasRequest'
+    responses:
+      '200':
+        description: NAS atualizado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NasResponse'
+      '404':
+        description: NAS não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  delete:
+    tags:
+      - Nas
+    summary: Remover um NAS/BNG
+    operationId: deleteNas
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: NAS removido com sucesso
+      '404':
+        description: NAS não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/radius/sessions/active:
+  get:
+    tags:
+      - RadiusSessions
+    summary: Listar todas as sessões PPPoE/IPoE ativas (Online)
+    operationId: getActiveSessions
+    responses:
+      '200':
+        description: Lista de sessões ativas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/RadiusSessionResponse'
+
+/radius/sessions/history/{username}:
+  get:
+    tags:
+      - RadiusSessions
+    summary: Histórico de conexões de um assinante
+    operationId: getSessionHistory
+    parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Histórico de sessões do assinante
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/RadiusSessionResponse'
+
+/radius/disconnect:
+  post:
+    tags:
+      - RadiusSessions
+    summary: Enviar comando PoD (Packet of Disconnect) ao BNG
+    operationId: disconnectUser
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/RadiusDisconnectRequest'
+    responses:
+      '200':
+        description: Resposta do envio PoD
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/RadiusDisconnectResponse'
+      '400':
+        description: Erro na requisição
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/radius/lifecycle/summary:
+  get:
+    tags:
+      - RadiusLifecycle
+    summary: Resumo estatístico de assinantes, bloqueios e políticas de auto-corte
+    operationId: getRadiusLifecycleSummary
+    responses:
+      '200':
+        description: Resumo estatístico
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/RadiusLifecycleSummaryResponse'
+
+/radius/lifecycle/policy:
+  get:
+    tags:
+      - RadiusLifecycle
+    summary: Consulta configuração de políticas de tolerância e auto-corte
+    operationId: getRadiusPolicy
+    responses:
+      '200':
+        description: Configuração atual da política
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/RadiusPolicyConfigResponse'
+
+  put:
+    tags:
+      - RadiusLifecycle
+    summary: Atualiza parâmetros e dias de tolerância do auto-corte
+    operationId: updateRadiusPolicy
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/RadiusPolicyConfigRequest'
+    responses:
+      '200':
+        description: Política atualizada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/RadiusPolicyConfigResponse'
+      '400':
+        description: Dados de política inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/radius/lifecycle/logs:
+  get:
+    tags:
+      - RadiusLifecycle
+    summary: Logs de auditoria de cortes, desbloqueios e pacotes PoD
+    operationId: getRadiusLifecycleLogs
+    parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 20
+    responses:
+      '200':
+        description: Página de logs do ciclo de vida
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/RadiusLifecycleLogsPageResponse'
+
+/radius/lifecycle/action:
+  post:
+    tags:
+      - RadiusLifecycle
+    summary: Executa ação manual de bloqueio ou desbloqueio com envio de PoD
+    operationId: executeRadiusManualAction
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/RadiusManualActionRequest'
+    responses:
+      '200':
+        description: Resultado da ação manual
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/RadiusManualActionResponse'
+      '400':
+        description: Erro ao executar ação
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/radius/lifecycle/run-autoblock:
+  post:
+    tags:
+      - RadiusLifecycle
+    summary: Executa manualmente a rotina de varredura e auto-corte de inadimplentes
+    operationId: runRadiusAutoBlock
+    responses:
+      '200':
+        description: Rotina disparada com sucesso

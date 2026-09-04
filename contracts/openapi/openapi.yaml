@@ -36,6 +36,16 @@ tags:
     description: Contratos (Gestão de planos, minutas e status contratual)
   - name: Customers
     description: Clientes (Cadastro e busca de assinantes)
+  - name: NetworkDevices
+    description: Dispositivos de Rede (OLTs, BNGs, Concentradores)
+  - name: Onus
+    description: Provisionamento e Diagnóstico de ONUs em OLTs
+  - name: Nas
+    description: Servidores NAS / BNG do FreeRADIUS
+  - name: RadiusSessions
+    description: Sessões PPPoE ativas, histórico e desconexão PoD
+  - name: RadiusLifecycle
+    description: Gestão de políticas de auto-corte, bloqueios e auditoria de ações PoD
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -114,6 +124,48 @@ paths:
   /users/{id}:
     $ref: './domains/users/users.yaml#/~1users~1{id}'
 
+  # Dispositivos de Rede (OLTs)
+  /network-devices:
+    $ref: './domains/network/devices.yaml#/~1network-devices'
+  /network-devices/{id}:
+    $ref: './domains/network/devices.yaml#/~1network-devices~1{id}'
+
+  # Provisionamento de ONUs
+  /onus:
+    $ref: './domains/network/onus.yaml#/~1onus'
+  /onus/{id}:
+    $ref: './domains/network/onus.yaml#/~1onus~1{id}'
+  /onus/contract/{contractId}:
+    $ref: './domains/network/onus.yaml#/~1onus~1contract~1{contractId}'
+  /onus/contract/{contractId}/block:
+    $ref: './domains/network/onus.yaml#/~1onus~1contract~1{contractId}~1block'
+  /onus/contract/{contractId}/unblock:
+    $ref: './domains/network/onus.yaml#/~1onus~1contract~1{contractId}~1unblock'
+  /onus/{id}/diagnose:
+    $ref: './domains/network/onus.yaml#/~1onus~1{id}~1diagnose'
+
+  # RADIUS (NAS, Sessões e Auto-Corte Lifecycle)
+  /radius/nas:
+    $ref: './domains/radius/radius.yaml#/~1radius~1nas'
+  /radius/nas/{id}:
+    $ref: './domains/radius/radius.yaml#/~1radius~1nas~1{id}'
+  /radius/sessions/active:
+    $ref: './domains/radius/radius.yaml#/~1radius~1sessions~1active'
+  /radius/sessions/history/{username}:
+    $ref: './domains/radius/radius.yaml#/~1radius~1sessions~1history~1{username}'
+  /radius/disconnect:
+    $ref: './domains/radius/radius.yaml#/~1radius~1disconnect'
+  /radius/lifecycle/summary:
+    $ref: './domains/radius/radius.yaml#/~1radius~1lifecycle~1summary'
+  /radius/lifecycle/policy:
+    $ref: './domains/radius/radius.yaml#/~1radius~1lifecycle~1policy'
+  /radius/lifecycle/logs:
+    $ref: './domains/radius/radius.yaml#/~1radius~1lifecycle~1logs'
+  /radius/lifecycle/action:
+    $ref: './domains/radius/radius.yaml#/~1radius~1lifecycle~1action'
+  /radius/lifecycle/run-autoblock:
+    $ref: './domains/radius/radius.yaml#/~1radius~1lifecycle~1run-autoblock'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -189,4 +241,50 @@ components:
       $ref: './domains/users/schemas.yaml#/UserCreateRequest'
     UserUpdateRequest:
       $ref: './domains/users/schemas.yaml#/UserUpdateRequest'
+
+    # Network
+    NetworkDriverType:
+      $ref: './domains/network/schemas.yaml#/NetworkDriverType'
+    NetworkDeviceResponse:
+      $ref: './domains/network/schemas.yaml#/NetworkDeviceResponse'
+    NetworkDeviceCreateRequest:
+      $ref: './domains/network/schemas.yaml#/NetworkDeviceCreateRequest'
+    OnuStatusEnum:
+      $ref: './domains/network/schemas.yaml#/OnuStatusEnum'
+    OnuResponse:
+      $ref: './domains/network/schemas.yaml#/OnuResponse'
+    OnuStatusResponse:
+      $ref: './domains/network/schemas.yaml#/OnuStatusResponse'
+
+    # RADIUS
+    NasVendorType:
+      $ref: './domains/radius/schemas.yaml#/NasVendorType'
+    NasRequest:
+      $ref: './domains/radius/schemas.yaml#/NasRequest'
+    NasResponse:
+      $ref: './domains/radius/schemas.yaml#/NasResponse'
+    RadiusSessionResponse:
+      $ref: './domains/radius/schemas.yaml#/RadiusSessionResponse'
+    RadiusDisconnectRequest:
+      $ref: './domains/radius/schemas.yaml#/RadiusDisconnectRequest'
+    RadiusDisconnectResponse:
+      $ref: './domains/radius/schemas.yaml#/RadiusDisconnectResponse'
+    RadiusBlockMode:
+      $ref: './domains/radius/schemas.yaml#/RadiusBlockMode'
+    RadiusLifecycleActionType:
+      $ref: './domains/radius/schemas.yaml#/RadiusLifecycleActionType'
+    RadiusLifecycleSummaryResponse:
+      $ref: './domains/radius/schemas.yaml#/RadiusLifecycleSummaryResponse'
+    RadiusPolicyConfigResponse:
+      $ref: './domains/radius/schemas.yaml#/RadiusPolicyConfigResponse'
+    RadiusPolicyConfigRequest:
+      $ref: './domains/radius/schemas.yaml#/RadiusPolicyConfigRequest'
+    RadiusManualActionRequest:
+      $ref: './domains/radius/schemas.yaml#/RadiusManualActionRequest'
+    RadiusManualActionResponse:
+      $ref: './domains/radius/schemas.yaml#/RadiusManualActionResponse'
+    RadiusLifecycleLogResponse:
+      $ref: './domains/radius/schemas.yaml#/RadiusLifecycleLogResponse'
+    RadiusLifecycleLogsPageResponse:
+      $ref: './domains/radius/schemas.yaml#/RadiusLifecycleLogsPageResponse'
 

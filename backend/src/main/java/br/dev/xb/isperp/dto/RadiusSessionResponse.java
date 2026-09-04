@@ -1,5 +1,6 @@
 package br.dev.xb.isperp.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +29,13 @@ public class RadiusSessionResponse {
     private @Nullable String framedIpAddress;
     private @Nullable String framedIpv6Prefix;
     private @Nullable String delegatedIpv6Prefix;
+    @JsonProperty("isOnline")
     private boolean isOnline;
     private @Nullable String customerName;
     private @Nullable String customerCpfCnpj;
+
+    @JsonProperty("isOnline")
+    public boolean isOnline() {
+        return isOnline;
+    }
 }

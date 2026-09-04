@@ -56,6 +56,26 @@
     {
       "name": "Customers",
       "description": "Clientes (Cadastro e busca de assinantes)"
+    },
+    {
+      "name": "NetworkDevices",
+      "description": "Dispositivos de Rede (OLTs, BNGs, Concentradores)"
+    },
+    {
+      "name": "Onus",
+      "description": "Provisionamento e Diagnóstico de ONUs em OLTs"
+    },
+    {
+      "name": "Nas",
+      "description": "Servidores NAS / BNG do FreeRADIUS"
+    },
+    {
+      "name": "RadiusSessions",
+      "description": "Sessões PPPoE ativas, histórico e desconexão PoD"
+    },
+    {
+      "name": "RadiusLifecycle",
+      "description": "Gestão de políticas de auto-corte, bloqueios e auditoria de ações PoD"
     }
   ],
   "paths": {
@@ -1836,6 +1856,830 @@
           }
         }
       }
+    },
+    "/network-devices": {
+      "get": {
+        "tags": [
+          "NetworkDevices"
+        ],
+        "summary": "Listar todos os dispositivos de rede (OLTs / BNGs)",
+        "description": "Retorna a lista de concentradores e OLTs com credenciais mascaradas",
+        "operationId": "getAllDevices",
+        "responses": {
+          "200": {
+            "description": "Lista de dispositivos cadastrados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NetworkDeviceResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "NetworkDevices"
+        ],
+        "summary": "Cadastrar novo dispositivo de rede",
+        "operationId": "saveDevice",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NetworkDeviceCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dispositivo salvo com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkDeviceResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Dispositivo cadastrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkDeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/network-devices/{id}": {
+      "get": {
+        "tags": [
+          "NetworkDevices"
+        ],
+        "summary": "Buscar dispositivo de rede por ID",
+        "operationId": "getDeviceById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "ID do dispositivo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do dispositivo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkDeviceResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dispositivo não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/onus": {
+      "get": {
+        "tags": [
+          "Onus"
+        ],
+        "summary": "Listar todos os provisionamentos de ONU",
+        "operationId": "getAllOnus",
+        "responses": {
+          "200": {
+            "description": "Lista de provisionamentos de ONU",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OnuResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/onus/{id}": {
+      "get": {
+        "tags": [
+          "Onus"
+        ],
+        "summary": "Buscar provisionamento de ONU por ID",
+        "operationId": "getOnuById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do provisionamento da ONU",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnuResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Provisionamento não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/onus/contract/{contractId}": {
+      "get": {
+        "tags": [
+          "Onus"
+        ],
+        "summary": "Buscar provisionamento de ONU pelo ID do contrato",
+        "operationId": "getOnuByContractId",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do provisionamento da ONU",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnuResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nenhum provisionamento encontrado para este contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/onus/contract/{contractId}/block": {
+      "post": {
+        "tags": [
+          "Onus"
+        ],
+        "summary": "Bloquear acesso à internet da ONU na OLT",
+        "operationId": "blockOnu",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "Inadimplência"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ONU bloqueada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnuResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falha ao executar bloqueio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/onus/contract/{contractId}/unblock": {
+      "post": {
+        "tags": [
+          "Onus"
+        ],
+        "summary": "Desbloquear acesso à internet da ONU na OLT",
+        "operationId": "unblockOnu",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ONU desbloqueada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnuResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falha ao executar desbloqueio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/onus/{id}/diagnose": {
+      "get": {
+        "tags": [
+          "Onus"
+        ],
+        "summary": "Diagnosticar telemetria e sinal óptico da ONU",
+        "operationId": "diagnoseOnu",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Diagnóstico de sinal da ONU",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnuStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falha ao diagnosticar sinal da ONU",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/radius/nas": {
+      "get": {
+        "tags": [
+          "Nas"
+        ],
+        "summary": "Listar todos os NAS/BNGs cadastrados",
+        "operationId": "getAllNas",
+        "responses": {
+          "200": {
+            "description": "Lista de servidores NAS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NasResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Nas"
+        ],
+        "summary": "Cadastrar um novo NAS/BNG",
+        "operationId": "createNas",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NasRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "NAS cadastrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NasResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/radius/nas/{id}": {
+      "get": {
+        "tags": [
+          "Nas"
+        ],
+        "summary": "Buscar detalhes de um NAS por ID",
+        "operationId": "getNasById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do NAS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NasResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NAS não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Nas"
+        ],
+        "summary": "Atualizar dados de um NAS/BNG",
+        "operationId": "updateNas",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NasRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "NAS atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NasResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NAS não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Nas"
+        ],
+        "summary": "Remover um NAS/BNG",
+        "operationId": "deleteNas",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "NAS removido com sucesso"
+          },
+          "404": {
+            "description": "NAS não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/radius/sessions/active": {
+      "get": {
+        "tags": [
+          "RadiusSessions"
+        ],
+        "summary": "Listar todas as sessões PPPoE/IPoE ativas (Online)",
+        "operationId": "getActiveSessions",
+        "responses": {
+          "200": {
+            "description": "Lista de sessões ativas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RadiusSessionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/radius/sessions/history/{username}": {
+      "get": {
+        "tags": [
+          "RadiusSessions"
+        ],
+        "summary": "Histórico de conexões de um assinante",
+        "operationId": "getSessionHistory",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Histórico de sessões do assinante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RadiusSessionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/radius/disconnect": {
+      "post": {
+        "tags": [
+          "RadiusSessions"
+        ],
+        "summary": "Enviar comando PoD (Packet of Disconnect) ao BNG",
+        "operationId": "disconnectUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RadiusDisconnectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resposta do envio PoD",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RadiusDisconnectResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na requisição",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/radius/lifecycle/summary": {
+      "get": {
+        "tags": [
+          "RadiusLifecycle"
+        ],
+        "summary": "Resumo estatístico de assinantes, bloqueios e políticas de auto-corte",
+        "operationId": "getRadiusLifecycleSummary",
+        "responses": {
+          "200": {
+            "description": "Resumo estatístico",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RadiusLifecycleSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/radius/lifecycle/policy": {
+      "get": {
+        "tags": [
+          "RadiusLifecycle"
+        ],
+        "summary": "Consulta configuração de políticas de tolerância e auto-corte",
+        "operationId": "getRadiusPolicy",
+        "responses": {
+          "200": {
+            "description": "Configuração atual da política",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RadiusPolicyConfigResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "RadiusLifecycle"
+        ],
+        "summary": "Atualiza parâmetros e dias de tolerância do auto-corte",
+        "operationId": "updateRadiusPolicy",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RadiusPolicyConfigRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Política atualizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RadiusPolicyConfigResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados de política inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/radius/lifecycle/logs": {
+      "get": {
+        "tags": [
+          "RadiusLifecycle"
+        ],
+        "summary": "Logs de auditoria de cortes, desbloqueios e pacotes PoD",
+        "operationId": "getRadiusLifecycleLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de logs do ciclo de vida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RadiusLifecycleLogsPageResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/radius/lifecycle/action": {
+      "post": {
+        "tags": [
+          "RadiusLifecycle"
+        ],
+        "summary": "Executa ação manual de bloqueio ou desbloqueio com envio de PoD",
+        "operationId": "executeRadiusManualAction",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RadiusManualActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado da ação manual",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RadiusManualActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro ao executar ação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/radius/lifecycle/run-autoblock": {
+      "post": {
+        "tags": [
+          "RadiusLifecycle"
+        ],
+        "summary": "Executa manualmente a rotina de varredura e auto-corte de inadimplentes",
+        "operationId": "runRadiusAutoBlock",
+        "responses": {
+          "200": {
+            "description": "Rotina disparada com sucesso"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2938,6 +3782,958 @@
           "active": {
             "type": "boolean",
             "example": true
+          }
+        }
+      },
+      "NetworkDriverType": {
+        "type": "string",
+        "enum": [
+          "SMARTOLT",
+          "EXTERNAL_MICROSERVICE",
+          "MIKROTIK_ROUTEROS",
+          "RADIUS",
+          "MOCK"
+        ],
+        "description": "Tipo de driver de integração com a OLT ou BNG"
+      },
+      "NetworkDeviceResponse": {
+        "type": "object",
+        "description": "Dispositivo de rede (OLT / BNG / Servidor RADIUS) com segredos mascarados/omitidos",
+        "required": [
+          "id",
+          "name",
+          "deviceType",
+          "driverType",
+          "ipAddress",
+          "active",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b1a"
+          },
+          "name": {
+            "type": "string",
+            "example": "OLT Central Huawei 5608T"
+          },
+          "deviceType": {
+            "type": "string",
+            "example": "OLT"
+          },
+          "driverType": {
+            "$ref": "#/components/schemas/NetworkDriverType"
+          },
+          "ipAddress": {
+            "type": "string",
+            "example": "192.168.10.2"
+          },
+          "apiPort": {
+            "type": "integer",
+            "example": 443
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "NetworkDeviceCreateRequest": {
+        "type": "object",
+        "description": "Payload de cadastro/atualização de dispositivo de rede",
+        "required": [
+          "name",
+          "driverType",
+          "ipAddress"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "OLT Bairro Sul ZTE"
+          },
+          "deviceType": {
+            "type": "string",
+            "default": "OLT",
+            "example": "OLT"
+          },
+          "driverType": {
+            "$ref": "#/components/schemas/NetworkDriverType"
+          },
+          "ipAddress": {
+            "type": "string",
+            "example": "10.0.0.10"
+          },
+          "apiPort": {
+            "type": "integer",
+            "default": 443,
+            "example": 443
+          },
+          "apiToken": {
+            "type": "string",
+            "nullable": true,
+            "description": "Token privado de acesso à API da OLT (persiste seguro no banco, nunca retornado na API de consulta)",
+            "example": "secret_olt_token_xyz"
+          },
+          "snmpCommunity": {
+            "type": "string",
+            "nullable": true,
+            "description": "Community SNMP v2c para monitoramento",
+            "example": "isperp_snmp_priv"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "OnuStatusEnum": {
+        "type": "string",
+        "enum": [
+          "PROVISIONED",
+          "BLOCKED",
+          "DEPROVISIONED"
+        ],
+        "description": "Estado operacional do provisionamento da ONU"
+      },
+      "OnuResponse": {
+        "type": "object",
+        "description": "Registro de provisionamento de ONU em OLT com omissão estrita da senha PPPoE",
+        "required": [
+          "id",
+          "contractId",
+          "customerId",
+          "onuMac",
+          "onuSerial",
+          "vlanId",
+          "downloadSpeed",
+          "uploadSpeed",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b1b"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b1c"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b1d"
+          },
+          "networkDeviceId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b1a"
+          },
+          "onuMac": {
+            "type": "string",
+            "example": "48:57:02:1A:BC:DE"
+          },
+          "onuSerial": {
+            "type": "string",
+            "example": "HWTC1A2B3C4D"
+          },
+          "vlanId": {
+            "type": "integer",
+            "example": 100
+          },
+          "pppoeUser": {
+            "type": "string",
+            "nullable": true,
+            "example": "joao.silva@nexusfibra"
+          },
+          "downloadSpeed": {
+            "type": "integer",
+            "description": "Velocidade em Mbps",
+            "example": 500
+          },
+          "uploadSpeed": {
+            "type": "integer",
+            "description": "Velocidade em Mbps",
+            "example": 250
+          },
+          "status": {
+            "$ref": "#/components/schemas/OnuStatusEnum"
+          },
+          "rxPowerDbm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Sinal óptico recebido em dBm",
+            "example": -19.45
+          },
+          "lastSyncAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "OnuStatusResponse": {
+        "type": "object",
+        "description": "Diagnóstico de sinal e telemetria da ONU em tempo real na OLT",
+        "required": [
+          "onuMac",
+          "onuSerial",
+          "status"
+        ],
+        "properties": {
+          "onuMac": {
+            "type": "string",
+            "example": "48:57:02:1A:BC:DE"
+          },
+          "onuSerial": {
+            "type": "string",
+            "example": "HWTC1A2B3C4D"
+          },
+          "status": {
+            "type": "string",
+            "example": "ONLINE"
+          },
+          "rxPowerDbm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -18.72
+          },
+          "txPowerDbm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 2.15
+          },
+          "oltName": {
+            "type": "string",
+            "nullable": true,
+            "example": "OLT Central"
+          },
+          "ponPort": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "details": {
+            "type": "string",
+            "nullable": true,
+            "example": "Sinal óptico dentro dos padrões de conformidade (-15 a -25 dBm)"
+          }
+        }
+      },
+      "NasVendorType": {
+        "type": "string",
+        "enum": [
+          "MIKROTIK",
+          "HUAWEI",
+          "JUNIPER",
+          "ACCEL_PPP",
+          "CISCO",
+          "A10",
+          "HILLSTONE",
+          "GENERIC"
+        ],
+        "description": "Fabricante / Sistema Operacional do BNG"
+      },
+      "NasRequest": {
+        "type": "object",
+        "description": "Payload para criação ou atualização de um BNG / NAS no FreeRADIUS",
+        "required": [
+          "nasname",
+          "secret"
+        ],
+        "properties": {
+          "companyId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "nasname": {
+            "type": "string",
+            "description": "Endereço IP ou Hostname do BNG",
+            "example": "10.0.0.1"
+          },
+          "shortname": {
+            "type": "string",
+            "nullable": true,
+            "example": "bng-core-01"
+          },
+          "type": {
+            "type": "string",
+            "default": "other",
+            "example": "mikrotik"
+          },
+          "ports": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1812
+          },
+          "secret": {
+            "type": "string",
+            "description": "Segredo compartilhado RADIUS (Shared Secret)",
+            "example": "nexus_radius_secret_123"
+          },
+          "server": {
+            "type": "string",
+            "nullable": true
+          },
+          "community": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "BNG Concentrador PPPoE Zona Norte"
+          },
+          "vendorType": {
+            "$ref": "#/components/schemas/NasVendorType"
+          }
+        }
+      },
+      "NasResponse": {
+        "type": "object",
+        "description": "Dados cadastrais do BNG / NAS",
+        "required": [
+          "id",
+          "nasname",
+          "type",
+          "secret",
+          "vendorType",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b1e"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "nasname": {
+            "type": "string",
+            "example": "10.0.0.1"
+          },
+          "shortname": {
+            "type": "string",
+            "nullable": true,
+            "example": "bng-core-01"
+          },
+          "type": {
+            "type": "string",
+            "example": "mikrotik"
+          },
+          "ports": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1812
+          },
+          "secret": {
+            "type": "string",
+            "example": "nexus_radius_secret_123"
+          },
+          "server": {
+            "type": "string",
+            "nullable": true
+          },
+          "community": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "BNG Concentrador PPPoE Zona Norte"
+          },
+          "vendorType": {
+            "$ref": "#/components/schemas/NasVendorType"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "RadiusSessionResponse": {
+        "type": "object",
+        "description": "Detalhes de uma sessão PPPoE/IPoE de cliente no RADIUS Accounting",
+        "required": [
+          "radacctId",
+          "acctSessionId",
+          "username",
+          "nasIpAddress",
+          "acctInputOctets",
+          "acctOutputOctets",
+          "isOnline"
+        ],
+        "properties": {
+          "radacctId": {
+            "type": "integer",
+            "format": "int64",
+            "example": 10425
+          },
+          "acctSessionId": {
+            "type": "string",
+            "example": "81a0002f"
+          },
+          "username": {
+            "type": "string",
+            "example": "joao.silva@nexusfibra"
+          },
+          "nasIpAddress": {
+            "type": "string",
+            "example": "10.0.0.1"
+          },
+          "nasShortname": {
+            "type": "string",
+            "nullable": true,
+            "example": "bng-core-01"
+          },
+          "acctStartTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "acctUpdateTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "acctStopTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "acctSessionTime": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Duração da sessão em segundos",
+            "example": 86400
+          },
+          "acctInputOctets": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Bytes baixados (Download)",
+            "example": 524288000
+          },
+          "acctOutputOctets": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Bytes enviados (Upload)",
+            "example": 104857600
+          },
+          "callingStationId": {
+            "type": "string",
+            "nullable": true,
+            "description": "MAC address do roteador/ONT do cliente",
+            "example": "48:57:02:1A:BC:DE"
+          },
+          "framedIpAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "100.64.12.34"
+          },
+          "framedIpv6Prefix": {
+            "type": "string",
+            "nullable": true,
+            "example": "2804:xxxx::/64"
+          },
+          "delegatedIpv6Prefix": {
+            "type": "string",
+            "nullable": true,
+            "example": "2804:xxxx:1::/56"
+          },
+          "isOnline": {
+            "type": "boolean",
+            "example": true
+          },
+          "customerName": {
+            "type": "string",
+            "nullable": true,
+            "example": "João Silva"
+          },
+          "customerCpfCnpj": {
+            "type": "string",
+            "nullable": true,
+            "example": "123.456.789-00"
+          }
+        }
+      },
+      "RadiusDisconnectRequest": {
+        "type": "object",
+        "description": "Parâmetros para envio de pacote PoD (Packet of Disconnect)",
+        "required": [
+          "username"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "joao.silva@nexusfibra"
+          },
+          "nasIpAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "10.0.0.1"
+          },
+          "acctSessionId": {
+            "type": "string",
+            "nullable": true,
+            "example": "81a0002f"
+          },
+          "framedIpAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "100.64.12.34"
+          }
+        }
+      },
+      "RadiusDisconnectResponse": {
+        "type": "object",
+        "description": "Resultado do comando PoD enviado ao BNG",
+        "required": [
+          "username",
+          "success",
+          "message"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "joao.silva@nexusfibra"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Pacote PoD enviado com sucesso. Usuário desconectado do BNG."
+          }
+        }
+      },
+      "RadiusBlockMode": {
+        "type": "string",
+        "enum": [
+          "CAPTIVE_PORTAL",
+          "BANDWIDTH_REDUCTION",
+          "COMPLETE_DISCONNECT"
+        ],
+        "description": "Modo de bloqueio financeiro aplicado no BNG"
+      },
+      "RadiusLifecycleActionType": {
+        "type": "string",
+        "enum": [
+          "AUTO_BLOCK",
+          "PAYMENT_UNBLOCK",
+          "TRUST_UNBLOCK",
+          "MANUAL_BLOCK",
+          "MANUAL_UNBLOCK",
+          "PROVISIONING_SYNC",
+          "POD_DISCONNECT"
+        ],
+        "description": "Tipo de ação executada no ciclo de vida RADIUS"
+      },
+      "RadiusLifecycleSummaryResponse": {
+        "type": "object",
+        "description": "Resumo estatístico do ciclo de vida RADIUS e auto-corte",
+        "required": [
+          "totalPppoeUsers",
+          "totalActiveUsers",
+          "totalBlockedUsers",
+          "totalTrustUnblocked",
+          "todayAutoBlocksCount",
+          "todayUnblocksCount",
+          "toleranceDays",
+          "autoBlockEnabled"
+        ],
+        "properties": {
+          "totalPppoeUsers": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1250
+          },
+          "totalActiveUsers": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1180
+          },
+          "totalBlockedUsers": {
+            "type": "integer",
+            "format": "int64",
+            "example": 70
+          },
+          "totalTrustUnblocked": {
+            "type": "integer",
+            "format": "int64",
+            "example": 15
+          },
+          "todayAutoBlocksCount": {
+            "type": "integer",
+            "format": "int64",
+            "example": 5
+          },
+          "todayUnblocksCount": {
+            "type": "integer",
+            "format": "int64",
+            "example": 8
+          },
+          "toleranceDays": {
+            "type": "integer",
+            "example": 5
+          },
+          "autoBlockEnabled": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "RadiusPolicyConfigResponse": {
+        "type": "object",
+        "description": "Configuração das regras e políticas de auto-corte do RADIUS",
+        "required": [
+          "id",
+          "autoBlockEnabled",
+          "toleranceDays",
+          "blockMode",
+          "reducedDownloadKbps",
+          "reducedUploadKbps",
+          "unblockOnPayment",
+          "sendPodOnBlock",
+          "sendPodOnUnblock",
+          "blockStartHour",
+          "blockEndHour",
+          "allowBlockOnFriday",
+          "protectEveOfHolidays",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b1f"
+          },
+          "autoBlockEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "toleranceDays": {
+            "type": "integer",
+            "example": 5
+          },
+          "blockMode": {
+            "$ref": "#/components/schemas/RadiusBlockMode"
+          },
+          "reducedDownloadKbps": {
+            "type": "integer",
+            "example": 1024
+          },
+          "reducedUploadKbps": {
+            "type": "integer",
+            "example": 512
+          },
+          "unblockOnPayment": {
+            "type": "boolean",
+            "example": true
+          },
+          "sendPodOnBlock": {
+            "type": "boolean",
+            "example": true
+          },
+          "sendPodOnUnblock": {
+            "type": "boolean",
+            "example": true
+          },
+          "blockStartHour": {
+            "type": "integer",
+            "example": 8
+          },
+          "blockEndHour": {
+            "type": "integer",
+            "example": 18
+          },
+          "allowBlockOnFriday": {
+            "type": "boolean",
+            "example": false
+          },
+          "protectEveOfHolidays": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "RadiusPolicyConfigRequest": {
+        "type": "object",
+        "description": "Parâmetros para atualização da política de auto-corte",
+        "required": [
+          "autoBlockEnabled",
+          "toleranceDays",
+          "blockMode"
+        ],
+        "properties": {
+          "autoBlockEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "toleranceDays": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 5
+          },
+          "blockMode": {
+            "$ref": "#/components/schemas/RadiusBlockMode"
+          },
+          "reducedDownloadKbps": {
+            "type": "integer",
+            "default": 1024,
+            "example": 1024
+          },
+          "reducedUploadKbps": {
+            "type": "integer",
+            "default": 512,
+            "example": 512
+          },
+          "unblockOnPayment": {
+            "type": "boolean",
+            "default": true
+          },
+          "sendPodOnBlock": {
+            "type": "boolean",
+            "default": true
+          },
+          "sendPodOnUnblock": {
+            "type": "boolean",
+            "default": true
+          },
+          "blockStartHour": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 23,
+            "default": 8,
+            "example": 8
+          },
+          "blockEndHour": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 23,
+            "default": 18,
+            "example": 18
+          },
+          "allowBlockOnFriday": {
+            "type": "boolean",
+            "default": false
+          },
+          "protectEveOfHolidays": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "RadiusManualActionRequest": {
+        "type": "object",
+        "description": "Parâmetros para execução manual de bloqueio ou desbloqueio",
+        "required": [
+          "contractId",
+          "action"
+        ],
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "01944883-9b48-7b89-9a2c-15a4b7f83b1c"
+          },
+          "action": {
+            "type": "string",
+            "description": "BLOCK ou UNBLOCK",
+            "example": "BLOCK"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Inadimplência manual via atendente"
+          },
+          "vendorType": {
+            "$ref": "#/components/schemas/NasVendorType",
+            "nullable": true
+          },
+          "sendPod": {
+            "type": "boolean",
+            "nullable": true,
+            "default": true
+          }
+        }
+      },
+      "RadiusManualActionResponse": {
+        "type": "object",
+        "description": "Resultado da ação manual executada",
+        "required": [
+          "contractId",
+          "username",
+          "actionApplied",
+          "success",
+          "message"
+        ],
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string",
+            "example": "joao.silva@nexusfibra"
+          },
+          "actionApplied": {
+            "type": "string",
+            "example": "BLOCK"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Ação executada com sucesso"
+          },
+          "podResult": {
+            "type": "string",
+            "nullable": true,
+            "example": "PoD ACK recebido"
+          }
+        }
+      },
+      "RadiusLifecycleLogResponse": {
+        "type": "object",
+        "description": "Log de auditoria de eventos no ciclo de vida RADIUS",
+        "required": [
+          "id",
+          "contractId",
+          "customerId",
+          "username",
+          "actionType",
+          "success",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerName": {
+            "type": "string",
+            "nullable": true,
+            "example": "João Silva"
+          },
+          "username": {
+            "type": "string",
+            "example": "joao.silva@nexusfibra"
+          },
+          "actionType": {
+            "$ref": "#/components/schemas/RadiusLifecycleActionType"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Inadimplência - Fatura vencida há 5 dias"
+          },
+          "nasIp": {
+            "type": "string",
+            "nullable": true,
+            "example": "10.0.0.1"
+          },
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RadiusLifecycleLogsPageResponse": {
+        "type": "object",
+        "description": "Página de logs do ciclo de vida RADIUS",
+        "required": [
+          "content",
+          "totalElements",
+          "totalPages",
+          "size",
+          "number"
+        ],
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RadiusLifecycleLogResponse"
+            }
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64",
+            "example": 100
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 5
+          },
+          "size": {
+            "type": "integer",
+            "example": 20
+          },
+          "number": {
+            "type": "integer",
+            "example": 0
           }
         }
       },

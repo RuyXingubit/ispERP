@@ -1,0 +1,209 @@
+NetworkDriverType:
+  type: string
+  enum:
+    - SMARTOLT
+    - EXTERNAL_MICROSERVICE
+    - MIKROTIK_ROUTEROS
+    - RADIUS
+    - MOCK
+  description: Tipo de driver de integração com a OLT ou BNG
+
+NetworkDeviceResponse:
+  type: object
+  description: Dispositivo de rede (OLT / BNG / Servidor RADIUS) com segredos mascarados/omitidos
+  required:
+    - id
+    - name
+    - deviceType
+    - driverType
+    - ipAddress
+    - active
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b1a"
+    name:
+      type: string
+      example: "OLT Central Huawei 5608T"
+    deviceType:
+      type: string
+      example: "OLT"
+    driverType:
+      $ref: '#/NetworkDriverType'
+    ipAddress:
+      type: string
+      example: "192.168.10.2"
+    apiPort:
+      type: integer
+      example: 443
+    active:
+      type: boolean
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+NetworkDeviceCreateRequest:
+  type: object
+  description: Payload de cadastro/atualização de dispositivo de rede
+  required:
+    - name
+    - driverType
+    - ipAddress
+  properties:
+    name:
+      type: string
+      example: "OLT Bairro Sul ZTE"
+    deviceType:
+      type: string
+      default: "OLT"
+      example: "OLT"
+    driverType:
+      $ref: '#/NetworkDriverType'
+    ipAddress:
+      type: string
+      example: "10.0.0.10"
+    apiPort:
+      type: integer
+      default: 443
+      example: 443
+    apiToken:
+      type: string
+      nullable: true
+      description: Token privado de acesso à API da OLT (persiste seguro no banco, nunca retornado na API de consulta)
+      example: "secret_olt_token_xyz"
+    snmpCommunity:
+      type: string
+      nullable: true
+      description: Community SNMP v2c para monitoramento
+      example: "isperp_snmp_priv"
+    active:
+      type: boolean
+      default: true
+
+OnuStatusEnum:
+  type: string
+  enum:
+    - PROVISIONED
+    - BLOCKED
+    - DEPROVISIONED
+  description: Estado operacional do provisionamento da ONU
+
+OnuResponse:
+  type: object
+  description: Registro de provisionamento de ONU em OLT com omissão estrita da senha PPPoE
+  required:
+    - id
+    - contractId
+    - customerId
+    - onuMac
+    - onuSerial
+    - vlanId
+    - downloadSpeed
+    - uploadSpeed
+    - status
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b1b"
+    contractId:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b1c"
+    customerId:
+      type: string
+      format: uuid
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b1d"
+    networkDeviceId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b1a"
+    onuMac:
+      type: string
+      example: "48:57:02:1A:BC:DE"
+    onuSerial:
+      type: string
+      example: "HWTC1A2B3C4D"
+    vlanId:
+      type: integer
+      example: 100
+    pppoeUser:
+      type: string
+      nullable: true
+      example: "joao.silva@nexusfibra"
+    downloadSpeed:
+      type: integer
+      description: Velocidade em Mbps
+      example: 500
+    uploadSpeed:
+      type: integer
+      description: Velocidade em Mbps
+      example: 250
+    status:
+      $ref: '#/OnuStatusEnum'
+    rxPowerDbm:
+      type: number
+      format: double
+      nullable: true
+      description: Sinal óptico recebido em dBm
+      example: -19.45
+    lastSyncAt:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+OnuStatusResponse:
+  type: object
+  description: Diagnóstico de sinal e telemetria da ONU em tempo real na OLT
+  required:
+    - onuMac
+    - onuSerial
+    - status
+  properties:
+    onuMac:
+      type: string
+      example: "48:57:02:1A:BC:DE"
+    onuSerial:
+      type: string
+      example: "HWTC1A2B3C4D"
+    status:
+      type: string
+      example: "ONLINE"
+    rxPowerDbm:
+      type: number
+      format: double
+      nullable: true
+      example: -18.72
+    txPowerDbm:
+      type: number
+      format: double
+      nullable: true
+      example: 2.15
+    oltName:
+      type: string
+      nullable: true
+      example: "OLT Central"
+    ponPort:
+      type: integer
+      nullable: true
+      example: 1
+    details:
+      type: string
+      nullable: true
+      example: "Sinal óptico dentro dos padrões de conformidade (-15 a -25 dBm)"
