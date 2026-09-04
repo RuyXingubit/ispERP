@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -67,7 +68,11 @@ class _ServerSetupScreenState extends ConsumerState<ServerSetupScreen> {
     final url = _urlController.text.trim();
 
     final success = await ref.read(authProvider.notifier).setServerUrl(url);
-    if (!success && mounted) {
+    if (!mounted) return;
+
+    if (success) {
+      context.go('/login');
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(ref.read(authProvider).errorMessage ?? 'Servidor inacessível'),
