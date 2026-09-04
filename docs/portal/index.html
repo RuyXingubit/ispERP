@@ -668,8 +668,8 @@
 
     .manifesto-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1.25rem;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
       margin-top: 2rem;
     }
 
@@ -692,20 +692,58 @@
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--border-subtle);
       border-radius: 4px;
-      padding: 1.25rem;
+      padding: 1.15rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .manifesto-item.highlight-pr {
+      background: rgba(245, 158, 11, 0.03);
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+
+    .manifesto-item.highlight-pr .manifesto-badge {
+      color: #f59e0b;
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.35);
     }
 
     .manifesto-item h4 {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 600;
       color: var(--text-primary);
       margin-bottom: 0.4rem;
     }
 
     .manifesto-item p {
-      font-size: 0.85rem;
+      font-size: 0.83rem;
       color: var(--text-secondary);
-      line-height: 1.55;
+      line-height: 1.5;
+    }
+
+    .manifesto-vision-banner {
+      margin-top: 2rem;
+      padding: 1.25rem 1.5rem;
+      background: rgba(16, 185, 129, 0.04);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 4px;
+    }
+
+    .manifesto-vision-tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent-green);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.4rem;
+    }
+
+    .manifesto-vision-banner p {
+      font-size: 0.94rem;
+      color: var(--text-primary);
+      line-height: 1.65;
+      margin: 0;
     }
 
     /* Quickstart Técnico */
@@ -769,6 +807,10 @@
     }
 
     /* Responsividade */
+    @media (max-width: 1120px) {
+      .manifesto-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
     @media (max-width: 960px) {
       .metrics-bar { grid-template-columns: repeat(2, 1fr); }
       .arch-grid { grid-template-columns: 1fr; }
@@ -1211,7 +1253,7 @@
             O Chamado Aberto aos Provedores de Internet
           </h3>
           <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
-            Construir e amadurecer um ERP desse nível só é possível unindo quem vive a telecomunicação no dia a dia. Convidamos o seu provedor a participar de 4 formas práticas:
+            Construir e amadurecer um ERP desse nível só é possível unindo quem vive a telecomunicação no dia a dia. Convidamos o seu provedor a participar em 5 frentes práticas:
           </p>
 
           <div class="manifesto-grid">
@@ -1222,19 +1264,31 @@
             </div>
             <div class="manifesto-item">
               <span class="manifesto-badge">2. Qualidade</span>
-              <h4>Reporte Bugs e Gargalos</h4>
-              <p>Encontrou uma lentidão, falha de conciliação ou regra fiscal diferente no seu estado? Abra uma issue detalhada no GitHub.</p>
+              <h4>Reporte com Precisão</h4>
+              <p>Encontrou uma lentidão, falha de conciliação ou regra fiscal diferente no seu estado? Abra uma issue detalhada no repositório.</p>
             </div>
             <div class="manifesto-item">
               <span class="manifesto-badge">3. Direção</span>
               <h4>Demande Funcionalidades</h4>
               <p>Diga o que sua equipe financeira, contábil ou de NOC precisa. Priorizamos o desenvolvimento ouvindo quem está no campo de batalha.</p>
             </div>
-            <div class="manifesto-item">
-              <span class="manifesto-badge">4. Sustentabilidade</span>
-              <h4>Contribua Financeiramente</h4>
-              <p>Se o software ajudou sua operação, trouxe clareza de caixa ou economizou recursos com consultorias, contribua financeiramente para acelerar a equipe de engenharia.</p>
+            <div class="manifesto-item highlight-pr">
+              <span class="manifesto-badge">4. Código & PRs</span>
+              <h4>Tire o Escorpião do Bolso</h4>
+              <p><em>"Poxa, falta a função X para eu usar!"</em> — Rapaz, você atende milhares de clientes e não pode pagar algumas horas de um desenvolvedor para abrir um fork, codificar a regra e submeter um Pull Request? Invista na sua própria ferramenta e devolva para a comunidade.</p>
             </div>
+            <div class="manifesto-item">
+              <span class="manifesto-badge">5. Sustentabilidade</span>
+              <h4>Apoie Financeiramente</h4>
+              <p>Se o software gerou economia, cortou custos de consultorias ou trouxe clareza de caixa, torne-se um apoiador financeiro para manter a engenharia acelerada.</p>
+            </div>
+          </div>
+
+          <div class="manifesto-vision-banner">
+            <div class="manifesto-vision-tag">Software Livre para uma Sociedade Livre</div>
+            <p>
+              Vamos tirar a venda dos olhos: o futuro dos provedores independentes no Brasil é a <strong>cooperação voluntária</strong>. Empresas maduras que saem da passividade, investem na própria autonomia e constroem juntas uma infraestrutura de telecomunicações verdadeiramente aberta e soberana.
+            </p>
           </div>
         </div>
       </div>
