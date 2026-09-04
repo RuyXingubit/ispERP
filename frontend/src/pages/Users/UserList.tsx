@@ -105,7 +105,7 @@ const UserList = () => {
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
       if (isEditing && selectedUser) {
-        await api.put(`/users/${selectedUser.id}`, values);
+        await userService.update(selectedUser.id, values);
         toast.success('Usuário atualizado com sucesso!');
       } else {
         await userService.create(values);

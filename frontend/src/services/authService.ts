@@ -1,4 +1,8 @@
 import api from './api';
+import { getAuth } from '../api/generated/endpoints/auth/auth';
+import { LoginRequest, LoginResponse } from '../api/generated/models';
+
+const authApi = getAuth();
 
 export interface LoginCredentials {
   email?: string;
@@ -25,28 +29,32 @@ export interface AuthUser {
 }
 
 export const authService = {
+  // Chamada oficial via cliente gerado pelo Orval
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
-      const response = await api.post<AuthResponse>('/auth/login', {
-        username: credentials.email || credentials.username,
-        password: credentials.password,
+      const username = credentials.email || credentials.username || '';
+      const password = credentials.password || '';
+
+      const data: LoginResponse = await authApi.login({
+        username,
+        password,
       });
 
-      if (response.data.success && response.data.token) {
-        localStorage.setItem('token', response.data.token);
+      if (data.success && data.token) {
+        localStorage.setItem('token', data.token);
         localStorage.setItem(
           'user',
           JSON.stringify({
-            id: response.data.id || 'usr-1',
-            username: response.data.username,
-            name: response.data.name || response.data.username,
-            role: response.data.role,
+            id: 'usr-1',
+            username: data.username || username,
+            name: data.username || username,
+            role: data.role || 'USER',
           })
         );
-        api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
       }
 
-      return response.data;
+      return data as AuthResponse;
     } catch (error) {
       console.error('Erro ao fazer login:', error);
       throw error;

@@ -30,6 +30,14 @@
   ],
   "tags": [
     {
+      "name": "Auth",
+      "description": "Autenticação (Login e tokens JWT)"
+    },
+    {
+      "name": "Users",
+      "description": "Usuários & Colaboradores (Gestão de acessos e RBAC)"
+    },
+    {
       "name": "WorkOrders",
       "description": "Ordens de Serviço (Agendamento, roteirização e conclusão de O.S.)"
     },
@@ -1581,6 +1589,253 @@
           }
         }
       }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Autenticar usuário e gerar token JWT",
+        "operationId": "login",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autenticação realizada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Credenciais inválidas ou dados mal formatados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Listar todos os usuários",
+        "operationId": "getAllUsers",
+        "responses": {
+          "200": {
+            "description": "Lista de colaboradores e usuários retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Cadastrar novo usuário",
+        "operationId": "createUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário cadastrado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos ou email já cadastrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Obter usuário por ID",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuário não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Atualizar dados de um usuário",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos ou email já existente em outro usuário.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuário não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Remover usuário",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Usuário removido com sucesso."
+          },
+          "404": {
+            "description": "Usuário não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2493,6 +2748,196 @@
           "longitude": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Email ou identificador de login do usuário.",
+            "example": "admin@nexusfibra.com.br"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "Senha de acesso do colaborador.",
+            "example": "password123"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "required": [
+          "success"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indica se a autenticação foi bem-sucedida.",
+            "example": true
+          },
+          "token": {
+            "type": "string",
+            "nullable": true,
+            "description": "Token JWT para autenticação Bearer nas requisições.",
+            "example": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOi..."
+          },
+          "username": {
+            "type": "string",
+            "nullable": true,
+            "description": "Identificador/email do usuário autenticado.",
+            "example": "admin@nexusfibra.com.br"
+          },
+          "role": {
+            "type": "string",
+            "nullable": true,
+            "description": "Papel de acesso RBAC atribuído ao usuário.",
+            "example": "ADMIN"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true,
+            "description": "Mensagem de status ou erro amigável.",
+            "example": "Login realizado com sucesso"
+          }
+        }
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "ADMIN",
+          "CFO",
+          "DIRECTOR",
+          "USER",
+          "ATTENDANT",
+          "FINANCIAL",
+          "ADMINISTRATIVE_ASSISTANT",
+          "SUPPORT_N2",
+          "SUPPORT_ANALYST",
+          "TECHNICIAN",
+          "CLIENT"
+        ],
+        "description": "Papel de acesso RBAC atribuído ao colaborador ou usuário."
+      },
+      "UserResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role",
+          "active"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "Carlos Alberto"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "carlos.silva@nexusfibra.com.br"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "cpf": {
+            "type": "string",
+            "nullable": true,
+            "example": "123.456.789-00"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "UserCreateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Carlos Alberto"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "carlos.silva@nexusfibra.com.br"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 6,
+            "example": "SenhaForte@2026"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "cpf": {
+            "type": "string",
+            "nullable": true,
+            "example": "123.456.789-00"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "UserUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Carlos Alberto da Silva"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "carlos.silva@nexusfibra.com.br"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 6,
+            "nullable": true,
+            "description": "Nova senha (opcional). Se não enviada, a senha anterior é mantida."
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "cpf": {
+            "type": "string",
+            "nullable": true,
+            "example": "123.456.789-00"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
           }
         }
       },

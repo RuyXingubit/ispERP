@@ -2,7 +2,7 @@ package br.dev.xb.isperp.service;
 
 import br.dev.xb.isperp.entity.User;
 import br.dev.xb.isperp.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -11,14 +11,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 @SuppressWarnings("null")
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -54,6 +52,9 @@ public class UserService {
         user.setEmail(userDetails.getEmail());
         user.setRole(userDetails.getRole());
         user.setActive(userDetails.getActive());
+        if (userDetails.getCpf() != null) {
+            user.setCpf(userDetails.getCpf());
+        }
 
         if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(userDetails.getPassword()));

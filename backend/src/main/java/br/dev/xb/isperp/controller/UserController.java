@@ -1,67 +1,70 @@
 package br.dev.xb.isperp.controller;
 
+import br.dev.xb.isperp.api.contract.UsersApi;
+import br.dev.xb.isperp.api.dto.UserCreateRequest;
+import br.dev.xb.isperp.api.dto.UserResponse;
+import br.dev.xb.isperp.api.dto.UserUpdateRequest;
 import br.dev.xb.isperp.entity.User;
+import br.dev.xb.isperp.mapper.UserMapper;
 import br.dev.xb.isperp.service.UserService;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/users")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 @SuppressWarnings("null")
-public class UserController {
+public class UserController implements UsersApi {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final UserMapper userMapper;
 
-    @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
+    @Override
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
         List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(userMapper.toResponseList(users));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable UUID id) {
+    @Override
+    public ResponseEntity<UserResponse> getUserById(UUID id) {
         Optional<User> user = userService.getUserById(id);
-        return user.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return user.map(u -> ResponseEntity.ok(userMapper.toResponse(u)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<?> createUser(@Valid @RequestBody User user) {
-        try {
-            User createdUser = userService.createUser(user);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro interno do servidor");
+    @Override
+    public ResponseEntity<UserResponse> createUser(UserCreateRequest userCreateRequest) {
+        User entity = userMapper.toEntity(userCreateRequest);
+        User created = userService.createUser(entity);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponse(created));
+    }
+
+    @Override
+    public ResponseEntity<UserResponse> updateUser(UUID id, UserUpdateRequest userUpdateRequest) {
+        Optional<User> userOpt = userService.getUserById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
-    }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable UUID id, @Valid @RequestBody User userDetails) {
-        try {
-            User updatedUser = userService.updateUser(id, userDetails);
-            return ResponseEntity.ok(updatedUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro interno do servidor");
+        User user = userOpt.get();
+        userMapper.updateEntityFromRequest(userUpdateRequest, user);
+        if (userUpdateRequest.getPassword() != null && !userUpdateRequest.getPassword().isBlank()) {
+            user.setPassword(userUpdateRequest.getPassword());
         }
+
+        User updated = userService.updateUser(id, user);
+        return ResponseEntity.ok(userMapper.toResponse(updated));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+    @Override
+    public ResponseEntity<Void> deleteUser(UUID id) {
         try {
             userService.deleteUser(id);
             return ResponseEntity.noContent().build();

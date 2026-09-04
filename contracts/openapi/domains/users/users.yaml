@@ -1,0 +1,129 @@
+# Endpoints do Domínio de Usuários
+
+/users:
+  get:
+    tags:
+      - Users
+    summary: Listar todos os usuários
+    operationId: getAllUsers
+    responses:
+      '200':
+        description: Lista de colaboradores e usuários retornada com sucesso.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/UserResponse'
+      '401':
+        description: Não autenticado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+  post:
+    tags:
+      - Users
+    summary: Cadastrar novo usuário
+    operationId: createUser
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/UserCreateRequest'
+    responses:
+      '201':
+        description: Usuário cadastrado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/UserResponse'
+      '400':
+        description: Dados inválidos ou email já cadastrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/users/{id}:
+  get:
+    tags:
+      - Users
+    summary: Obter usuário por ID
+    operationId: getUserById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Usuário encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/UserResponse'
+      '404':
+        description: Usuário não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+  put:
+    tags:
+      - Users
+    summary: Atualizar dados de um usuário
+    operationId: updateUser
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/UserUpdateRequest'
+    responses:
+      '200':
+        description: Usuário atualizado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/UserResponse'
+      '400':
+        description: Dados inválidos ou email já existente em outro usuário.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Usuário não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+  delete:
+    tags:
+      - Users
+    summary: Remover usuário
+    operationId: deleteUser
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '204':
+        description: Usuário removido com sucesso.
+      '404':
+        description: Usuário não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

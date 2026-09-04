@@ -1,7 +1,7 @@
 package br.dev.xb.isperp.service;
 
-import br.dev.xb.isperp.dto.LoginRequest;
-import br.dev.xb.isperp.dto.LoginResponse;
+import br.dev.xb.isperp.api.dto.LoginRequest;
+import br.dev.xb.isperp.api.dto.LoginResponse;
 import br.dev.xb.isperp.entity.User;
 import br.dev.xb.isperp.repository.UserRepository;
 import br.dev.xb.isperp.util.JwtUtil;
@@ -35,12 +35,11 @@ public class AuthService {
         
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().toString());
         
-        return LoginResponse.builder()
+        return new LoginResponse()
                 .success(true)
                 .message("Login realizado com sucesso")
                 .token(token)
                 .username(user.getEmail())
-                .role(user.getRole().toString())
-                .build();
+                .role(user.getRole().toString());
     }
 }

@@ -1,0 +1,108 @@
+# Schemas do Domínio de Usuários e Permissões (RBAC)
+
+UserRole:
+  type: string
+  enum:
+    - ADMIN
+    - CFO
+    - DIRECTOR
+    - USER
+    - ATTENDANT
+    - FINANCIAL
+    - ADMINISTRATIVE_ASSISTANT
+    - SUPPORT_N2
+    - SUPPORT_ANALYST
+    - TECHNICIAN
+    - CLIENT
+  description: Papel de acesso RBAC atribuído ao colaborador ou usuário.
+
+UserResponse:
+  type: object
+  required:
+    - id
+    - name
+    - email
+    - role
+    - active
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "Carlos Alberto"
+    email:
+      type: string
+      format: email
+      example: "carlos.silva@nexusfibra.com.br"
+    role:
+      $ref: '#/UserRole'
+    cpf:
+      type: string
+      nullable: true
+      example: "123.456.789-00"
+    active:
+      type: boolean
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+UserCreateRequest:
+  type: object
+  required:
+    - name
+    - email
+    - password
+  properties:
+    name:
+      type: string
+      example: "Carlos Alberto"
+    email:
+      type: string
+      format: email
+      example: "carlos.silva@nexusfibra.com.br"
+    password:
+      type: string
+      format: password
+      minLength: 6
+      example: "SenhaForte@2026"
+    role:
+      $ref: '#/UserRole'
+    cpf:
+      type: string
+      nullable: true
+      example: "123.456.789-00"
+    active:
+      type: boolean
+      default: true
+
+UserUpdateRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      example: "Carlos Alberto da Silva"
+    email:
+      type: string
+      format: email
+      example: "carlos.silva@nexusfibra.com.br"
+    password:
+      type: string
+      format: password
+      minLength: 6
+      nullable: true
+      description: "Nova senha (opcional). Se não enviada, a senha anterior é mantida."
+    role:
+      $ref: '#/UserRole'
+    cpf:
+      type: string
+      nullable: true
+      example: "123.456.789-00"
+    active:
+      type: boolean
+      example: true

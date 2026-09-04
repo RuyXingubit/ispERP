@@ -1,0 +1,28 @@
+# Endpoints do Domínio de Autenticação
+
+/auth/login:
+  post:
+    tags:
+      - Auth
+    summary: Autenticar usuário e gerar token JWT
+    operationId: login
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/LoginRequest'
+    responses:
+      '200':
+        description: Autenticação realizada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/LoginResponse'
+      '400':
+        description: Credenciais inválidas ou dados mal formatados.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/LoginResponse'

@@ -1,24 +1,42 @@
-import api from './api';
+import { getUsers } from '../api/generated/endpoints/users/users';
+import {
+  UserResponse,
+  UserCreateRequest,
+  UserUpdateRequest,
+  UserRole,
+} from '../api/generated/models';
 
-export interface User {
-  id?: string;
-  username: string;
-  name?: string;
-  email?: string;
-  cpf?: string;
-  role: string;
-  active?: boolean;
-}
+const usersApi = getUsers();
+
+export type User = UserResponse;
+export type { UserResponse, UserCreateRequest, UserUpdateRequest, UserRole };
 
 export const userService = {
-  getAll: async (): Promise<User[]> => {
-    const res = await api.get<User[]>('/users');
-    return res.data;
+  // Chamadas oficiais via cliente gerado pelo Orval
+  getAll: async (): Promise<UserResponse[]> => {
+    return usersApi.getAllUsers();
   },
-  getAllUsers: async () => {
-    return api.get<User[]>('/users');
+
+  getAllUsers: async (): Promise<{ data: UserResponse[] }> => {
+    const data = await usersApi.getAllUsers();
+    return { data };
   },
-  create: (user: Partial<User>) => api.post<User>('/users', user),
+
+  getById: async (id: string): Promise<UserResponse> => {
+    return usersApi.getUserById(id);
+  },
+
+  create: async (user: UserCreateRequest | any): Promise<UserResponse> => {
+    return usersApi.createUser(user);
+  },
+
+  update: async (id: string, user: UserUpdateRequest | any): Promise<UserResponse> => {
+    return usersApi.updateUser(id, user);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    return usersApi.deleteUser(id);
+  },
 };
 
 export default userService;

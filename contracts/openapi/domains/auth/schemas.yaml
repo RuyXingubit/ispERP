@@ -1,0 +1,47 @@
+# Schemas do Domínio de Autenticação
+
+LoginRequest:
+  type: object
+  required:
+    - username
+    - password
+  properties:
+    username:
+      type: string
+      description: Email ou identificador de login do usuário.
+      example: "admin@nexusfibra.com.br"
+    password:
+      type: string
+      format: password
+      description: Senha de acesso do colaborador.
+      example: "password123"
+
+LoginResponse:
+  type: object
+  required:
+    - success
+  properties:
+    success:
+      type: boolean
+      description: Indica se a autenticação foi bem-sucedida.
+      example: true
+    token:
+      type: string
+      nullable: true
+      description: Token JWT para autenticação Bearer nas requisições.
+      example: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOi..."
+    username:
+      type: string
+      nullable: true
+      description: Identificador/email do usuário autenticado.
+      example: "admin@nexusfibra.com.br"
+    role:
+      type: string
+      nullable: true
+      description: Papel de acesso RBAC atribuído ao usuário.
+      example: "ADMIN"
+    message:
+      type: string
+      nullable: true
+      description: Mensagem de status ou erro amigável.
+      example: "Login realizado com sucesso"
