@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ispERP — Gestão Inteligente, Alta Disponibilidade e Contratos API-First</title>
+  <meta name="description" content="Plataforma moderna de gestão empresarial para Provedores de Internet (ISP). Java 25, Spring Boot 4.1, React 19, PostgreSQL com UUIDv7, FreeRADIUS e contratos OpenAPI 3.0.3." />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-card: rgba(15, 23, 42, 0.7);
+      --bg-card-hover: rgba(30, 41, 59, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(56, 189, 248, 0.3);
+      --primary: #0284c7;
+      --primary-light: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --accent: #6366f1;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 65%, rgba(99, 102, 241, 0.07) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    /* Shared Navbar */
+    .portal-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 2rem;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .nav-logo-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0284c7 0%, #6366f1 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+
+    .nav-brand-text {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-brand-text span {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary-light);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .nav-tab {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      font-weight: 500;
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-tab.active {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.15rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 5rem 0 3.5rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 1rem;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #38bdf8;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title {
+      font-size: 3.25rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-title .highlight {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 820px;
+      margin: 0 auto 2.5rem;
+      font-weight: 400;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 4rem;
+    }
+
+    /* Stats Strip */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: left;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #38bdf8, transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+
+    .stat-card:hover::before {
+      opacity: 1;
+    }
+
+    .stat-number {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #38bdf8;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+      font-family: var(--font-mono);
+    }
+
+    .stat-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 0.2rem;
+    }
+
+    .stat-desc {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    /* Section Styles */
+    .section {
+      padding: 5rem 0;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 750px;
+      margin: 0 auto 3.5rem;
+    }
+
+    .section-tag {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .section-title {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+    }
+
+    .section-desc {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+    }
+
+    /* Architectural Pillars */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .pillar-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pillar-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-accent);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .pillar-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      margin-bottom: 1.25rem;
+      color: #38bdf8;
+    }
+
+    .pillar-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+
+    .pillar-desc {
+      font-size: 0.93rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+
+    .pillar-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .tag-badge {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      padding: 0.2rem 0.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Modules Section */
+    .filter-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+
+    .filter-btn {
+      padding: 0.45rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    .filter-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #38bdf8;
+    }
+
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .module-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .module-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(56, 189, 248, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .module-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .module-endpoints-count {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .module-desc {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      flex-grow: 1;
+    }
+
+    .module-link {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #38bdf8;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: gap 0.2s ease;
+    }
+
+    .module-link:hover {
+      gap: 0.5rem;
+      text-decoration: underline;
+    }
+
+    /* Tech Stack */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .stack-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .stack-category {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    .stack-techs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .tech-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+    }
+
+    .tech-version {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    /* Quickstart Tabs */
+    .code-box {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.25rem;
+      background: #0b1120;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .code-tabs {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .code-tab-btn {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .code-tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .code-tab-btn.active {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    .code-content {
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* CTA Section */
+    .cta-box {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 16px;
+      padding: 3.5rem 2rem;
+      text-align: center;
+      margin: 4rem 0 2rem;
+    }
+
+    .cta-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .cta-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 650px;
+      margin: 0 auto 2rem;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border-color);
+      padding: 3rem 0;
+      background: #06090e;
+      color: var(--text-dim);
+      font-size: 0.88rem;
+    }
+
+    .footer-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .footer-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-link:hover {
+      color: #38bdf8;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 2.25rem;
+      }
+      .portal-nav {
+        padding: 0.75rem 1rem;
+      }
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Shared Global Navbar -->
+  <nav class="portal-nav">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+          <path d="M12 12v9"></path>
+          <path d="m8 17 4 4 4-4"></path>
+        </svg>
+      </div>
+      <div class="nav-brand-text">
+        isp<span>ERP</span>
+      </div>
+      <span class="nav-badge">API-First</span>
+    </a>
+
+    <div class="nav-links">
+      <a href="index.html" class="nav-tab active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        Sobre o Projeto
+      </a>
+      <a href="api.html" class="nav-tab">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        Contratos de API (Redocly)
+      </a>
+      <a href="#pilares" class="nav-tab">Arquitetura</a>
+      <a href="#modulos" class="nav-tab">Módulos (21)</a>
+      <a href="#quickstart" class="nav-tab">Quickstart</a>
+    </div>
+
+    <div class="nav-actions">
+      <a href="openapi.bundled.json" download="ispERP-openapi.json" class="btn btn-secondary" title="Baixar especificação OpenAPI 3.0.3 compilada">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Spec JSON
+      </a>
+      <a href="api.html" class="btn btn-primary">
+        Explorar API
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <main class="container">
+    <section class="hero">
+      <div class="hero-eyebrow">
+        <span>⚡</span> Arquitetura API-First para Telecomunicações
+      </div>
+      <h1 class="hero-title">
+        ispERP — Gestão Inteligente, Robusta e <span class="highlight">100% API-First</span>
+      </h1>
+      <p class="hero-subtitle">
+        Plataforma moderna de gestão empresarial para Provedores de Internet (ISP) e Operadoras Telecom. 
+        Projetada com <strong>Java 25</strong>, <strong>Spring Boot 4.1</strong>, <strong>React 19</strong>, <strong>PostgreSQL</strong> e <strong>FreeRADIUS</strong>, orientada a contratos formais OpenAPI 3.0.3 e blindagem patrimonial.
+      </p>
+
+      <div class="hero-actions">
+        <a href="api.html" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+          Explorar Contratos OpenAPI (118 Endpoints)
+        </a>
+        <a href="#modulos" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
+          Ver 21 Módulos da Plataforma
+        </a>
+        <a href="https://github.com/RuyXingubit/ispERP" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 0.75rem 1.25rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          GitHub
+        </a>
+      </div>
+
+      <!-- Key Performance Metrics -->
+      <div class="stats-strip">
+        <div class="stat-card">
+          <div class="stat-number">118</div>
+          <div class="stat-label">Endpoints REST</div>
+          <div class="stat-desc">Contratos OpenAPI 3.0.3 auditados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">21</div>
+          <div class="stat-label">Domínios de Negócio</div>
+          <div class="stat-desc">Da infraestrutura óptica ao faturamento</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">MockMvc Coverage</div>
+          <div class="stat-desc">Cobertura estrita em todos os controllers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">UUIDv7</div>
+          <div class="stat-label">Identificadores Canônicos</div>
+          <div class="stat-desc">Ordenação temporal para alta taxa de I/O</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">Java 25</div>
+          <div class="stat-label">Virtual Threads (Loom)</div>
+          <div class="stat-desc">Spring Boot 4.1 + React 19 Frontend</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Engineering & Business Pillars -->
+    <section id="pilares" class="section">
+      <div class="section-header">
+        <span class="section-tag">Engenharia de Software</span>
+        <h2 class="section-title">Pilares Fundamentais da Plataforma</h2>
+        <p class="section-desc">
+          Construído para suportar operações de provedores regionais a grandes operadoras com máxima resiliência e conformidade regulatória.
+        </p>
+      </div>
+
+      <div class="pillars-grid">
+        <!-- Pillar 1 -->
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
+          <h3 class="pillar-title">API-First & Design-First</h3>
+          <p class="pillar-desc">
+            Nenhuma linha de código de controller ou DTO é escrita antes do contrato OpenAPI ser formalmente especificado, validado via Redocly CLI e versionado. As interfaces Spring Boot e clientes TypeScript são gerados automaticamente.
+          </p>
+          <div class="pillar-badges">
+            <span class="tag-badge">OpenAPI 3.0.3</span>
+            <span class="tag-badge">Orval Client</span>
+            <span class="tag-badge">Spring Codegen</span>
+            <span class="tag-badge">MapStruct</span>
+          </div>
+        </div>
+
+        <!-- Pillar 2 -->
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <h3 class="pillar-title">Blindagem Patrimonial & Regimes</h3>
+          <p class="pillar-desc">
+            Segregação jurídica, societária e operacional rigorosa entre a Operadora de Telecom (SCM) e a Prestadora de SVA (Serviço de Valor Adicionado). Suporte nativo a transições agendadas de regime tributário (Simples, Presumido, Real).
+          </p>
+          <div class="pillar-badges">
+            <span class="tag-badge">Segregação SCM/SVA</span>
+            <span class="tag-badge">Transições Fiscais</span>
+            <span class="tag-badge">Auditoria Imutável</span>
+          </div>
+        </div>
+
+        <!-- Pillar 3 -->
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <h3 class="pillar-title">Fiscal & NFCom Modelo 62</h3>
+          <p class="pillar-desc">
+            Emissão digital, autorização SEFAZ e cancelamento de Nota Fiscal de Serviços de Comunicação (NFCom Modelo 62). Geração de lotes compactados no padrão Convênio ICMS 115/03 e upload seguro de certificados digitais A1.
+          </p>
+          <div class="pillar-badges">
+            <span class="tag-badge">NFCom Mod. 62</span>
+            <span class="tag-badge">Convênio ICMS 115</span>
+            <span class="tag-badge">Certificado A1</span>
+            <span class="tag-badge">SEFAZ WebServices</span>
+          </div>
+        </div>
+
+        <!-- Pillar 4 -->
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </div>
+          <h3 class="pillar-title">RADIUS & Automação de Redes</h3>
+          <p class="pillar-desc">
+            Sincronização em tempo real com tabelas FreeRADIUS (radcheck, radreply, radacct). Desconexão forçada via CoA/PoD (RFC 3576), pools de IPv4/IPv6, CGNAT e provisionamento automático de velocidades e profiles de banda.
+          </p>
+          <div class="pillar-badges">
+            <span class="tag-badge">FreeRADIUS 3.x</span>
+            <span class="tag-badge">MikroTik RouterOS</span>
+            <span class="tag-badge">CoA / PoD</span>
+            <span class="tag-badge">CGNAT & IPAM</span>
+          </div>
+        </div>
+
+        <!-- Pillar 5 -->
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+          </div>
+          <h3 class="pillar-title">XinguBit Pay & Cobrança Híbrida</h3>
+          <p class="pillar-desc">
+            Gateway financeiro integrado com geração instantânea de PIX Dinâmico com QR Code copia-e-cola e Webhooks de conciliação imediata, boletos bancários com linha digitável e régua de cobrança automatizada (SMS/WhatsApp/E-mail).
+          </p>
+          <div class="pillar-badges">
+            <span class="tag-badge">PIX Dinâmico</span>
+            <span class="tag-badge">Boletos Bancários</span>
+            <span class="tag-badge">Conciliação Automática</span>
+            <span class="tag-badge">Régua de Notificações</span>
+          </div>
+        </div>
+
+        <!-- Pillar 6 -->
+        <div class="pillar-card">
+          <div class="pillar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <h3 class="pillar-title">Event-Driven Architecture & Outbox</h3>
+          <p class="pillar-desc">
+            Processamento desacoplado de eventos operacionais e financeiros usando o padrão Transactional Outbox. Garante entrega at-least-once de mensagens sem perda de dados mesmo em instabilidades de rede ou servidores externos.
+          </p>
+          <div class="pillar-badges">
+            <span class="tag-badge">Transactional Outbox</span>
+            <span class="tag-badge">Spring ApplicationEvents</span>
+            <span class="tag-badge">Webhooks Externos</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modules Grid (21 Domains) -->
+    <section id="modulos" class="section">
+      <div class="section-header">
+        <span class="section-tag">Catálogo de Serviços</span>
+        <h2 class="section-title">21 Domínios de Negócio Mapeados</h2>
+        <p class="section-desc">
+          Uma arquitetura modular limpa e coesa. Explore os módulos e acesse seus endpoints diretamente no contrato OpenAPI.
+        </p>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-tabs">
+        <button class="filter-btn active" onclick="filterModules('all')">Todos (21)</button>
+        <button class="filter-btn" onclick="filterModules('core')">Core & Segurança</button>
+        <button class="filter-btn" onclick="filterModules('comercial')">Comercial & Clientes</button>
+        <button class="filter-btn" onclick="filterModules('redes')">Redes & Infraestrutura</button>
+        <button class="filter-btn" onclick="filterModules('atendimento')">Atendimento & Campo</button>
+        <button class="filter-btn" onclick="filterModules('financeiro')">Financeiro & Fiscal</button>
+      </div>
+
+      <!-- Modules Cards Grid -->
+      <div class="modules-grid" id="modules-container">
+        <!-- Auth -->
+        <div class="module-card" data-category="core">
+          <div class="module-header">
+            <h4 class="module-name">Auth</h4>
+            <span class="module-endpoints-count">5 endpoints</span>
+          </div>
+          <p class="module-desc">Autenticação JWT stateless, refresh tokens, MFA e autorização RBAC de operadores.</p>
+          <a href="api.html#tag/Auth" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Users -->
+        <div class="module-card" data-category="core">
+          <div class="module-header">
+            <h4 class="module-name">Users & Profiles</h4>
+            <span class="module-endpoints-count">6 endpoints</span>
+          </div>
+          <p class="module-desc">Gestão de colaboradores, perfis de acesso, permissões granulares e auditoria.</p>
+          <a href="api.html#tag/Users" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Customers -->
+        <div class="module-card" data-category="comercial">
+          <div class="module-header">
+            <h4 class="module-name">Customers</h4>
+            <span class="module-endpoints-count">8 endpoints</span>
+          </div>
+          <p class="module-desc">Cadastro unificado de assinantes PF/PJ, validação de CPF/CNPJ, endereços e contatos.</p>
+          <a href="api.html#tag/Customers" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Contracts -->
+        <div class="module-card" data-category="comercial">
+          <div class="module-header">
+            <h4 class="module-name">Contracts</h4>
+            <span class="module-endpoints-count">7 endpoints</span>
+          </div>
+          <p class="module-desc">Gestão contratual, termos de adesão, fidelidade, suspensão temporária e cancelamento.</p>
+          <a href="api.html#tag/Contracts" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Plans -->
+        <div class="module-card" data-category="comercial">
+          <div class="module-header">
+            <h4 class="module-name">Plans & Services</h4>
+            <span class="module-endpoints-count">5 endpoints</span>
+          </div>
+          <p class="module-desc">Planos de banda larga, combos, composição fiscal SCM/SVA e precificação dinâmica.</p>
+          <a href="api.html#tag/Plans" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Portal -->
+        <div class="module-card" data-category="comercial">
+          <div class="module-header">
+            <h4 class="module-name">Client Portal</h4>
+            <span class="module-endpoints-count">6 endpoints</span>
+          </div>
+          <p class="module-desc">Área do assinante para autoatendimento, desbloqueio em confiança, 2ª via e extrato de consumo.</p>
+          <a href="api.html#tag/Portal" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Radius -->
+        <div class="module-card" data-category="redes">
+          <div class="module-header">
+            <h4 class="module-name">Radius Connections</h4>
+            <span class="module-endpoints-count">7 endpoints</span>
+          </div>
+          <p class="module-desc">Provisionamento PPPoE/IPoE, sincronização radcheck/reply, sessões ativas e desconexão CoA.</p>
+          <a href="api.html#tag/Radius" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Network -->
+        <div class="module-card" data-category="redes">
+          <div class="module-header">
+            <h4 class="module-name">Network Elements</h4>
+            <span class="module-endpoints-count">6 endpoints</span>
+          </div>
+          <p class="module-desc">Gerenciamento de Concentradores BNG, Switches, Roteadores MikroTik, Cisco e Huawei.</p>
+          <a href="api.html#tag/Network" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Inventory -->
+        <div class="module-card" data-category="redes">
+          <div class="module-header">
+            <h4 class="module-name">Inventory</h4>
+            <span class="module-endpoints-count">6 endpoints</span>
+          </div>
+          <p class="module-desc">Estoque de ONUs, roteadores Wi-Fi 6, cabos drop, conectores e controle por número de série / MAC.</p>
+          <a href="api.html#tag/Inventory" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Equipment -->
+        <div class="module-card" data-category="redes">
+          <div class="module-header">
+            <h4 class="module-name">Equipment Models</h4>
+            <span class="module-endpoints-count">4 endpoints</span>
+          </div>
+          <p class="module-desc">Homologação Anatel de modelos, configurações padrão e perfis de provisionamento TR-069.</p>
+          <a href="api.html#tag/Equipment" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Work Orders -->
+        <div class="module-card" data-category="atendimento">
+          <div class="module-header">
+            <h4 class="module-name">Work Orders</h4>
+            <span class="module-endpoints-count">8 endpoints</span>
+          </div>
+          <p class="module-desc">Ordens de serviço de instalação, reparo, mudança de endereço, checklist e fotos do técnico.</p>
+          <a href="api.html#tag/WorkOrders" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Tickets -->
+        <div class="module-card" data-category="atendimento">
+          <div class="module-header">
+            <h4 class="module-name">Tickets & Support</h4>
+            <span class="module-endpoints-count">7 endpoints</span>
+          </div>
+          <p class="module-desc">Central de chamados, triagem automatizada, SLAs de atendimento e integração omnicanal.</p>
+          <a href="api.html#tag/Tickets" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Invoices -->
+        <div class="module-card" data-category="financeiro">
+          <div class="module-header">
+            <h4 class="module-name">Invoices</h4>
+            <span class="module-endpoints-count">7 endpoints</span>
+          </div>
+          <p class="module-desc">Emissão em lote de faturas, rateio SCM/SVA, juros/multa automáticos e cancelamento.</p>
+          <a href="api.html#tag/Invoices" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Payments -->
+        <div class="module-card" data-category="financeiro">
+          <div class="module-header">
+            <h4 class="module-name">Payments & PIX</h4>
+            <span class="module-endpoints-count">6 endpoints</span>
+          </div>
+          <p class="module-desc">Recebimento e baixa de PIX Dinâmico, boletos bancários e baixa manual autorizada.</p>
+          <a href="api.html#tag/Payments" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Fiscal -->
+        <div class="module-card" data-category="financeiro">
+          <div class="module-header">
+            <h4 class="module-name">Fiscal & NFCom</h4>
+            <span class="module-endpoints-count">9 endpoints</span>
+          </div>
+          <p class="module-desc">NFCom Modelo 62 SEFAZ, Convênio ICMS 115/03, certificado digital A1 e fechamento fiscal.</p>
+          <a href="api.html#tag/Fiscal" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Fiscal Regime Transitions -->
+        <div class="module-card" data-category="financeiro">
+          <div class="module-header">
+            <h4 class="module-name">Fiscal Transitions</h4>
+            <span class="module-endpoints-count">4 endpoints</span>
+          </div>
+          <p class="module-desc">Agendamento e execução de transições de regime tributário (Simples, Presumido, Real).</p>
+          <a href="api.html#tag/FiscalRegimeTransitions" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Webhooks -->
+        <div class="module-card" data-category="core">
+          <div class="module-header">
+            <h4 class="module-name">Webhooks</h4>
+            <span class="module-endpoints-count">5 endpoints</span>
+          </div>
+          <p class="module-desc">Disparo assíncrono de eventos com assinatura HMAC, retry exponencial e log de entrega.</p>
+          <a href="api.html#tag/Webhooks" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Notifications -->
+        <div class="module-card" data-category="atendimento">
+          <div class="module-header">
+            <h4 class="module-name">Notifications</h4>
+            <span class="module-endpoints-count">4 endpoints</span>
+          </div>
+          <p class="module-desc">Mensageria transacional por WhatsApp, SMS e E-mail para régua de cobrança e avisos de manutenção.</p>
+          <a href="api.html#tag/Notifications" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Audit & Security -->
+        <div class="module-card" data-category="core">
+          <div class="module-header">
+            <h4 class="module-name">Audit Logs</h4>
+            <span class="module-endpoints-count">3 endpoints</span>
+          </div>
+          <p class="module-desc">Rastreabilidade completa com UUIDv7, IP de origem, payload e histórico imutável.</p>
+          <a href="api.html#tag/Audit" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="module-card" data-category="core">
+          <div class="module-header">
+            <h4 class="module-name">Dashboard & Metrics</h4>
+            <span class="module-endpoints-count">3 endpoints</span>
+          </div>
+          <p class="module-desc">Indicadores executivos: MRR, Churn Rate, inadimplência, chamados e capacidade de banda.</p>
+          <a href="api.html#tag/Dashboard" class="module-link">Ver Contratos →</a>
+        </div>
+
+        <!-- Tenants -->
+        <div class="module-card" data-category="core">
+          <div class="module-header">
+            <h4 class="module-name">Tenants & Settings</h4>
+            <span class="module-endpoints-count">4 endpoints</span>
+          </div>
+          <p class="module-desc">Suporte multi-empresa para franquias, filiais e provedores com múltiplas razões sociais.</p>
+          <a href="api.html#tag/Tenants" class="module-link">Ver Contratos →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tech Stack Grid -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-tag">Arquitetura Tecnológica</span>
+        <h2 class="section-title">Stack de Última Geração</h2>
+        <p class="section-desc">
+          Tecnologias corporativas selecionadas para alta taxa de I/O, segurança estrita e manutenção a longo prazo.
+        </p>
+      </div>
+
+      <div class="stack-grid">
+        <div class="stack-item">
+          <div class="stack-category">Backend</div>
+          <div class="stack-techs">
+            <div class="tech-row"><span>Java 25 (Loom Virtual Threads)</span><span class="tech-version">v25</span></div>
+            <div class="tech-row"><span>Spring Boot</span><span class="tech-version">v4.1</span></div>
+            <div class="tech-row"><span>Spring Security + JWT</span><span class="tech-version">Stateless</span></div>
+            <div class="tech-row"><span>MapStruct + Lombok</span><span class="tech-version">DTO Mappers</span></div>
+          </div>
+        </div>
+
+        <div class="stack-item">
+          <div class="stack-category">Persistência & Dados</div>
+          <div class="stack-techs">
+            <div class="tech-row"><span>PostgreSQL</span><span class="tech-version">v16</span></div>
+            <div class="tech-row"><span>Chaves Primárias UUIDv7</span><span class="tech-version">Time-ordered</span></div>
+            <div class="tech-row"><span>Spring Data JPA / Hibernate</span><span class="tech-version">v6.6</span></div>
+            <div class="tech-row"><span>Transactional Outbox</span><span class="tech-version">Reliable EDA</span></div>
+          </div>
+        </div>
+
+        <div class="stack-item">
+          <div class="stack-category">Frontend</div>
+          <div class="stack-techs">
+            <div class="tech-row"><span>React</span><span class="tech-version">v19</span></div>
+            <div class="tech-row"><span>TypeScript</span><span class="tech-version">v5.7</span></div>
+            <div class="tech-row"><span>Vite</span><span class="tech-version">v6</span></div>
+            <div class="tech-row"><span>Tailwind CSS</span><span class="tech-version">v4</span></div>
+          </div>
+        </div>
+
+        <div class="stack-item">
+          <div class="stack-category">DevOps & Telecom</div>
+          <div class="stack-techs">
+            <div class="tech-row"><span>FreeRADIUS</span><span class="tech-version">v3.x</span></div>
+            <div class="tech-row"><span>Docker Compose</span><span class="tech-version">Multi-stage</span></div>
+            <div class="tech-row"><span>OpenAPI & Redocly</span><span class="tech-version">v3.0.3</span></div>
+            <div class="tech-row"><span>GitHub Actions CI/CD</span><span class="tech-version">Optimized</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Developer Quickstart -->
+    <section id="quickstart" class="section">
+      <div class="section-header">
+        <span class="section-tag">Início Rápido</span>
+        <h2 class="section-title">Como Rodar o Ambiente Localmente</h2>
+        <p class="section-desc">
+          Ambiente 100% conteinerizado pronto para desenvolvimento com um único comando.
+        </p>
+      </div>
+
+      <div class="code-box">
+        <div class="code-header">
+          <div class="code-tabs">
+            <button class="code-tab-btn active" onclick="switchTab('docker')">Docker Compose</button>
+            <button class="code-tab-btn" onclick="switchTab('contracts')">Contratos OpenAPI</button>
+            <button class="code-tab-btn" onclick="switchTab('backend')">Backend (Java 25)</button>
+            <button class="code-tab-btn" onclick="switchTab('frontend')">Frontend (React 19)</button>
+          </div>
+        </div>
+        <div class="code-content" id="code-display"># 1. Clonar o repositório
+git clone https://github.com/RuyXingubit/ispERP.git
+cd ispERP
+
+# 2. Subir todos os containers (Backend, Frontend, PostgreSQL, FreeRADIUS)
+docker compose up -d --build
+
+# 3. Acessar a aplicação
+# - Frontend: http://localhost:3000
+# - Backend API: http://localhost:8080/api
+# - Docs OpenAPI Local: http://localhost:8085</div>
+      </div>
+    </section>
+
+    <!-- CTA Banner -->
+    <div class="cta-box">
+      <h3 class="cta-title">Pronto para Conhecer a Especificação Completa?</h3>
+      <p class="cta-desc">
+        Acesse a aba interativa do Redocly para pesquisar endpoints, parâmetros, modelos de dados e códigos de status HTTP.
+      </p>
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="api.html" class="btn btn-primary" style="padding: 0.8rem 2rem; font-size: 1.05rem;">
+          Acessar Contratos de API (Redocly) →
+        </a>
+        <a href="openapi.bundled.json" download="ispERP-openapi.json" class="btn btn-secondary" style="padding: 0.8rem 1.75rem; font-size: 1.05rem;">
+          Download do Bundle OpenAPI (JSON)
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div>
+        <strong style="color: #f8fafc;">ispERP</strong> — Sistema de Gestão Empresarial para Provedores de Internet.
+        <div style="font-size: 0.78rem; margin-top: 0.3rem;">Compilado dinamicamente via GitHub Actions • OpenAPI 3.0.3</div>
+      </div>
+      <div class="footer-links">
+        <a href="index.html" class="footer-link">Sobre o Projeto</a>
+        <a href="api.html" class="footer-link">Contratos de API</a>
+        <a href="https://github.com/RuyXingubit/ispERP" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="https://github.com/RuyXingubit/ispERP/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-link">Licença</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Module Category Filter
+    function filterModules(category) {
+      const cards = document.querySelectorAll('.module-card');
+      const buttons = document.querySelectorAll('.filter-btn');
+
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      cards.forEach(card => {
+        if (category === 'all' || card.getAttribute('data-category') === category) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Code Tab Switcher
+    const codeSnippets = {
+      docker: `# 1. Clonar o repositório
+git clone https://github.com/RuyXingubit/ispERP.git
+cd ispERP
+
+# 2. Subir todos os containers (Backend, Frontend, PostgreSQL, FreeRADIUS)
+docker compose up -d --build
+
+# 3. Acessar a aplicação
+# - Frontend: http://localhost:3000
+# - Backend API: http://localhost:8080/api
+# - Docs OpenAPI Local: http://localhost:8085`,
+
+      contracts: `# 1. Validar e compilar a especificação OpenAPI
+./scripts/bundle-contracts.sh
+
+# 2. Gerar código Java e clientes TypeScript tipados
+./scripts/generate-api.sh
+
+# 3. Iniciar servidor interativo local do Redocly
+./scripts/view-docs.sh`,
+
+      backend: `# 1. Entrar no diretório do backend
+cd backend
+
+# 2. Executar suite completa de testes MockMvc (100% de cobertura)
+./gradlew test
+
+# 3. Iniciar o servidor Spring Boot 4.1 em desenvolvimento
+./gradlew bootRun`,
+
+      frontend: `# 1. Entrar no diretório do frontend
+cd frontend
+
+# 2. Instalar dependências
+npm install
+
+# 3. Checagem estrita de tipos TypeScript
+npm run typecheck
+
+# 4. Iniciar servidor de desenvolvimento Vite
+npm run dev`
+    };
+
+    function switchTab(tabKey) {
+      const display = document.getElementById('code-display');
+      const buttons = document.querySelectorAll('.code-tab-btn');
+
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (codeSnippets[tabKey]) {
+        display.textContent = codeSnippets[tabKey];
+      }
+    }
+  </script>
+</body>
+</html>

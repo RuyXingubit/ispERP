@@ -109,7 +109,12 @@ flowchart LR
   - Permite rodar `npx prism mock contracts/openapi/openapi.bundled.json -p 4010` para testar telas do frontend com respostas sintéticas válidas.
 * **Visualizador de Documentação Interativa (Redocly):**
   - Executar `./scripts/view-docs.sh` para abrir o servidor local com *live-reload* em `http://localhost:8085`.
+  - Executar `./scripts/view-docs.sh --portal` para compilar e abrir o portal completo no navegador local.
   - Executar `./scripts/view-docs.sh --html` para compilar um único arquivo HTML estático em `docs/api-reference.html`.
+* **Portal de Documentação & Publicação no GitHub Pages:**
+  - O portal unificado em `docs/portal/` integra a **Landing Page do Projeto** (`index.html`) com a aba interativa de **Contratos OpenAPI Redocly** (`api.html`).
+  - Script de build automatizado: `./scripts/build-portal.sh [DIRETORIO_DESTINO]`.
+  - Pipeline de CI/CD: `.github/workflows/deploy-pages.yml` compila e publica automaticamente no GitHub Pages a cada push em `main` que altere contratos ou documentação.
 
 ---
 

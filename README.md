@@ -41,10 +41,16 @@ flowchart LR
 
 * **Fonte Única da Verdade:** Nenhuma rota, endpoint, DTO ou parâmetro é criado manualmente no Java ou TypeScript sem existir previamente no contrato OpenAPI.
 * **Segurança por Padrão (Zero Trust DTOs):** Nenhuma entidade JPA (`@Entity`) é exposta diretamente nas APIs. Todos os dados trafegam via DTOs estritos e validados (`@Valid`, Bean Validation) gerados pelo contrato.
-* **Documentação Visual Interativa (Redocly):** Para visualizar a documentação da API em tempo real com *live-reload*:
-  ```bash
-  ./scripts/view-docs.sh
-  ```
+* **Documentação Visual Interativa & Portal do Projeto:**
+  - **Visualização Local (Live-Reload):**
+    ```bash
+    ./scripts/view-docs.sh
+    ```
+  - **Portal Completo (Landing Page + Redocly 118 Endpoints):**
+    ```bash
+    ./scripts/view-docs.sh --portal
+    ```
+  - **GitHub Pages:** Publicado automaticamente a cada alteração em `main` via `.github/workflows/deploy-pages.yml`.
 * **Geração Automatizada em 1 Comando:** Para atualizar os stubs Java e clientes TypeScript após editar qualquer contrato:
   ```bash
   ./scripts/generate-api.sh
