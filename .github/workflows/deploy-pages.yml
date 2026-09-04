@@ -13,6 +13,7 @@ on:
       - 'docs/**'
       - 'scripts/build-portal.sh'
       - 'scripts/bundle-contracts.sh'
+      - 'redocly.yaml'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
@@ -26,6 +27,11 @@ jobs:
     name: Build Documentation Portal
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      REDOCLY_TELEMETRY: off
+      REDOCLY_SUPPRESS_UPDATE_NOTICE: true
+      CI: true
+      NODE_OPTIONS: "--max-old-space-size=4096"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -34,6 +40,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Install Redocly CLI
+        run: npm install -g @redocly/cli@2.51.1
 
       - name: Compile Portal and OpenAPI Bundle
         run: |

@@ -9,11 +9,21 @@ set -euo pipefail
 #   Padrão: docs/portal
 # ==============================================================================
 
+# Desativar telemetria e avisos de update para evitar bloqueios ou travamentos em CI/CD
+export REDOCLY_TELEMETRY=off
+export REDOCLY_SUPPRESS_UPDATE_NOTICE=true
+export CI=true
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 OUTPUT_DIR="${1:-${ROOT_DIR}/docs/portal}"
 CONTRACTS_DIR="${ROOT_DIR}/contracts/openapi"
 BUNDLED_SPEC="${CONTRACTS_DIR}/openapi.bundled.json"
+
+REDOCLY_BIN="npx -y @redocly/cli"
+if command -v redocly >/dev/null 2>&1; then
+  REDOCLY_BIN="redocly"
+fi
 
 echo "=================================================================="
 echo "🚀 [Portal] Iniciando compilação do Portal de Documentação ispERP"
@@ -30,7 +40,7 @@ mkdir -p "${OUTPUT_DIR}"
 
 # 3. Gerar documentação estática Redocly em api.html
 echo "📄 [Portal] 3/5 Compilando documentação Redocly em api.html..."
-npx -y @redocly/cli build-docs "${BUNDLED_SPEC}" \
+${REDOCLY_BIN} build-docs "${BUNDLED_SPEC}" \
   --output "${OUTPUT_DIR}/api.html" \
   --title "ispERP — Contratos de API (OpenAPI Reference)"
 

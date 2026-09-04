@@ -1,0 +1,5 @@
+# Configuração do Redocly CLI para o ispERP
+# Desativa telemetria para garantir execuções rápidas e sem bloqueios no CI/CD
+telemetry: off
+extends:
+  - recommended
