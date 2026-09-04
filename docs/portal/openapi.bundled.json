@@ -3,7 +3,7 @@
   "info": {
     "title": "ispERP API",
     "version": "1.0.0",
-    "description": "Especificação formal dos contratos de API do ispERP (Sistema ERP Modular para Provedores de Internet). Governada pela diretriz mandatória de API-First (.agents/rules/api-first-contracts.md).\n",
+    "description": "Especificação formal dos contratos de API do ispERP (Sistema ERP Modular para Provedores de Internet).\n",
     "contact": {
       "name": "Equipe de Engenharia ispERP",
       "url": "https://github.com/RuyXingubit/ispERP"
