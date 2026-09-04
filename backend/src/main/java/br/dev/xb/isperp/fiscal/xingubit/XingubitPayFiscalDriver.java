@@ -26,6 +26,16 @@ import java.util.Map;
 @SuppressWarnings("null")
 public class XingubitPayFiscalDriver implements FiscalGateway {
 
+    private final RestClient.Builder restClientBuilder;
+
+    public XingubitPayFiscalDriver(RestClient.Builder restClientBuilder) {
+        this.restClientBuilder = restClientBuilder != null ? restClientBuilder : RestClient.builder();
+    }
+
+    public XingubitPayFiscalDriver() {
+        this(RestClient.builder());
+    }
+
     @Override
     public FiscalGatewayType getGatewayType() {
         return FiscalGatewayType.XINGUBIT_PAY;
@@ -37,7 +47,7 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
         String clientSecret = config.getClientSecret() != null ? config.getClientSecret() : "isperp_secret";
 
         try {
-            RestClient restClient = RestClient.builder().baseUrl(baseUrl).build();
+            RestClient restClient = restClientBuilder.baseUrl(baseUrl).build();
             @SuppressWarnings("unchecked")
             Map<String, Object> tokenResponse = restClient.post()
                     .uri("/v1/oauth/token")
@@ -49,17 +59,17 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
             if (tokenResponse != null && tokenResponse.containsKey("access_token")) {
                 return (String) tokenResponse.get("access_token");
             }
+            throw new IllegalStateException("Resposta de autenticação do Xingubit Pay não contém access_token válido.");
         } catch (Exception e) {
-            log.warn("Erro ao obter token OAuth2 do Xingubit Pay: {}. Usando token simulado em runtime.", e.getMessage());
+            log.error("Falha na autenticação OAuth2 com Xingubit Pay: {}", e.getMessage());
+            throw new IllegalStateException("Não foi possível autenticar junto ao gateway fiscal Xingubit Pay: " + e.getMessage(), e);
         }
-        return "mock_bearer_token_" + System.currentTimeMillis();
     }
 
     @Override
     public boolean registerCompany(FiscalCompany company, FiscalGatewayConfig config) {
         log.info("Cadastrando/Atualizando empresa emissora CNPJ {} no Xingubit Pay", company.getCnpj());
         String baseUrl = config.getBaseUrl() != null ? config.getBaseUrl() : "https://pay.xingubit.com.br";
-        String token = getAuthToken(config);
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("cnpj", company.getCnpj());
@@ -81,7 +91,8 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
         payload.put("emailFiscal", company.getEmailFiscal());
 
         try {
-            RestClient restClient = RestClient.builder().baseUrl(baseUrl).build();
+            String token = getAuthToken(config);
+            RestClient restClient = restClientBuilder.baseUrl(baseUrl).build();
             restClient.post()
                     .uri("/v1/empresas")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
@@ -91,8 +102,8 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
                     .toBodilessEntity();
             return true;
         } catch (Exception e) {
-            log.warn("Falha na chamada REST /v1/empresas ao Xingubit Pay: {}. Operação registrada em fallback.", e.getMessage());
-            return true;
+            log.error("Falha na chamada REST /v1/empresas ao Xingubit Pay: {}", e.getMessage());
+            return false;
         }
     }
 
@@ -100,7 +111,6 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
     public boolean configureNfcom(FiscalCompany company, FiscalGatewayConfig config) {
         log.info("Configurando parâmetros de NFCom para o CNPJ {} no Xingubit Pay", company.getCnpj());
         String baseUrl = config.getBaseUrl() != null ? config.getBaseUrl() : "https://pay.xingubit.com.br";
-        String token = getAuthToken(config);
         String cleanCnpj = company.getCnpj().replaceAll("[^0-9]", "");
 
         Map<String, Object> payload = Map.of(
@@ -110,7 +120,8 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
         );
 
         try {
-            RestClient restClient = RestClient.builder().baseUrl(baseUrl).build();
+            String token = getAuthToken(config);
+            RestClient restClient = restClientBuilder.baseUrl(baseUrl).build();
             restClient.put()
                     .uri("/v1/empresas/{cnpj}/config/nfcom", cleanCnpj)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
@@ -120,8 +131,8 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
                     .toBodilessEntity();
             return true;
         } catch (Exception e) {
-            log.warn("Falha na chamada REST /v1/empresas/{}/config/nfcom: {}. Registrado em fallback.", cleanCnpj, e.getMessage());
-            return true;
+            log.error("Falha na chamada REST /v1/empresas/{}/config/nfcom: {}", cleanCnpj, e.getMessage());
+            return false;
         }
     }
 
@@ -129,9 +140,9 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
     public CertificateUploadResult uploadCertificate(byte[] pfxBytes, String password, FiscalGatewayConfig config) {
         log.info("Realizando upload de Certificado Digital A1 ({}) bytes para o Xingubit Pay", pfxBytes.length);
         String baseUrl = config.getBaseUrl() != null ? config.getBaseUrl() : "https://pay.xingubit.com.br";
-        String token = getAuthToken(config);
 
         try {
+            String token = getAuthToken(config);
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             ByteArrayResource resource = new ByteArrayResource(pfxBytes) {
                 @Override
@@ -142,7 +153,7 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
             body.add("file", new HttpEntity<>(resource));
             body.add("password", password);
 
-            RestClient restClient = RestClient.builder().baseUrl(baseUrl).build();
+            RestClient restClient = restClientBuilder.baseUrl(baseUrl).build();
             @SuppressWarnings("unchecked")
             Map<String, Object> response = restClient.post()
                     .uri("/v1/merchants/me/certificate")
@@ -152,21 +163,22 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
                     .retrieve()
                     .body(Map.class);
 
+            if (response == null) {
+                throw new IllegalStateException("Resposta vazia do gateway ao enviar certificado.");
+            }
+
             return CertificateUploadResult.builder()
                     .success(true)
-                    .subjectCnpj(response != null && response.containsKey("cnpj") ? (String) response.get("cnpj") : "12.345.678/0001-95")
-                    .subjectName(response != null && response.containsKey("razaoSocial") ? (String) response.get("razaoSocial") : "Provedor Certificado")
-                    .validUntil(LocalDateTime.now().plusYears(1))
+                    .subjectCnpj((String) response.get("cnpj"))
+                    .subjectName((String) response.get("razaoSocial"))
+                    .validUntil(response.containsKey("validUntil") ? LocalDateTime.parse((String) response.get("validUntil")) : null)
                     .message("Certificado digital A1 configurado com sucesso no cofre seguro.")
                     .build();
         } catch (Exception e) {
-            log.warn("Upload de certificado via API retornou: {}. Gerando confirmação em fallback.", e.getMessage());
+            log.error("Upload de certificado no Xingubit Pay falhou: {}", e.getMessage());
             return CertificateUploadResult.builder()
-                    .success(true)
-                    .subjectCnpj("12.345.678/0001-95")
-                    .subjectName("Provedor Xingu Telecom")
-                    .validUntil(LocalDateTime.now().plusYears(1))
-                    .message("Certificado A1 validado e armazenado com sucesso.")
+                    .success(false)
+                    .message("Falha ao registrar certificado digital: " + e.getMessage())
                     .build();
         }
     }
@@ -177,21 +189,7 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
                 request.getCustomerName(), request.getTotalAmount());
 
         String baseUrl = config.getBaseUrl() != null ? config.getBaseUrl() : "https://pay.xingubit.com.br";
-        String token = getAuthToken(config);
-
-        String ufCode = "15"; // Pará
-        String yearMonth = String.format("%02d%02d", LocalDateTime.now().getYear() % 100, LocalDateTime.now().getMonthValue());
-        String cleanCnpj = company.getCnpj().replaceAll("[^0-9]", "");
-        String formattedCnpj = String.format("%14s", cleanCnpj).replace(' ', '0');
-        String model = "62";
-        String series = String.format("%03d", Integer.parseInt(company.getNfcomSerie()));
         int nextNum = company.getNfcomProximoNumero();
-        String numDoc = String.format("%09d", nextNum);
-        String tpEmis = "1";
-        String randomCode = String.format("%08d", (int) (Math.random() * 90000000) + 10000000);
-        String baseKey = ufCode + yearMonth + formattedCnpj + model + series + numDoc + tpEmis + randomCode;
-        int checkDigit = calculateMod11(baseKey);
-        String accessKey = baseKey + checkDigit;
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("docType", "nfcom");
@@ -224,7 +222,8 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
         ));
 
         try {
-            RestClient restClient = RestClient.builder().baseUrl(baseUrl).build();
+            String token = getAuthToken(config);
+            RestClient restClient = restClientBuilder.baseUrl(baseUrl).build();
             @SuppressWarnings("unchecked")
             Map<String, Object> response = restClient.post()
                     .uri("/v1/invoices/nfcom")
@@ -234,63 +233,126 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
                     .retrieve()
                     .body(Map.class);
 
-            if (response != null && response.containsKey("chaveAcesso")) {
-                accessKey = (String) response.get("chaveAcesso");
+            if (response != null && "AUTORIZADA".equalsIgnoreCase((String) response.get("status"))) {
+                return NfcomIssueResult.builder()
+                        .success(true)
+                        .externalId((String) response.getOrDefault("id", "XINGUBIT-NFCOM-" + nextNum))
+                        .chaveAcesso((String) response.get("chaveAcesso"))
+                        .numero(nextNum)
+                        .serie(company.getNfcomSerie())
+                        .status("AUTORIZADA")
+                        .protocoloAutorizacao((String) response.get("protocoloAutorizacao"))
+                        .dataAutorizacao(LocalDateTime.now())
+                        .digestValue((String) response.get("digestValue"))
+                        .danfePdfUrl((String) response.get("danfePdfUrl"))
+                        .xmlUrl((String) response.get("xmlUrl"))
+                        .build();
+            } else {
+                String errorReason = response != null && response.containsKey("motivoRejeicao")
+                        ? (String) response.get("motivoRejeicao")
+                        : "Emissão de NFCom rejeitada ou pendente de retorno da SEFAZ";
+                return NfcomIssueResult.builder()
+                        .success(false)
+                        .errorMessage(errorReason)
+                        .build();
             }
         } catch (Exception e) {
-            log.warn("Emissão remota de NFCom retornou erro/offline: {}. Utilizando gerador local SVRS.", e.getMessage());
+            log.error("Erro na comunicação com o gateway Xingubit Pay para emissão de NFCom: {}", e.getMessage());
+            return NfcomIssueResult.builder()
+                    .success(false)
+                    .errorMessage("Falha de conexão com a API fiscal remota: " + e.getMessage())
+                    .build();
         }
-
-        String protocol = "115" + LocalDateTime.now().getYear() + String.format("%010d", (long) (Math.random() * 9000000000L));
-
-        return NfcomIssueResult.builder()
-                .success(true)
-                .externalId("XINGUBIT-NFCOM-" + nextNum)
-                .chaveAcesso(accessKey)
-                .numero(nextNum)
-                .serie(company.getNfcomSerie())
-                .status("AUTORIZADA")
-                .protocoloAutorizacao(protocol)
-                .dataAutorizacao(LocalDateTime.now())
-                .digestValue("rZ5Hqj3T/4wM8mQk==")
-                .danfePdfUrl(baseUrl + "/v1/invoices/nfcom/" + accessKey + "/pdf")
-                .xmlUrl(baseUrl + "/v1/invoices/nfcom/" + accessKey + "/xml")
-                .build();
     }
 
     @Override
     public NfcomStatusResult queryStatus(String accessKeyOrExternalId, FiscalGatewayConfig config) {
         String baseUrl = config.getBaseUrl() != null ? config.getBaseUrl() : "https://pay.xingubit.com.br";
+        try {
+            String token = getAuthToken(config);
+            RestClient restClient = restClientBuilder.baseUrl(baseUrl).build();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restClient.get()
+                    .uri("/v1/invoices/nfcom/{id}", accessKeyOrExternalId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (response != null) {
+                return NfcomStatusResult.builder()
+                        .success(true)
+                        .chaveAcesso((String) response.get("chaveAcesso"))
+                        .status((String) response.get("status"))
+                        .protocoloAutorizacao((String) response.get("protocoloAutorizacao"))
+                        .dataAutorizacao(LocalDateTime.now())
+                        .danfePdfUrl((String) response.get("danfePdfUrl"))
+                        .xmlUrl((String) response.get("xmlUrl"))
+                        .build();
+            }
+        } catch (Exception e) {
+            log.error("Erro ao consultar status da NFCom no Xingubit Pay: {}", e.getMessage());
+        }
         return NfcomStatusResult.builder()
-                .success(true)
-                .chaveAcesso(accessKeyOrExternalId)
-                .status("AUTORIZADA")
-                .protocoloAutorizacao("115260009876543")
-                .dataAutorizacao(LocalDateTime.now())
-                .danfePdfUrl(baseUrl + "/v1/invoices/nfcom/" + accessKeyOrExternalId + "/pdf")
-                .xmlUrl(baseUrl + "/v1/invoices/nfcom/" + accessKeyOrExternalId + "/xml")
+                .success(false)
+                .status("ERRO_CONSULTA")
+                .errorMessage("Não foi possível consultar o status da nota fiscal no gateway")
                 .build();
     }
 
     @Override
     public byte[] downloadDanfePdf(String accessKeyOrExternalId, FiscalGatewayConfig config) {
-        String mockPdf = "%PDF-1.4\n%DANFE NFCom Modelo 62 Chave: " + accessKeyOrExternalId + "\n%%EOF";
-        return mockPdf.getBytes(StandardCharsets.UTF_8);
+        String baseUrl = config.getBaseUrl() != null ? config.getBaseUrl() : "https://pay.xingubit.com.br";
+        String token = getAuthToken(config);
+        RestClient restClient = restClientBuilder.baseUrl(baseUrl).build();
+        return restClient.get()
+                .uri("/v1/invoices/nfcom/{key}/pdf", accessKeyOrExternalId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .body(byte[].class);
     }
 
     @Override
     public String downloadXml(String accessKeyOrExternalId, FiscalGatewayConfig config) {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?><NFCom xmlns=\"http://www.portalfiscal.inf.br/nfcom\"><infNFCom Id=\"NFCom"
-                + accessKeyOrExternalId + "\"><emit><CNPJ>12345678000195</CNPJ></emit></infNFCom></NFCom>";
+        String baseUrl = config.getBaseUrl() != null ? config.getBaseUrl() : "https://pay.xingubit.com.br";
+        String token = getAuthToken(config);
+        RestClient restClient = restClientBuilder.baseUrl(baseUrl).build();
+        return restClient.get()
+                .uri("/v1/invoices/nfcom/{key}/xml", accessKeyOrExternalId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .body(String.class);
     }
 
     @Override
     public NfcomCancelResult cancelNfcom(String accessKeyOrExternalId, String reason, FiscalGatewayConfig config) {
+        String baseUrl = config.getBaseUrl() != null ? config.getBaseUrl() : "https://pay.xingubit.com.br";
+        try {
+            String token = getAuthToken(config);
+            RestClient restClient = restClientBuilder.baseUrl(baseUrl).build();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restClient.post()
+                    .uri("/v1/invoices/nfcom/{id}/cancel", accessKeyOrExternalId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("justificativa", reason != null ? reason : "Cancelamento a pedido"))
+                    .retrieve()
+                    .body(Map.class);
+
+            if (response != null && "CANCELADA".equalsIgnoreCase((String) response.get("status"))) {
+                return NfcomCancelResult.builder()
+                        .success(true)
+                        .chaveAcesso(accessKeyOrExternalId)
+                        .protocoloCancelamento((String) response.get("protocoloCancelamento"))
+                        .dataCancelamento(LocalDateTime.now())
+                        .build();
+            }
+        } catch (Exception e) {
+            log.error("Erro ao cancelar NFCom no Xingubit Pay: {}", e.getMessage());
+        }
         return NfcomCancelResult.builder()
-                .success(true)
+                .success(false)
                 .chaveAcesso(accessKeyOrExternalId)
-                .protocoloCancelamento("115269991234567")
-                .dataCancelamento(LocalDateTime.now())
+                .errorMessage("Não foi possível cancelar a NFCom no gateway fiscal")
                 .build();
     }
 

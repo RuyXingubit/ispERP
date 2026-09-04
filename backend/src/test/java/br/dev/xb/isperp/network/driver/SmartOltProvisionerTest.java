@@ -43,13 +43,14 @@ class SmartOltProvisionerTest {
     }
 
     @Test
-    @DisplayName("Deve consultar status e sinal óptico (dBm) da ONU")
+    @DisplayName("Deve consultar status da ONU sem inventar potências ópticas")
     void shouldCheckOnuStatus() {
         OnuStatusResponse response = provisioner.checkOnuStatus("AA:BB:CC:DD:EE:01", sampleDevice);
 
         assertNotNull(response);
-        assertEquals("ONLINE", response.getStatus());
-        assertNotNull(response.getRxPowerDbm());
+        assertEquals("UNKNOWN", response.getStatus());
+        assertNull(response.getRxPowerDbm());
+        assertNull(response.getTxPowerDbm());
         assertEquals("SmartOLT Central", response.getOltName());
     }
 }

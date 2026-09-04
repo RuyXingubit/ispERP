@@ -78,8 +78,30 @@ class TechnicianFieldExecutionServiceTest {
     }
 
     @Test
-    @DisplayName("Deve descobrir ONUs não provisionadas na OLT para a O.S.")
+    @DisplayName("Deve descobrir ONUs associadas na O.S. sem inventar dados")
     void testListUnprovisionedOnus() {
+        WorkOrder wo = WorkOrder.builder()
+                .id(workOrderId)
+                .contractId(contractId)
+                .customerId(customerId)
+                .ctoPortNumber(2)
+                .onuSerial("HWTC11223344")
+                .onuMac("AA:BB:CC:DD:EE:01")
+                .build();
+
+        when(workOrderRepository.findById(workOrderId)).thenReturn(Optional.of(wo));
+
+        List<OltUnprovisionedOnuResponse> onus = fieldService.listUnprovisionedOnus(workOrderId);
+
+        assertThat(onus).hasSize(1);
+        assertThat(onus.get(0).getOnuSerial()).isEqualTo("HWTC11223344");
+        assertThat(onus.get(0).getOnuMac()).isEqualTo("AA:BB:CC:DD:EE:01");
+        assertThat(onus.get(0).getRxPowerDbm()).isNull();
+    }
+
+    @Test
+    @DisplayName("Deve retornar lista vazia quando O.S. não tiver ONU associada")
+    void testListUnprovisionedOnusWhenNoneAssigned() {
         WorkOrder wo = WorkOrder.builder()
                 .id(workOrderId)
                 .contractId(contractId)
@@ -91,9 +113,7 @@ class TechnicianFieldExecutionServiceTest {
 
         List<OltUnprovisionedOnuResponse> onus = fieldService.listUnprovisionedOnus(workOrderId);
 
-        assertThat(onus).isNotEmpty();
-        assertThat(onus.get(0).getOnuSerial()).isNotBlank();
-        assertThat(onus.get(0).getRxPowerDbm()).isNotNull();
+        assertThat(onus).isEmpty();
     }
 
     @Test

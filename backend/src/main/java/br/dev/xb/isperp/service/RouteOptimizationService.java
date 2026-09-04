@@ -76,17 +76,18 @@ public class RouteOptimizationService {
 
         for (UUID woId : request.getWorkOrderIds()) {
             workOrderRepository.findById(woId).ifPresent(wo -> {
-                workOrders.add(wo);
                 Customer c = customerRepository.findById(wo.getCustomerId()).orElse(null);
-                BigDecimal lat = (c != null && c.getLatitude() != null) ? c.getLatitude() : origLat.add(new BigDecimal("0.005"));
-                BigDecimal lon = (c != null && c.getLongitude() != null) ? c.getLongitude() : origLon.add(new BigDecimal("0.005"));
-
-                stops.add(GeoCepClient.RouteWaypoint.builder()
-                        .id(wo.getId().toString())
-                        .label(c != null ? c.getName() : "Cliente O.S.")
-                        .latitude(lat)
-                        .longitude(lon)
-                        .build());
+                if (c != null && c.getLatitude() != null && c.getLongitude() != null) {
+                    workOrders.add(wo);
+                    stops.add(GeoCepClient.RouteWaypoint.builder()
+                            .id(wo.getId().toString())
+                            .label(c.getName())
+                            .latitude(c.getLatitude())
+                            .longitude(c.getLongitude())
+                            .build());
+                } else {
+                    log.warn("O.S. {} não incluída no cálculo de menor trajeto: cliente sem coordenadas GPS registradas", wo.getId());
+                }
             });
         }
 
