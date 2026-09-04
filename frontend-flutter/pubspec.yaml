@@ -35,6 +35,27 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Networking & HTTP (OpenAPI integration & JWT interceptor)
+  dio: ^5.8.0+1
+
+  # Declarative Routing with RBAC guards
+  go_router: ^14.8.1
+
+  # Reactive State Management
+  flutter_riverpod: ^2.6.1
+
+  # Secure Storage for JWT & Keys
+  flutter_secure_storage: ^9.2.4
+
+  # Shared Preferences for Server Base URL & Settings
+  shared_preferences: ^2.5.2
+
+  # UUID generator (v7 support)
+  uuid: ^4.5.1
+
+  # Formatting & Localization
+  intl: ^0.20.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
