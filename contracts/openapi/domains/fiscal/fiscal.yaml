@@ -1,0 +1,475 @@
+# ==============================================================================
+# Endpoints do Domínio Fiscal, NFCom (Mod. 62) e Transições de Regime (ispERP)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Tag: Fiscal (Empresa Fiscal, Certificados, NFCom e Convênio 115)
+# ------------------------------------------------------------------------------
+/fiscal/company:
+  get:
+    tags:
+      - Fiscal
+    summary: Obter dados cadastrais da empresa fiscal ativa
+    description: Retorna a configuração fiscal e tributária ativa do provedor.
+    operationId: getActiveFiscalCompany
+    responses:
+      '200':
+        description: Empresa fiscal ativa encontrada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FiscalCompanyResponse'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Nenhuma empresa fiscal ativa configurada
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+  post:
+    tags:
+      - Fiscal
+    summary: Salvar ou atualizar cadastro fiscal da empresa
+    description: Salva os dados de CNPJ, Inscrição Estadual, CNAE, endereço e alíquotas fiscais.
+    operationId: saveFiscalCompany
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FiscalCompanySaveRequest'
+    responses:
+      '200':
+        description: Empresa fiscal salva com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FiscalCompanyResponse'
+      '400':
+        description: Dados fiscais inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/company/{companyId}/certificate:
+  post:
+    tags:
+      - Fiscal
+    summary: Upload do Certificado Digital A1 (.pfx / .p12)
+    description: Carrega e valida a chave privada e a data de expiração do certificado digital A1 da empresa.
+    operationId: uploadFiscalCertificate
+    parameters:
+      - name: companyId
+        in: path
+        required: true
+        description: ID único da empresa fiscal
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - file
+              - password
+            properties:
+              file:
+                type: string
+                format: binary
+                description: Arquivo binário do certificado digital A1 (.pfx ou .p12)
+              password:
+                type: string
+                format: password
+                description: Senha do certificado digital
+    responses:
+      '200':
+        description: Certificado digital validado e armazenado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CertificateUploadResultResponse'
+      '400':
+        description: Falha na validação ou senha incorreta do certificado
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CertificateUploadResultResponse'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/configs:
+  get:
+    tags:
+      - Fiscal
+    summary: Obter configuração ativa do gateway fiscal
+    description: Retorna a configuração de ambiente, URL base e provedor fiscal sem expor segredos.
+    operationId: getActiveFiscalConfig
+    responses:
+      '200':
+        description: Configuração do gateway fiscal recuperada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FiscalGatewayConfigResponse'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/invoices/{invoiceId}/emit:
+  post:
+    tags:
+      - Fiscal
+    summary: Emitir NFCom Modelo 62 para uma fatura
+    description: Gera o XML da NFCom, assina com certificado A1 e transmite para autorização na SEFAZ.
+    operationId: emitNfcom
+    parameters:
+      - name: invoiceId
+        in: path
+        required: true
+        description: ID da fatura vinculada
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: NFCom gerada ou autorizada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NfcomRecordResponse'
+      '400':
+        description: Fatura inválida ou erro na emissão
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Fatura não encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/records:
+  get:
+    tags:
+      - Fiscal
+    summary: Listar registros de NFCom Modelo 62 com paginação
+    description: Consulta o histórico de notas fiscais de telecomunicação emitidas, autorizadas ou rejeitadas.
+    operationId: listNfcomRecords
+    parameters:
+      - name: page
+        in: query
+        required: false
+        description: Número da página (0-based)
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        required: false
+        description: Quantidade de registros por página
+        schema:
+          type: integer
+          default: 10
+      - name: sort
+        in: query
+        required: false
+        description: Critério de ordenação (ex. createdAt,desc)
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Página de registros de NFCom recuperada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NfcomRecordsPageResponse'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/records/{recordId}/cancel:
+  post:
+    tags:
+      - Fiscal
+    summary: Cancelar NFCom Modelo 62 autorizada
+    description: Envia evento de cancelamento da NFCom para a SEFAZ dentro do prazo regulamentar.
+    operationId: cancelNfcom
+    parameters:
+      - name: recordId
+        in: path
+        required: true
+        description: ID do registro da NFCom
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/NfcomCancelRequest'
+    responses:
+      '200':
+        description: Resultado do pedido de cancelamento
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NfcomCancelResultResponse'
+      '400':
+        description: Erro no cancelamento ou prazo expirado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Registro de NFCom não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/convenio115/export:
+  get:
+    tags:
+      - Fiscal
+    summary: Exportar arquivos do Convênio ICMS 115/03 em arquivo ZIP
+    description: Gera e empacota os arquivos de telecomunicação (Mestre, Item e Destinatário) com hashes MD5.
+    operationId: exportConvenio115
+    parameters:
+      - name: year
+        in: query
+        required: false
+        description: Ano de competência fiscal (padrão é o ano corrente)
+        schema:
+          type: integer
+          example: 2026
+      - name: month
+        in: query
+        required: false
+        description: Mês de competência fiscal 1-12 (padrão é o mês corrente)
+        schema:
+          type: integer
+          example: 8
+    responses:
+      '200':
+        description: Arquivo ZIP com os lotes mensais do Convênio 115
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/convenio115/send-accounting:
+  post:
+    tags:
+      - Fiscal
+    summary: Transmitir fechamento fiscal mensal para a contabilidade
+    description: Dispara o relatório consolidado com resumo de faturamento e impostos para o e-mail contábil.
+    operationId: sendAccountingReport
+    parameters:
+      - name: year
+        in: query
+        required: false
+        description: Ano de competência
+        schema:
+          type: integer
+          example: 2026
+      - name: month
+        in: query
+        required: false
+        description: Mês de competência
+        schema:
+          type: integer
+          example: 8
+    responses:
+      '200':
+        description: Fechamento fiscal enviado para a contabilidade
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SendAccountingReportResponse'
+      '400':
+        description: Falha no envio do relatório
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+# ------------------------------------------------------------------------------
+# Tag: FiscalRegimeTransitions (Transição de Regimes Tributários)
+# ------------------------------------------------------------------------------
+/fiscal/regimes/transitions:
+  post:
+    tags:
+      - FiscalRegimeTransitions
+    summary: Agendar ou aplicar imediatamente uma transição de regime tributário
+    description: Cria um agendamento de mudança de regime tributário (ex. SIMPLES_NACIONAL -> LUCRO_PRESUMIDO).
+    operationId: scheduleOrApplyTransition
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FiscalRegimeTransitionRequest'
+    responses:
+      '200':
+        description: Transição registrada ou aplicada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FiscalRegimeTransitionResponse'
+      '400':
+        description: Parâmetros de transição inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+  get:
+    tags:
+      - FiscalRegimeTransitions
+    summary: Consultar histórico de transições de regime tributário
+    description: Retorna a lista de transições agendadas, aplicadas e canceladas da empresa fiscal.
+    operationId: getTransitionHistory
+    parameters:
+      - name: companyId
+        in: query
+        required: false
+        description: ID da empresa fiscal para filtrar
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Histórico de transições retornado com sucesso
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/FiscalRegimeTransitionResponse'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/regimes/transitions/{id}:
+  delete:
+    tags:
+      - FiscalRegimeTransitions
+    summary: Cancelar transição de regime tributário agendada
+    description: Cancela um agendamento futuro de transição de regime tributário antes de sua efetivação.
+    operationId: cancelTransition
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: ID da transição a cancelar
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Transição cancelada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FiscalRegimeTransitionResponse'
+      '400':
+        description: Transição já aplicada ou não pode ser cancelada
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Transição não encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/regimes/transitions/process-pending:
+  post:
+    tags:
+      - FiscalRegimeTransitions
+    summary: Disparar manualmente processamento de transições pendentes
+    description: Executa o processamento em lote de agendamentos de regime com data efetiva atingida.
+    operationId: triggerProcessPending
+    responses:
+      '200':
+        description: Quantidade de transições processadas com sucesso
+        content:
+          application/json:
+            schema:
+              type: integer
+              example: 1
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

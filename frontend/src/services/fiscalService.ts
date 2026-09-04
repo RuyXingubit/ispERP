@@ -1,4 +1,10 @@
-import api from './api';
+import { getFiscal } from '../api/generated/endpoints/fiscal/fiscal';
+import type {
+  FiscalCompanySaveRequest,
+  FiscalGatewayConfigResponse,
+  NfcomRecordResponse,
+  SendAccountingReportResponse,
+} from '../api/generated/models';
 import { FiscalCompany, NfcomRecord } from '../types/fiscal';
 
 export interface CertificateUploadResponse {
@@ -7,15 +13,34 @@ export interface CertificateUploadResponse {
   expiresAt?: string;
 }
 
+const fiscalApi = getFiscal();
+
+const mapToNfcomRecord = (rec: NfcomRecordResponse): NfcomRecord => {
+  return {
+    id: rec.id,
+    invoiceId: rec.invoiceId || '',
+    accessKey: rec.chaveAcesso || undefined,
+    series: rec.serie,
+    documentNumber: rec.numero,
+    status: (rec.status as any) || 'DRAFT',
+    xmlAuthorized: rec.xmlAutorizado || undefined,
+    danfePdfUrl: rec.danfePdfUrl || undefined,
+    rejectionReason: rec.motivoCancelamento || undefined,
+    issuedAt: rec.dataAutorizacao || undefined,
+    createdAt: rec.createdAt || undefined,
+    ...(rec as any),
+  };
+};
+
 const fiscalService = {
   getActiveCompany: async (): Promise<FiscalCompany> => {
-    const response = await api.get<FiscalCompany>('/fiscal/company');
-    return response.data;
+    const comp = await fiscalApi.getActiveFiscalCompany();
+    return comp as unknown as FiscalCompany;
   },
 
   saveCompany: async (companyData: Partial<FiscalCompany>): Promise<FiscalCompany> => {
-    const response = await api.post<FiscalCompany>('/fiscal/company', companyData);
-    return response.data;
+    const saved = await fiscalApi.saveFiscalCompany(companyData as unknown as FiscalCompanySaveRequest);
+    return saved as unknown as FiscalCompany;
   },
 
   uploadCertificate: async (
@@ -23,54 +48,49 @@ const fiscalService = {
     file: File,
     password: string
   ): Promise<CertificateUploadResponse> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('password', password);
-
-    const response = await api.post<CertificateUploadResponse>(
-      `/fiscal/company/${companyId}/certificate`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-    return response.data;
+    const result = await fiscalApi.uploadFiscalCertificate(companyId, { file, password });
+    return {
+      success: result.success,
+      errorMessage: result.errorMessage || undefined,
+      expiresAt: result.validUntil || undefined,
+    };
   },
 
-  getActiveConfig: async () => {
-    const response = await api.get('/fiscal/configs');
-    return response.data;
+  getActiveConfig: async (): Promise<FiscalGatewayConfigResponse> => {
+    return fiscalApi.getActiveFiscalConfig();
   },
 
   emitNfcom: async (invoiceId: string): Promise<NfcomRecord> => {
-    const response = await api.post<NfcomRecord>(`/fiscal/invoices/${invoiceId}/emit`);
-    return response.data;
+    const record = await fiscalApi.emitNfcom(invoiceId);
+    return mapToNfcomRecord(record);
   },
 
   getRecords: async (page = 0, size = 10): Promise<NfcomRecord[]> => {
-    const response = await api.get<any>(
-      `/fiscal/records?page=${page}&size=${size}&sort=createdAt,desc`
-    );
-    if (Array.isArray(response.data)) {
-      return response.data;
-    }
-    return response.data?.content || [];
+    const response = await fiscalApi.listNfcomRecords({ page, size, sort: 'createdAt,desc' });
+    const content = (response && response.content) ? response.content : (Array.isArray(response) ? response : []);
+    return content.map(mapToNfcomRecord);
   },
 
   cancelNfcom: async (recordId: string, reason: string): Promise<NfcomRecord> => {
-    const response = await api.post<NfcomRecord>(`/fiscal/records/${recordId}/cancel`, { reason });
-    return response.data;
+    const result = await fiscalApi.cancelNfcom(recordId, { reason });
+    return {
+      id: recordId,
+      invoiceId: '',
+      accessKey: result.chaveAcesso || undefined,
+      series: '1',
+      documentNumber: 0,
+      status: 'CANCELED',
+      rejectionReason: result.errorMessage || undefined,
+      issuedAt: result.dataCancelamento || undefined,
+    };
   },
 
   getConvenio115ExportUrl: (year: number, month: number): string => {
     return `/api/fiscal/convenio115/export?year=${year}&month=${month}`;
   },
 
-  sendAccountingReport: async (year: number, month: number): Promise<{ success: boolean; message?: string }> => {
-    const response = await api.post(`/fiscal/convenio115/send-accounting?year=${year}&month=${month}`);
-    return response.data;
+  sendAccountingReport: async (year: number, month: number): Promise<SendAccountingReportResponse> => {
+    return fiscalApi.sendAccountingReport({ year, month });
   },
 };
 

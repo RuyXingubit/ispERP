@@ -1,0 +1,673 @@
+# ==============================================================================
+# Esquemas do Domínio Fiscal, NFCom (Mod. 62) e Transições de Regime (ispERP)
+# ==============================================================================
+
+FiscalRegime:
+  type: string
+  description: Regime tributário aplicável ao provedor de telecomunicações
+  enum:
+    - SIMPLES_NACIONAL
+    - LUCRO_PRESUMIDO
+    - LUCRO_REAL
+
+FiscalEnvironment:
+  type: string
+  description: Ambiente de autorização SEFAZ da Nota Fiscal
+  enum:
+    - HOMOLOGACAO
+    - PRODUCAO
+
+FiscalRegimeTransitionStatus:
+  type: string
+  description: Status do agendamento de transição de regime tributário
+  enum:
+    - SCHEDULED
+    - APPLIED
+    - CANCELLED
+
+# ------------------------------------------------------------------------------
+# Empresa Fiscal & Certificado Digital A1
+# ------------------------------------------------------------------------------
+FiscalCompanyResponse:
+  type: object
+  description: Dados cadastrais e alíquotas fiscais ativas da empresa
+  required:
+    - id
+    - cnpj
+    - razaoSocial
+    - inscricaoEstadual
+    - cnaePrincipal
+    - regimeTributario
+    - logradouro
+    - numero
+    - bairro
+    - cidade
+    - uf
+    - cep
+    - codigoIbge
+    - nfcomAmbiente
+    - nfcomSerie
+    - nfcomProximoNumero
+    - hasCertificate
+    - fiscalConfirmed
+    - isActive
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01912e73-b789-7000-8000-000000000001"
+    cnpj:
+      type: string
+      example: "12.345.678/0001-90"
+    razaoSocial:
+      type: string
+      example: "Nexus Fibra Telecomunicações LTDA"
+    nomeFantasia:
+      type: string
+      nullable: true
+      example: "Nexus Fibra"
+    inscricaoEstadual:
+      type: string
+      example: "15.123.456-7"
+    inscricaoMunicipal:
+      type: string
+      nullable: true
+    cnaePrincipal:
+      type: string
+      example: "6110-8/03"
+    regimeTributario:
+      $ref: '#/FiscalRegime'
+    aliquotaIcms:
+      type: number
+      format: double
+      example: 0.00
+    aliquotaFust:
+      type: number
+      format: double
+      example: 0.65
+    aliquotaFunttel:
+      type: number
+      format: double
+      example: 0.50
+    aliquotaPis:
+      type: number
+      format: double
+      example: 0.65
+    aliquotaCofins:
+      type: number
+      format: double
+      example: 3.00
+    logradouro:
+      type: string
+      example: "Av. Principal"
+    numero:
+      type: string
+      example: "100"
+    complemento:
+      type: string
+      nullable: true
+    bairro:
+      type: string
+      example: "Centro"
+    cidade:
+      type: string
+      example: "Altamira"
+    uf:
+      type: string
+      example: "PA"
+    cep:
+      type: string
+      example: "68370-000"
+    codigoIbge:
+      type: string
+      example: "1500602"
+    telefone:
+      type: string
+      nullable: true
+    emailFiscal:
+      type: string
+      nullable: true
+      example: "fiscal@nexusfibra.com.br"
+    nfcomAmbiente:
+      $ref: '#/FiscalEnvironment'
+    nfcomSerie:
+      type: string
+      example: "1"
+    nfcomProximoNumero:
+      type: integer
+      example: 101
+    hasCertificate:
+      type: boolean
+      example: true
+    certificateExpiresAt:
+      type: string
+      format: date-time
+      nullable: true
+    accountingName:
+      type: string
+      nullable: true
+      example: "Contabilidade Express"
+    accountingEmails:
+      type: string
+      nullable: true
+      example: "contabil@express.com.br"
+    accountingSendDay:
+      type: integer
+      example: 5
+    accountingAutoSend:
+      type: boolean
+      example: true
+    accountingLastSentAt:
+      type: string
+      format: date-time
+      nullable: true
+    fiscalConfirmed:
+      type: boolean
+      example: true
+    fiscalConfirmedAt:
+      type: string
+      format: date-time
+      nullable: true
+    isActive:
+      type: boolean
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+FiscalCompanySaveRequest:
+  type: object
+  description: Dados para cadastro ou atualização da empresa fiscal
+  required:
+    - cnpj
+    - razaoSocial
+    - inscricaoEstadual
+    - logradouro
+    - numero
+    - bairro
+    - cidade
+    - uf
+    - cep
+    - codigoIbge
+  properties:
+    id:
+      type: string
+      format: uuid
+      nullable: true
+    cnpj:
+      type: string
+      example: "12.345.678/0001-90"
+    razaoSocial:
+      type: string
+      example: "Nexus Fibra Telecomunicações LTDA"
+    nomeFantasia:
+      type: string
+      nullable: true
+    inscricaoEstadual:
+      type: string
+      example: "15.123.456-7"
+    inscricaoMunicipal:
+      type: string
+      nullable: true
+    cnaePrincipal:
+      type: string
+      nullable: true
+      default: "6110-8/03"
+    regimeTributario:
+      $ref: '#/FiscalRegime'
+    aliquotaIcms:
+      type: number
+      format: double
+      nullable: true
+    aliquotaFust:
+      type: number
+      format: double
+      nullable: true
+    aliquotaFunttel:
+      type: number
+      format: double
+      nullable: true
+    aliquotaPis:
+      type: number
+      format: double
+      nullable: true
+    aliquotaCofins:
+      type: number
+      format: double
+      nullable: true
+    logradouro:
+      type: string
+      example: "Av. Principal"
+    numero:
+      type: string
+      example: "100"
+    complemento:
+      type: string
+      nullable: true
+    bairro:
+      type: string
+      example: "Centro"
+    cidade:
+      type: string
+      example: "Altamira"
+    uf:
+      type: string
+      example: "PA"
+    cep:
+      type: string
+      example: "68370-000"
+    codigoIbge:
+      type: string
+      example: "1500602"
+    telefone:
+      type: string
+      nullable: true
+    emailFiscal:
+      type: string
+      nullable: true
+    nfcomAmbiente:
+      $ref: '#/FiscalEnvironment'
+    nfcomSerie:
+      type: string
+      nullable: true
+      default: "1"
+    nfcomProximoNumero:
+      type: integer
+      nullable: true
+    accountingName:
+      type: string
+      nullable: true
+    accountingEmails:
+      type: string
+      nullable: true
+    accountingSendDay:
+      type: integer
+      nullable: true
+    accountingAutoSend:
+      type: boolean
+      nullable: true
+    fiscalConfirmed:
+      type: boolean
+      nullable: true
+
+CertificateUploadResultResponse:
+  type: object
+  description: Resultado do upload e validação do Certificado Digital A1
+  required:
+    - success
+  properties:
+    success:
+      type: boolean
+      example: true
+    subjectCnpj:
+      type: string
+      nullable: true
+      example: "12.345.678/0001-90"
+    subjectName:
+      type: string
+      nullable: true
+      example: "NEXUS FIBRA TELECOMUNICACOES LTDA:12345678000190"
+    validUntil:
+      type: string
+      format: date-time
+      nullable: true
+    message:
+      type: string
+      nullable: true
+      example: "Certificado A1 validado e instalado com sucesso."
+    errorMessage:
+      type: string
+      nullable: true
+
+FiscalGatewayConfigResponse:
+  type: object
+  description: Configurações ativas do gateway emissor fiscal (sem segredos expostos)
+  required:
+    - companyId
+    - gatewayType
+    - environment
+    - baseUrl
+    - isActive
+  properties:
+    id:
+      type: string
+      format: uuid
+      nullable: true
+    companyId:
+      type: string
+      format: uuid
+    gatewayType:
+      type: string
+      example: "XINGUBIT_PAY"
+    environment:
+      $ref: '#/FiscalEnvironment'
+    baseUrl:
+      type: string
+      example: "https://pay.xingubit.com.br"
+    isActive:
+      type: boolean
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+# ------------------------------------------------------------------------------
+# NFCom Modelo 62 (Registros & Cancelamento)
+# ------------------------------------------------------------------------------
+NfcomRecordResponse:
+  type: object
+  description: Dados da Nota Fiscal de Serviços de Comunicação (Modelo 62)
+  required:
+    - id
+    - companyId
+    - customerId
+    - numero
+    - serie
+    - modelo
+    - tipoEmissao
+    - ambiente
+    - status
+    - valorTotal
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01912e73-b789-7000-8000-000000000010"
+    companyId:
+      type: string
+      format: uuid
+    invoiceId:
+      type: string
+      format: uuid
+      nullable: true
+    contractId:
+      type: string
+      format: uuid
+      nullable: true
+    customerId:
+      type: string
+      format: uuid
+    chaveAcesso:
+      type: string
+      nullable: true
+      example: "15260912345678000190620010000001011234567890"
+    numero:
+      type: integer
+      example: 101
+    serie:
+      type: string
+      example: "1"
+    modelo:
+      type: string
+      example: "62"
+    tipoEmissao:
+      type: string
+      example: "NORMAL"
+    ambiente:
+      $ref: '#/FiscalEnvironment'
+    status:
+      type: string
+      example: "AUTORIZADA"
+    protocoloAutorizacao:
+      type: string
+      nullable: true
+      example: "115260000012345"
+    dataAutorizacao:
+      type: string
+      format: date-time
+      nullable: true
+    digestValue:
+      type: string
+      nullable: true
+    valorTotal:
+      type: number
+      format: double
+      example: 99.90
+    valorIcms:
+      type: number
+      format: double
+      nullable: true
+      example: 0.00
+    valorFust:
+      type: number
+      format: double
+      nullable: true
+      example: 0.65
+    valorFunttel:
+      type: number
+      format: double
+      nullable: true
+      example: 0.50
+    xmlAutorizado:
+      type: string
+      nullable: true
+    danfePdfUrl:
+      type: string
+      nullable: true
+      example: "https://isperp.local/danfe/nfcom-101.pdf"
+    motivoCancelamento:
+      type: string
+      nullable: true
+    dataCancelamento:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+NfcomRecordsPageResponse:
+  type: object
+  description: Página de registros de NFCom Modelo 62
+  required:
+    - content
+    - totalElements
+    - totalPages
+    - size
+    - number
+  properties:
+    content:
+      type: array
+      items:
+        $ref: '#/NfcomRecordResponse'
+    totalElements:
+      type: integer
+      format: int64
+      example: 45
+    totalPages:
+      type: integer
+      example: 3
+    size:
+      type: integer
+      example: 15
+    number:
+      type: integer
+      example: 0
+
+NfcomCancelRequest:
+  type: object
+  description: Dados para cancelamento de NFCom
+  properties:
+    reason:
+      type: string
+      nullable: true
+      example: "Cancelamento solicitado pelo provedor por duplicidade de faturamento"
+
+NfcomCancelResultResponse:
+  type: object
+  description: Resultado do cancelamento da NFCom na SEFAZ
+  required:
+    - success
+  properties:
+    success:
+      type: boolean
+      example: true
+    chaveAcesso:
+      type: string
+      nullable: true
+      example: "15260912345678000190620010000001011234567890"
+    protocoloCancelamento:
+      type: string
+      nullable: true
+      example: "115260000099999"
+    dataCancelamento:
+      type: string
+      format: date-time
+      nullable: true
+    errorMessage:
+      type: string
+      nullable: true
+
+SendAccountingReportResponse:
+  type: object
+  description: Resultado do envio do fechamento fiscal mensal para a contabilidade
+  required:
+    - success
+    - message
+  properties:
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: "Fechamento fiscal transmitido com sucesso para a contabilidade via FreeMarker!"
+    sentAt:
+      type: string
+      format: date-time
+      nullable: true
+
+# ------------------------------------------------------------------------------
+# Transições de Regime Tributário
+# ------------------------------------------------------------------------------
+FiscalRegimeTransitionRequest:
+  type: object
+  description: Dados para agendamento ou aplicação de transição de regime tributário
+  required:
+    - newRegime
+    - effectiveDate
+  properties:
+    companyId:
+      type: string
+      format: uuid
+      nullable: true
+    newRegime:
+      $ref: '#/FiscalRegime'
+    effectiveDate:
+      type: string
+      format: date
+      example: "2027-01-01"
+    aliquotaIcms:
+      type: number
+      format: double
+      nullable: true
+      example: 18.00
+    aliquotaPis:
+      type: number
+      format: double
+      nullable: true
+      example: 0.65
+    aliquotaCofins:
+      type: number
+      format: double
+      nullable: true
+      example: 3.00
+    aliquotaFust:
+      type: number
+      format: double
+      nullable: true
+      example: 0.65
+    aliquotaFunttel:
+      type: number
+      format: double
+      nullable: true
+      example: 0.50
+    notes:
+      type: string
+      nullable: true
+      example: "Desenquadramento do Simples Nacional por limite de faturamento anual"
+
+FiscalRegimeTransitionResponse:
+  type: object
+  description: Dados da transição de regime tributário agendada ou executada
+  required:
+    - companyId
+    - previousRegime
+    - newRegime
+    - effectiveDate
+    - status
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01912e73-b789-7000-8000-000000000030"
+    companyId:
+      type: string
+      format: uuid
+    previousRegime:
+      type: string
+      example: "SIMPLES_NACIONAL"
+    newRegime:
+      type: string
+      example: "LUCRO_PRESUMIDO"
+    effectiveDate:
+      type: string
+      format: date
+      example: "2027-01-01"
+    aliquotaIcms:
+      type: number
+      format: double
+      nullable: true
+      example: 18.00
+    aliquotaPis:
+      type: number
+      format: double
+      nullable: true
+      example: 0.65
+    aliquotaCofins:
+      type: number
+      format: double
+      nullable: true
+      example: 3.00
+    aliquotaFust:
+      type: number
+      format: double
+      nullable: true
+      example: 0.65
+    aliquotaFunttel:
+      type: number
+      format: double
+      nullable: true
+      example: 0.50
+    status:
+      $ref: '#/FiscalRegimeTransitionStatus'
+    notes:
+      type: string
+      nullable: true
+    appliedAt:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true

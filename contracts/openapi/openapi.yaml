@@ -60,6 +60,10 @@ tags:
     description: Depósitos e Almoxarifados Físicos
   - name: AssetCustody
     description: Custódia de Ativos Serializados, Transferências Inter-Bases e Ferramental
+  - name: Fiscal
+    description: Empresa Fiscal, Certificados Digitais A1, Emissão de NFCom (Modelo 62) e Convênio 115
+  - name: FiscalRegimeTransitions
+    description: Transição e Agendamento de Regimes Tributários (Simples Nacional, Lucro Presumido, Lucro Real)
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -251,6 +255,30 @@ paths:
     $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1tool-agreements~1{id}~1return'
   /inventory/custody/assets/{id}/reverse-logistics:
     $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1assets~1{id}~1reverse-logistics'
+
+  # Fiscal, NFCom (Mod. 62) & Transição de Regimes
+  /fiscal/company:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1company'
+  /fiscal/company/{companyId}/certificate:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1company~1{companyId}~1certificate'
+  /fiscal/configs:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1configs'
+  /fiscal/invoices/{invoiceId}/emit:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1invoices~1{invoiceId}~1emit'
+  /fiscal/records:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1records'
+  /fiscal/records/{recordId}/cancel:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1records~1{recordId}~1cancel'
+  /fiscal/convenio115/export:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1convenio115~1export'
+  /fiscal/convenio115/send-accounting:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1convenio115~1send-accounting'
+  /fiscal/regimes/transitions:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1regimes~1transitions'
+  /fiscal/regimes/transitions/{id}:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1regimes~1transitions~1{id}'
+  /fiscal/regimes/transitions/process-pending:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1regimes~1transitions~1process-pending'
 
 components:
   securitySchemes:
@@ -461,4 +489,34 @@ components:
       $ref: './domains/inventory/schemas.yaml#/ReturnToolAgreementRequest'
     ReverseLogisticsRequest:
       $ref: './domains/inventory/schemas.yaml#/ReverseLogisticsRequest'
+
+    # Fiscal & NFCom (Mod. 62)
+    FiscalRegime:
+      $ref: './domains/fiscal/schemas.yaml#/FiscalRegime'
+    FiscalEnvironment:
+      $ref: './domains/fiscal/schemas.yaml#/FiscalEnvironment'
+    FiscalRegimeTransitionStatus:
+      $ref: './domains/fiscal/schemas.yaml#/FiscalRegimeTransitionStatus'
+    FiscalCompanyResponse:
+      $ref: './domains/fiscal/schemas.yaml#/FiscalCompanyResponse'
+    FiscalCompanySaveRequest:
+      $ref: './domains/fiscal/schemas.yaml#/FiscalCompanySaveRequest'
+    CertificateUploadResultResponse:
+      $ref: './domains/fiscal/schemas.yaml#/CertificateUploadResultResponse'
+    FiscalGatewayConfigResponse:
+      $ref: './domains/fiscal/schemas.yaml#/FiscalGatewayConfigResponse'
+    NfcomRecordResponse:
+      $ref: './domains/fiscal/schemas.yaml#/NfcomRecordResponse'
+    NfcomRecordsPageResponse:
+      $ref: './domains/fiscal/schemas.yaml#/NfcomRecordsPageResponse'
+    NfcomCancelRequest:
+      $ref: './domains/fiscal/schemas.yaml#/NfcomCancelRequest'
+    NfcomCancelResultResponse:
+      $ref: './domains/fiscal/schemas.yaml#/NfcomCancelResultResponse'
+    SendAccountingReportResponse:
+      $ref: './domains/fiscal/schemas.yaml#/SendAccountingReportResponse'
+    FiscalRegimeTransitionRequest:
+      $ref: './domains/fiscal/schemas.yaml#/FiscalRegimeTransitionRequest'
+    FiscalRegimeTransitionResponse:
+      $ref: './domains/fiscal/schemas.yaml#/FiscalRegimeTransitionResponse'
 
