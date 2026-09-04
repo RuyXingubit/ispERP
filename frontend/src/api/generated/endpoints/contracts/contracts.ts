@@ -7,8 +7,10 @@
  * OpenAPI spec version: 1.0.0
  */
 import type {
+  ContractCreateRequest,
   ContractResponse,
   ContractStatus,
+  ContractUpdateRequest,
   UUIDv7,
   UpdateContractStatusParams,
   UpdateContractStatusRequest
@@ -33,6 +35,19 @@ const getAllContracts = (
       options);
     }
   /**
+ * @summary Criar novo contrato
+ */
+const createContract = (
+    contractCreateRequest: ContractCreateRequest,
+ options?: SecondParameter<typeof customInstance>,) => {
+      return customInstance<ContractResponse>(
+      {url: `/contracts`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: contractCreateRequest
+    },
+      options);
+    }
+  /**
  * @summary Obter contrato por ID
  */
 const getContractById = (
@@ -40,6 +55,20 @@ const getContractById = (
  options?: SecondParameter<typeof customInstance>,) => {
       return customInstance<ContractResponse>(
       {url: `/contracts/${id}`, method: 'GET'
+    },
+      options);
+    }
+  /**
+ * @summary Atualizar contrato existente
+ */
+const updateContract = (
+    id: UUIDv7,
+    contractUpdateRequest: ContractUpdateRequest,
+ options?: SecondParameter<typeof customInstance>,) => {
+      return customInstance<ContractResponse>(
+      {url: `/contracts/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: contractUpdateRequest
     },
       options);
     }
@@ -82,9 +111,11 @@ const updateContractStatus = (
     },
       options);
     }
-  return {getAllContracts,getContractById,getContractsByCustomerId,getContractsByStatus,updateContractStatus}};
+  return {getAllContracts,createContract,getContractById,updateContract,getContractsByCustomerId,getContractsByStatus,updateContractStatus}};
 export type GetAllContractsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getContracts>['getAllContracts']>>>
+export type CreateContractResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getContracts>['createContract']>>>
 export type GetContractByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getContracts>['getContractById']>>>
+export type UpdateContractResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getContracts>['updateContract']>>>
 export type GetContractsByCustomerIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getContracts>['getContractsByCustomerId']>>>
 export type GetContractsByStatusResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getContracts>['getContractsByStatus']>>>
 export type UpdateContractStatusResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getContracts>['updateContractStatus']>>>

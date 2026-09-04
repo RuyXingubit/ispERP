@@ -21,6 +21,30 @@
           application/json:
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
+  post:
+    tags:
+      - Contracts
+    summary: Criar novo contrato
+    operationId: createContract
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ContractCreateRequest'
+    responses:
+      '201':
+        description: Contrato criado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractResponse'
+      '400':
+        description: Dados inválidos fornecidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
 
 /contracts/{id}:
   get:
@@ -41,6 +65,42 @@
           application/json:
             schema:
               $ref: './schemas.yaml#/ContractResponse'
+      '404':
+        description: Contrato não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+  put:
+    tags:
+      - Contracts
+    summary: Atualizar contrato existente
+    operationId: updateContract
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ContractUpdateRequest'
+    responses:
+      '200':
+        description: Contrato atualizado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractResponse'
+      '400':
+        description: Dados inválidos informados.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
       '404':
         description: Contrato não encontrado.
         content:
@@ -138,6 +198,12 @@
               $ref: './schemas.yaml#/ContractResponse'
       '400':
         description: Status inválido ou transição não permitida.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Contrato não encontrado.
         content:
           application/json:
             schema:

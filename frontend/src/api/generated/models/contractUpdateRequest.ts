@@ -7,20 +7,14 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { UUIDv7 } from './uUIDv7';
-import type { ContractStatus } from './contractStatus';
 
-export interface ContractResponse {
-  id: UUIDv7;
-  customerId: UUIDv7;
-  planId: UUIDv7;
-  saleId?: UUIDv7;
-  contractNumber: string;
-  status: ContractStatus;
-  monthlyFee: number;
-  dueDay: number;
+export interface ContractUpdateRequest {
+  planId?: UUIDv7;
+  monthlyFee?: number;
+  dueDay?: number;
   /** @nullable */
   customSuspensionDays?: number | null;
-  installationAddress: string;
+  installationAddress?: string;
   /** @nullable */
   city?: string | null;
   /** @nullable */
@@ -32,8 +26,4 @@ export interface ContractResponse {
   ctoPortNumber?: number | null;
   /** @nullable */
   pendingOnboardingCredit?: number | null;
-  /** @nullable */
-  createdAt?: string | null;
-  /** @nullable */
-  updatedAt?: string | null;
 }

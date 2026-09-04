@@ -789,6 +789,45 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Criar novo contrato",
+        "operationId": "createContract",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Contrato criado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos fornecidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/contracts/{id}": {
@@ -815,6 +854,65 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ContractResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contrato não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Atualizar contrato existente",
+        "operationId": "updateContract",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contrato atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos informados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -970,6 +1068,16 @@
           },
           "400": {
             "description": "Status inválido ou transição não permitida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contrato não encontrado.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2084,6 +2192,7 @@
       "ContractStatus": {
         "type": "string",
         "enum": [
+          "DRAFT",
           "PENDING_SIGNATURE",
           "PENDING_INSTALLATION",
           "ACTIVE",
@@ -2142,7 +2251,41 @@
             "type": "string",
             "example": "Av. Principal, 1200, Bairro Centro"
           },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "example": "São Paulo"
+          },
+          "state": {
+            "type": "string",
+            "nullable": true,
+            "example": "SP"
+          },
+          "zipCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "01001-000"
+          },
+          "ctoId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "ctoPortNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 4
+          },
+          "pendingOnboardingCredit": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 0
+          },
           "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
             "type": "string",
             "format": "date-time",
             "nullable": true
@@ -2350,6 +2493,137 @@
           "longitude": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "ContractCreateRequest": {
+        "type": "object",
+        "required": [
+          "customerId",
+          "planId",
+          "contractNumber",
+          "monthlyFee",
+          "dueDay",
+          "installationAddress"
+        ],
+        "properties": {
+          "customerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "planId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "saleId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractNumber": {
+            "type": "string",
+            "example": "CTR-2026-00891"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContractStatus"
+          },
+          "monthlyFee": {
+            "type": "number",
+            "format": "double",
+            "example": 99.9
+          },
+          "dueDay": {
+            "type": "integer",
+            "example": 10
+          },
+          "customSuspensionDays": {
+            "type": "integer",
+            "nullable": true,
+            "example": 15
+          },
+          "installationAddress": {
+            "type": "string",
+            "example": "Av. Principal, 1200, Bairro Centro"
+          },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "example": "São Paulo"
+          },
+          "state": {
+            "type": "string",
+            "nullable": true,
+            "example": "SP"
+          },
+          "zipCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "01001-000"
+          },
+          "ctoId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "ctoPortNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 4
+          },
+          "pendingOnboardingCredit": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 0
+          }
+        }
+      },
+      "ContractUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "monthlyFee": {
+            "type": "number",
+            "format": "double",
+            "example": 99.9
+          },
+          "dueDay": {
+            "type": "integer",
+            "example": 10
+          },
+          "customSuspensionDays": {
+            "type": "integer",
+            "nullable": true,
+            "example": 15
+          },
+          "installationAddress": {
+            "type": "string",
+            "example": "Av. Principal, 1200, Bairro Centro"
+          },
+          "city": {
+            "type": "string",
+            "nullable": true,
+            "example": "São Paulo"
+          },
+          "state": {
+            "type": "string",
+            "nullable": true,
+            "example": "SP"
+          },
+          "zipCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "01001-000"
+          },
+          "ctoId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "ctoPortNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 4
+          },
+          "pendingOnboardingCredit": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 0
           }
         }
       }

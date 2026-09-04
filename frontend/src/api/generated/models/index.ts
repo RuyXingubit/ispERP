@@ -8,8 +8,10 @@
  */
 
 export * from './completeWorkOrderRequest';
+export * from './contractCreateRequest';
 export * from './contractResponse';
 export * from './contractStatus';
+export * from './contractUpdateRequest';
 export * from './customerCreateRequest';
 export * from './customerResponse';
 export * from './customerUpdateRequest';

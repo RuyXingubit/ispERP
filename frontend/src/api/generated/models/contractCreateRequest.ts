@@ -9,13 +9,12 @@
 import type { UUIDv7 } from './uUIDv7';
 import type { ContractStatus } from './contractStatus';
 
-export interface ContractResponse {
-  id: UUIDv7;
+export interface ContractCreateRequest {
   customerId: UUIDv7;
   planId: UUIDv7;
   saleId?: UUIDv7;
   contractNumber: string;
-  status: ContractStatus;
+  status?: ContractStatus;
   monthlyFee: number;
   dueDay: number;
   /** @nullable */
@@ -32,8 +31,4 @@ export interface ContractResponse {
   ctoPortNumber?: number | null;
   /** @nullable */
   pendingOnboardingCredit?: number | null;
-  /** @nullable */
-  createdAt?: string | null;
-  /** @nullable */
-  updatedAt?: string | null;
 }

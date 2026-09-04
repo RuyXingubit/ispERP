@@ -3,6 +3,7 @@
 ContractStatus:
   type: string
   enum:
+    - DRAFT
     - PENDING_SIGNATURE
     - PENDING_INSTALLATION
     - ACTIVE
@@ -49,10 +50,139 @@ ContractResponse:
     installationAddress:
       type: string
       example: "Av. Principal, 1200, Bairro Centro"
+    city:
+      type: string
+      nullable: true
+      example: "São Paulo"
+    state:
+      type: string
+      nullable: true
+      example: "SP"
+    zipCode:
+      type: string
+      nullable: true
+      example: "01001-000"
+    ctoId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    ctoPortNumber:
+      type: integer
+      nullable: true
+      example: 4
+    pendingOnboardingCredit:
+      type: number
+      format: double
+      nullable: true
+      example: 0.0
     createdAt:
       type: string
       format: date-time
       nullable: true
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+ContractCreateRequest:
+  type: object
+  required:
+    - customerId
+    - planId
+    - contractNumber
+    - monthlyFee
+    - dueDay
+    - installationAddress
+  properties:
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    planId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    saleId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractNumber:
+      type: string
+      example: "CTR-2026-00891"
+    status:
+      $ref: '#/ContractStatus'
+    monthlyFee:
+      type: number
+      format: double
+      example: 99.90
+    dueDay:
+      type: integer
+      example: 10
+    customSuspensionDays:
+      type: integer
+      nullable: true
+      example: 15
+    installationAddress:
+      type: string
+      example: "Av. Principal, 1200, Bairro Centro"
+    city:
+      type: string
+      nullable: true
+      example: "São Paulo"
+    state:
+      type: string
+      nullable: true
+      example: "SP"
+    zipCode:
+      type: string
+      nullable: true
+      example: "01001-000"
+    ctoId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    ctoPortNumber:
+      type: integer
+      nullable: true
+      example: 4
+    pendingOnboardingCredit:
+      type: number
+      format: double
+      nullable: true
+      example: 0.0
+
+ContractUpdateRequest:
+  type: object
+  properties:
+    planId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    monthlyFee:
+      type: number
+      format: double
+      example: 99.90
+    dueDay:
+      type: integer
+      example: 10
+    customSuspensionDays:
+      type: integer
+      nullable: true
+      example: 15
+    installationAddress:
+      type: string
+      example: "Av. Principal, 1200, Bairro Centro"
+    city:
+      type: string
+      nullable: true
+      example: "São Paulo"
+    state:
+      type: string
+      nullable: true
+      example: "SP"
+    zipCode:
+      type: string
+      nullable: true
+      example: "01001-000"
+    ctoId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    ctoPortNumber:
+      type: integer
+      nullable: true
+      example: 4
+    pendingOnboardingCredit:
+      type: number
+      format: double
+      nullable: true
+      example: 0.0
 
 UpdateContractStatusRequest:
   type: object

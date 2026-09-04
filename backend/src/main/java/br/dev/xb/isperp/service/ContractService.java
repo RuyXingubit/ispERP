@@ -43,4 +43,8 @@ public class ContractService {
         contract.setStatus(newStatus);
         return contractRepository.save(contract);
     }
+
+    public Contract updateContract(Contract contract) {
+        return contractRepository.save(contract);
+    }
 }

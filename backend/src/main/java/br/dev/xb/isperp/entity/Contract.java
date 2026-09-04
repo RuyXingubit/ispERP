@@ -109,6 +109,9 @@ public class Contract {
         if (this.status == null) {
             this.status = ContractStatus.PENDING_INSTALLATION;
         }
+        if (this.pendingOnboardingCredit == null) {
+            this.pendingOnboardingCredit = BigDecimal.ZERO;
+        }
     }
 
     @PreUpdate
