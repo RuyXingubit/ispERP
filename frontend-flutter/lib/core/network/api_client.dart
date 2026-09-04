@@ -8,12 +8,14 @@ class ServerHealthResult {
   final String? status;
   final String? version;
   final String? errorMessage;
+  final String? resolvedBaseUrl;
 
   ServerHealthResult({
     required this.isHealthy,
     this.status,
     this.version,
     this.errorMessage,
+    this.resolvedBaseUrl,
   });
 }
 
@@ -66,53 +68,66 @@ class ApiClient {
   }
 
   /// Testa a conectividade e a saúde do servidor informado pelo usuário.
+  /// Detecta automaticamente se o endpoint de saúde responde na raiz ou sob o context-path '/api'.
   Future<ServerHealthResult> testServerConnection(String url) async {
     final cleanUrl = url.trim().replaceAll(RegExp(r'/+$'), '');
     final testDio = Dio(
       BaseOptions(
         connectTimeout: const Duration(seconds: 5),
         receiveTimeout: const Duration(seconds: 5),
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+        },
       ),
     );
 
-    try {
-      final response = await testDio.get('$cleanUrl${AppConstants.endpointHealth}');
-      if (response.statusCode == 200) {
-        final data = response.data;
-        String status = 'UP';
-        String? version;
-        if (data is Map<String, dynamic>) {
-          status = data['status']?.toString() ?? 'UP';
-          version = data['version']?.toString();
-        }
-        return ServerHealthResult(
-          isHealthy: true,
-          status: status,
-          version: version,
-        );
-      } else {
-        return ServerHealthResult(
-          isHealthy: false,
-          errorMessage: 'Servidor respondeu com código HTTP ${response.statusCode}',
-        );
-      }
-    } on DioException catch (e) {
-      String message = 'Não foi possível conectar ao servidor.';
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        message = 'Tempo limite esgotado. Verifique se o servidor está online.';
-      } else if (e.type == DioExceptionType.connectionError) {
-        message = 'Erro de rede ou endereço inacessível. Confira a URL e o protocolo (https://).';
-      }
-      return ServerHealthResult(
-        isHealthy: false,
-        errorMessage: message,
-      );
-    } catch (e) {
-      return ServerHealthResult(
-        isHealthy: false,
-        errorMessage: e.toString(),
-      );
+    // Lista de candidatos de health check a serem testados
+    final List<MapEntry<String, String>> candidates = [];
+    if (cleanUrl.endsWith('/api')) {
+      candidates.add(MapEntry('$cleanUrl/actuator/health', cleanUrl));
+    } else {
+      // ispERP possui servlet.context-path = /api por padrão
+      candidates.add(MapEntry('$cleanUrl/api/actuator/health', '$cleanUrl/api'));
+      candidates.add(MapEntry('$cleanUrl/actuator/health', cleanUrl));
     }
+
+    String lastError = 'Não foi possível conectar ao servidor.';
+
+    for (final candidate in candidates) {
+      try {
+        final response = await testDio.get(candidate.key);
+        if (response.statusCode == 200) {
+          final data = response.data;
+          String status = 'UP';
+          String? version;
+          if (data is Map<String, dynamic>) {
+            status = data['status']?.toString() ?? 'UP';
+            version = data['version']?.toString();
+          }
+          return ServerHealthResult(
+            isHealthy: true,
+            status: status,
+            version: version,
+            resolvedBaseUrl: candidate.value,
+          );
+        }
+      } on DioException catch (e) {
+        if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout) {
+          lastError = 'Tempo limite esgotado. Verifique se o servidor está online.';
+        } else if (e.type == DioExceptionType.connectionError) {
+          lastError = 'Erro de rede ou endereço inacessível. Confira a URL e o protocolo (https:// ou http://).';
+        } else if (e.response != null) {
+          lastError = 'Servidor respondeu com código HTTP ${e.response?.statusCode} em ${candidate.key}';
+        }
+      } catch (e) {
+        lastError = e.toString();
+      }
+    }
+
+    return ServerHealthResult(
+      isHealthy: false,
+      errorMessage: lastError,
+    );
   }
 }

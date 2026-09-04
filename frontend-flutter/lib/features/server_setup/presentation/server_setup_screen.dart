@@ -48,11 +48,15 @@ class _ServerSetupScreenState extends ConsumerState<ServerSetupScreen> {
     final result = await api.testServerConnection(url);
 
     if (mounted) {
+      // Se detectou que a API responde sob /api, atualiza o campo automaticamente
+      if (result.isHealthy && result.resolvedBaseUrl != null) {
+        _urlController.text = result.resolvedBaseUrl!;
+      }
       setState(() {
         _isTesting = false;
         _testSuccess = result.isHealthy;
         _testResult = result.isHealthy
-            ? 'Conexão estabelecida com sucesso! (Status: ${result.status})'
+            ? 'Conexão estabelecida com sucesso! API em ${result.resolvedBaseUrl} (Status: ${result.status})'
             : (result.errorMessage ?? 'Falha ao conectar com o servidor');
       });
     }
@@ -71,6 +75,10 @@ class _ServerSetupScreenState extends ConsumerState<ServerSetupScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _enterDemoMode() async {
+    await ref.read(authProvider.notifier).setServerUrl('', isMock: true);
   }
 
   @override
@@ -148,7 +156,7 @@ class _ServerSetupScreenState extends ConsumerState<ServerSetupScreen> {
                         controller: _urlController,
                         decoration: const InputDecoration(
                           labelText: 'URL da Instância',
-                          hintText: 'https://erp.meuprovedor.com.br',
+                          hintText: 'http://localhost:8080 ou https://erp.provedor.com.br',
                           prefixIcon: Icon(Icons.dns_outlined, size: 20),
                         ),
                         keyboardType: TextInputType.url,
@@ -236,6 +244,12 @@ class _ServerSetupScreenState extends ConsumerState<ServerSetupScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: _enterDemoMode,
+                        icon: const Icon(Icons.laptop_chromebook, size: 18),
+                        label: const Text('Acessar Modo Demonstração (Sem Servidor)'),
                       ),
 
                       // Servidores Recentes

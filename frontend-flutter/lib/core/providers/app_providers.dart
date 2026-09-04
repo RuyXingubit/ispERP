@@ -94,9 +94,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
   }
 
-  /// Salva a URL do servidor após validar sua saúde.
-  Future<bool> setServerUrl(String url) async {
+  /// Salva a URL do servidor após validar sua saúde ou ativa o modo de demonstração.
+  Future<bool> setServerUrl(String url, {bool isMock = false}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
+
+    if (isMock) {
+      const mockUrl = 'Modo Demonstração Offline';
+      await _storage.setServerUrl(mockUrl);
+      state = state.copyWith(
+        isLoading: false,
+        hasServerConfigured: true,
+        serverUrl: mockUrl,
+      );
+      return true;
+    }
+
     final health = await _apiClient.testServerConnection(url);
     if (!health.isHealthy) {
       state = state.copyWith(
@@ -106,11 +118,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return false;
     }
 
-    await _storage.setServerUrl(url);
+    final targetUrl = health.resolvedBaseUrl ?? url;
+    await _storage.setServerUrl(targetUrl);
     state = state.copyWith(
       isLoading: false,
       hasServerConfigured: true,
-      serverUrl: url,
+      serverUrl: targetUrl,
     );
     return true;
   }
@@ -119,8 +132,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<bool> login(String username, String password) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
+      final currentBaseUrl = _storage.getServerUrl() ?? '';
+      // Adapta o caminho para evitar duplicação do /api se já presente na Base URL
+      final loginPath = currentBaseUrl.endsWith('/api') ? '/auth/login' : '/api/auth/login';
+
       final response = await _apiClient.dio.post(
-        '/api/auth/login',
+        loginPath,
         data: {
           'username': username,
           'password': password,
@@ -133,8 +150,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final refreshToken = data['refreshToken'] ?? '';
         final roleStr = data['role'] ?? (data['roles'] is List ? (data['roles'] as List).firstOrNull : 'SUPPORT');
         final role = UserRole.fromString(roleStr?.toString());
-        final email = data['email']?.toString() ?? username;
-        final name = data['name']?.toString() ?? username;
+        final email = data['email']?.toString() ?? data['username']?.toString() ?? username;
+        final name = data['name']?.toString() ?? data['username']?.toString() ?? username;
 
         await _storage.saveSession(
           accessToken: token.toString(),
@@ -182,7 +199,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Limpa as configurações de servidor para apontar para outro host.
   Future<void> disconnectServer() async {
     await logout();
-    // Limpa também a URL do servidor
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('isperp_server_url');
     state = const AuthState(
