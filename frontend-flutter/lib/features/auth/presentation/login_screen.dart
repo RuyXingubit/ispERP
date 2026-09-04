@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/models/user_role.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -31,7 +32,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final password = _passwordController.text;
 
     final success = await ref.read(authProvider.notifier).login(username, password);
-    if (!success && mounted) {
+    if (!mounted) return;
+
+    if (success) {
+      final role = ref.read(authProvider).role ?? UserRole.support;
+      context.go(role.initialRoute);
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(ref.read(authProvider).errorMessage ?? 'Falha ao autenticar'),

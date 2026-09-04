@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_role.dart';
@@ -134,7 +136,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        final data = response.data as Map<String, dynamic>;
+        final dynamic raw = response.data;
+        final Map<String, dynamic> data = raw is Map<String, dynamic>
+            ? raw
+            : (raw is String ? jsonDecode(raw) as Map<String, dynamic> : {});
+
+        if (data['success'] == false) {
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage: data['message']?.toString() ?? 'Credenciais inválidas.',
+          );
+          return false;
+        }
+
         final token = data['token'] ?? data['accessToken'] ?? '';
         final refreshToken = data['refreshToken'] ?? '';
         final roleStr = data['role'] ?? (data['roles'] is List ? (data['roles'] as List).firstOrNull : 'SUPPORT');
@@ -165,10 +179,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
         );
         return false;
       }
+    } on DioException catch (e) {
+      String msg = 'Falha ao autenticar.';
+      if (e.response?.data != null) {
+        final dynamic errData = e.response!.data;
+        if (errData is Map && errData['message'] != null) {
+          msg = errData['message'].toString();
+        } else if (e.response?.statusCode == 400 || e.response?.statusCode == 401) {
+          msg = 'Usuário ou senha incorretos.';
+        }
+      } else if (e.type == DioExceptionType.connectionError) {
+        msg = 'Erro de conexão com o servidor. Verifique se o endereço está correto.';
+      }
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: msg,
+      );
+      return false;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Erro ao autenticar: $e',
+        errorMessage: 'Erro inesperado: $e',
       );
       return false;
     }

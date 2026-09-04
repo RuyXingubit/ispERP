@@ -44,7 +44,10 @@ class ApiClient {
           final currentBaseUrl = _storageService.getServerUrl();
           if (currentBaseUrl != null && currentBaseUrl.isNotEmpty) {
             if (!options.path.startsWith('http')) {
-              options.baseUrl = currentBaseUrl;
+              final cleanBase = currentBaseUrl.replaceAll(RegExp(r'/+$'), '');
+              final cleanPath = options.path.startsWith('/') ? options.path : '/${options.path}';
+              options.path = '$cleanBase$cleanPath';
+              options.baseUrl = '';
             }
           }
 

@@ -46,14 +46,20 @@ class StorageService {
     required String email,
     required String name,
   }) async {
-    await _secureStorage.write(
-      key: AppConstants.keyAccessToken,
-      value: accessToken,
-    );
-    await _secureStorage.write(
-      key: AppConstants.keyRefreshToken,
-      value: refreshToken,
-    );
+    try {
+      await _secureStorage.write(
+        key: AppConstants.keyAccessToken,
+        value: accessToken,
+      );
+      await _secureStorage.write(
+        key: AppConstants.keyRefreshToken,
+        value: refreshToken,
+      );
+    } catch (_) {
+      // Fallback para SharedPreferences caso o Keychain do OS esteja inacessível no ambiente de dev
+      await _prefs.setString(AppConstants.keyAccessToken, accessToken);
+      await _prefs.setString(AppConstants.keyRefreshToken, refreshToken);
+    }
     await _prefs.setString(AppConstants.keyUserRole, role.name);
     await _prefs.setString(AppConstants.keyUserEmail, email);
     await _prefs.setString(AppConstants.keyUserName, name);
@@ -61,12 +67,20 @@ class StorageService {
 
   /// Retorna o token de acesso (Bearer JWT).
   Future<String?> getAccessToken() async {
-    return await _secureStorage.read(key: AppConstants.keyAccessToken);
+    try {
+      final token = await _secureStorage.read(key: AppConstants.keyAccessToken);
+      if (token != null && token.isNotEmpty) return token;
+    } catch (_) {}
+    return _prefs.getString(AppConstants.keyAccessToken);
   }
 
   /// Retorna o token de renovação.
   Future<String?> getRefreshToken() async {
-    return await _secureStorage.read(key: AppConstants.keyRefreshToken);
+    try {
+      final token = await _secureStorage.read(key: AppConstants.keyRefreshToken);
+      if (token != null && token.isNotEmpty) return token;
+    } catch (_) {}
+    return _prefs.getString(AppConstants.keyRefreshToken);
   }
 
   /// Retorna o perfil (Role) do colaborador conectado.
@@ -94,8 +108,12 @@ class StorageService {
 
   /// Limpa os tokens e encerra a sessão ativa (Logout).
   Future<void> clearSession() async {
-    await _secureStorage.delete(key: AppConstants.keyAccessToken);
-    await _secureStorage.delete(key: AppConstants.keyRefreshToken);
+    try {
+      await _secureStorage.delete(key: AppConstants.keyAccessToken);
+      await _secureStorage.delete(key: AppConstants.keyRefreshToken);
+    } catch (_) {}
+    await _prefs.remove(AppConstants.keyAccessToken);
+    await _prefs.remove(AppConstants.keyRefreshToken);
     await _prefs.remove(AppConstants.keyUserRole);
     await _prefs.remove(AppConstants.keyUserEmail);
     await _prefs.remove(AppConstants.keyUserName);

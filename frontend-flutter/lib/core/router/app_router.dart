@@ -25,30 +25,30 @@ final routerNotifierProvider = Provider<RouterNotifier>((ref) {
 
 final routerProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(routerNotifierProvider);
-  final authState = ref.watch(authProvider);
 
   return GoRouter(
     initialLocation: '/server-setup',
     refreshListenable: notifier,
     redirect: (context, state) {
-      if (authState.isLoading) return null;
+      final currentAuth = ref.read(authProvider);
+      if (currentAuth.isLoading) return null;
 
       final isServerSetup = state.matchedLocation == '/server-setup';
       final isLogin = state.matchedLocation == '/login';
 
       // 1. Se o servidor ainda não foi configurado, força a tela de Setup
-      if (!authState.hasServerConfigured && !isServerSetup) {
+      if (!currentAuth.hasServerConfigured && !isServerSetup) {
         return '/server-setup';
       }
 
       // 2. Se o servidor está configurado mas o usuário não está autenticado
-      if (authState.hasServerConfigured && !authState.isAuthenticated && !isLogin) {
+      if (currentAuth.hasServerConfigured && !currentAuth.isAuthenticated && !isLogin && !isServerSetup) {
         return '/login';
       }
 
       // 3. Se o usuário já está autenticado e tenta acessar Login ou ServerSetup, vai para o seu dashboard
-      if (authState.isAuthenticated && (isLogin || isServerSetup)) {
-        return authState.role?.initialRoute ?? '/support';
+      if (currentAuth.isAuthenticated && (isLogin || isServerSetup)) {
+        return currentAuth.role?.initialRoute ?? '/admin';
       }
 
       return null;
