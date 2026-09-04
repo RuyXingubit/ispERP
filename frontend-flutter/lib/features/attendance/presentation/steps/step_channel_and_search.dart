@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../sales/data/sales_models.dart';
+import '../../../sales/data/sales_onboarding_notifier.dart';
+import '../../../sales/presentation/sales_onboarding_modal.dart';
 import '../../data/attendance_models.dart';
 import '../../data/attendance_notifier.dart';
 
@@ -13,12 +16,70 @@ class StepChannelAndSearch extends ConsumerStatefulWidget {
 }
 
 class _StepChannelAndSearchState extends ConsumerState<StepChannelAndSearch> {
-  final TextEditingController _searchController = TextEditingController();
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _openSalesOnboarding(String? initialQuery) {
+    if (initialQuery != null && initialQuery.isNotEmpty) {
+      final salesNotifier = ref.read(salesOnboardingProvider.notifier);
+      final clean = CpfUtils.clean(initialQuery);
+      if (clean.length == 11) {
+        salesNotifier.setCustomerCpf(clean);
+      } else if (clean.length != 8) {
+        salesNotifier.setCustomerName(initialQuery.trim());
+      }
+    }
+    SalesOnboardingModal.show(context);
+  }
+
+  Widget _buildChannelOption({
+    required AttendanceChannel channel,
+    required AttendanceChannel? current,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final isSelected = current == channel;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.primaryBlue : AppTheme.darkSurface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? AppTheme.primaryBlue : AppTheme.darkBorder,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, size: 20, color: isSelected ? Colors.white : AppTheme.textSecondary),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isSelected ? Colors.white : AppTheme.textSecondary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -29,58 +90,68 @@ class _StepChannelAndSearchState extends ConsumerState<StepChannelAndSearch> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 1. Seletor de Canal de Entrada Omnichannel
+        // 1. Origem do Atendimento (Omnichannel)
         const Text(
-          'Canal de Atendimento:',
+          'Canal de Entrada:',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textSecondary),
         ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: AttendanceChannel.values.map((channel) {
-            final isSelected = state.channel == channel;
-            IconData icon;
-            switch (channel) {
-              case AttendanceChannel.presential:
-                icon = Icons.storefront_rounded;
-                break;
-              case AttendanceChannel.phone:
-                icon = Icons.phone_in_talk_rounded;
-                break;
-              case AttendanceChannel.whatsapp:
-                icon = Icons.chat_rounded;
-                break;
-              case AttendanceChannel.email:
-                icon = Icons.mail_outline_rounded;
-                break;
-            }
-
-            return ChoiceChip(
-              avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : AppTheme.textSecondary),
-              label: Text(channel.label),
-              selected: isSelected,
-              selectedColor: AppTheme.primaryBlue,
-              backgroundColor: AppTheme.darkSurface,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppTheme.textPrimary,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 12,
-              ),
-              onSelected: (val) {
-                if (val) notifier.setChannel(channel);
-              },
-            );
-          }).toList(),
+        Row(
+          children: [
+            _buildChannelOption(
+              channel: AttendanceChannel.presential,
+              current: state.channel,
+              icon: Icons.storefront_rounded,
+              label: 'Presencial',
+              onTap: () => notifier.setChannel(AttendanceChannel.presential),
+            ),
+            const SizedBox(width: 8),
+            _buildChannelOption(
+              channel: AttendanceChannel.phone,
+              current: state.channel,
+              icon: Icons.phone_in_talk_rounded,
+              label: 'Telefone',
+              onTap: () => notifier.setChannel(AttendanceChannel.phone),
+            ),
+            const SizedBox(width: 8),
+            _buildChannelOption(
+              channel: AttendanceChannel.whatsapp,
+              current: state.channel,
+              icon: Icons.chat_rounded,
+              label: 'WhatsApp',
+              onTap: () => notifier.setChannel(AttendanceChannel.whatsapp),
+            ),
+            const SizedBox(width: 8),
+            _buildChannelOption(
+              channel: AttendanceChannel.email,
+              current: state.channel,
+              icon: Icons.mail_outline_rounded,
+              label: 'E-mail',
+              onTap: () => notifier.setChannel(AttendanceChannel.email),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
 
-        // 2. Campo de Busca Unificada
-        const Text(
-          'Identificar Cliente:',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textSecondary),
+        // 2. Campo de Busca Unificada & Botão de Nova Venda
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Identificar Cliente:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.textSecondary),
+            ),
+            TextButton.icon(
+              onPressed: () => _openSalesOnboarding(_searchController.text),
+              icon: const Icon(Icons.person_add_alt_1_outlined, size: 16, color: AppTheme.accentGreen),
+              label: const Text(
+                '+ Novo Assinante / Venda',
+                style: TextStyle(color: AppTheme.accentGreen, fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         TextField(
           controller: _searchController,
           autofocus: true,
@@ -137,8 +208,18 @@ class _StepChannelAndSearchState extends ConsumerState<StepChannelAndSearch> {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Verifique os dígitos do CPF ou o nome digitado.',
+                        'Deseja cadastrar uma nova proposta comercial para este lead?',
                         style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () => _openSalesOnboarding(state.searchQuery),
+                        icon: const Icon(Icons.flash_on_rounded, size: 16),
+                        label: const Text('Iniciar Venda Expressa'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentGreen,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
                     ],
                   ),

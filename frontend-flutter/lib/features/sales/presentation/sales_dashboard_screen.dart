@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../financial/data/dashboard_bi_provider.dart';
+import 'sales_onboarding_modal.dart';
 
 /// Painel Comercial & Vendas do Provedor.
 /// Funil de contratos e planos ativos com dados reais consolidados da base.
@@ -45,7 +46,7 @@ class SalesDashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => SalesOnboardingModal.show(context),
                   icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
                   label: const Text('Nova Proposta'),
                 ),

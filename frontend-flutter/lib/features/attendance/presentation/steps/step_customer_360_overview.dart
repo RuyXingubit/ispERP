@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../sales/data/sales_onboarding_notifier.dart';
+import '../../../sales/presentation/sales_onboarding_modal.dart';
 import '../../data/attendance_models.dart';
 import '../../data/attendance_notifier.dart';
 
@@ -218,7 +220,13 @@ class StepCustomer360Overview extends ConsumerWidget {
                 title: 'Venda / Upgrade',
                 subtitle: 'Novo plano ou endereço',
                 color: Colors.purpleAccent,
-                onTap: () => notifier.selectIntent(AttendanceIntent.sales),
+                onTap: () {
+                  notifier.selectIntent(AttendanceIntent.sales);
+                  final salesNotifier = ref.read(salesOnboardingProvider.notifier);
+                  salesNotifier.setCustomerCpf(customer.cpf);
+                  salesNotifier.setCustomerName(customer.name);
+                  SalesOnboardingModal.show(context);
+                },
               ),
               _buildIntentCard(
                 icon: Icons.help_outline_rounded,
