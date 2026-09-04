@@ -94,20 +94,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
   }
 
-  /// Salva a URL do servidor após validar sua saúde ou ativa o modo de demonstração.
-  Future<bool> setServerUrl(String url, {bool isMock = false}) async {
+  /// Salva a URL do servidor após validar sua conectividade com o backend.
+  Future<bool> setServerUrl(String url) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-
-    if (isMock) {
-      const mockUrl = 'Modo Demonstração Offline';
-      await _storage.setServerUrl(mockUrl);
-      state = state.copyWith(
-        isLoading: false,
-        hasServerConfigured: true,
-        serverUrl: mockUrl,
-      );
-      return true;
-    }
 
     final health = await _apiClient.testServerConnection(url);
     if (!health.isHealthy) {

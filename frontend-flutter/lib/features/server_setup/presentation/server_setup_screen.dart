@@ -77,10 +77,6 @@ class _ServerSetupScreenState extends ConsumerState<ServerSetupScreen> {
     }
   }
 
-  Future<void> _enterDemoMode() async {
-    await ref.read(authProvider.notifier).setServerUrl('', isMock: true);
-  }
-
   @override
   Widget build(BuildContext context) {
     final savedServers = ref.read(storageServiceProvider).getSavedServers();
@@ -244,12 +240,6 @@ class _ServerSetupScreenState extends ConsumerState<ServerSetupScreen> {
                             ),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: _enterDemoMode,
-                        icon: const Icon(Icons.laptop_chromebook, size: 18),
-                        label: const Text('Acessar Modo Demonstração (Sem Servidor)'),
                       ),
 
                       // Servidores Recentes

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/models/user_role.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
 
-/// Tela de autenticação dos colaboradores do ispERP.
+/// Tela de autenticação dos colaboradores do ispERP contra a API central.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -40,20 +39,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       );
     }
-  }
-
-  /// Atalho de desenvolvimento/demonstração para simular login direto com qualquer perfil
-  Future<void> _simulateRoleLogin(UserRole role) async {
-    final storage = ref.read(storageServiceProvider);
-    await storage.saveSession(
-      accessToken: 'mock_jwt_token_${role.name}',
-      refreshToken: 'mock_refresh_token',
-      role: role,
-      email: '${role.name}@provedor.com.br',
-      name: 'Colaborador (${role.name.toUpperCase()})',
-    );
-    // Força re-inicialização do AuthNotifier
-    ref.invalidate(authProvider);
   }
 
   @override
@@ -175,7 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Botão de Login
+                      // Botão de Login Real
                       ElevatedButton(
                         onPressed: authState.isLoading ? null : _handleLogin,
                         child: authState.isLoading
@@ -189,33 +174,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               )
                             : const Text('Entrar no Sistema'),
                       ),
-
-                      // Seletor de Perfil Rápido para Avaliação/Testes
-                      const SizedBox(height: 28),
-                      const Divider(),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Simulação Rápida por Perfil (Ambiente de Testes):',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textMuted,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          _buildRoleChip(UserRole.admin, 'Admin', Icons.shield_outlined),
-                          _buildRoleChip(UserRole.financial, 'Financeiro', Icons.account_balance_outlined),
-                          _buildRoleChip(UserRole.support, 'Suporte', Icons.headset_mic_outlined),
-                          _buildRoleChip(UserRole.sales, 'Vendas', Icons.trending_up_outlined),
-                          _buildRoleChip(UserRole.technician, 'Técnico', Icons.build_circle_outlined),
-                        ],
-                      ),
                     ],
                   ),
                 ),
@@ -224,16 +182,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildRoleChip(UserRole role, String label, IconData icon) {
-    return ActionChip(
-      avatar: Icon(icon, size: 16, color: AppTheme.primaryBlue),
-      label: Text(label, style: const TextStyle(fontSize: 12)),
-      backgroundColor: AppTheme.darkBg,
-      side: const BorderSide(color: AppTheme.darkCard),
-      onPressed: () => _simulateRoleLogin(role),
     );
   }
 }
