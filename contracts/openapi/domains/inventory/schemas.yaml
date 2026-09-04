@@ -1,0 +1,546 @@
+# ==============================================================================
+# Esquemas do Domínio de Estoque, Almoxarifado e Custódia de Ativos (ispERP)
+# ==============================================================================
+
+AssetCategory:
+  type: string
+  description: Categoria de equipamento ou ferramenta serializada de alto valor patrimonial
+  enum:
+    - ONU_ONT
+    - ROUTER_MESH
+    - TOOL_FUSION_MACHINE
+    - TOOL_OTDR
+    - TOOL_POWER_METER
+    - TOOL_CLEAVER
+    - SWITCH
+    - OLT
+
+AssetStatus:
+  type: string
+  description: Situação patrimonial do ativo serializado
+  enum:
+    - DISPONIVEL_DEPOSITO
+    - CUSTODIA_COLABORADOR
+    - EM_TRANSITO
+    - INSTALADO_CLIENTE
+    - RETIRADO_PENDENTE_DEVOLUCAO
+    - DEFEITO_TRIAGEM
+
+CarrierType:
+  type: string
+  description: Tipo de portador/transportador da carga entre bases
+  enum:
+    - COLABORADOR
+    - TERCEIRO
+    - TRANSPORTADORA
+
+TransferStatus:
+  type: string
+  description: Status do fluxo de transferência entre depósitos
+  enum:
+    - PENDING
+    - IN_TRANSIT
+    - RECEIVED
+    - CANCELED
+
+AgreementStatus:
+  type: string
+  description: Status jurídico/operacional do termo de cautela de ferramental
+  enum:
+    - ACTIVE
+    - RETURNED_OK
+    - RETURNED_DAMAGED
+    - EXECUTED_JUDICIALLY
+
+# ------------------------------------------------------------------------------
+# Catálogo de Estoque & Insumos
+# ------------------------------------------------------------------------------
+InventoryItemResponse:
+  type: object
+  description: Resumo de item/insumo e saldo disponível em estoque
+  required:
+    - id
+    - code
+    - name
+    - category
+    - quantityInStock
+    - minQuantity
+    - unit
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01912e73-b789-7000-8000-000000000001"
+    code:
+      type: string
+      example: "ONT-WIFI6-XPON"
+    name:
+      type: string
+      example: "ONT Wi-Fi 6 XPON Gigabit"
+    category:
+      type: string
+      example: "ONU_ONT"
+    quantityInStock:
+      type: integer
+      example: 45
+    minQuantity:
+      type: integer
+      example: 10
+    unit:
+      type: string
+      example: "UN"
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+# ------------------------------------------------------------------------------
+# Depósitos & Almoxarifados Físicos
+# ------------------------------------------------------------------------------
+WarehouseResponse:
+  type: object
+  description: Dados cadastrais de um depósito ou almoxarifado físico
+  required:
+    - id
+    - code
+    - name
+    - city
+    - state
+    - active
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01912e73-b789-7000-8000-000000000002"
+    code:
+      type: string
+      example: "DEP-CENTRAL-01"
+    name:
+      type: string
+      example: "Almoxarifado Central Belém"
+    city:
+      type: string
+      example: "Belém"
+    state:
+      type: string
+      example: "PA"
+    address:
+      type: string
+      nullable: true
+      example: "Av. Almirante Barroso, 1200"
+    responsibleUserId:
+      type: string
+      format: uuid
+      nullable: true
+      example: "01912e73-b789-7000-8000-000000000003"
+    active:
+      type: boolean
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+WarehouseCreateRequest:
+  type: object
+  description: Dados para criação de um novo depósito
+  required:
+    - code
+    - name
+    - city
+    - state
+  properties:
+    code:
+      type: string
+      example: "DEP-FILIAL-02"
+    name:
+      type: string
+      example: "Almoxarifado Filial Ananindeua"
+    city:
+      type: string
+      example: "Ananindeua"
+    state:
+      type: string
+      example: "PA"
+    address:
+      type: string
+      nullable: true
+      example: "Rodovia BR-316, Km 4"
+    responsibleUserId:
+      type: string
+      format: uuid
+      nullable: true
+    active:
+      type: boolean
+      nullable: true
+      default: true
+
+# ------------------------------------------------------------------------------
+# Ativos Serializados
+# ------------------------------------------------------------------------------
+SerializedAssetResponse:
+  type: object
+  description: Dados detalhados de equipamento serializado e localização atual
+  required:
+    - id
+    - serialNumber
+    - brandModel
+    - category
+    - replacementValue
+    - status
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01912e73-b789-7000-8000-000000000010"
+    macAddress:
+      type: string
+      nullable: true
+      example: "A4:93:3F:12:34:56"
+    serialNumber:
+      type: string
+      example: "ZTEG12345678"
+    brandModel:
+      type: string
+      example: "ZTE F670L Wi-Fi 5"
+    category:
+      $ref: '#/AssetCategory'
+    replacementValue:
+      type: number
+      format: double
+      example: 220.00
+    currentWarehouseId:
+      type: string
+      format: uuid
+      nullable: true
+    currentHolderUserId:
+      type: string
+      format: uuid
+      nullable: true
+    currentCustomerId:
+      type: string
+      format: uuid
+      nullable: true
+    currentContractId:
+      type: string
+      format: uuid
+      nullable: true
+    status:
+      $ref: '#/AssetStatus'
+    lastMovementAt:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+# ------------------------------------------------------------------------------
+# Transferências Inter-Bases (Handshake)
+# ------------------------------------------------------------------------------
+StockTransferResponse:
+  type: object
+  description: Guia de transferência intermunicipal/inter-bases
+  required:
+    - id
+    - code
+    - originWarehouseId
+    - destinationWarehouseId
+    - carrierName
+    - carrierDocument
+    - carrierType
+    - status
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01912e73-b789-7000-8000-000000000020"
+    code:
+      type: string
+      example: "TRF-789123"
+    originWarehouseId:
+      type: string
+      format: uuid
+    destinationWarehouseId:
+      type: string
+      format: uuid
+    carrierUserId:
+      type: string
+      format: uuid
+      nullable: true
+    carrierName:
+      type: string
+      example: "Carlos Portador da Silva"
+    carrierDocument:
+      type: string
+      example: "123.456.789-00"
+    carrierType:
+      $ref: '#/CarrierType'
+    dispatchedByUserId:
+      type: string
+      format: uuid
+      nullable: true
+    receivedByUserId:
+      type: string
+      format: uuid
+      nullable: true
+    status:
+      $ref: '#/TransferStatus'
+    dispatchPhotoUrl:
+      type: string
+      nullable: true
+      example: "https://isperp.local/photos/dispatch.jpg"
+    receiptPhotoUrl:
+      type: string
+      nullable: true
+      example: "https://isperp.local/photos/receipt.jpg"
+    notes:
+      type: string
+      nullable: true
+      example: "Transferência de 10 ONTs para filial Ananindeua"
+    dispatchedAt:
+      type: string
+      format: date-time
+      nullable: true
+    receivedAt:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+CreateTransferRequest:
+  type: object
+  description: Dados para criação de nova guia de transferência
+  required:
+    - originWarehouseId
+    - destinationWarehouseId
+    - carrierName
+    - carrierDocument
+  properties:
+    originWarehouseId:
+      type: string
+      format: uuid
+    destinationWarehouseId:
+      type: string
+      format: uuid
+    carrierUserId:
+      type: string
+      format: uuid
+      nullable: true
+    carrierName:
+      type: string
+      example: "Carlos Portador da Silva"
+    carrierDocument:
+      type: string
+      example: "123.456.789-00"
+    carrierType:
+      $ref: '#/CarrierType'
+    assetIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    notes:
+      type: string
+      nullable: true
+
+DispatchTransferRequest:
+  type: object
+  description: Parâmetros para despacho da transferência
+  properties:
+    userId:
+      type: string
+      format: uuid
+      nullable: true
+    dispatchPhotoUrl:
+      type: string
+      nullable: true
+
+ConfirmReceiptTransferRequest:
+  type: object
+  description: Parâmetros para confirmação de recebimento da transferência
+  properties:
+    userId:
+      type: string
+      format: uuid
+      nullable: true
+    receiptPhotoUrl:
+      type: string
+      nullable: true
+
+# ------------------------------------------------------------------------------
+# Termos de Cautela & Ferramental de Alto Valor
+# ------------------------------------------------------------------------------
+ToolCustodyAgreementResponse:
+  type: object
+  description: Termo de custódia com nota promissória executiva
+  required:
+    - id
+    - code
+    - holderName
+    - holderCpf
+    - isThirdParty
+    - totalPromissoryValue
+    - status
+    - agreementText
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "01912e73-b789-7000-8000-000000000030"
+    code:
+      type: string
+      example: "NOT-PROM-456789"
+    workOrderId:
+      type: string
+      format: uuid
+      nullable: true
+    holderUserId:
+      type: string
+      format: uuid
+      nullable: true
+    holderName:
+      type: string
+      example: "Marcos Instalador Júnior"
+    holderCpf:
+      type: string
+      example: "987.654.321-00"
+    isThirdParty:
+      type: boolean
+      example: false
+    totalPromissoryValue:
+      type: number
+      format: double
+      example: 7500.00
+    status:
+      $ref: '#/AgreementStatus'
+    agreementText:
+      type: string
+      example: "TERMO DE CAUTELA, COMODATO E NOTA PROMISSÓRIA EXECUTIVA..."
+    dispatchPhotoUrl:
+      type: string
+      nullable: true
+    returnPhotoUrl:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+    signedAt:
+      type: string
+      format: date-time
+      nullable: true
+    returnedAt:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+CheckoutToolRequest:
+  type: object
+  description: Dados para emissão de termo de cautela e cessão de ferramentas
+  required:
+    - holderName
+    - holderCpf
+    - assetIds
+  properties:
+    workOrderId:
+      type: string
+      format: uuid
+      nullable: true
+    holderUserId:
+      type: string
+      format: uuid
+      nullable: true
+    holderName:
+      type: string
+      example: "Marcos Instalador Júnior"
+    holderCpf:
+      type: string
+      example: "987.654.321-00"
+    isThirdParty:
+      type: boolean
+      nullable: true
+      default: false
+    assetIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+    totalPromissoryValue:
+      type: number
+      format: double
+      nullable: true
+      example: 7500.00
+    dispatchPhotoUrl:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+
+ReturnToolAgreementRequest:
+  type: object
+  description: Dados para devolução e baixa do termo de cautela
+  properties:
+    warehouseId:
+      type: string
+      format: uuid
+      nullable: true
+    isDamaged:
+      type: boolean
+      nullable: true
+      default: false
+    returnPhotoUrl:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+
+ReverseLogisticsRequest:
+  type: object
+  description: Dados para logística reversa de ativo recuperado em campo
+  required:
+    - warehouseId
+  properties:
+    warehouseId:
+      type: string
+      format: uuid
+    isDamaged:
+      type: boolean
+      nullable: true
+      default: false
+    photoUrl:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true

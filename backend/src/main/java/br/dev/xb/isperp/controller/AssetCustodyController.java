@@ -1,105 +1,105 @@
 package br.dev.xb.isperp.controller;
 
-import br.dev.xb.isperp.dto.CheckoutToolRequest;
-import br.dev.xb.isperp.dto.CreateTransferRequest;
+import br.dev.xb.isperp.api.contract.AssetCustodyApi;
+import br.dev.xb.isperp.api.dto.*;
 import br.dev.xb.isperp.entity.SerializedAsset;
 import br.dev.xb.isperp.entity.StockTransfer;
 import br.dev.xb.isperp.entity.ToolCustodyAgreement;
+import br.dev.xb.isperp.mapper.InventoryMapper;
 import br.dev.xb.isperp.service.AssetCustodyService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping({"/inventory/custody", "/api/inventory/custody"})
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
 @SuppressWarnings("null")
-public class AssetCustodyController {
+public class AssetCustodyController implements AssetCustodyApi {
 
     private final AssetCustodyService assetCustodyService;
+    private final InventoryMapper inventoryMapper;
 
-    @GetMapping("/assets")
-    public ResponseEntity<List<SerializedAsset>> getAllAssets() {
-        return ResponseEntity.ok(assetCustodyService.getAllAssets());
+    @Override
+    public ResponseEntity<List<SerializedAssetResponse>> getAllAssets() {
+        return ResponseEntity.ok(inventoryMapper.toSerializedAssetResponseList(assetCustodyService.getAllAssets()));
     }
 
-    @GetMapping("/assets/warehouse/{warehouseId}")
-    public ResponseEntity<List<SerializedAsset>> getAssetsByWarehouse(@PathVariable UUID warehouseId) {
-        return ResponseEntity.ok(assetCustodyService.getAssetsByWarehouse(warehouseId));
+    @Override
+    public ResponseEntity<List<SerializedAssetResponse>> getAssetsByWarehouse(UUID warehouseId) {
+        return ResponseEntity.ok(inventoryMapper.toSerializedAssetResponseList(assetCustodyService.getAssetsByWarehouse(warehouseId)));
     }
 
-    @GetMapping("/assets/holder/{holderUserId}")
-    public ResponseEntity<List<SerializedAsset>> getAssetsByHolder(@PathVariable UUID holderUserId) {
-        return ResponseEntity.ok(assetCustodyService.getAssetsByHolder(holderUserId));
+    @Override
+    public ResponseEntity<List<SerializedAssetResponse>> getAssetsByHolder(UUID holderUserId) {
+        return ResponseEntity.ok(inventoryMapper.toSerializedAssetResponseList(assetCustodyService.getAssetsByHolder(holderUserId)));
     }
 
-    @GetMapping("/transfers")
-    public ResponseEntity<List<StockTransfer>> getAllTransfers() {
-        return ResponseEntity.ok(assetCustodyService.getAllTransfers());
+    @Override
+    public ResponseEntity<List<StockTransferResponse>> getAllTransfers() {
+        return ResponseEntity.ok(inventoryMapper.toStockTransferResponseList(assetCustodyService.getAllTransfers()));
     }
 
-    @PostMapping("/transfers")
-    public ResponseEntity<StockTransfer> createTransfer(@Valid @RequestBody CreateTransferRequest request) {
-        return ResponseEntity.ok(assetCustodyService.createTransfer(request));
+    @Override
+    public ResponseEntity<StockTransferResponse> createTransfer(CreateTransferRequest createTransferRequest) {
+        br.dev.xb.isperp.dto.CreateTransferRequest serviceRequest = inventoryMapper.toServiceRequest(createTransferRequest);
+        StockTransfer saved = assetCustodyService.createTransfer(serviceRequest);
+        return ResponseEntity.ok(inventoryMapper.toResponse(saved));
     }
 
-    @PostMapping("/transfers/{id}/dispatch")
-    public ResponseEntity<StockTransfer> dispatchTransfer(
-            @PathVariable UUID id,
-            @RequestBody(required = false) Map<String, String> body) {
-        UUID userId = body != null && body.containsKey("userId") ? UUID.fromString(body.get("userId")) : null;
-        String photoUrl = body != null ? body.get("dispatchPhotoUrl") : null;
-        return ResponseEntity.ok(assetCustodyService.dispatchTransfer(id, userId, photoUrl));
+    @Override
+    public ResponseEntity<StockTransferResponse> dispatchTransfer(UUID id, DispatchTransferRequest dispatchTransferRequest) {
+        UUID userId = dispatchTransferRequest != null ? dispatchTransferRequest.getUserId() : null;
+        String photoUrl = dispatchTransferRequest != null ? dispatchTransferRequest.getDispatchPhotoUrl() : null;
+        StockTransfer saved = assetCustodyService.dispatchTransfer(id, userId, photoUrl);
+        return ResponseEntity.ok(inventoryMapper.toResponse(saved));
     }
 
-    @PostMapping("/transfers/{id}/receive")
-    public ResponseEntity<StockTransfer> confirmReceiptTransfer(
-            @PathVariable UUID id,
-            @RequestBody(required = false) Map<String, String> body) {
-        UUID userId = body != null && body.containsKey("userId") ? UUID.fromString(body.get("userId")) : null;
-        String photoUrl = body != null ? body.get("receiptPhotoUrl") : null;
-        return ResponseEntity.ok(assetCustodyService.confirmReceiptTransfer(id, userId, photoUrl));
+    @Override
+    public ResponseEntity<StockTransferResponse> confirmReceiptTransfer(UUID id, ConfirmReceiptTransferRequest confirmReceiptTransferRequest) {
+        UUID userId = confirmReceiptTransferRequest != null ? confirmReceiptTransferRequest.getUserId() : null;
+        String photoUrl = confirmReceiptTransferRequest != null ? confirmReceiptTransferRequest.getReceiptPhotoUrl() : null;
+        StockTransfer saved = assetCustodyService.confirmReceiptTransfer(id, userId, photoUrl);
+        return ResponseEntity.ok(inventoryMapper.toResponse(saved));
     }
 
-    @GetMapping("/tool-agreements")
-    public ResponseEntity<List<ToolCustodyAgreement>> getAllToolAgreements() {
-        return ResponseEntity.ok(assetCustodyService.getAllToolAgreements());
+    @Override
+    public ResponseEntity<List<ToolCustodyAgreementResponse>> getAllToolAgreements() {
+        return ResponseEntity.ok(inventoryMapper.toToolCustodyAgreementResponseList(assetCustodyService.getAllToolAgreements()));
     }
 
-    @PostMapping("/tool-agreements/checkout")
-    public ResponseEntity<ToolCustodyAgreement> checkoutToolAgreement(@Valid @RequestBody CheckoutToolRequest request) {
-        return ResponseEntity.ok(assetCustodyService.checkoutToolAgreement(request));
+    @Override
+    public ResponseEntity<ToolCustodyAgreementResponse> checkoutToolAgreement(CheckoutToolRequest checkoutToolRequest) {
+        br.dev.xb.isperp.dto.CheckoutToolRequest serviceRequest = inventoryMapper.toServiceRequest(checkoutToolRequest);
+        ToolCustodyAgreement saved = assetCustodyService.checkoutToolAgreement(serviceRequest);
+        return ResponseEntity.ok(inventoryMapper.toResponse(saved));
     }
 
-    @PostMapping("/tool-agreements/{id}/return")
-    public ResponseEntity<ToolCustodyAgreement> returnToolAgreement(
-            @PathVariable UUID id,
-            @RequestBody Map<String, Object> body) {
-        UUID warehouseId = body.containsKey("warehouseId") ? UUID.fromString((String) body.get("warehouseId")) : null;
-        boolean isDamaged = body.containsKey("isDamaged") && Boolean.parseBoolean(body.get("isDamaged").toString());
-        String photoUrl = body.containsKey("returnPhotoUrl") ? (String) body.get("returnPhotoUrl") : null;
-        String notes = body.containsKey("notes") ? (String) body.get("notes") : null;
+    @Override
+    public ResponseEntity<ToolCustodyAgreementResponse> returnToolAgreement(UUID id, ReturnToolAgreementRequest returnToolAgreementRequest) {
+        UUID warehouseId = returnToolAgreementRequest != null ? returnToolAgreementRequest.getWarehouseId() : null;
+        boolean isDamaged = returnToolAgreementRequest != null && Boolean.TRUE.equals(returnToolAgreementRequest.getIsDamaged());
+        String photoUrl = returnToolAgreementRequest != null ? returnToolAgreementRequest.getReturnPhotoUrl() : null;
+        String notes = returnToolAgreementRequest != null ? returnToolAgreementRequest.getNotes() : null;
 
-        return ResponseEntity.ok(assetCustodyService.returnToolAgreement(id, warehouseId, isDamaged, photoUrl, notes));
+        ToolCustodyAgreement saved = assetCustodyService.returnToolAgreement(id, warehouseId, isDamaged, photoUrl, notes);
+        return ResponseEntity.ok(inventoryMapper.toResponse(saved));
     }
 
-    @PostMapping("/assets/{id}/reverse-logistics")
-    public ResponseEntity<SerializedAsset> returnAssetFromWorkOrder(
-            @PathVariable UUID id,
-            @RequestBody Map<String, Object> body) {
-        UUID warehouseId = UUID.fromString((String) body.get("warehouseId"));
-        boolean isDamaged = body.containsKey("isDamaged") && Boolean.parseBoolean(body.get("isDamaged").toString());
-        String photoUrl = body.containsKey("photoUrl") ? (String) body.get("photoUrl") : null;
-        String notes = body.containsKey("notes") ? (String) body.get("notes") : null;
+    @Override
+    public ResponseEntity<SerializedAssetResponse> returnAssetFromWorkOrder(UUID id, ReverseLogisticsRequest reverseLogisticsRequest) {
+        UUID warehouseId = reverseLogisticsRequest.getWarehouseId();
+        boolean isDamaged = Boolean.TRUE.equals(reverseLogisticsRequest.getIsDamaged());
+        String photoUrl = reverseLogisticsRequest.getPhotoUrl();
+        String notes = reverseLogisticsRequest.getNotes();
 
-        return ResponseEntity.ok(assetCustodyService.returnAssetFromWorkOrder(id, warehouseId, isDamaged, photoUrl, notes));
+        SerializedAsset saved = assetCustodyService.returnAssetFromWorkOrder(id, warehouseId, isDamaged, photoUrl, notes);
+        return ResponseEntity.ok(inventoryMapper.toResponse(saved));
     }
 }

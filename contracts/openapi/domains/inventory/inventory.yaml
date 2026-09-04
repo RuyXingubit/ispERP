@@ -1,0 +1,411 @@
+# ==============================================================================
+# Endpoints do Domínio de Estoque, Almoxarifados e Custódia de Ativos (ispERP)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Tag: Inventory (Catálogo de Insumos e Materiais)
+# ------------------------------------------------------------------------------
+/inventory:
+  get:
+    tags:
+      - Inventory
+    summary: Listar catálogo de insumos e saldo de materiais em estoque
+    description: Retorna a lista completa de insumos, cabos, conectores e equipamentos de telecom com saldos e níveis mínimos.
+    operationId: getAllInventoryItems
+    responses:
+      '200':
+        description: Catálogo de materiais recuperado com sucesso
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/InventoryItemResponse'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+# ------------------------------------------------------------------------------
+# Tag: Warehouses (Depósitos e Almoxarifados Físicos)
+# ------------------------------------------------------------------------------
+/warehouses:
+  get:
+    tags:
+      - Warehouses
+    summary: Listar todos os depósitos e almoxarifados
+    description: Retorna todos os depósitos cadastrados (centrais, filiais, POPs e viaturas de campo).
+    operationId: getAllWarehouses
+    responses:
+      '200':
+        description: Lista de depósitos retornada com sucesso
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/WarehouseResponse'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+  post:
+    tags:
+      - Warehouses
+    summary: Cadastrar novo depósito ou almoxarifado
+    description: Cria um novo ponto físico de armazenagem e movimentação de insumos.
+    operationId: createWarehouse
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/WarehouseCreateRequest'
+    responses:
+      '200':
+        description: Depósito cadastrado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WarehouseResponse'
+      '400':
+        description: Dados inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/warehouses/active:
+  get:
+    tags:
+      - Warehouses
+    summary: Listar depósitos e almoxarifados ativos
+    description: Retorna apenas os depósitos que estão atualmente operacionais.
+    operationId: getActiveWarehouses
+    responses:
+      '200':
+        description: Depósitos ativos retornados com sucesso
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/WarehouseResponse'
+
+/warehouses/{id}:
+  get:
+    tags:
+      - Warehouses
+    summary: Buscar depósito por ID
+    operationId: getWarehouseById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Identificador único do depósito (UUIDv7)
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Depósito localizado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WarehouseResponse'
+      '404':
+        description: Depósito não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+# ------------------------------------------------------------------------------
+# Tag: AssetCustody (Ativos Serializados, Transferências e Cautelas)
+# ------------------------------------------------------------------------------
+/inventory/custody/assets:
+  get:
+    tags:
+      - AssetCustody
+    summary: Listar todos os ativos serializados
+    description: Retorna todos os equipamentos rastreados individualmente por número de série ou MAC Address.
+    operationId: getAllAssets
+    responses:
+      '200':
+        description: Lista de ativos serializados
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/SerializedAssetResponse'
+
+/inventory/custody/assets/warehouse/{warehouseId}:
+  get:
+    tags:
+      - AssetCustody
+    summary: Listar ativos disponíveis em um depósito específico
+    operationId: getAssetsByWarehouse
+    parameters:
+      - name: warehouseId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Ativos disponíveis no depósito
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/SerializedAssetResponse'
+
+/inventory/custody/assets/holder/{holderUserId}:
+  get:
+    tags:
+      - AssetCustody
+    summary: Listar ativos sob custódia de um colaborador específico
+    operationId: getAssetsByHolder
+    parameters:
+      - name: holderUserId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Ativos em custódia do colaborador
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/SerializedAssetResponse'
+
+/inventory/custody/transfers:
+  get:
+    tags:
+      - AssetCustody
+    summary: Listar todas as transferências entre depósitos
+    operationId: getAllTransfers
+    responses:
+      '200':
+        description: Lista de transferências registradas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/StockTransferResponse'
+  post:
+    tags:
+      - AssetCustody
+    summary: Criar guia de transferência inter-bases
+    description: Cria nova transferência intermunicipal/inter-bases com status PENDING.
+    operationId: createTransfer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CreateTransferRequest'
+    responses:
+      '200':
+        description: Transferência criada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/StockTransferResponse'
+      '400':
+        description: Dados inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/inventory/custody/transfers/{id}/dispatch:
+  post:
+    tags:
+      - AssetCustody
+    summary: Despachar transferência e vincular carga à custódia do portador
+    description: Atualiza status da transferência para IN_TRANSIT e coloca os ativos sob a guarda legal do portador.
+    operationId: dispatchTransfer
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/DispatchTransferRequest'
+    responses:
+      '200':
+        description: Transferência despachada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/StockTransferResponse'
+      '404':
+        description: Transferência não encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/inventory/custody/transfers/{id}/receive:
+  post:
+    tags:
+      - AssetCustody
+    summary: Confirmar recebimento e conferência de transferência no destino
+    description: Atualiza status para RECEIVED, dá entrada no estoque de destino e extingue a guarda do portador.
+    operationId: confirmReceiptTransfer
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ConfirmReceiptTransferRequest'
+    responses:
+      '200':
+        description: Recebimento confirmado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/StockTransferResponse'
+      '404':
+        description: Transferência não encontrada
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/inventory/custody/tool-agreements:
+  get:
+    tags:
+      - AssetCustody
+    summary: Listar todos os termos de cautela de ferramental
+    operationId: getAllToolAgreements
+    responses:
+      '200':
+        description: Termos de cautela registrados
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ToolCustodyAgreementResponse'
+
+/inventory/custody/tool-agreements/checkout:
+  post:
+    tags:
+      - AssetCustody
+    summary: Emitir termo de cautela e nota promissória executiva de ferramental
+    description: Emite termo formal para ferramentas de alto valor (máquinas de fusão, OTDR) com valor de reposição e força executiva.
+    operationId: checkoutToolAgreement
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CheckoutToolRequest'
+    responses:
+      '200':
+        description: Termo de cautela emitido com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ToolCustodyAgreementResponse'
+      '400':
+        description: Dados inválidos
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/inventory/custody/tool-agreements/{id}/return:
+  post:
+    tags:
+      - AssetCustody
+    summary: Registrar devolução de ferramental e baixa no termo de cautela
+    description: Finaliza o termo de cautela (íntegro ou avariado) e devolve os equipamentos ao depósito indicado.
+    operationId: returnToolAgreement
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ReturnToolAgreementRequest'
+    responses:
+      '200':
+        description: Devolução registrada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ToolCustodyAgreementResponse'
+      '404':
+        description: Termo de cautela não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/inventory/custody/assets/{id}/reverse-logistics:
+  post:
+    tags:
+      - AssetCustody
+    summary: Registrar devolução de equipamento por logística reversa (campo/cliente)
+    description: Recebe equipamento recolhido em visita técnica ou cancelamento de cliente de volta ao estoque para triagem.
+    operationId: returnAssetFromWorkOrder
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ReverseLogisticsRequest'
+    responses:
+      '200':
+        description: Ativo recolhido e encaminhado para depósito com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SerializedAssetResponse'
+      '404':
+        description: Ativo não encontrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

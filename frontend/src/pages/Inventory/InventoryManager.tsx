@@ -45,7 +45,7 @@ import {
   QrCodeScanner as QrIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
-import { inventoryCustodyService } from '../../services/inventoryCustodyService';
+import { inventoryCustodyService, CarrierType } from '../../services/inventoryCustodyService';
 import { inventoryService } from '../../services/inventoryService';
 import { userService } from '../../services/userService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -95,7 +95,7 @@ const InventoryManager = () => {
     carrierUserId: '',
     carrierName: '',
     carrierDocument: '',
-    carrierType: 'COLABORADOR',
+    carrierType: 'COLABORADOR' as CarrierType,
     notes: 'Transferência de equipamentos e insumos entre bases operacionais'
   });
 
@@ -218,7 +218,7 @@ const InventoryManager = () => {
         carrierUserId: transferForm.carrierUserId || null,
         carrierName: transferForm.carrierName || 'Portador / Técnico',
         carrierDocument: transferForm.carrierDocument || '000.000.000-00',
-        carrierType: transferForm.carrierType,
+        carrierType: transferForm.carrierType as CarrierType,
         notes: transferForm.notes
       });
       toast.success('Guia de transferência criada com sucesso!');

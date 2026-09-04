@@ -54,6 +54,12 @@ tags:
     description: Propostas Comerciais e Vendas de Planos
   - name: Helpdesk
     description: Suporte Técnico, Atendimento ao Cliente e Chamados ANATEL
+  - name: Inventory
+    description: Catálogo de Insumos, Materiais e Saldo em Estoque
+  - name: Warehouses
+    description: Depósitos e Almoxarifados Físicos
+  - name: AssetCustody
+    description: Custódia de Ativos Serializados, Transferências Inter-Bases e Ferramental
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -215,6 +221,36 @@ paths:
     $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets~1{id}~1interactions'
   /helpdesk/tickets/{id}/close:
     $ref: './domains/helpdesk/helpdesk.yaml#/~1helpdesk~1tickets~1{id}~1close'
+
+  # Estoque, Depósitos & Custódia de Ativos
+  /inventory:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory'
+  /warehouses:
+    $ref: './domains/inventory/inventory.yaml#/~1warehouses'
+  /warehouses/active:
+    $ref: './domains/inventory/inventory.yaml#/~1warehouses~1active'
+  /warehouses/{id}:
+    $ref: './domains/inventory/inventory.yaml#/~1warehouses~1{id}'
+  /inventory/custody/assets:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1assets'
+  /inventory/custody/assets/warehouse/{warehouseId}:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1assets~1warehouse~1{warehouseId}'
+  /inventory/custody/assets/holder/{holderUserId}:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1assets~1holder~1{holderUserId}'
+  /inventory/custody/transfers:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1transfers'
+  /inventory/custody/transfers/{id}/dispatch:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1transfers~1{id}~1dispatch'
+  /inventory/custody/transfers/{id}/receive:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1transfers~1{id}~1receive'
+  /inventory/custody/tool-agreements:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1tool-agreements'
+  /inventory/custody/tool-agreements/checkout:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1tool-agreements~1checkout'
+  /inventory/custody/tool-agreements/{id}/return:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1tool-agreements~1{id}~1return'
+  /inventory/custody/assets/{id}/reverse-logistics:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1assets~1{id}~1reverse-logistics'
 
 components:
   securitySchemes:
@@ -389,4 +425,40 @@ components:
       $ref: './domains/helpdesk/schemas.yaml#/EscalateWorkOrderRequest'
     CloseTicketRequest:
       $ref: './domains/helpdesk/schemas.yaml#/CloseTicketRequest'
+
+    # Inventory, Warehouses & Asset Custody
+    AssetCategory:
+      $ref: './domains/inventory/schemas.yaml#/AssetCategory'
+    AssetStatus:
+      $ref: './domains/inventory/schemas.yaml#/AssetStatus'
+    CarrierType:
+      $ref: './domains/inventory/schemas.yaml#/CarrierType'
+    TransferStatus:
+      $ref: './domains/inventory/schemas.yaml#/TransferStatus'
+    AgreementStatus:
+      $ref: './domains/inventory/schemas.yaml#/AgreementStatus'
+    InventoryItemResponse:
+      $ref: './domains/inventory/schemas.yaml#/InventoryItemResponse'
+    WarehouseResponse:
+      $ref: './domains/inventory/schemas.yaml#/WarehouseResponse'
+    WarehouseCreateRequest:
+      $ref: './domains/inventory/schemas.yaml#/WarehouseCreateRequest'
+    SerializedAssetResponse:
+      $ref: './domains/inventory/schemas.yaml#/SerializedAssetResponse'
+    StockTransferResponse:
+      $ref: './domains/inventory/schemas.yaml#/StockTransferResponse'
+    CreateTransferRequest:
+      $ref: './domains/inventory/schemas.yaml#/CreateTransferRequest'
+    DispatchTransferRequest:
+      $ref: './domains/inventory/schemas.yaml#/DispatchTransferRequest'
+    ConfirmReceiptTransferRequest:
+      $ref: './domains/inventory/schemas.yaml#/ConfirmReceiptTransferRequest'
+    ToolCustodyAgreementResponse:
+      $ref: './domains/inventory/schemas.yaml#/ToolCustodyAgreementResponse'
+    CheckoutToolRequest:
+      $ref: './domains/inventory/schemas.yaml#/CheckoutToolRequest'
+    ReturnToolAgreementRequest:
+      $ref: './domains/inventory/schemas.yaml#/ReturnToolAgreementRequest'
+    ReverseLogisticsRequest:
+      $ref: './domains/inventory/schemas.yaml#/ReverseLogisticsRequest'
 

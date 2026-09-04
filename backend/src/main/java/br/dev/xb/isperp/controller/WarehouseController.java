@@ -1,45 +1,51 @@
 package br.dev.xb.isperp.controller;
 
+import br.dev.xb.isperp.api.contract.WarehousesApi;
+import br.dev.xb.isperp.api.dto.WarehouseCreateRequest;
+import br.dev.xb.isperp.api.dto.WarehouseResponse;
 import br.dev.xb.isperp.entity.Warehouse;
+import br.dev.xb.isperp.mapper.InventoryMapper;
 import br.dev.xb.isperp.service.WarehouseService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping({"/warehouses", "/api/warehouses"})
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
 @SuppressWarnings("null")
-public class WarehouseController {
+public class WarehouseController implements WarehousesApi {
 
     private final WarehouseService warehouseService;
+    private final InventoryMapper inventoryMapper;
 
-    @GetMapping
-    public ResponseEntity<List<Warehouse>> getAllWarehouses() {
-        return ResponseEntity.ok(warehouseService.getAllWarehouses());
+    @Override
+    public ResponseEntity<WarehouseResponse> createWarehouse(WarehouseCreateRequest warehouseCreateRequest) {
+        Warehouse warehouse = inventoryMapper.toEntity(warehouseCreateRequest);
+        Warehouse created = warehouseService.createWarehouse(warehouse);
+        return ResponseEntity.ok(inventoryMapper.toResponse(created));
     }
 
-    @GetMapping("/active")
-    public ResponseEntity<List<Warehouse>> getActiveWarehouses() {
-        return ResponseEntity.ok(warehouseService.getActiveWarehouses());
+    @Override
+    public ResponseEntity<List<WarehouseResponse>> getActiveWarehouses() {
+        return ResponseEntity.ok(inventoryMapper.toWarehouseResponseList(warehouseService.getActiveWarehouses()));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Warehouse> getWarehouseById(@PathVariable UUID id) {
+    @Override
+    public ResponseEntity<List<WarehouseResponse>> getAllWarehouses() {
+        return ResponseEntity.ok(inventoryMapper.toWarehouseResponseList(warehouseService.getAllWarehouses()));
+    }
+
+    @Override
+    public ResponseEntity<WarehouseResponse> getWarehouseById(UUID id) {
         return warehouseService.getWarehouseById(id)
-                .map(ResponseEntity::ok)
+                .map(w -> ResponseEntity.ok(inventoryMapper.toResponse(w)))
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public ResponseEntity<Warehouse> createWarehouse(@Valid @RequestBody Warehouse warehouse) {
-        return ResponseEntity.ok(warehouseService.createWarehouse(warehouse));
     }
 }
