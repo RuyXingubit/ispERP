@@ -668,22 +668,44 @@
 
     .manifesto-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
       margin-top: 2rem;
     }
 
+    .manifesto-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .manifesto-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 1.25rem;
+    }
+
     .manifesto-item h4 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
       color: var(--text-primary);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
     .manifesto-item p {
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       color: var(--text-secondary);
-      line-height: 1.6;
+      line-height: 1.55;
     }
 
     /* Quickstart Técnico */
@@ -752,8 +774,13 @@
       .arch-grid { grid-template-columns: 1fr; }
       .console-container { grid-template-columns: 1fr; }
       .console-sidebar { max-height: 250px; }
-      .manifesto-grid { grid-template-columns: 1fr; }
+      .manifesto-grid { grid-template-columns: repeat(2, 1fr); }
       .hero-title { font-size: 2.1rem; }
+    }
+
+    @media (max-width: 640px) {
+      .metrics-bar { grid-template-columns: 1fr; }
+      .manifesto-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 1080px) {
@@ -819,11 +846,11 @@
       </div>
 
       <h1 class="hero-title">
-        O ERP Livre que Devolve a <em>Liberdade, o Lucro e o Controle</em> ao Provedor.
+        O ERP Aberto que Evolui na <em>Velocidade do seu Provedor</em> e Entrega Inteligência Financeira Real.
       </h1>
 
       <p class="hero-lead">
-        Projetado por quem conhece as dores reais da operação de telecomunicações no Brasil. Sem cobrança por assinante ativo, sem módulos bloqueados e sem dados trancados na nuvem de terceiros. Da caixa de emenda óptica até a emissão da NFCom Modelo 62.
+        Para provedores regionais, o problema nunca foi só a mensalidade do software. O verdadeiro gargalo é a <strong>lentidão crônica de evolução dos ERPs legados</strong>, a falta de um Contas a Pagar corporativo e a obrigação de contratar consultorias financeiras externas e montar telas de BI por fora para descobrir se a empresa está lucrando. O <strong>ispERP</strong> nasceu para mudar essa realidade junto com quem opera no mercado.
       </p>
 
       <div class="hero-actions">
@@ -841,24 +868,24 @@
       <!-- Métricas Reais para a Gestão do Provedor -->
       <div class="metrics-bar">
         <div class="metric-cell">
-          <div class="metric-value highlight">R$ 0,00</div>
-          <div class="metric-label">Custo por Assinante</div>
-          <div class="metric-desc">Sem mensalidades punitivas pelo crescimento da sua base</div>
+          <div class="metric-value highlight">Financeiro</div>
+          <div class="metric-label">Contas a Pagar & DRE Real</div>
+          <div class="metric-desc">Sem precisar de consultoria externa ou planilhas de BI por fora</div>
         </div>
         <div class="metric-cell">
-          <div class="metric-value">100%</div>
-          <div class="metric-label">Custódia dos Dados</div>
-          <div class="metric-desc">Banco PostgreSQL local ou na sua VPS, com acesso SQL total</div>
+          <div class="metric-value">100% Livre</div>
+          <div class="metric-label">Custódia & Soberania</div>
+          <div class="metric-desc">PostgreSQL com acesso SQL irrestrito e chaves UUIDv7</div>
         </div>
         <div class="metric-cell">
           <div class="metric-value">Nativo</div>
           <div class="metric-label">RADIUS & CoA/PoD</div>
-          <div class="metric-desc">Desconexão e corte automático direto no MikroTik/OLT</div>
+          <div class="metric-desc">Corte e desbloqueio automático no MikroTik/OLT em milissegundos</div>
         </div>
         <div class="metric-cell">
           <div class="metric-value">Mod. 62</div>
-          <div class="metric-label">NFCom SEFAZ & Conv. 115</div>
-          <div class="metric-desc">Motor fiscal com rateio SCM/SVA e blindagem tributária</div>
+          <div class="metric-label">NFCom & Rateio SCM/SVA</div>
+          <div class="metric-desc">Motor fiscal com blindagem tributária e Convênio ICMS 115</div>
         </div>
       </div>
     </div>
@@ -869,9 +896,9 @@
     <section id="comparativo" class="section">
       <div class="section-header">
         <span class="section-category">Comparativo Estratégico</span>
-        <h2 class="section-title">O Fim das Amarras dos ERPs Proprietários Legados</h2>
+        <h2 class="section-title">O Fim da Lentidão e da Miopia Financeira dos ERPs Legados</h2>
         <p class="section-subtitle">
-          Provedores regionais sustentam a conectividade do Brasil, mas vivem reféns de softwares caros, lentos e com suporte defasado. Veja o que muda com o ispERP:
+          Provedores regionais sustentam a conectividade do Brasil, mas vivem reféns de softwares que evoluem a passos de tartaruga e ignoram a gestão financeira. Veja o que muda com o ispERP:
         </p>
       </div>
 
@@ -879,21 +906,32 @@
         <table class="compare-table">
           <thead>
             <tr>
-              <th style="width: 20%;">Desafio da Operação</th>
-              <th style="width: 40%;">ERPs Legados do Mercado</th>
-              <th style="width: 40%;">ispERP (Software Livre)</th>
+              <th style="width: 22%;">Desafio da Operação</th>
+              <th style="width: 39%;">ERPs Legados do Mercado</th>
+              <th style="width: 39%;">ispERP (Software Aberto & Evolutivo)</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td class="col-topic">Cobrança de Licença</td>
+              <td class="col-topic">Velocidade de Evolução & Roadmap</td>
               <td class="col-legacy">
-                <span class="legacy-tag">Punição ao Crescimento</span><br />
-                Cobram por faixa de assinantes ativos. Quanto mais você investe em fibra e conquista clientes, mais cara fica sua fatura de software todo mês.
+                <span class="legacy-tag">Evolução a Passos de Tartaruga</span><br />
+                Levam anos para lançar melhorias simples. Mudam de direção arbitrariamente, inventam recursos secundários e deixam demandas essenciais do provedor na gaveta.
               </td>
               <td class="col-isperp">
-                <span class="isperp-tag">Liberdade Total (Zero Custo)</span><br />
-                Código 100% livre. Tenha 500 ou 100.000 clientes, o software é seu. Invista seu dinheiro em OLTs, cabos e equipe, não em licença de software.
+                <span class="isperp-tag">Evolução Rápida Guiada pela Operação</span><br />
+                Roadmap transparente e colaborativo. A comunidade de provedores sugere, prioriza e direciona o desenvolvimento sem burocracia nem barreiras comerciais.
+              </td>
+            </tr>
+            <tr>
+              <td class="col-topic">Gestão Financeira & Contas a Pagar</td>
+              <td class="col-legacy">
+                <span class="legacy-tag">Miopia Financeira (Limitados a Cobrar)</span><br />
+                Emitem boletos e cortam clientes, mas não possuem um Contas a Pagar corporativo. O provedor precisa contratar consultorias financeiras e montar dashboards de BI paralelos para enxergar entradas e saídas.
+              </td>
+              <td class="col-isperp">
+                <span class="isperp-tag">Inteligência Financeira Nativa no ERP</span><br />
+                Contas a Pagar multinível, centros de custos em 5 níveis, conciliação e DRE em tempo real. O sistema aponta com clareza se a empresa está crescendo e onde estão os pontos críticos a atacar.
               </td>
             </tr>
             <tr>
@@ -903,8 +941,8 @@
                 Seus dados ficam em servidores fechados. Se quiser trocar de sistema, cobram fortunas pelo dump ou entregam relatórios incompletos.
               </td>
               <td class="col-isperp">
-                <span class="isperp-tag">Soberania dos Dados</span><br />
-                Instale em seu próprio servidor ou na nuvem que escolher. Banco PostgreSQL 16 transparente, com chaves UUIDv7 e schemas documentados.
+                <span class="isperp-tag">Soberania Total dos Dados</span><br />
+                Instale em seu próprio servidor ou na VPS que escolher. Banco PostgreSQL 16 transparente, com chaves UUIDv7 e schemas documentados.
               </td>
             </tr>
             <tr>
@@ -930,14 +968,14 @@
               </td>
             </tr>
             <tr>
-              <td class="col-topic">Customização & Integrações</td>
+              <td class="col-topic">Modelo de Licença & Custos</td>
               <td class="col-legacy">
-                <span class="legacy-tag">Caixa Preta Fechada</span><br />
-                APIs lentas, mal documentadas ou cobradas por requisição. Solicitar um relatório novo leva meses e depende da boa vontade do fornecedor.
+                <span class="legacy-tag">Cobrança Punitiva</span><br />
+                Cobram por faixa de assinantes ativos. Quanto mais você expande fibra e conquista clientes, mais cara fica a mensalidade do software.
               </td>
               <td class="col-isperp">
-                <span class="isperp-tag">100% API-First (OpenAPI 3.0.3)</span><br />
-                118 endpoints públicos e estritamente tipados. Qualquer desenvolvedor cria integrações com apps, bots de WhatsApp ou painéis em questão de horas.
+                <span class="isperp-tag">Zero Custo de Licença</span><br />
+                Código 100% livre. Tenha 500 ou 100.000 clientes, o software é seu. Reinvista o caixa em OLTs, cabos ópticos e equipe técnica.
               </td>
             </tr>
           </tbody>
@@ -1152,30 +1190,51 @@
     <!-- Seção 4: Manifesto da Comunidade & Crescimento Compartilhado -->
     <section id="manifesto" class="section">
       <div class="section-header">
-        <span class="section-category">Comunidade & Sustentabilidade</span>
-        <h2 class="section-title">Crescendo Junto com o Mercado de Provedores</h2>
+        <span class="section-category">Manifesto & Propósito</span>
+        <h2 class="section-title">Por Que Você Precisa de Consultorias e BIs Externos para Saber se Seu Provedor Está Lucrando?</h2>
         <p class="section-subtitle">
-          Por que software livre é o único modelo que protege os provedores independentes no longo prazo:
+          O sentimento que une os provedores regionais no Brasil e a razão de ser do ispERP:
         </p>
       </div>
 
       <div class="manifesto-box">
         <blockquote class="manifesto-quote">
-          "Provedores de internet competem por qualidade de atendimento e cobertura de rede. O sistema de gestão não deveria ser uma fonte de custos crescentes e aprisionamento tecnológico, mas sim uma infraestrutura comum mantida e aprimorada pela própria comunidade."
+          "No Brasil, qualquer provedor regional acima de 1 a 2 mil clientes esbarra no mesmo gargalo: os ERPs tradicionais emitem boleto e gerenciam o PPPoE, mas são míopes na gestão financeira. Para ter um Contas a Pagar completo com visibilidade real de entradas e saídas, o dono do provedor é obrigado a contratar consultorias financeiras externas e programar telas de BI por fora. Por que o próprio ERP não pode fazer isso?"
         </blockquote>
 
-        <div class="manifesto-grid">
-          <div class="manifesto-item">
-            <h4>1. Sem Dependência de Fornecedor</h4>
-            <p>Se o desenvolvedor original parar, o código continua no ar. Qualquer empresa de TI ou desenvolvedor contratado pelo seu provedor pode manter, customizar e estender o ispERP.</p>
-          </div>
-          <div class="manifesto-item">
-            <h4>2. Homologação Colaborativa de Hardware</h4>
-            <p>Um provedor homologa uma nova OLT Huawei ou ZTE; outro homologa um concentrador MikroTik v7; outro testa um gateway bancário. Todos os provedores se beneficiam sem pagar nada a mais.</p>
-          </div>
-          <div class="manifesto-item">
-            <h4>3. Transparência e Segurança Auditável</h4>
-            <p>Em um software aberto, não há backdoors, cobranças ocultas ou rastreamento de dados comerciais. O código-fonte está disponível no GitHub para qualquer auditor inspecionar.</p>
+        <p style="font-size: 0.96rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 2rem;">
+          O <strong>ispERP</strong> entrega os serviços básicos (RADIUS, contratos, O.S. técnica, estoque e NFCom 62) com perfeição de engenharia. Mas o nosso verdadeiro objetivo é o próximo passo: <strong>ser o cérebro financeiro do seu provedor</strong>. Entregar nativamente o Contas a Pagar, o controle rigoroso de impostos e a visibilidade cirúrgica para a diretoria descobrir se a empresa está crescendo, onde estão os vazamentos e qual é o ponto crítico que precisa ser atacado.
+        </p>
+
+        <div style="border-top: 1px solid var(--border-subtle); padding-top: 1.75rem;">
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+            O Chamado Aberto aos Provedores de Internet
+          </h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Construir e amadurecer um ERP desse nível só é possível unindo quem vive a telecomunicação no dia a dia. Convidamos o seu provedor a participar de 4 formas práticas:
+          </p>
+
+          <div class="manifesto-grid">
+            <div class="manifesto-item">
+              <span class="manifesto-badge">1. Operação</span>
+              <h4>Use na Rotina Real</h4>
+              <p>Implante no seu provedor e teste nos processos diários. A validação em tráfego real com milhares de clientes é o que amadurece a plataforma.</p>
+            </div>
+            <div class="manifesto-item">
+              <span class="manifesto-badge">2. Qualidade</span>
+              <h4>Reporte Bugs e Gargalos</h4>
+              <p>Encontrou uma lentidão, falha de conciliação ou regra fiscal diferente no seu estado? Abra uma issue detalhada no GitHub.</p>
+            </div>
+            <div class="manifesto-item">
+              <span class="manifesto-badge">3. Direção</span>
+              <h4>Demande Funcionalidades</h4>
+              <p>Diga o que sua equipe financeira, contábil ou de NOC precisa. Priorizamos o desenvolvimento ouvindo quem está no campo de batalha.</p>
+            </div>
+            <div class="manifesto-item">
+              <span class="manifesto-badge">4. Sustentabilidade</span>
+              <h4>Contribua Financeiramente</h4>
+              <p>Se o software ajudou sua operação, trouxe clareza de caixa ou economizou recursos com consultorias, contribua financeiramente para acelerar a equipe de engenharia.</p>
+            </div>
           </div>
         </div>
       </div>
