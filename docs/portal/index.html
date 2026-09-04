@@ -3,30 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ispERP — Gestão Inteligente, Alta Disponibilidade e Contratos API-First</title>
-  <meta name="description" content="Plataforma moderna de gestão empresarial para Provedores de Internet (ISP). Java 25, Spring Boot 4.1, React 19, PostgreSQL com UUIDv7, FreeRADIUS e contratos OpenAPI 3.0.3." />
+  <title>ispERP — O ERP Aberto e Independente para Provedores de Internet (ISP)</title>
+  <meta name="description" content="Software de gestão empresarial livre e de código aberto para provedores de internet (ISP). Sem cobrança por assinante ativo, FreeRADIUS nativo, NFCom Modelo 62 e contratos OpenAPI 3.0.3 abertos." />
 
-  <!-- Google Fonts: Inter -->
+  <!-- Tipografia de Engenharia: Inter + JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
+    /* ==========================================================================
+       Design System: Engenharia & Sistemas Industriais (HashiCorp / Kubernetes / RFC)
+       Foco: Alta densidade de informação, contraste estrito, performance zero-bloat
+       ========================================================================== */
     :root {
-      --bg-dark: #090d16;
-      --bg-card: rgba(15, 23, 42, 0.7);
-      --bg-card-hover: rgba(30, 41, 59, 0.85);
-      --border-color: rgba(255, 255, 255, 0.08);
-      --border-accent: rgba(56, 189, 248, 0.3);
-      --primary: #0284c7;
-      --primary-light: #38bdf8;
-      --primary-glow: rgba(56, 189, 248, 0.25);
-      --accent: #6366f1;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --bg-base: #0a0d14;
+      --bg-surface: #101522;
+      --bg-surface-elevated: #161d2e;
+      --bg-surface-active: #1d273d;
+      --border-subtle: #1f293d;
+      --border-strong: #2e3d5b;
+      --border-focus: #38bdf8;
+      
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-tertiary: #64748b;
+      --text-code: #38bdf8;
+
+      --accent-blue: #0284c7;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
     * {
@@ -37,21 +48,26 @@
 
     html {
       scroll-behavior: smooth;
+      background-color: var(--bg-base);
     }
 
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      font-family: var(--font-main);
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 15px;
       line-height: 1.6;
-      overflow-x: hidden;
-      background-image: 
-        radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 85% 65%, rgba(99, 102, 241, 0.07) 0%, transparent 45%);
-      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Shared Navbar */
+    /* Utilitários de Layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Header & Navegação de Alta Densidade */
     .portal-nav {
       position: sticky;
       top: 0;
@@ -59,11 +75,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.85rem 2rem;
-      background: rgba(9, 13, 22, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 1.5rem;
+      background: rgba(10, 13, 20, 0.95);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .nav-brand {
@@ -71,580 +87,606 @@
       align-items: center;
       gap: 0.75rem;
       text-decoration: none;
-      color: var(--text-main);
+      color: var(--text-primary);
     }
 
-    .nav-logo-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #0284c7 0%, #6366f1 100%);
+    .nav-brand-logo {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: -0.03em;
       display: flex;
       align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 16px var(--primary-glow);
+      gap: 0.35rem;
     }
 
-    .nav-brand-text {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
+    .nav-brand-logo span {
+      color: var(--accent-cyan);
     }
 
-    .nav-brand-text span {
-      background: linear-gradient(135deg, #38bdf8, #818cf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .nav-badge {
+    .badge-oss {
+      font-family: var(--font-mono);
       font-size: 0.7rem;
       font-weight: 600;
       padding: 0.15rem 0.5rem;
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--primary-light);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 9999px;
-      letter-spacing: 0.05em;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 1.25rem;
+      gap: 0.25rem;
     }
 
-    .nav-tab {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
+    .nav-link {
+      color: var(--text-secondary);
       text-decoration: none;
-      color: var(--text-muted);
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       font-weight: 500;
-      padding: 0.5rem 0.9rem;
-      border-radius: 8px;
-      transition: all 0.2s ease;
+      padding: 0.4rem 0.75rem;
+      border-radius: 4px;
+      transition: color 0.15s ease, background-color 0.15s ease;
     }
 
-    .nav-tab:hover {
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.05);
+    .nav-link:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-surface);
     }
 
-    .nav-tab.active {
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.25);
+    .nav-link.active {
+      color: var(--text-primary);
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.6rem;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.55rem 1.15rem;
-      font-size: 0.88rem;
+      padding: 0.45rem 0.9rem;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
       font-weight: 600;
-      border-radius: 8px;
+      border-radius: 4px;
       text-decoration: none;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+    .btn-outline {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg-surface);
+      border-color: var(--text-secondary);
+    }
+
+    .btn-solid {
+      background: var(--accent-blue);
       color: #ffffff;
-      border: none;
-      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+      border: 1px solid var(--accent-blue);
     }
 
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45);
+    .btn-solid:hover {
+      background: #0369a1;
+      border-color: #0369a1;
     }
 
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    /* Main Container */
-    .container {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-
-    /* Hero Section */
+    /* Manifesto Hero (Direto ao Ponto) */
     .hero {
-      padding: 5rem 0 3.5rem;
-      text-align: center;
-      position: relative;
+      padding: 4.5rem 0 3.5rem;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .hero-eyebrow {
-      display: inline-flex;
+    .hero-meta {
+      display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.35rem 1rem;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      border-radius: 9999px;
-      font-size: 0.82rem;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .hero-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
       font-weight: 600;
-      color: #38bdf8;
-      letter-spacing: 0.05em;
       text-transform: uppercase;
-      margin-bottom: 1.5rem;
+      letter-spacing: 0.08em;
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
     }
 
     .hero-title {
-      font-size: 3.25rem;
-      font-weight: 800;
-      line-height: 1.15;
+      font-size: 2.75rem;
+      font-weight: 700;
+      line-height: 1.2;
       letter-spacing: -0.03em;
+      color: var(--text-primary);
+      max-width: 960px;
       margin-bottom: 1.5rem;
-      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
 
-    .hero-title .highlight {
-      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .hero-title em {
+      font-style: normal;
+      color: var(--accent-cyan);
+      border-bottom: 2px solid rgba(6, 182, 212, 0.4);
     }
 
-    .hero-subtitle {
+    .hero-lead {
       font-size: 1.15rem;
-      color: var(--text-muted);
-      max-width: 820px;
-      margin: 0 auto 2.5rem;
-      font-weight: 400;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      max-width: 880px;
+      margin-bottom: 2.25rem;
     }
 
     .hero-actions {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 1rem;
+      gap: 0.85rem;
       flex-wrap: wrap;
-      margin-bottom: 4rem;
+      margin-bottom: 3.5rem;
     }
 
-    /* Stats Strip */
-    .stats-strip {
+    /* Métricas Reais de Negócio para o Provedor */
+    .metrics-bar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.25rem;
-      margin-top: 1rem;
-    }
-
-    .stat-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 1.5rem;
-      text-align: left;
-      transition: all 0.3s ease;
-      position: relative;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background-color: var(--border-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
       overflow: hidden;
     }
 
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, #38bdf8, transparent);
-      opacity: 0;
-      transition: opacity 0.3s ease;
+    .metric-cell {
+      background-color: var(--bg-surface);
+      padding: 1.25rem 1.5rem;
     }
 
-    .stat-card:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--border-accent);
-      transform: translateY(-2px);
-    }
-
-    .stat-card:hover::before {
-      opacity: 1;
-    }
-
-    .stat-number {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: #38bdf8;
-      line-height: 1;
-      margin-bottom: 0.4rem;
+    .metric-value {
       font-family: var(--font-mono);
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+      line-height: 1;
     }
 
-    .stat-label {
-      font-size: 0.95rem;
+    .metric-value.highlight {
+      color: var(--accent-green);
+    }
+
+    .metric-label {
+      font-size: 0.88rem;
       font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 0.2rem;
+      color: var(--text-primary);
+      margin-bottom: 0.15rem;
     }
 
-    .stat-desc {
-      font-size: 0.8rem;
-      color: var(--text-dim);
+    .metric-desc {
+      font-size: 0.78rem;
+      color: var(--text-tertiary);
     }
 
-    /* Section Styles */
+    /* Seções Gerais */
     .section {
-      padding: 5rem 0;
-      border-top: 1px solid var(--border-color);
+      padding: 4rem 0;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .section-header {
-      text-align: center;
-      max-width: 750px;
-      margin: 0 auto 3.5rem;
+      margin-bottom: 2.5rem;
     }
 
-    .section-tag {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #38bdf8;
+    .section-category {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 0.5rem;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.4rem;
       display: block;
     }
 
     .section-title {
-      font-size: 2.25rem;
+      font-size: 1.85rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      color: var(--text-main);
-      margin-bottom: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
     }
 
-    .section-desc {
+    .section-subtitle {
       font-size: 1.05rem;
-      color: var(--text-muted);
+      color: var(--text-secondary);
+      max-width: 820px;
     }
 
-    /* Architectural Pillars */
-    .pillars-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .pillar-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 2rem;
-      transition: all 0.3s ease;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .pillar-card:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--border-accent);
-      transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    }
-
-    .pillar-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      margin-bottom: 1.25rem;
-      color: #38bdf8;
-    }
-
-    .pillar-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 0.75rem;
-      color: var(--text-main);
-    }
-
-    .pillar-desc {
-      font-size: 0.93rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      flex-grow: 1;
-    }
-
-    .pillar-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-top: 1.25rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .tag-badge {
-      font-size: 0.72rem;
-      font-family: var(--font-mono);
-      padding: 0.2rem 0.5rem;
-      background: rgba(255, 255, 255, 0.05);
-      color: #cbd5e1;
+    /* Tabela Comparativa Industrial: Legado vs ispERP */
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border-subtle);
       border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--bg-surface);
     }
 
-    /* Modules Section */
-    .filter-tabs {
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-bottom: 2.5rem;
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.92rem;
     }
 
-    .filter-btn {
-      padding: 0.45rem 1rem;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text-muted);
-      border: 1px solid var(--border-color);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .filter-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-    }
-
-    .filter-btn.active {
-      background: #0284c7;
-      color: #ffffff;
-      border-color: #38bdf8;
-    }
-
-    .modules-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.25rem;
-    }
-
-    .module-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 1.5rem;
-      transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .module-card:hover {
-      background: var(--bg-card-hover);
-      border-color: rgba(56, 189, 248, 0.3);
-      transform: translateY(-2px);
-    }
-
-    .module-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.75rem;
-    }
-
-    .module-name {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #f8fafc;
-    }
-
-    .module-endpoints-count {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      padding: 0.2rem 0.5rem;
-      background: rgba(56, 189, 248, 0.12);
-      color: #38bdf8;
-      border-radius: 6px;
-      font-weight: 600;
-    }
-
-    .module-desc {
-      font-size: 0.86rem;
-      color: var(--text-muted);
-      margin-bottom: 1rem;
-      flex-grow: 1;
-    }
-
-    .module-link {
+    .compare-table th {
+      background: var(--bg-surface-elevated);
+      padding: 0.85rem 1.25rem;
       font-size: 0.82rem;
       font-weight: 600;
-      color: #38bdf8;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-      transition: gap 0.2s ease;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-strong);
     }
 
-    .module-link:hover {
-      gap: 0.5rem;
-      text-decoration: underline;
+    .compare-table td {
+      padding: 1.15rem 1.25rem;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: top;
     }
 
-    /* Tech Stack */
-    .stack-grid {
+    .compare-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .col-topic {
+      font-weight: 600;
+      color: var(--text-primary);
+      width: 22%;
+    }
+
+    .col-legacy {
+      color: var(--text-secondary);
+      width: 38%;
+      background: rgba(239, 68, 68, 0.02);
+    }
+
+    .col-isperp {
+      color: var(--text-primary);
+      width: 40%;
+      background: rgba(16, 185, 129, 0.03);
+      font-weight: 500;
+    }
+
+    .legacy-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent-red);
+      margin-bottom: 0.25rem;
+    }
+
+    .isperp-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent-green);
+      margin-bottom: 0.25rem;
+    }
+
+    /* Arquitetura Operacional da Telecom (Diagramas Técnicos & Soluções) */
+    .arch-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 1.5rem;
     }
 
-    .stack-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
-
-    .stack-category {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #38bdf8;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.75rem;
-    }
-
-    .stack-techs {
+    .arch-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 1.75rem;
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
     }
 
-    .tech-row {
+    .arch-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.9rem;
-      color: #cbd5e1;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .tech-version {
+    .arch-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .arch-tag {
       font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--text-dim);
-      background: rgba(255, 255, 255, 0.04);
-      padding: 0.1rem 0.4rem;
+      font-size: 0.72rem;
+      padding: 0.15rem 0.5rem;
+      background: var(--bg-surface-elevated);
+      color: var(--accent-cyan);
+      border: 1px solid var(--border-subtle);
       border-radius: 4px;
     }
 
-    /* Quickstart Tabs */
-    .code-box {
-      background: #0f172a;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      overflow: hidden;
-      max-width: 860px;
-      margin: 0 auto;
+    .arch-body {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      margin-bottom: 1.25rem;
+      flex-grow: 1;
     }
 
-    .code-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 1.25rem;
-      background: #0b1120;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .code-tabs {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .code-tab-btn {
-      padding: 0.35rem 0.75rem;
-      font-size: 0.82rem;
-      font-weight: 600;
-      background: transparent;
-      border: none;
-      color: var(--text-dim);
-      cursor: pointer;
-      border-radius: 6px;
-      transition: all 0.2s ease;
-    }
-
-    .code-tab-btn:hover {
-      color: var(--text-main);
-    }
-
-    .code-tab-btn.active {
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.1);
-    }
-
-    .code-content {
-      padding: 1.5rem;
+    .arch-schema {
+      background: #07090e;
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 1rem;
       font-family: var(--font-mono);
-      font-size: 0.88rem;
-      line-height: 1.6;
-      color: #e2e8f0;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      line-height: 1.5;
       overflow-x: auto;
       white-space: pre;
     }
 
-    /* CTA Section */
-    .cta-box {
-      background: linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 16px;
-      padding: 3.5rem 2rem;
+    /* Explorer Integrado de Domínios (Estilo Console) */
+    .console-container {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      background: var(--bg-surface);
+      overflow: hidden;
+      min-height: 600px;
+    }
+
+    .console-sidebar {
+      background: #0c101a;
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .console-search-box {
+      padding: 0.85rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .console-search-input {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .console-search-input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .console-list {
+      list-style: none;
+      overflow-y: auto;
+      max-height: 520px;
+    }
+
+    .console-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .console-item:hover {
+      background: var(--bg-surface);
+    }
+
+    .console-item.active {
+      background: var(--bg-surface-elevated);
+      border-left: 3px solid var(--accent-cyan);
+    }
+
+    .console-item-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .console-item-count {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-tertiary);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+    }
+
+    .console-main {
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      max-height: 600px;
+    }
+
+    .console-detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .console-detail-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .console-detail-desc {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .console-section-title {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent-cyan);
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    .endpoints-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+      margin-bottom: 1.5rem;
+    }
+
+    .endpoints-table td {
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .method-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      display: inline-block;
       text-align: center;
-      margin: 4rem 0 2rem;
+      min-width: 54px;
     }
 
-    .cta-title {
-      font-size: 2.2rem;
-      font-weight: 800;
-      margin-bottom: 1rem;
+    .method-get { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+    .method-post { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .method-put { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .method-delete { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+    .endpoint-path {
+      color: var(--text-primary);
     }
 
-    .cta-desc {
-      font-size: 1.1rem;
-      color: var(--text-muted);
-      max-width: 650px;
-      margin: 0 auto 2rem;
+    .endpoint-summary {
+      color: var(--text-tertiary);
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+    }
+
+    /* Manifesto da Comunidade & Crescimento */
+    .manifesto-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 2.5rem;
+      margin-top: 2rem;
+    }
+
+    .manifesto-quote {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      border-left: 3px solid var(--accent-cyan);
+      padding-left: 1.25rem;
+    }
+
+    .manifesto-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .manifesto-item h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .manifesto-item p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Quickstart Técnico */
+    .cli-box {
+      background: #080b12;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .cli-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 1rem;
+      background: #0f1420;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-tertiary);
+    }
+
+    .cli-content {
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      line-height: 1.6;
+      white-space: pre;
+      overflow-x: auto;
     }
 
     /* Footer */
     .footer {
-      border-top: 1px solid var(--border-color);
       padding: 3rem 0;
-      background: #06090e;
-      color: var(--text-dim);
-      font-size: 0.88rem;
+      background: #07090e;
+      color: var(--text-tertiary);
+      font-size: 0.85rem;
     }
 
     .footer-content {
@@ -657,715 +699,686 @@
 
     .footer-links {
       display: flex;
-      gap: 1.5rem;
+      gap: 1.25rem;
     }
 
     .footer-link {
-      color: var(--text-muted);
+      color: var(--text-secondary);
       text-decoration: none;
-      transition: color 0.2s ease;
     }
 
     .footer-link:hover {
-      color: #38bdf8;
+      color: var(--text-primary);
     }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      .hero-title {
-        font-size: 2.25rem;
-      }
-      .portal-nav {
-        padding: 0.75rem 1rem;
-      }
-      .nav-links {
-        display: none;
-      }
+    /* Responsividade */
+    @media (max-width: 960px) {
+      .metrics-bar { grid-template-columns: repeat(2, 1fr); }
+      .arch-grid { grid-template-columns: 1fr; }
+      .console-container { grid-template-columns: 1fr; }
+      .console-sidebar { max-height: 250px; }
+      .manifesto-grid { grid-template-columns: 1fr; }
+      .hero-title { font-size: 2.1rem; }
+    }
+
+    @media (max-width: 640px) {
+      .metrics-bar { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .portal-nav { padding: 0.6rem 1rem; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Shared Global Navbar -->
+  <!-- Header de Alta Precisão (Minimalista) -->
   <nav class="portal-nav">
     <a href="index.html" class="nav-brand">
-      <div class="nav-logo-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
-          <path d="M12 12v9"></path>
-          <path d="m8 17 4 4 4-4"></path>
-        </svg>
-      </div>
-      <div class="nav-brand-text">
+      <div class="nav-brand-logo">
         isp<span>ERP</span>
       </div>
-      <span class="nav-badge">API-First</span>
+      <span class="badge-oss">Open Source</span>
     </a>
 
     <div class="nav-links">
-      <a href="index.html" class="nav-tab active">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-          <polyline points="9 22 9 12 15 12 15 22"></polyline>
-        </svg>
-        Sobre o Projeto
-      </a>
-      <a href="api.html" class="nav-tab">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-          <polyline points="2 17 12 22 22 17"></polyline>
-          <polyline points="2 12 12 17 22 12"></polyline>
-        </svg>
-        Contratos de API (Redocly)
-      </a>
-      <a href="#pilares" class="nav-tab">Arquitetura</a>
-      <a href="#modulos" class="nav-tab">Módulos (21)</a>
-      <a href="#quickstart" class="nav-tab">Quickstart</a>
+      <a href="index.html" class="nav-link active">Visão Geral</a>
+      <a href="#comparativo" class="nav-link">ispERP vs Legados</a>
+      <a href="#operacao" class="nav-link">Operação Telecom</a>
+      <a href="#explorer" class="nav-link">Módulos & Contratos</a>
+      <a href="#manifesto" class="nav-link">Manifesto</a>
+      <a href="api.html" class="nav-link">Contratos OpenAPI (Redocly)</a>
     </div>
 
     <div class="nav-actions">
-      <a href="openapi.bundled.json" download="ispERP-openapi.json" class="btn btn-secondary" title="Baixar especificação OpenAPI 3.0.3 compilada">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <a href="openapi.bundled.json" download="ispERP-openapi.json" class="btn btn-outline" title="Download OpenAPI 3.0.3 Specification">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="7 10 12 15 17 10"></polyline>
           <line x1="12" y1="15" x2="12" y2="3"></line>
         </svg>
         Spec JSON
       </a>
-      <a href="api.html" class="btn btn-primary">
-        Explorar API
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
+      <a href="https://github.com/RuyXingubit/ispERP" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
         </svg>
+        GitHub
+      </a>
+      <a href="api.html" class="btn btn-solid">
+        Explorar API (118 Rotas)
       </a>
     </div>
   </nav>
 
-  <!-- Hero Section -->
-  <main class="container">
-    <section class="hero">
-      <div class="hero-eyebrow">
-        <span>⚡</span> Arquitetura API-First para Telecomunicações
+  <!-- Hero Section & Manifesto do Provedor Livre -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-meta">
+        <span class="hero-tag">Iniciativa Open Source para Provedores de Internet</span>
+        <span style="color: var(--text-tertiary); font-size: 0.85rem;">•</span>
+        <span style="color: var(--text-secondary); font-size: 0.85rem; font-family: var(--font-mono);">PostgreSQL + FreeRADIUS + Java 25 + OpenAPI 3.0.3</span>
       </div>
+
       <h1 class="hero-title">
-        ispERP — Gestão Inteligente, Robusta e <span class="highlight">100% API-First</span>
+        O ERP Livre que Devolve a <em>Liberdade, o Lucro e o Controle</em> ao Provedor.
       </h1>
-      <p class="hero-subtitle">
-        Plataforma moderna de gestão empresarial para Provedores de Internet (ISP) e Operadoras Telecom. 
-        Projetada com <strong>Java 25</strong>, <strong>Spring Boot 4.1</strong>, <strong>React 19</strong>, <strong>PostgreSQL</strong> e <strong>FreeRADIUS</strong>, orientada a contratos formais OpenAPI 3.0.3 e blindagem patrimonial.
+
+      <p class="hero-lead">
+        Projetado por quem conhece as dores reais da operação de telecomunicações no Brasil. Sem cobrança por assinante ativo, sem módulos bloqueados e sem dados trancados na nuvem de terceiros. Da caixa de emenda óptica até a emissão da NFCom Modelo 62.
       </p>
 
       <div class="hero-actions">
-        <a href="api.html" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-            <polyline points="2 17 12 22 22 17"></polyline>
-            <polyline points="2 12 12 17 22 12"></polyline>
-          </svg>
-          Explorar Contratos OpenAPI (118 Endpoints)
+        <a href="#comparativo" class="btn btn-solid" style="padding: 0.65rem 1.25rem; font-size: 0.95rem;">
+          Por que Mudar do ERP Legado?
         </a>
-        <a href="#modulos" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
-          Ver 21 Módulos da Plataforma
+        <a href="#explorer" class="btn btn-outline" style="padding: 0.65rem 1.25rem; font-size: 0.95rem;">
+          Conhecer os 21 Módulos Operacionais
         </a>
-        <a href="https://github.com/RuyXingubit/ispERP" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 0.75rem 1.25rem;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-          GitHub
+        <a href="api.html" class="btn btn-outline" style="padding: 0.65rem 1.25rem; font-size: 0.95rem;">
+          Contratos OpenAPI (Redocly) →
         </a>
       </div>
 
-      <!-- Key Performance Metrics -->
-      <div class="stats-strip">
-        <div class="stat-card">
-          <div class="stat-number">118</div>
-          <div class="stat-label">Endpoints REST</div>
-          <div class="stat-desc">Contratos OpenAPI 3.0.3 auditados</div>
+      <!-- Métricas Reais para a Gestão do Provedor -->
+      <div class="metrics-bar">
+        <div class="metric-cell">
+          <div class="metric-value highlight">R$ 0,00</div>
+          <div class="metric-label">Custo por Assinante</div>
+          <div class="metric-desc">Sem mensalidades punitivas pelo crescimento da sua base</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">21</div>
-          <div class="stat-label">Domínios de Negócio</div>
-          <div class="stat-desc">Da infraestrutura óptica ao faturamento</div>
+        <div class="metric-cell">
+          <div class="metric-value">100%</div>
+          <div class="metric-label">Custódia dos Dados</div>
+          <div class="metric-desc">Banco PostgreSQL local ou na sua VPS, com acesso SQL total</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">100%</div>
-          <div class="stat-label">MockMvc Coverage</div>
-          <div class="stat-desc">Cobertura estrita em todos os controllers</div>
+        <div class="metric-cell">
+          <div class="metric-value">Nativo</div>
+          <div class="metric-label">RADIUS & CoA/PoD</div>
+          <div class="metric-desc">Desconexão e corte automático direto no MikroTik/OLT</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">UUIDv7</div>
-          <div class="stat-label">Identificadores Canônicos</div>
-          <div class="stat-desc">Ordenação temporal para alta taxa de I/O</div>
+        <div class="metric-cell">
+          <div class="metric-value">Mod. 62</div>
+          <div class="metric-label">NFCom SEFAZ & Conv. 115</div>
+          <div class="metric-desc">Motor fiscal com rateio SCM/SVA e blindagem tributária</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">Java 25</div>
-          <div class="stat-label">Virtual Threads (Loom)</div>
-          <div class="stat-desc">Spring Boot 4.1 + React 19 Frontend</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Seção 1: Comparativo Direto (Legado vs ispERP) -->
+    <section id="comparativo" class="section">
+      <div class="section-header">
+        <span class="section-category">Comparativo Estratégico</span>
+        <h2 class="section-title">O Fim das Amarras dos ERPs Proprietários Legados</h2>
+        <p class="section-subtitle">
+          Provedores regionais sustentam a conectividade do Brasil, mas vivem reféns de softwares caros, lentos e com suporte defasado. Veja o que muda com o ispERP:
+        </p>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th style="width: 20%;">Desafio da Operação</th>
+              <th style="width: 40%;">ERPs Legados do Mercado</th>
+              <th style="width: 40%;">ispERP (Software Livre)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-topic">Cobrança de Licença</td>
+              <td class="col-legacy">
+                <span class="legacy-tag">Punição ao Crescimento</span><br />
+                Cobram por faixa de assinantes ativos. Quanto mais você investe em fibra e conquista clientes, mais cara fica sua fatura de software todo mês.
+              </td>
+              <td class="col-isperp">
+                <span class="isperp-tag">Liberdade Total (Zero Custo)</span><br />
+                Código 100% livre. Tenha 500 ou 100.000 clientes, o software é seu. Invista seu dinheiro em OLTs, cabos e equipe, não em licença de software.
+              </td>
+            </tr>
+            <tr>
+              <td class="col-topic">Custódia do Banco de Dados</td>
+              <td class="col-legacy">
+                <span class="legacy-tag">Refém do Fornecedor</span><br />
+                Seus dados ficam em servidores fechados. Se quiser trocar de sistema, cobram fortunas pelo dump ou entregam relatórios incompletos.
+              </td>
+              <td class="col-isperp">
+                <span class="isperp-tag">Soberania dos Dados</span><br />
+                Instale em seu próprio servidor ou na nuvem que escolher. Banco PostgreSQL 16 transparente, com chaves UUIDv7 e schemas documentados.
+              </td>
+            </tr>
+            <tr>
+              <td class="col-topic">Automação de Redes & RADIUS</td>
+              <td class="col-legacy">
+                <span class="legacy-tag">Módulo Pago & Falhas de Sync</span><br />
+                Muitas vezes vendido como "módulo adicional". Sincronização falha com o MikroTik/OLT gerando clientes navegando de graça ou bloqueados indevidamente.
+              </td>
+              <td class="col-isperp">
+                <span class="isperp-tag">FreeRADIUS Nativo em Tempo Real</span><br />
+                Gerencia diretamente as tabelas radcheck, radreply e radacct. Desconexão imediata via pacotes CoA/PoD (RFC 3576) no momento da baixa ou do corte.
+              </td>
+            </tr>
+            <tr>
+              <td class="col-topic">Engenharia Tributária & Fiscal</td>
+              <td class="col-legacy">
+                <span class="legacy-tag">Risco de Autuação SEFAZ</span><br />
+                Rateio SCM/SVA confuso em planilhas. Emissão de NFCom 62 dependente de intermediários que cobram por cada nota emitida.
+              </td>
+              <td class="col-isperp">
+                <span class="isperp-tag">Blindagem Patrimonial Nativa</span><br />
+                Separação jurídica automatizada entre Telecom (SCM) e Serviços de Valor Adicionado (SVA). Emissão de NFCom 62 e lotes do Convênio ICMS 115 sem intermediários.
+              </td>
+            </tr>
+            <tr>
+              <td class="col-topic">Customização & Integrações</td>
+              <td class="col-legacy">
+                <span class="legacy-tag">Caixa Preta Fechada</span><br />
+                APIs lentas, mal documentadas ou cobradas por requisição. Solicitar um relatório novo leva meses e depende da boa vontade do fornecedor.
+              </td>
+              <td class="col-isperp">
+                <span class="isperp-tag">100% API-First (OpenAPI 3.0.3)</span><br />
+                118 endpoints públicos e estritamente tipados. Qualquer desenvolvedor cria integrações com apps, bots de WhatsApp ou painéis em questão de horas.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Seção 2: Engenharia Operacional da Telecom -->
+    <section id="operacao" class="section">
+      <div class="section-header">
+        <span class="section-tag">Engenharia & Negócio</span>
+        <h2 class="section-title">Construído para a Rotina Real do Provedor</h2>
+        <p class="section-subtitle">
+          Soluções técnicas robustas para os quatro maiores gargalos operacionais de quem opera redes de banda larga:
+        </p>
+      </div>
+
+      <div class="arch-grid">
+        <!-- 1. Blindagem Tributária -->
+        <div class="arch-card">
+          <div class="arch-header">
+            <h3 class="arch-title">1. Blindagem Tributária: Rateio SCM vs. SVA</h3>
+            <span class="arch-tag">Economia de 15% a 20%</span>
+          </div>
+          <p class="arch-body">
+            Reduza a carga tributária do provedor com respaldo legal pleno. O plano do cliente é faturado com segregação precisa entre o Serviço de Conexão à Internet (SCM, sujeito ao ICMS/FUST/FUNTTEL) e Serviços de Valor Adicionado (SVA: streaming, backup em nuvem, suporte, sujeitos ao ISS/Federal).
+          </p>
+          <div class="arch-schema">[Assinante Contrata Plano R$ 99,90]
+       │
+       ├── Parcela SCM (R$ 49,90) ──> Emissão NFCom Modelo 62 SEFAZ
+       │                              (Gera registro Convênio ICMS 115)
+       │
+       └── Parcela SVA (R$ 50,00) ──> Emissão NFS-e / Recibo de Serviço
+                                      (Segregação de CNPJs e Blindagem)</div>
+        </div>
+
+        <!-- 2. Automação de Rede & RADIUS -->
+        <div class="arch-card">
+          <div class="arch-header">
+            <h3 class="arch-title">2. Controle de Sessões & RADIUS Instantâneo</h3>
+            <span class="arch-tag">Zero Trabalho Manual</span>
+          </div>
+          <p class="arch-body">
+            Elimine a necessidade do técnico cadastrar PPPoE na mão dentro do MikroTik. O cliente cadastrado no ispERP já autentica no FreeRADIUS. Quando uma fatura é quitada, a liberação ocorre em milissegundos via pacote CoA.
+          </p>
+          <div class="arch-schema">[Fatura Vencida + Tolerância Esgotada]
+       │
+       ├── Disparo de Evento de Suspensão (Transactional Outbox)
+       ├── Atualiza radreply (Framed-Pool = "pool_bloqueados")
+       └── Envia pacote CoA/PoD (RFC 3576) para o Concentrador BNG
+           (Cliente cai instantaneamente na página de aviso)</div>
+        </div>
+
+        <!-- 3. Cobrança Híbrida & PIX -->
+        <div class="arch-card">
+          <div class="arch-header">
+            <h3 class="arch-title">3. XinguBit Pay: PIX Direto na Sua Conta</h3>
+            <span class="arch-tag">Sem Intermediários</span>
+          </div>
+          <p class="arch-body">
+            Gere QR Codes de PIX Dinâmico com Copia-e-Cola direto na fatura e no Portal do Assinante. O dinheiro vai direto para a conta bancária do seu provedor, sem intermediário financeiro retendo seu caixa por dias ou cobrando porcentagens abusivas.
+          </p>
+          <div class="arch-schema">[Cliente Escaneia o PIX no App do Banco]
+       │
+       ├── Webhook do Banco chega no ispERP (/api/payments/webhook)
+       ├── Validação de Assinatura HMAC & Idempotência por UUIDv7
+       ├── Baixa automática da fatura no financeiro
+       └── Disparo de pacote CoA: Desbloqueio imediato da banda</div>
+        </div>
+
+        <!-- 4. Gestão de Campo & Estoque Serializado -->
+        <div class="arch-card">
+          <div class="arch-header">
+            <h3 class="arch-title">4. Estoque de ONUs & Ordens de Instalação</h3>
+            <span class="arch-tag">Rastreio por MAC / Serial</span>
+          </div>
+          <p class="arch-body">
+            Controle rigoroso do equipamento emprestado em comodato. A ordem de serviço do instalador registra o número de série e MAC da ONU instalada na casa do cliente, transferindo a custódia do depósito para o contrato ativo.
+          </p>
+          <div class="arch-schema">[Técnico Executa Instalação no Cliente]
+       │
+       ├── Leitura do Serial/MAC da ONU via app/web
+       ├── Saída do Depósito Central ──> Vínculo ao Contrato do Cliente
+       ├── Homologação Anatel & Perfil de Provisionamento OLT
+       └── Assinatura digital do termo de comodato pelo cliente</div>
         </div>
       </div>
     </section>
 
-    <!-- Engineering & Business Pillars -->
-    <section id="pilares" class="section">
+    <!-- Seção 3: Explorer Integrado de Módulos & Contratos OpenAPI -->
+    <section id="explorer" class="section">
       <div class="section-header">
-        <span class="section-tag">Engenharia de Software</span>
-        <h2 class="section-title">Pilares Fundamentais da Plataforma</h2>
-        <p class="section-desc">
-          Construído para suportar operações de provedores regionais a grandes operadoras com máxima resiliência e conformidade regulatória.
+        <span class="section-category">Arquitetura de Serviços</span>
+        <h2 class="section-title">Explorer Integrado de Módulos (21 Domínios)</h2>
+        <p class="section-subtitle">
+          Navegue pelas capacidades da plataforma. Cada módulo possui contratos OpenAPI 3.0.3 abertos, estritamente tipados e com garantia de retrocompatibilidade.
         </p>
       </div>
 
-      <div class="pillars-grid">
-        <!-- Pillar 1 -->
-        <div class="pillar-card">
-          <div class="pillar-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="16 18 22 12 16 6"></polyline>
-              <polyline points="8 6 2 12 8 18"></polyline>
-            </svg>
+      <div class="console-container">
+        <!-- Sidebar de Domínios -->
+        <div class="console-sidebar">
+          <div class="console-search-box">
+            <input type="text" id="domainSearch" class="console-search-input" placeholder="Filtrar módulos (ex: Fiscal, RADIUS)..." onkeyup="filterDomainList()" />
           </div>
-          <h3 class="pillar-title">API-First & Design-First</h3>
-          <p class="pillar-desc">
-            Nenhuma linha de código de controller ou DTO é escrita antes do contrato OpenAPI ser formalmente especificado, validado via Redocly CLI e versionado. As interfaces Spring Boot e clientes TypeScript são gerados automaticamente.
-          </p>
-          <div class="pillar-badges">
-            <span class="tag-badge">OpenAPI 3.0.3</span>
-            <span class="tag-badge">Orval Client</span>
-            <span class="tag-badge">Spring Codegen</span>
-            <span class="tag-badge">MapStruct</span>
-          </div>
+          <ul class="console-list" id="domainList">
+            <li class="console-item active" onclick="selectDomain('fiscal')">
+              <span class="console-item-name">Fiscal & NFCom 62</span>
+              <span class="console-item-count">9 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('radius')">
+              <span class="console-item-name">RADIUS & Telecom</span>
+              <span class="console-item-count">7 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('invoices')">
+              <span class="console-item-name">Faturamento & Invoices</span>
+              <span class="console-item-count">7 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('payments')">
+              <span class="console-item-name">Pagamentos & PIX</span>
+              <span class="console-item-count">6 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('customers')">
+              <span class="console-item-name">Assinantes (Customers)</span>
+              <span class="console-item-count">8 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('contracts')">
+              <span class="console-item-name">Contratos & Comodato</span>
+              <span class="console-item-count">7 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('workorders')">
+              <span class="console-item-name">Ordens de Serviço (O.S.)</span>
+              <span class="console-item-count">8 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('inventory')">
+              <span class="console-item-name">Estoque & Rastreio Serial</span>
+              <span class="console-item-count">6 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('network')">
+              <span class="console-item-name">Elementos de Rede & BNG</span>
+              <span class="console-item-count">6 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('helpdesk')">
+              <span class="console-item-name">Central de Chamados</span>
+              <span class="console-item-count">7 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('plans')">
+              <span class="console-item-name">Planos & Composição SVA</span>
+              <span class="console-item-count">5 endpoints</span>
+            </li>
+            <li class="console-item" onclick="selectDomain('auth')">
+              <span class="console-item-name">Autenticação & RBAC</span>
+              <span class="console-item-count">5 endpoints</span>
+            </li>
+          </ul>
         </div>
 
-        <!-- Pillar 2 -->
-        <div class="pillar-card">
-          <div class="pillar-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
+        <!-- Painel Principal de Detalhes do Domínio Selecionado -->
+        <div class="console-main" id="domainDetail">
+          <div class="console-detail-header">
+            <div>
+              <h3 class="console-detail-title" id="detailTitle">Fiscal & NFCom Modelo 62</h3>
+              <p class="console-detail-desc" id="detailDesc">
+                Emissão autorizada na SEFAZ de Notas Fiscais de Telecomunicações (NFCom), cancelamento no prazo legal, upload de Certificado Digital A1 com validação e exportação de lotes no padrão Convênio ICMS 115/03.
+              </p>
+            </div>
+            <a href="api.html#tag/Fiscal" id="detailFullDocsBtn" class="btn btn-outline" style="white-space: nowrap; margin-left: 1rem;">
+              Abrir no Redocly →
+            </a>
           </div>
-          <h3 class="pillar-title">Blindagem Patrimonial & Regimes</h3>
-          <p class="pillar-desc">
-            Segregação jurídica, societária e operacional rigorosa entre a Operadora de Telecom (SCM) e a Prestadora de SVA (Serviço de Valor Adicionado). Suporte nativo a transições agendadas de regime tributário (Simples, Presumido, Real).
-          </p>
-          <div class="pillar-badges">
-            <span class="tag-badge">Segregação SCM/SVA</span>
-            <span class="tag-badge">Transições Fiscais</span>
-            <span class="tag-badge">Auditoria Imutável</span>
-          </div>
-        </div>
 
-        <!-- Pillar 3 -->
-        <div class="pillar-card">
-          <div class="pillar-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-          </div>
-          <h3 class="pillar-title">Fiscal & NFCom Modelo 62</h3>
-          <p class="pillar-desc">
-            Emissão digital, autorização SEFAZ e cancelamento de Nota Fiscal de Serviços de Comunicação (NFCom Modelo 62). Geração de lotes compactados no padrão Convênio ICMS 115/03 e upload seguro de certificados digitais A1.
+          <div class="console-section-title">Impacto na Rotina do Provedor</div>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.25rem;" id="detailImpact">
+            Elimina o custo por nota fiscal cobrado por intermediários terceiros. O provedor assina os lotes com seu próprio certificado A1 e transmite diretamente para a SEFAZ estadual, com contingência automática e geração dos arquivos do Convênio 115 para o contador.
           </p>
-          <div class="pillar-badges">
-            <span class="tag-badge">NFCom Mod. 62</span>
-            <span class="tag-badge">Convênio ICMS 115</span>
-            <span class="tag-badge">Certificado A1</span>
-            <span class="tag-badge">SEFAZ WebServices</span>
-          </div>
-        </div>
 
-        <!-- Pillar 4 -->
-        <div class="pillar-card">
-          <div class="pillar-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="2" y1="12" x2="22" y2="12"></line>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-            </svg>
-          </div>
-          <h3 class="pillar-title">RADIUS & Automação de Redes</h3>
-          <p class="pillar-desc">
-            Sincronização em tempo real com tabelas FreeRADIUS (radcheck, radreply, radacct). Desconexão forçada via CoA/PoD (RFC 3576), pools de IPv4/IPv6, CGNAT e provisionamento automático de velocidades e profiles de banda.
-          </p>
-          <div class="pillar-badges">
-            <span class="tag-badge">FreeRADIUS 3.x</span>
-            <span class="tag-badge">MikroTik RouterOS</span>
-            <span class="tag-badge">CoA / PoD</span>
-            <span class="tag-badge">CGNAT & IPAM</span>
-          </div>
-        </div>
+          <div class="console-section-title">Endpoints dos Contratos OpenAPI 3.0.3</div>
+          <table class="endpoints-table">
+            <tbody id="detailEndpoints">
+              <tr>
+                <td style="width: 80px;"><span class="method-badge method-get">GET</span></td>
+                <td class="endpoint-path">/fiscal/company</td>
+                <td class="endpoint-summary">Retorna os dados cadastrais da empresa fiscal ativa</td>
+              </tr>
+              <tr>
+                <td><span class="method-badge method-post">POST</span></td>
+                <td class="endpoint-path">/fiscal/invoices/{id}/emit</td>
+                <td class="endpoint-summary">Dispara a emissão da NFCom Modelo 62 na SEFAZ</td>
+              </tr>
+              <tr>
+                <td><span class="method-badge method-post">POST</span></td>
+                <td class="endpoint-path">/fiscal/records/{id}/cancel</td>
+                <td class="endpoint-summary">Solicita o cancelamento da NFCom com justificativa</td>
+              </tr>
+              <tr>
+                <td><span class="method-badge method-get">GET</span></td>
+                <td class="endpoint-path">/fiscal/convenio115/export</td>
+                <td class="endpoint-summary">Download do lote compactado do Convênio ICMS 115/03</td>
+              </tr>
+            </tbody>
+          </table>
 
-        <!-- Pillar 5 -->
-        <div class="pillar-card">
-          <div class="pillar-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="5" width="20" height="14" rx="2"></rect>
-              <line x1="2" y1="10" x2="22" y2="10"></line>
-            </svg>
-          </div>
-          <h3 class="pillar-title">XinguBit Pay & Cobrança Híbrida</h3>
-          <p class="pillar-desc">
-            Gateway financeiro integrado com geração instantânea de PIX Dinâmico com QR Code copia-e-cola e Webhooks de conciliação imediata, boletos bancários com linha digitável e régua de cobrança automatizada (SMS/WhatsApp/E-mail).
-          </p>
-          <div class="pillar-badges">
-            <span class="tag-badge">PIX Dinâmico</span>
-            <span class="tag-badge">Boletos Bancários</span>
-            <span class="tag-badge">Conciliação Automática</span>
-            <span class="tag-badge">Régua de Notificações</span>
-          </div>
-        </div>
-
-        <!-- Pillar 6 -->
-        <div class="pillar-card">
-          <div class="pillar-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-            </svg>
-          </div>
-          <h3 class="pillar-title">Event-Driven Architecture & Outbox</h3>
-          <p class="pillar-desc">
-            Processamento desacoplado de eventos operacionais e financeiros usando o padrão Transactional Outbox. Garante entrega at-least-once de mensagens sem perda de dados mesmo em instabilidades de rede ou servidores externos.
-          </p>
-          <div class="pillar-badges">
-            <span class="tag-badge">Transactional Outbox</span>
-            <span class="tag-badge">Spring ApplicationEvents</span>
-            <span class="tag-badge">Webhooks Externos</span>
-          </div>
+          <div class="console-section-title">Garantias de Engenharia & Consistência</div>
+          <div class="arch-schema" id="detailGuarantees">• Chaves primárias UUIDv7 para ordenação estrita temporal
+• Chaves privadas do Certificado A1 criptografadas com AES-256 no banco
+• Idempotência garantida na emissão da NFCom (evita duplicidade de notas na SEFAZ)
+• 100% dos controllers auditados com testes unitários MockMvc</div>
         </div>
       </div>
     </section>
 
-    <!-- Modules Grid (21 Domains) -->
-    <section id="modulos" class="section">
+    <!-- Seção 4: Manifesto da Comunidade & Crescimento Compartilhado -->
+    <section id="manifesto" class="section">
       <div class="section-header">
-        <span class="section-tag">Catálogo de Serviços</span>
-        <h2 class="section-title">21 Domínios de Negócio Mapeados</h2>
-        <p class="section-desc">
-          Uma arquitetura modular limpa e coesa. Explore os módulos e acesse seus endpoints diretamente no contrato OpenAPI.
+        <span class="section-category">Comunidade & Sustentabilidade</span>
+        <h2 class="section-title">Crescendo Junto com o Mercado de Provedores</h2>
+        <p class="section-subtitle">
+          Por que software livre é o único modelo que protege os provedores independentes no longo prazo:
         </p>
       </div>
 
-      <!-- Filter Tabs -->
-      <div class="filter-tabs">
-        <button class="filter-btn active" onclick="filterModules('all')">Todos (21)</button>
-        <button class="filter-btn" onclick="filterModules('core')">Core & Segurança</button>
-        <button class="filter-btn" onclick="filterModules('comercial')">Comercial & Clientes</button>
-        <button class="filter-btn" onclick="filterModules('redes')">Redes & Infraestrutura</button>
-        <button class="filter-btn" onclick="filterModules('atendimento')">Atendimento & Campo</button>
-        <button class="filter-btn" onclick="filterModules('financeiro')">Financeiro & Fiscal</button>
-      </div>
+      <div class="manifesto-box">
+        <blockquote class="manifesto-quote">
+          "Provedores de internet competem por qualidade de atendimento e cobertura de rede. O sistema de gestão não deveria ser uma fonte de custos crescentes e aprisionamento tecnológico, mas sim uma infraestrutura comum mantida e aprimorada pela própria comunidade."
+        </blockquote>
 
-      <!-- Modules Cards Grid -->
-      <div class="modules-grid" id="modules-container">
-        <!-- Auth -->
-        <div class="module-card" data-category="core">
-          <div class="module-header">
-            <h4 class="module-name">Auth</h4>
-            <span class="module-endpoints-count">5 endpoints</span>
+        <div class="manifesto-grid">
+          <div class="manifesto-item">
+            <h4>1. Sem Dependência de Fornecedor</h4>
+            <p>Se o desenvolvedor original parar, o código continua no ar. Qualquer empresa de TI ou desenvolvedor contratado pelo seu provedor pode manter, customizar e estender o ispERP.</p>
           </div>
-          <p class="module-desc">Autenticação JWT stateless, refresh tokens, MFA e autorização RBAC de operadores.</p>
-          <a href="api.html#tag/Auth" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Users -->
-        <div class="module-card" data-category="core">
-          <div class="module-header">
-            <h4 class="module-name">Users & Profiles</h4>
-            <span class="module-endpoints-count">6 endpoints</span>
+          <div class="manifesto-item">
+            <h4>2. Homologação Colaborativa de Hardware</h4>
+            <p>Um provedor homologa uma nova OLT Huawei ou ZTE; outro homologa um concentrador MikroTik v7; outro testa um gateway bancário. Todos os provedores se beneficiam sem pagar nada a mais.</p>
           </div>
-          <p class="module-desc">Gestão de colaboradores, perfis de acesso, permissões granulares e auditoria.</p>
-          <a href="api.html#tag/Users" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Customers -->
-        <div class="module-card" data-category="comercial">
-          <div class="module-header">
-            <h4 class="module-name">Customers</h4>
-            <span class="module-endpoints-count">8 endpoints</span>
-          </div>
-          <p class="module-desc">Cadastro unificado de assinantes PF/PJ, validação de CPF/CNPJ, endereços e contatos.</p>
-          <a href="api.html#tag/Customers" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Contracts -->
-        <div class="module-card" data-category="comercial">
-          <div class="module-header">
-            <h4 class="module-name">Contracts</h4>
-            <span class="module-endpoints-count">7 endpoints</span>
-          </div>
-          <p class="module-desc">Gestão contratual, termos de adesão, fidelidade, suspensão temporária e cancelamento.</p>
-          <a href="api.html#tag/Contracts" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Plans -->
-        <div class="module-card" data-category="comercial">
-          <div class="module-header">
-            <h4 class="module-name">Plans & Services</h4>
-            <span class="module-endpoints-count">5 endpoints</span>
-          </div>
-          <p class="module-desc">Planos de banda larga, combos, composição fiscal SCM/SVA e precificação dinâmica.</p>
-          <a href="api.html#tag/Plans" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Portal -->
-        <div class="module-card" data-category="comercial">
-          <div class="module-header">
-            <h4 class="module-name">Client Portal</h4>
-            <span class="module-endpoints-count">6 endpoints</span>
-          </div>
-          <p class="module-desc">Área do assinante para autoatendimento, desbloqueio em confiança, 2ª via e extrato de consumo.</p>
-          <a href="api.html#tag/Portal" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Radius -->
-        <div class="module-card" data-category="redes">
-          <div class="module-header">
-            <h4 class="module-name">Radius Connections</h4>
-            <span class="module-endpoints-count">7 endpoints</span>
-          </div>
-          <p class="module-desc">Provisionamento PPPoE/IPoE, sincronização radcheck/reply, sessões ativas e desconexão CoA.</p>
-          <a href="api.html#tag/Radius" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Network -->
-        <div class="module-card" data-category="redes">
-          <div class="module-header">
-            <h4 class="module-name">Network Elements</h4>
-            <span class="module-endpoints-count">6 endpoints</span>
-          </div>
-          <p class="module-desc">Gerenciamento de Concentradores BNG, Switches, Roteadores MikroTik, Cisco e Huawei.</p>
-          <a href="api.html#tag/Network" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Inventory -->
-        <div class="module-card" data-category="redes">
-          <div class="module-header">
-            <h4 class="module-name">Inventory</h4>
-            <span class="module-endpoints-count">6 endpoints</span>
-          </div>
-          <p class="module-desc">Estoque de ONUs, roteadores Wi-Fi 6, cabos drop, conectores e controle por número de série / MAC.</p>
-          <a href="api.html#tag/Inventory" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Equipment -->
-        <div class="module-card" data-category="redes">
-          <div class="module-header">
-            <h4 class="module-name">Equipment Models</h4>
-            <span class="module-endpoints-count">4 endpoints</span>
-          </div>
-          <p class="module-desc">Homologação Anatel de modelos, configurações padrão e perfis de provisionamento TR-069.</p>
-          <a href="api.html#tag/Equipment" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Work Orders -->
-        <div class="module-card" data-category="atendimento">
-          <div class="module-header">
-            <h4 class="module-name">Work Orders</h4>
-            <span class="module-endpoints-count">8 endpoints</span>
-          </div>
-          <p class="module-desc">Ordens de serviço de instalação, reparo, mudança de endereço, checklist e fotos do técnico.</p>
-          <a href="api.html#tag/WorkOrders" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Tickets -->
-        <div class="module-card" data-category="atendimento">
-          <div class="module-header">
-            <h4 class="module-name">Tickets & Support</h4>
-            <span class="module-endpoints-count">7 endpoints</span>
-          </div>
-          <p class="module-desc">Central de chamados, triagem automatizada, SLAs de atendimento e integração omnicanal.</p>
-          <a href="api.html#tag/Tickets" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Invoices -->
-        <div class="module-card" data-category="financeiro">
-          <div class="module-header">
-            <h4 class="module-name">Invoices</h4>
-            <span class="module-endpoints-count">7 endpoints</span>
-          </div>
-          <p class="module-desc">Emissão em lote de faturas, rateio SCM/SVA, juros/multa automáticos e cancelamento.</p>
-          <a href="api.html#tag/Invoices" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Payments -->
-        <div class="module-card" data-category="financeiro">
-          <div class="module-header">
-            <h4 class="module-name">Payments & PIX</h4>
-            <span class="module-endpoints-count">6 endpoints</span>
-          </div>
-          <p class="module-desc">Recebimento e baixa de PIX Dinâmico, boletos bancários e baixa manual autorizada.</p>
-          <a href="api.html#tag/Payments" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Fiscal -->
-        <div class="module-card" data-category="financeiro">
-          <div class="module-header">
-            <h4 class="module-name">Fiscal & NFCom</h4>
-            <span class="module-endpoints-count">9 endpoints</span>
-          </div>
-          <p class="module-desc">NFCom Modelo 62 SEFAZ, Convênio ICMS 115/03, certificado digital A1 e fechamento fiscal.</p>
-          <a href="api.html#tag/Fiscal" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Fiscal Regime Transitions -->
-        <div class="module-card" data-category="financeiro">
-          <div class="module-header">
-            <h4 class="module-name">Fiscal Transitions</h4>
-            <span class="module-endpoints-count">4 endpoints</span>
-          </div>
-          <p class="module-desc">Agendamento e execução de transições de regime tributário (Simples, Presumido, Real).</p>
-          <a href="api.html#tag/FiscalRegimeTransitions" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Webhooks -->
-        <div class="module-card" data-category="core">
-          <div class="module-header">
-            <h4 class="module-name">Webhooks</h4>
-            <span class="module-endpoints-count">5 endpoints</span>
-          </div>
-          <p class="module-desc">Disparo assíncrono de eventos com assinatura HMAC, retry exponencial e log de entrega.</p>
-          <a href="api.html#tag/Webhooks" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Notifications -->
-        <div class="module-card" data-category="atendimento">
-          <div class="module-header">
-            <h4 class="module-name">Notifications</h4>
-            <span class="module-endpoints-count">4 endpoints</span>
-          </div>
-          <p class="module-desc">Mensageria transacional por WhatsApp, SMS e E-mail para régua de cobrança e avisos de manutenção.</p>
-          <a href="api.html#tag/Notifications" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Audit & Security -->
-        <div class="module-card" data-category="core">
-          <div class="module-header">
-            <h4 class="module-name">Audit Logs</h4>
-            <span class="module-endpoints-count">3 endpoints</span>
-          </div>
-          <p class="module-desc">Rastreabilidade completa com UUIDv7, IP de origem, payload e histórico imutável.</p>
-          <a href="api.html#tag/Audit" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Dashboard -->
-        <div class="module-card" data-category="core">
-          <div class="module-header">
-            <h4 class="module-name">Dashboard & Metrics</h4>
-            <span class="module-endpoints-count">3 endpoints</span>
-          </div>
-          <p class="module-desc">Indicadores executivos: MRR, Churn Rate, inadimplência, chamados e capacidade de banda.</p>
-          <a href="api.html#tag/Dashboard" class="module-link">Ver Contratos →</a>
-        </div>
-
-        <!-- Tenants -->
-        <div class="module-card" data-category="core">
-          <div class="module-header">
-            <h4 class="module-name">Tenants & Settings</h4>
-            <span class="module-endpoints-count">4 endpoints</span>
-          </div>
-          <p class="module-desc">Suporte multi-empresa para franquias, filiais e provedores com múltiplas razões sociais.</p>
-          <a href="api.html#tag/Tenants" class="module-link">Ver Contratos →</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Tech Stack Grid -->
-    <section class="section">
-      <div class="section-header">
-        <span class="section-tag">Arquitetura Tecnológica</span>
-        <h2 class="section-title">Stack de Última Geração</h2>
-        <p class="section-desc">
-          Tecnologias corporativas selecionadas para alta taxa de I/O, segurança estrita e manutenção a longo prazo.
-        </p>
-      </div>
-
-      <div class="stack-grid">
-        <div class="stack-item">
-          <div class="stack-category">Backend</div>
-          <div class="stack-techs">
-            <div class="tech-row"><span>Java 25 (Loom Virtual Threads)</span><span class="tech-version">v25</span></div>
-            <div class="tech-row"><span>Spring Boot</span><span class="tech-version">v4.1</span></div>
-            <div class="tech-row"><span>Spring Security + JWT</span><span class="tech-version">Stateless</span></div>
-            <div class="tech-row"><span>MapStruct + Lombok</span><span class="tech-version">DTO Mappers</span></div>
-          </div>
-        </div>
-
-        <div class="stack-item">
-          <div class="stack-category">Persistência & Dados</div>
-          <div class="stack-techs">
-            <div class="tech-row"><span>PostgreSQL</span><span class="tech-version">v16</span></div>
-            <div class="tech-row"><span>Chaves Primárias UUIDv7</span><span class="tech-version">Time-ordered</span></div>
-            <div class="tech-row"><span>Spring Data JPA / Hibernate</span><span class="tech-version">v6.6</span></div>
-            <div class="tech-row"><span>Transactional Outbox</span><span class="tech-version">Reliable EDA</span></div>
-          </div>
-        </div>
-
-        <div class="stack-item">
-          <div class="stack-category">Frontend</div>
-          <div class="stack-techs">
-            <div class="tech-row"><span>React</span><span class="tech-version">v19</span></div>
-            <div class="tech-row"><span>TypeScript</span><span class="tech-version">v5.7</span></div>
-            <div class="tech-row"><span>Vite</span><span class="tech-version">v6</span></div>
-            <div class="tech-row"><span>Tailwind CSS</span><span class="tech-version">v4</span></div>
-          </div>
-        </div>
-
-        <div class="stack-item">
-          <div class="stack-category">DevOps & Telecom</div>
-          <div class="stack-techs">
-            <div class="tech-row"><span>FreeRADIUS</span><span class="tech-version">v3.x</span></div>
-            <div class="tech-row"><span>Docker Compose</span><span class="tech-version">Multi-stage</span></div>
-            <div class="tech-row"><span>OpenAPI & Redocly</span><span class="tech-version">v3.0.3</span></div>
-            <div class="tech-row"><span>GitHub Actions CI/CD</span><span class="tech-version">Optimized</span></div>
+          <div class="manifesto-item">
+            <h4>3. Transparência e Segurança Auditável</h4>
+            <p>Em um software aberto, não há backdoors, cobranças ocultas ou rastreamento de dados comerciais. O código-fonte está disponível no GitHub para qualquer auditor inspecionar.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Developer Quickstart -->
-    <section id="quickstart" class="section">
+    <!-- Seção 5: Como Subir o Ambiente em 1 Comando -->
+    <section class="section" style="border-bottom: none;">
       <div class="section-header">
-        <span class="section-tag">Início Rápido</span>
-        <h2 class="section-title">Como Rodar o Ambiente Localmente</h2>
-        <p class="section-desc">
-          Ambiente 100% conteinerizado pronto para desenvolvimento com um único comando.
+        <span class="section-category">Início Rápido</span>
+        <h2 class="section-title">Pronto para Testar no Seu Servidor?</h2>
+        <p class="section-subtitle">
+          Suba a stack completa (Backend Java 25, Frontend React 19, PostgreSQL com UUIDv7 e FreeRADIUS) com Docker Compose:
         </p>
       </div>
 
-      <div class="code-box">
-        <div class="code-header">
-          <div class="code-tabs">
-            <button class="code-tab-btn active" onclick="switchTab('docker')">Docker Compose</button>
-            <button class="code-tab-btn" onclick="switchTab('contracts')">Contratos OpenAPI</button>
-            <button class="code-tab-btn" onclick="switchTab('backend')">Backend (Java 25)</button>
-            <button class="code-tab-btn" onclick="switchTab('frontend')">Frontend (React 19)</button>
-          </div>
+      <div class="cli-box">
+        <div class="cli-header">
+          <span>bash — terminal</span>
+          <span>Docker Multi-Stage Ready</span>
         </div>
-        <div class="code-content" id="code-display"># 1. Clonar o repositório
+        <div class="cli-content"># 1. Clonar o repositório oficial
 git clone https://github.com/RuyXingubit/ispERP.git
 cd ispERP
 
-# 2. Subir todos os containers (Backend, Frontend, PostgreSQL, FreeRADIUS)
+# 2. Subir todos os serviços (Backend, Frontend, PostgreSQL, FreeRADIUS)
 docker compose up -d --build
 
-# 3. Acessar a aplicação
-# - Frontend: http://localhost:3000
-# - Backend API: http://localhost:8080/api
-# - Docs OpenAPI Local: http://localhost:8085</div>
+# 3. Pronto! Acesse os serviços nos seus navegadores:
+# - Painel do Provedor: http://localhost:3000
+# - API REST Backend:    http://localhost:8080/api
+# - Documentação OpenAPI: http://localhost:8085</div>
       </div>
     </section>
-
-    <!-- CTA Banner -->
-    <div class="cta-box">
-      <h3 class="cta-title">Pronto para Conhecer a Especificação Completa?</h3>
-      <p class="cta-desc">
-        Acesse a aba interativa do Redocly para pesquisar endpoints, parâmetros, modelos de dados e códigos de status HTTP.
-      </p>
-      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <a href="api.html" class="btn btn-primary" style="padding: 0.8rem 2rem; font-size: 1.05rem;">
-          Acessar Contratos de API (Redocly) →
-        </a>
-        <a href="openapi.bundled.json" download="ispERP-openapi.json" class="btn btn-secondary" style="padding: 0.8rem 1.75rem; font-size: 1.05rem;">
-          Download do Bundle OpenAPI (JSON)
-        </a>
-      </div>
-    </div>
   </main>
 
-  <!-- Footer -->
+  <!-- Footer Minimalista -->
   <footer class="footer">
     <div class="container footer-content">
       <div>
-        <strong style="color: #f8fafc;">ispERP</strong> — Sistema de Gestão Empresarial para Provedores de Internet.
-        <div style="font-size: 0.78rem; margin-top: 0.3rem;">Compilado dinamicamente via GitHub Actions • OpenAPI 3.0.3</div>
+        <strong style="color: var(--text-primary);">ispERP</strong> — Software Livre para Provedores de Internet (ISP).
+        <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.25rem;">
+          Desenvolvido sob padrões de engenharia aberta • Contratos OpenAPI 3.0.3 • PostgreSQL 16 • Java 25
+        </div>
       </div>
       <div class="footer-links">
-        <a href="index.html" class="footer-link">Sobre o Projeto</a>
-        <a href="api.html" class="footer-link">Contratos de API</a>
-        <a href="https://github.com/RuyXingubit/ispERP" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="index.html" class="footer-link">Visão Geral</a>
+        <a href="api.html" class="footer-link">Contratos OpenAPI (Redocly)</a>
+        <a href="https://github.com/RuyXingubit/ispERP" target="_blank" rel="noopener noreferrer" class="footer-link">Repositório GitHub</a>
         <a href="https://github.com/RuyXingubit/ispERP/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-link">Licença</a>
       </div>
     </div>
   </footer>
 
+  <!-- Lógica Dinâmica do Explorer Integrado -->
   <script>
-    // Module Category Filter
-    function filterModules(category) {
-      const cards = document.querySelectorAll('.module-card');
-      const buttons = document.querySelectorAll('.filter-btn');
+    const domainsData = {
+      fiscal: {
+        title: "Fiscal & NFCom Modelo 62",
+        desc: "Emissão autorizada na SEFAZ de Notas Fiscais de Telecomunicações (NFCom), cancelamento no prazo legal, upload de Certificado Digital A1 com validação e exportação de lotes no padrão Convênio ICMS 115/03.",
+        impact: "Elimina o custo por nota fiscal cobrado por intermediários terceiros. O provedor assina os lotes com seu próprio certificado A1 e transmite diretamente para a SEFAZ estadual, com contingência automática e geração dos arquivos do Convênio 115 para o contador.",
+        tag: "Fiscal",
+        endpoints: [
+          { method: "GET", path: "/fiscal/company", summary: "Retorna os dados cadastrais da empresa fiscal ativa" },
+          { method: "POST", path: "/fiscal/invoices/{id}/emit", summary: "Dispara a emissão da NFCom Modelo 62 na SEFAZ" },
+          { method: "POST", path: "/fiscal/records/{id}/cancel", summary: "Solicita o cancelamento da NFCom com justificativa" },
+          { method: "GET", path: "/fiscal/convenio115/export", summary: "Download do lote compactado do Convênio ICMS 115/03" }
+        ],
+        guarantees: "• Chaves primárias UUIDv7 para ordenação estrita temporal\n• Chaves privadas do Certificado A1 criptografadas com AES-256 no banco\n• Idempotência garantida na emissão da NFCom (evita duplicidade de notas na SEFAZ)\n• 100% dos controllers auditados com testes unitários MockMvc"
+      },
+      radius: {
+        title: "RADIUS & Automação de Redes",
+        desc: "Integração bidirecional com FreeRADIUS 3.x, controle de sessões PPPoE/IPoE, sincronização de pools de IPv4/IPv6 e desconexão em tempo real via pacotes CoA/PoD (RFC 3576).",
+        impact: "Acaba com o trabalho manual de cadastrar clientes no MikroTik. O cliente cadastrado autentica na hora. O bloqueio por inadimplência ocorre sem o técnico precisar digitar um comando sequer.",
+        tag: "Radius",
+        endpoints: [
+          { method: "GET", path: "/radius/connections", summary: "Listar todas as conexões e assinantes PPPoE/IPoE" },
+          { method: "POST", path: "/radius/connections", summary: "Cadastrar e provisionar credencial no FreeRADIUS" },
+          { method: "POST", path: "/radius/connections/{id}/disconnect", summary: "Forçar desconexão imediata via pacote CoA/PoD" },
+          { method: "POST", path: "/radius/lifecycle/run-autoblock", summary: "Executa varredura de auto-bloqueio de inadimplentes" }
+        ],
+        guarantees: "• Atualização direta nas tabelas radcheck e radreply\n• Suporte a concentradores MikroTik RouterOS v6/v7, Cisco e Huawei\n• Desconexão forçada sem derrubar a interface do roteador\n• Auditoria de sessões no radacct"
+      },
+      invoices: {
+        title: "Faturamento & Invoices",
+        desc: "Geração de faturas em lote por ciclo de vencimento, cálculo automático de juros e multa, rateio proporcional SCM/SVA e conciliação bancária.",
+        impact: "Garante que nenhuma fatura fique para trás no fechamento do mês. Régua de cobrança automática com aviso de vencimento por SMS/WhatsApp/E-mail.",
+        tag: "Invoices",
+        endpoints: [
+          { method: "GET", path: "/invoices", summary: "Listar faturas com filtros de cliente, período e status" },
+          { method: "POST", path: "/invoices", summary: "Emitir fatura avulsa ou mensal com composição de itens" },
+          { method: "POST", path: "/invoices/batch-generate", summary: "Disparar geração em lote para todos os contratos ativos" },
+          { method: "POST", path: "/invoices/{id}/cancel", summary: "Cancelar fatura com estorno fiscal e financeiro" }
+        ],
+        guarantees: "• Cálculo de juros pro-rata die em conformidade com o Banco Central\n• Suporte a fatura híbrida (Telecom + SVA no mesmo documento)\n• Histórico de alterações e auditoria de estornos"
+      },
+      payments: {
+        title: "XinguBit Pay & Pagamentos PIX",
+        desc: "Recepção e conciliação automática de PIX Dinâmico com QR Code, boletos bancários com linha digitável e baixa manual autorizada.",
+        impact: "O dinheiro da mensalidade vai direto para a conta do provedor sem intermediário financeiro retendo repasses. Ao pagar o PIX, a rede desbloqueia na mesma hora.",
+        tag: "Payments",
+        endpoints: [
+          { method: "POST", path: "/payments/pix/generate", summary: "Gerar QR Code e payload copia-e-cola de PIX Dinâmico" },
+          { method: "POST", path: "/payments/webhook/{gateway}", summary: "Receber confirmação de pagamento instantânea do banco" },
+          { method: "POST", path: "/payments/manual-entry", summary: "Registrar baixa manual com autorização e comprovante" }
+        ],
+        guarantees: "• Idempotência garantida para webhooks bancários (sem baixa dupla)\n• Integração direta via API Pix do Banco Central\n• Notificação em tempo real para o módulo RADIUS liberar a conexão"
+      },
+      customers: {
+        title: "Assinantes (Customers)",
+        desc: "Cadastro unificado de pessoas físicas e jurídicas, validação de CPF/CNPJ, consulta automática de CEP, histórico financeiro e múltiplos endereços de instalação.",
+        impact: "Visão 360º do cliente em uma única tela. Atendentes sabem em segundos se o assinante tem chamados abertos, faturas pendentes ou equipamentos em comodato.",
+        tag: "Customers",
+        endpoints: [
+          { method: "GET", path: "/customers", summary: "Listar clientes com paginação e busca rápida" },
+          { method: "POST", path: "/customers", summary: "Cadastrar novo assinante com validação de documento" },
+          { method: "GET", path: "/customers/{id}", summary: "Retorna o dossiê completo do cliente com contratos e conexões" }
+        ],
+        guarantees: "• Algoritmos estritos de validação de CPF e CNPJ da Receita Federal\n• Conformidade com LGPD (auditoria de visualização e edição de dados sensíveis)\n• Chave primária UUIDv7 canônica"
+      },
+      contracts: {
+        title: "Contratos & Comodato",
+        desc: "Contratos de adesão, cláusulas de fidelidade, planos de banda larga vinculados, termo de comodato de equipamentos e controle de status.",
+        impact: "Segurança jurídica total contra litígios. O provedor tem em mãos o histórico de adesão e os termos de comodato assinados de cada ONU e roteador Wi-Fi instalado.",
+        tag: "Contracts",
+        endpoints: [
+          { method: "GET", path: "/contracts", summary: "Listar contratos ativos, suspensos ou cancelados" },
+          { method: "POST", path: "/contracts", summary: "Criar novo contrato vinculado a cliente e plano" },
+          { method: "PUT", path: "/contracts/{id}/status", summary: "Alterar status do contrato (Ativo, Suspenso, Bloqueado)" }
+        ],
+        guarantees: "• Vínculo estrito com as credenciais RADIUS e faturas do assinante\n• Controle de prazo de fidelidade de 12 meses conforme regulamento ANATEL\n• Imutabilidade de histórico de suspensões"
+      },
+      workorders: {
+        title: "Ordens de Serviço (O.S.)",
+        desc: "Agendamento e despacho de ordens de instalação, reparo, troca de cômodo e recolhimento de equipamento, com controle de checklist técnico e fotos.",
+        impact: "Fim da perda de tempo do instalador na rua. O técnico finaliza a O.S. no celular, a ONU sai do estoque do carro e a internet do cliente é ativada no mesmo instante.",
+        tag: "WorkOrders",
+        endpoints: [
+          { method: "GET", path: "/work-orders", summary: "Listar O.S. por técnico, status, prioridade e bairro" },
+          { method: "POST", path: "/work-orders", summary: "Abrir ordem de serviço com agendamento" },
+          { method: "POST", path: "/work-orders/{id}/complete", summary: "Finalizar O.S. com dados de sinal óptico e serial da ONU" }
+        ],
+        guarantees: "• Baixa automática no estoque do colaborador no ato da conclusão\n• Registro da potência óptica recebida (dBm) no ato da ativação\n• Sincronização offline para áreas sem sinal de celular"
+      },
+      inventory: {
+        title: "Estoque & Rastreio Serial",
+        desc: "Gerenciamento de depósitos (Central, Carros dos Técnicos, Reparo), rastreamento serializado de ONUs e roteadores por número de série e MAC Address.",
+        impact: "Nunca mais perca uma ONU na gaveta do instalador. Saiba exatamente onde cada equipamento está: no depósito central, na viatura do técnico ou na casa do cliente.",
+        tag: "Inventory",
+        endpoints: [
+          { method: "GET", path: "/inventory/custody/assets", summary: "Consultar ativos serializados por número de série ou MAC" },
+          { method: "POST", path: "/inventory/custody/transfers", summary: "Transferir lote de ONUs entre depósito central e viatura" },
+          { method: "GET", path: "/inventory/custody/tool-agreements", summary: "Termos de cautela de máquinas de fusão e ferramentas" }
+        ],
+        guarantees: "• Rastreabilidade de ciclo de vida completo: Compra -> Estoque -> Instalação -> Reparo -> Descarte\n• Controle de garantia de fábrica de fabricantes de hardware"
+      },
+      network: {
+        title: "Elementos de Rede & BNG",
+        desc: "Cadastro e monitoramento de concentradores BNG, Switches de Distribuição, Caixas de Emenda (CTOs) e interfaces de rede.",
+        impact: "Mapa lógico da infraestrutura do provedor. Se um switch cai ou um concentrador perde comunicação, a equipe do NOC é alertada antes dos clientes ligarem.",
+        tag: "Network",
+        endpoints: [
+          { method: "GET", path: "/network/elements", summary: "Listar concentradores MikroTik, OLTs e switches cadastrados" },
+          { method: "POST", path: "/network/elements", summary: "Cadastrar novo elemento de rede com IP, porta e credenciais" }
+        ],
+        guarantees: "• Segregação de senhas de infraestrutura criptografadas\n• Coleta de métricas SNMP de consumo de banda e tráfego"
+      },
+      helpdesk: {
+        title: "Central de Chamados & Suporte",
+        desc: "Abertura de tickets de suporte nível 1, 2 e 3, triagem de lentidão ou sem conexão, histórico de mensagens e controle de SLA de atendimento.",
+        impact: "Atendimento ágil que reduz o cancelamento (churn). O suporte já sabe na hora se há um rompimento de fibra na região do cliente.",
+        tag: "Tickets",
+        endpoints: [
+          { method: "GET", path: "/helpdesk/tickets", summary: "Consultar chamados abertos com filtros de urgência e tempo de SLA" },
+          { method: "POST", path: "/helpdesk/tickets", summary: "Criar ticket com protocolo gerado automaticamente" }
+        ],
+        guarantees: "• Numeração de protocolo no padrão da Resolução ANATEL\n• Alertas de estouro de SLA para a gerência de operações"
+      },
+      plans: {
+        title: "Planos & Composição SVA",
+        desc: "Catálogo de planos de internet, composição fiscal da mensalidade (SCM vs SVA), velocidades de download/upload e profiles de limitação de banda.",
+        impact: "Crie planos comerciais atraentes sem bagunçar a contabilidade. O sistema já sabe exatamente quanto vai para o imposto estadual e quanto vai para o municipal.",
+        tag: "Plans",
+        endpoints: [
+          { method: "GET", path: "/plans", summary: "Listar todos os planos cadastrados" },
+          { method: "POST", path: "/plans", summary: "Cadastrar plano com definição de banda e composição fiscal" }
+        ],
+        guarantees: "• Suporte a profiles de burst de velocidade\n• Composição percentual SCM/SVA travada para consistência fiscal"
+      },
+      auth: {
+        title: "Autenticação & RBAC",
+        desc: "Login de colaboradores com tokens JWT stateless, autorização baseada em cargos (Técnico, Atendente, Financeiro, Administrador) e controle de sessões.",
+        impact: "Segurança corporativa rigorosa. O instalador só vê as O.S. dele; o atendente não acessa relatórios fiscais ou faturamentos da diretoria.",
+        tag: "Auth",
+        endpoints: [
+          { method: "POST", path: "/auth/login", summary: "Autenticação com e-mail e senha, retornando JWT e Refresh Token" },
+          { method: "POST", path: "/auth/refresh-token", summary: "Renovação de credenciais sem deslogar o usuário" }
+        ],
+        guarantees: "• Tokens JWT assinados com HMAC-SHA512\n• Proteção contra força bruta e rate-limiting estrito\n• Auditoria de login com IP e User-Agent"
+      }
+    };
 
-      buttons.forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
+    function selectDomain(domainKey) {
+      const data = domainsData[domainKey];
+      if (!data) return;
 
-      cards.forEach(card => {
-        if (category === 'all' || card.getAttribute('data-category') === category) {
-          card.style.display = 'flex';
-        } else {
-          card.style.display = 'none';
-        }
+      // Atualiza active class na sidebar
+      const items = document.querySelectorAll('.console-item');
+      items.forEach(item => item.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      // Atualiza os dados na tela
+      document.getElementById('detailTitle').textContent = data.title;
+      document.getElementById('detailDesc').textContent = data.desc;
+      document.getElementById('detailImpact').textContent = data.impact;
+      document.getElementById('detailGuarantees').textContent = data.guarantees;
+      document.getElementById('detailFullDocsBtn').href = `api.html#tag/${data.tag}`;
+
+      // Monta as linhas de endpoints
+      const tbody = document.getElementById('detailEndpoints');
+      tbody.innerHTML = '';
+      data.endpoints.forEach(ep => {
+        const tr = document.createElement('tr');
+        const badgeClass = `method-${ep.method.toLowerCase()}`;
+        tr.innerHTML = `
+          <td style="width: 80px;"><span class="method-badge ${badgeClass}">${ep.method}</span></td>
+          <td class="endpoint-path">${ep.path}</td>
+          <td class="endpoint-summary">${ep.summary}</td>
+        `;
+        tbody.appendChild(tr);
       });
     }
 
-    // Code Tab Switcher
-    const codeSnippets = {
-      docker: `# 1. Clonar o repositório
-git clone https://github.com/RuyXingubit/ispERP.git
-cd ispERP
-
-# 2. Subir todos os containers (Backend, Frontend, PostgreSQL, FreeRADIUS)
-docker compose up -d --build
-
-# 3. Acessar a aplicação
-# - Frontend: http://localhost:3000
-# - Backend API: http://localhost:8080/api
-# - Docs OpenAPI Local: http://localhost:8085`,
-
-      contracts: `# 1. Validar e compilar a especificação OpenAPI
-./scripts/bundle-contracts.sh
-
-# 2. Gerar código Java e clientes TypeScript tipados
-./scripts/generate-api.sh
-
-# 3. Iniciar servidor interativo local do Redocly
-./scripts/view-docs.sh`,
-
-      backend: `# 1. Entrar no diretório do backend
-cd backend
-
-# 2. Executar suite completa de testes MockMvc (100% de cobertura)
-./gradlew test
-
-# 3. Iniciar o servidor Spring Boot 4.1 em desenvolvimento
-./gradlew bootRun`,
-
-      frontend: `# 1. Entrar no diretório do frontend
-cd frontend
-
-# 2. Instalar dependências
-npm install
-
-# 3. Checagem estrita de tipos TypeScript
-npm run typecheck
-
-# 4. Iniciar servidor de desenvolvimento Vite
-npm run dev`
-    };
-
-    function switchTab(tabKey) {
-      const display = document.getElementById('code-display');
-      const buttons = document.querySelectorAll('.code-tab-btn');
-
-      buttons.forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-
-      if (codeSnippets[tabKey]) {
-        display.textContent = codeSnippets[tabKey];
-      }
+    function filterDomainList() {
+      const q = document.getElementById('domainSearch').value.toLowerCase();
+      const items = document.querySelectorAll('.console-item');
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (text.includes(q)) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
     }
   </script>
 </body>
