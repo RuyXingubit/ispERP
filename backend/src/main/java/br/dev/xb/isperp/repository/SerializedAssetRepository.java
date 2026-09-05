@@ -21,5 +21,7 @@ public interface SerializedAssetRepository extends JpaRepository<SerializedAsset
 
     List<SerializedAsset> findByCurrentCustomerId(UUID customerId);
 
+    List<SerializedAsset> findByCurrentContractId(UUID contractId);
+
     List<SerializedAsset> findByStatus(SerializedAsset.AssetStatus status);
 }

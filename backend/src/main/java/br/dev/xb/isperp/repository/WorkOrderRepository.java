@@ -18,6 +18,10 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, UUID>, Jpa
 
     Optional<WorkOrder> findByContractId(UUID contractId);
 
+    List<WorkOrder> findByContractIdAndType(UUID contractId, WorkOrder.WorkOrderType type);
+
+    List<WorkOrder> findByTypeAndStatus(WorkOrder.WorkOrderType type, WorkOrder.WorkOrderStatus status);
+
     List<WorkOrder> findByTechnicianNameOrderByScheduledDateAsc(String technicianName);
 
     long countByStatus(WorkOrder.WorkOrderStatus status);

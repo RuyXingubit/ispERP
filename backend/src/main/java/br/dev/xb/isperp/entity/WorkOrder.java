@@ -146,6 +146,10 @@ public class WorkOrder {
     private String customerSignatureName;
 
     @Nullable
+    @Column(name = "unsuccess_reason", length = 100)
+    private String unsuccessReason;
+
+    @Nullable
     @Column(name = "notes", columnDefinition = "text")
     private String notes;
 
@@ -185,7 +189,8 @@ public class WorkOrder {
         SCHEDULED,
         IN_PROGRESS,
         COMPLETED,
-        CANCELED
+        CANCELED,
+        INFRUTIFERA
     }
 
     public enum WorkOrderType {

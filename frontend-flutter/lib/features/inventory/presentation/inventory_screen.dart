@@ -1255,11 +1255,11 @@ class InventoryScreen extends ConsumerWidget {
     InventoryNotifier notifier, {
     InventoryItemModel? prefillItem,
   }) {
-    final codeCtrl = TextEditingController(text: prefillItem?.code ?? 'BOB-FIBRA-12FO-AS80');
-    final nameCtrl = TextEditingController(text: prefillItem?.name ?? 'Bobina de Fibra 12FO AS80 2000m');
-    final catCtrl = TextEditingController(text: prefillItem?.category ?? 'CABO_FIBRA');
-    final qtyCtrl = TextEditingController(text: '10');
-    final unitCtrl = TextEditingController(text: prefillItem?.unit ?? 'BOB');
+    final codeCtrl = TextEditingController(text: prefillItem?.code ?? '');
+    final nameCtrl = TextEditingController(text: prefillItem?.name ?? '');
+    final catCtrl = TextEditingController(text: prefillItem?.category ?? '');
+    final qtyCtrl = TextEditingController(text: '');
+    final unitCtrl = TextEditingController(text: prefillItem?.unit ?? 'UN');
     final notesCtrl = TextEditingController();
 
     showDialog(

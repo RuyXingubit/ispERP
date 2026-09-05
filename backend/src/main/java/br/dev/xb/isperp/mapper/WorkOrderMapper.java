@@ -40,6 +40,7 @@ public interface WorkOrderMapper {
     @Mapping(target = "waiverRequestedByUserId", ignore = true)
     @Mapping(target = "waiverAuditedByUserId", ignore = true)
     @Mapping(target = "waiverAuditedAt", ignore = true)
+    @Mapping(target = "unsuccessReason", ignore = true)
     WorkOrder toEntity(WorkOrderDTO dto);
 
     List<WorkOrderDTO> toDtoList(List<WorkOrder> workOrders);
@@ -54,10 +55,12 @@ public interface WorkOrderMapper {
     br.dev.xb.isperp.dto.CompleteWorkOrderRequest toCompleteRequest(br.dev.xb.isperp.api.dto.CompleteWorkOrderRequest request);
 
     @ValueMapping(source = "CANCELED", target = "CANCELLED")
+    @ValueMapping(source = "INFRUTIFERA", target = "INFRUTIFERA")
     br.dev.xb.isperp.api.dto.WorkOrderStatus toDtoStatus(WorkOrder.WorkOrderStatus status);
 
     @ValueMapping(source = "CANCELLED", target = "CANCELED")
     @ValueMapping(source = "BLOCKED", target = "PENDING_SCHEDULE")
+    @ValueMapping(source = "INFRUTIFERA", target = "INFRUTIFERA")
     WorkOrder.WorkOrderStatus toEntityStatus(br.dev.xb.isperp.api.dto.WorkOrderStatus status);
 
     default BigDecimal doubleToBigDecimal(Double value) {

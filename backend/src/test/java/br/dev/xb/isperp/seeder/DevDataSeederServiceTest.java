@@ -74,6 +74,12 @@ class DevDataSeederServiceTest {
     @Mock
     private FiscalCompanyRepository fiscalCompanyRepository;
     @Mock
+    private SerializedAssetRepository serializedAssetRepository;
+    @Mock
+    private TrustUnblockRepository trustUnblockRepository;
+    @Mock
+    private LegalCollectionRepository legalCollectionRepository;
+    @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private ApplicationArguments args;
@@ -108,6 +114,11 @@ class DevDataSeederServiceTest {
         when(customerRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(contractRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(ftthCtoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(invoiceRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(workOrderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(serializedAssetRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(trustUnblockRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(legalCollectionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         when(chartOfAccountRepository.findByCode(anyString())).thenReturn(Optional.empty());
 
@@ -124,9 +135,12 @@ class DevDataSeederServiceTest {
         verify(userCashCustodyRepository, times(1)).save(any(UserCashCustody.class));
         verify(networkProjectRepository, times(2)).save(any(NetworkProject.class));
         verify(ftthCtoRepository, times(3)).save(any(FtthCto.class));
-        verify(customerRepository, times(13)).save(any(Customer.class));
-        verify(contractRepository, times(13)).save(any(Contract.class));
-        verify(workOrderRepository, times(1)).save(any(WorkOrder.class));
+        verify(customerRepository, times(14)).save(any(Customer.class));
+        verify(contractRepository, times(14)).save(any(Contract.class));
+        verify(workOrderRepository, times(5)).save(any(WorkOrder.class));
+        verify(serializedAssetRepository, times(15)).save(any(SerializedAsset.class));
+        verify(trustUnblockRepository, times(1)).save(any(TrustUnblock.class));
+        verify(legalCollectionRepository, times(1)).save(any(LegalCollectionRecord.class));
         verify(contractTemplateRepository, times(2)).save(any(ContractTemplate.class));
         verify(saleRepository, times(2)).save(any(Sale.class));
         verify(storageConfigRepository, times(1)).save(any(StorageConfig.class));
@@ -134,8 +148,8 @@ class DevDataSeederServiceTest {
         verify(nasRepository, times(1)).save(any(Nas.class));
         verify(ipamSubnetRepository, times(2)).save(any(IpamSubnet.class));
         verify(helpdeskTicketRepository, times(2)).save(any(HelpdeskTicket.class));
-        verify(onuProvisioningRepository, times(1)).save(any(OnuProvisioning.class));
+        verify(onuProvisioningRepository, times(2)).save(any(OnuProvisioning.class));
         verify(fiscalCompanyRepository, times(1)).save(any(FiscalCompany.class));
-        verify(invoiceRepository, atLeast(70)).save(any(Invoice.class)); // Histórico de 12 meses
+        verify(invoiceRepository, atLeast(70)).save(any(Invoice.class)); // Histórico de 12 meses + novos cenários
     }
 }

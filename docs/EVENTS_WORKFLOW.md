@@ -174,6 +174,18 @@ Disparado após a autorização da Nota Fiscal Eletrônica de Telecomunicações
 Disparado quando o técnico de campo confirma o número predial e a coordenada GPS submétrica real do imóvel (`POST /v1/contribute`).
 - **Efeito:** Enriquecimento contínuo da base cartográfica GeoCEP e atualização de precisão de rotas futuras.
 
+### 2.12. `RemovalOrderGeneratedEvent`
+Disparado automaticamente quando um contrato atinge inadimplência severa (>= 30 dias de atraso).
+- **Efeito:** Criação compulsória de O.S. de `RETIRADA` na Torre de Despacho com agendamento de recolhimento da ONT comodatada e notificação preventiva ao assinante.
+
+### 2.13. `RemovalOrderCompletedEvent`
+Disparado quando a equipe técnica conclui a visita de recolhimento da ONT com sucesso.
+- **Efeito:** Cancelamento formal do contrato (`CANCELED`), reincorporação da ONT com fonte e cabo ao depósito central via logística reversa (`DISPONIVEL_DEPOSITO`) e quitação patrimonial.
+
+### 2.14. `LegalCollectionRecordCreatedEvent`
+Disparado quando a visita de retirada é marcada como `INFRUTIFERA` (cliente mudou-se, recusou devolução ou extraviou o equipamento).
+- **Efeito:** Cancelamento do contrato, consolidação de faturas vencidas + indenização contratual do comodato da ONT (R$ 420,00) e abertura automática de Processo de Proteção ao Crédito (SPC/Serasa) e Execução Jurídica.
+
 ---
 
 ## 3. Resiliência, Falhas & Idempotência

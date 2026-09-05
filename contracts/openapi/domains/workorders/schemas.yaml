@@ -9,6 +9,7 @@ WorkOrderStatus:
     - COMPLETED
     - CANCELLED
     - BLOCKED
+    - INFRUTIFERA
   description: Estado atual do ciclo de vida da Ordem de Serviço.
 
 WorkOrderType:

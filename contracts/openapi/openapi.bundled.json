@@ -5237,7 +5237,8 @@
           "IN_PROGRESS",
           "COMPLETED",
           "CANCELLED",
-          "BLOCKED"
+          "BLOCKED",
+          "INFRUTIFERA"
         ],
         "description": "Estado atual do ciclo de vida da Ordem de Serviço."
       },

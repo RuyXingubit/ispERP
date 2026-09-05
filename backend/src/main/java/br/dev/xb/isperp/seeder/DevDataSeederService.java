@@ -56,6 +56,9 @@ public class DevDataSeederService implements ApplicationRunner {
     private final HelpdeskTicketRepository helpdeskTicketRepository;
     private final OnuProvisioningRepository onuProvisioningRepository;
     private final FiscalCompanyRepository fiscalCompanyRepository;
+    private final SerializedAssetRepository serializedAssetRepository;
+    private final TrustUnblockRepository trustUnblockRepository;
+    private final LegalCollectionRepository legalCollectionRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -84,7 +87,7 @@ public class DevDataSeederService implements ApplicationRunner {
         ChartOfAccount caEquip = chartOfAccountRepository.findByCode("05.01.01").orElse(null);
 
         seedPayablesAndCapex(caLink, caPostes, caEquip);
-        seedCustomersContractsInvoicesAndWorkOrders(plans, users, projects, ctos);
+        seedCustomersContractsInvoicesAndWorkOrders(plans, users, warehouses, projects, ctos);
         seedContractTemplates(company);
         seedSales(plans);
         seedStorageConfig(company);
@@ -495,6 +498,69 @@ public class DevDataSeederService implements ApplicationRunner {
                 .allocatedAt(OffsetDateTime.now().minusDays(45))
                 .notes("Equipamento patrimonial sob responsabilidade civil")
                 .build());
+
+        // Ativos Serializados Rastreáveis (SerializedAsset) no Almoxarifado e com Técnicos
+        Warehouse central = warehouses.get("central");
+        Warehouse v1 = warehouses.get("v1");
+        Warehouse v2 = warehouses.get("v2");
+
+        for (int i = 1; i <= 3; i++) {
+            serializedAssetRepository.save(SerializedAsset.builder()
+                    .id(UuidCreatorUtils.generateUuidV7())
+                    .serialNumber(String.format("HWTC-CENTRAL-%04d", i))
+                    .macAddress(String.format("48:57:02:10:00:%02X", i))
+                    .brandModel("Huawei EG8145V5")
+                    .category(SerializedAsset.AssetCategory.ONU_ONT)
+                    .replacementValue(new BigDecimal("420.00"))
+                    .currentWarehouseId(central.getId())
+                    .status(SerializedAsset.AssetStatus.DISPONIVEL_DEPOSITO)
+                    .build());
+
+            serializedAssetRepository.save(SerializedAsset.builder()
+                    .id(UuidCreatorUtils.generateUuidV7())
+                    .serialNumber(String.format("ZTEG-CENTRAL-%04d", i))
+                    .macAddress(String.format("68:DB:54:20:00:%02X", i))
+                    .brandModel("ZTE F670L")
+                    .category(SerializedAsset.AssetCategory.ONU_ONT)
+                    .replacementValue(new BigDecimal("420.00"))
+                    .currentWarehouseId(central.getId())
+                    .status(SerializedAsset.AssetStatus.DISPONIVEL_DEPOSITO)
+                    .build());
+        }
+
+        serializedAssetRepository.save(SerializedAsset.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .serialNumber("HWTC12345678")
+                .macAddress("48:57:02:11:22:33")
+                .brandModel("Huawei EG8145V5")
+                .category(SerializedAsset.AssetCategory.ONU_ONT)
+                .replacementValue(new BigDecimal("420.00"))
+                .currentWarehouseId(v1.getId())
+                .currentHolderUserId(carlos.getId())
+                .status(SerializedAsset.AssetStatus.CUSTODIA_COLABORADOR)
+                .build());
+
+        serializedAssetRepository.save(SerializedAsset.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .serialNumber("FJK-994820")
+                .brandModel("Fujikura 70S")
+                .category(SerializedAsset.AssetCategory.TOOL_FUSION_MACHINE)
+                .replacementValue(new BigDecimal("18500.00"))
+                .currentWarehouseId(v1.getId())
+                .currentHolderUserId(carlos.getId())
+                .status(SerializedAsset.AssetStatus.CUSTODIA_COLABORADOR)
+                .build());
+
+        serializedAssetRepository.save(SerializedAsset.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .serialNumber("INNO-771122")
+                .brandModel("Inno View 5")
+                .category(SerializedAsset.AssetCategory.TOOL_FUSION_MACHINE)
+                .replacementValue(new BigDecimal("14200.00"))
+                .currentWarehouseId(v2.getId())
+                .currentHolderUserId(marcos.getId())
+                .status(SerializedAsset.AssetStatus.CUSTODIA_COLABORADOR)
+                .build());
     }
 
     private Map<String, NetworkProject> seedNetworkProjects() {
@@ -712,11 +778,12 @@ public class DevDataSeederService implements ApplicationRunner {
     private void seedCustomersContractsInvoicesAndWorkOrders(
             Map<String, Plan> plans,
             Map<String, User> users,
+            Map<String, Warehouse> warehouses,
             Map<String, NetworkProject> projects,
             Map<String, FtthCto> ctos) {
         LocalDate today = LocalDate.now();
         FtthCto ctoJardins = ctos.get("jardins1");
-        FtthCto ctoAlvorada = ctos.get("alvorada1");
+        Warehouse centralWarehouse = warehouses.get("central");
 
         // 1. Clientes Antigos com Histórico de 12 Meses de Faturas Pagas (MRR contínuo para o DRE)
         String[] antigosNomes = {
@@ -792,176 +859,559 @@ public class DevDataSeederService implements ApplicationRunner {
             }
         }
 
-        // 2. Clientes Intermediários (6 a 3 meses)
-        String[] interNomes = { "Gabriel Santana Lima", "Helena Duarte Pires", "Igor Cavalcante", "Juliana Paes Costa" };
-        for (int c = 0; c < interNomes.length; c++) {
-            String nome = interNomes[c];
-            String email = "cliente." + nome.toLowerCase().split(" ")[0] + "@gmail.com";
-            Customer customer = Customer.builder()
-                    .id(UuidCreatorUtils.generateUuidV7())
-                    .name(nome)
-                    .cpf(generateValidCpf(20 + c))
-                    .email(email)
-                    .phone("(93) 98122-" + (2000 + c))
-                    .address("Avenida Alvorada, " + (200 + c * 15))
-                    .city("Altamira")
-                    .state("PA")
-                    .zipCode("68370-000")
-                    .active(true)
-                    .createdAt(LocalDateTime.now().minusMonths(5))
-                    .updatedAt(LocalDateTime.now().minusMonths(5))
-                    .build();
-            customer = customerRepository.save(customer);
+        // =========================================================================
+        // MATRIZ DOS 7 CLIENTES DO CICLO DE VIDA OPERACIONAL DE PONTA A PONTA
+        // =========================================================================
 
-            Plan plan = plans.get("600M");
-            Contract contract = Contract.builder()
-                    .id(UuidCreatorUtils.generateUuidV7())
-                    .customerId(customer.getId())
-                    .planId(plan.getId())
-                    .contractNumber(String.format("CTR-2026-%04d", c + 10))
-                    .status(Contract.ContractStatus.ACTIVE)
-                    .monthlyFee(plan.getPrice())
-                    .dueDay(15)
-                    .installationAddress(customer.getAddress())
-                    .city(customer.getCity())
-                    .state(customer.getState())
-                    .zipCode(customer.getZipCode())
-                    .ctoId(ctoAlvorada != null ? ctoAlvorada.getId() : null)
-                    .ctoPortNumber(c + 1)
-                    .createdAt(LocalDateTime.now().minusMonths(5))
-                    .updatedAt(LocalDateTime.now().minusMonths(5))
-                    .build();
-            contract = contractRepository.save(contract);
-
-            for (int m = 4; m >= 0; m--) {
-                LocalDate dueDate = today.minusMonths(m).withDayOfMonth(15);
-                Invoice inv = Invoice.builder()
-                        .id(UuidCreatorUtils.generateUuidV7())
-                        .contractId(contract.getId())
-                        .customerId(customer.getId())
-                        .gatewayType("XINGUBIT_PAY")
-                        .amount(plan.getPrice())
-                        .discountAmount(BigDecimal.ZERO)
-                        .dueDate(dueDate)
-                        .status(Invoice.InvoiceStatus.PAID)
-                        .paidAt(dueDate.atTime(10, 0))
-                        .paidAmount(plan.getPrice())
-                        .paymentMethod("PIX")
-                        .protectedAgainstSuspension(false)
-                        .build();
-                invoiceRepository.save(inv);
-            }
-        }
-
-        // 3. Cliente Inadimplente (Fatura vencida há 12 dias para testar auto-corte RADIUS)
-        Customer inadiCustomer = Customer.builder()
+        // -------------------------------------------------------------------------
+        // CENÁRIO 1: Lucas Andrade (Nova Venda e Instalação Agendada para Hoje)
+        // -------------------------------------------------------------------------
+        Customer c1 = Customer.builder()
                 .id(UuidCreatorUtils.generateUuidV7())
-                .name("Marcos Vinicius Inadimplente")
-                .cpf(generateValidCpf(30))
-                .email("marcos.inadimplente@gmail.com")
-                .phone("(93) 98133-9999")
-                .address("Rua dos Cravos, 404")
+                .name("Lucas Andrade (Venda e Agendamento)")
+                .cpf(generateValidCpf(41))
+                .email("lucas.andrade@gmail.com")
+                .phone("(93) 98141-1111")
+                .address("Rua das Mangueiras, 305, Bairro Jardins")
                 .city("Altamira")
                 .state("PA")
                 .zipCode("68370-000")
                 .active(true)
-                .createdAt(LocalDateTime.now().minusMonths(3))
-                .updatedAt(LocalDateTime.now().minusMonths(3))
+                .createdAt(LocalDateTime.now().minusDays(1))
+                .updatedAt(LocalDateTime.now().minusDays(1))
                 .build();
-        inadiCustomer = customerRepository.save(inadiCustomer);
+        c1 = customerRepository.save(c1);
 
-        Plan inadiPlan = plans.get("300M");
-        Contract inadiContract = Contract.builder()
+        Plan p600 = plans.get("600M");
+        Contract ctr1 = Contract.builder()
                 .id(UuidCreatorUtils.generateUuidV7())
-                .customerId(inadiCustomer.getId())
-                .planId(inadiPlan.getId())
-                .contractNumber("CTR-2026-INAD-01")
-                .status(Contract.ContractStatus.SUSPENDED)
-                .monthlyFee(inadiPlan.getPrice())
+                .customerId(c1.getId())
+                .planId(p600.getId())
+                .contractNumber("CTR-2026-CICLO-01")
+                .status(Contract.ContractStatus.PENDING_INSTALLATION)
+                .monthlyFee(p600.getPrice())
                 .dueDay(10)
-                .installationAddress(inadiCustomer.getAddress())
-                .city(inadiCustomer.getCity())
-                .state(inadiCustomer.getState())
-                .zipCode(inadiCustomer.getZipCode())
+                .installationAddress(c1.getAddress())
+                .city(c1.getCity())
+                .state(c1.getState())
+                .zipCode(c1.getZipCode())
                 .ctoId(ctoJardins != null ? ctoJardins.getId() : null)
                 .ctoPortNumber(7)
-                .createdAt(LocalDateTime.now().minusMonths(3))
-                .updatedAt(LocalDateTime.now().minusMonths(3))
-                .build();
-        inadiContract = contractRepository.save(inadiContract);
-
-        Invoice inadiInvoice = Invoice.builder()
-                .id(UuidCreatorUtils.generateUuidV7())
-                .contractId(inadiContract.getId())
-                .customerId(inadiCustomer.getId())
-                .gatewayType("XINGUBIT_PAY")
-                .amount(inadiPlan.getPrice())
-                .discountAmount(BigDecimal.ZERO)
-                .dueDate(today.minusDays(12))
-                .status(Invoice.InvoiceStatus.OVERDUE)
-                .protectedAgainstSuspension(false)
-                .build();
-        invoiceRepository.save(inadiInvoice);
-
-        // 4. Cliente Novo com Instalação Agendada para Hoje no Despacho
-        Customer agendadoCustomer = Customer.builder()
-                .id(UuidCreatorUtils.generateUuidV7())
-                .name("Patrícia Ribeiro (Nova Instalação)")
-                .cpf(generateValidCpf(31))
-                .email("patricia.ribeiro@gmail.com")
-                .phone("(93) 98144-8888")
-                .address("Rua das Palmeiras, 750, Bairro Jardins")
-                .city("Altamira")
-                .state("PA")
-                .zipCode("68370-000")
-                .active(true)
                 .createdAt(LocalDateTime.now().minusDays(1))
                 .updatedAt(LocalDateTime.now().minusDays(1))
                 .build();
-        agendadoCustomer = customerRepository.save(agendadoCustomer);
+        ctr1 = contractRepository.save(ctr1);
 
-        Plan novoPlan = plans.get("600M");
-        Contract agendadoContract = Contract.builder()
+        WorkOrder wo1 = WorkOrder.builder()
                 .id(UuidCreatorUtils.generateUuidV7())
-                .customerId(agendadoCustomer.getId())
-                .planId(novoPlan.getId())
-                .contractNumber("CTR-2026-NEW-01")
-                .status(Contract.ContractStatus.PENDING_INSTALLATION)
-                .monthlyFee(novoPlan.getPrice())
-                .dueDay(10)
-                .installationAddress(agendadoCustomer.getAddress())
-                .city(agendadoCustomer.getCity())
-                .state(agendadoCustomer.getState())
-                .zipCode(agendadoCustomer.getZipCode())
-                .ctoId(ctoJardins != null ? ctoJardins.getId() : null)
-                .ctoPortNumber(8)
-                .createdAt(LocalDateTime.now().minusDays(1))
-                .updatedAt(LocalDateTime.now().minusDays(1))
-                .build();
-        agendadoContract = contractRepository.save(agendadoContract);
-
-        WorkOrder wo = WorkOrder.builder()
-                .id(UuidCreatorUtils.generateUuidV7())
-                .contractId(agendadoContract.getId())
-                .customerId(agendadoCustomer.getId())
+                .contractId(ctr1.getId())
+                .customerId(c1.getId())
                 .type(WorkOrder.WorkOrderType.INSTALACAO)
                 .status(WorkOrder.WorkOrderStatus.SCHEDULED)
                 .scheduledDate(today)
                 .scheduledPeriod("MANHA")
                 .technicianName(users.get("carlos").getName())
-                .notes("Instalação de fibra óptica GPON 600 Mega com ONU Wi-Fi 6")
+                .notes("Instalação de fibra óptica GPON 600 Mega com ONU Wi-Fi 6 AX3000. Venda balcão ontem.")
                 .standardFeeAmount(new BigDecimal("150.00"))
                 .feeStatus(FeeStatus.BILLABLE)
                 .createdAt(LocalDateTime.now().minusDays(1))
                 .updatedAt(LocalDateTime.now())
                 .build();
-        workOrderRepository.save(wo);
+        workOrderRepository.save(wo1);
 
-        // 5. Cliente com Contrato Aguardando Assinatura Eletrônica Pix (/sign/:token)
+        // -------------------------------------------------------------------------
+        // CENÁRIO 2: Beatriz Santos (Instalação Concluída, Ativa e Adimplente)
+        // -------------------------------------------------------------------------
+        Customer c2 = Customer.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .name("Beatriz Santos (Ativa 600M)")
+                .cpf(generateValidCpf(42))
+                .email("beatriz.santos@gmail.com")
+                .phone("(93) 98142-2222")
+                .address("Av. Brigadeiro Eduardo Gomes, 1200")
+                .city("Altamira")
+                .state("PA")
+                .zipCode("68370-000")
+                .active(true)
+                .createdAt(LocalDateTime.now().minusMonths(3))
+                .updatedAt(LocalDateTime.now().minusMonths(3))
+                .build();
+        c2 = customerRepository.save(c2);
+
+        Contract ctr2 = Contract.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .customerId(c2.getId())
+                .planId(p600.getId())
+                .contractNumber("CTR-2026-CICLO-02")
+                .status(Contract.ContractStatus.ACTIVE)
+                .monthlyFee(p600.getPrice())
+                .dueDay(10)
+                .installationAddress(c2.getAddress())
+                .city(c2.getCity())
+                .state(c2.getState())
+                .zipCode(c2.getZipCode())
+                .ctoId(ctoJardins != null ? ctoJardins.getId() : null)
+                .ctoPortNumber(8)
+                .createdAt(LocalDateTime.now().minusMonths(3))
+                .updatedAt(LocalDateTime.now().minusMonths(3))
+                .build();
+        ctr2 = contractRepository.save(ctr2);
+
+        WorkOrder wo2 = WorkOrder.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr2.getId())
+                .customerId(c2.getId())
+                .type(WorkOrder.WorkOrderType.INSTALACAO)
+                .status(WorkOrder.WorkOrderStatus.COMPLETED)
+                .scheduledDate(today.minusMonths(3))
+                .completedAt(LocalDateTime.now().minusMonths(3))
+                .technicianName(users.get("carlos").getName())
+                .notes("Instalação concluída com sucesso. Potência óptica -19.20 dBm na porta 8 da CTO Jardins 01.")
+                .standardFeeAmount(new BigDecimal("150.00"))
+                .feeStatus(FeeStatus.NOT_APPLICABLE)
+                .build();
+        workOrderRepository.save(wo2);
+
+        serializedAssetRepository.save(SerializedAsset.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .serialNumber("HWTC-BEA-6001")
+                .macAddress("48:57:02:AA:10:01")
+                .brandModel("Huawei EG8145V5")
+                .category(SerializedAsset.AssetCategory.ONU_ONT)
+                .replacementValue(new BigDecimal("420.00"))
+                .currentCustomerId(c2.getId())
+                .currentContractId(ctr2.getId())
+                .status(SerializedAsset.AssetStatus.INSTALADO_CLIENTE)
+                .build());
+
+        onuProvisioningRepository.save(OnuProvisioning.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr2.getId())
+                .customerId(c2.getId())
+                .onuMac("48:57:02:AA:10:01")
+                .onuSerial("HWTC-BEA-6001")
+                .vlanId(100)
+                .pppoeUser("beatriz.santos@nexusfibra")
+                .pppoePassword("nexus2026")
+                .downloadSpeed(600)
+                .uploadSpeed(300)
+                .rxPowerDbm(new BigDecimal("-19.20"))
+                .status(OnuProvisioning.OnuStatus.PROVISIONED)
+                .build());
+
+        for (int m = 2; m >= 0; m--) {
+            LocalDate dueDate = today.minusMonths(m).withDayOfMonth(10);
+            Invoice inv = Invoice.builder()
+                    .id(UuidCreatorUtils.generateUuidV7())
+                    .contractId(ctr2.getId())
+                    .customerId(c2.getId())
+                    .gatewayType("XINGUBIT_PAY")
+                    .amount(p600.getPrice())
+                    .discountAmount(BigDecimal.ZERO)
+                    .dueDate(dueDate)
+                    .status(Invoice.InvoiceStatus.PAID)
+                    .paidAt(dueDate.atTime(11, 0))
+                    .paidAmount(p600.getPrice())
+                    .paymentMethod("PIX")
+                    .protectedAgainstSuspension(false)
+                    .build();
+            invoiceRepository.save(inv);
+        }
+
+        // -------------------------------------------------------------------------
+        // CENÁRIO 3: Fernando Lima (Inadimplente 7 dias, Auto-Corte, Elegível Desbloqueio)
+        // -------------------------------------------------------------------------
+        Customer c3 = Customer.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .name("Fernando Lima (Auto-Corte 7d)")
+                .cpf(generateValidCpf(43))
+                .email("fernando.lima@gmail.com")
+                .phone("(93) 98143-3333")
+                .address("Rua Sete de Setembro, 880")
+                .city("Altamira")
+                .state("PA")
+                .zipCode("68370-000")
+                .active(true)
+                .createdAt(LocalDateTime.now().minusMonths(4))
+                .updatedAt(LocalDateTime.now().minusMonths(4))
+                .build();
+        c3 = customerRepository.save(c3);
+
+        Plan p300 = plans.get("300M");
+        Contract ctr3 = Contract.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .customerId(c3.getId())
+                .planId(p300.getId())
+                .contractNumber("CTR-2026-CICLO-03")
+                .status(Contract.ContractStatus.SUSPENDED)
+                .monthlyFee(p300.getPrice())
+                .dueDay(10)
+                .installationAddress(c3.getAddress())
+                .city(c3.getCity())
+                .state(c3.getState())
+                .zipCode(c3.getZipCode())
+                .ctoId(ctoJardins != null ? ctoJardins.getId() : null)
+                .ctoPortNumber(9)
+                .createdAt(LocalDateTime.now().minusMonths(4))
+                .updatedAt(LocalDateTime.now().minusMonths(4))
+                .build();
+        ctr3 = contractRepository.save(ctr3);
+
+        serializedAssetRepository.save(SerializedAsset.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .serialNumber("ZTEG-FER-7002")
+                .macAddress("68:DB:54:BB:20:02")
+                .brandModel("ZTE F670L")
+                .category(SerializedAsset.AssetCategory.ONU_ONT)
+                .replacementValue(new BigDecimal("420.00"))
+                .currentCustomerId(c3.getId())
+                .currentContractId(ctr3.getId())
+                .status(SerializedAsset.AssetStatus.INSTALADO_CLIENTE)
+                .build());
+
+        Invoice inv3 = Invoice.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr3.getId())
+                .customerId(c3.getId())
+                .gatewayType("XINGUBIT_PAY")
+                .amount(p300.getPrice())
+                .discountAmount(BigDecimal.ZERO)
+                .dueDate(today.minusDays(7))
+                .status(Invoice.InvoiceStatus.OVERDUE)
+                .protectedAgainstSuspension(false)
+                .build();
+        invoiceRepository.save(inv3);
+
+        // -------------------------------------------------------------------------
+        // CENÁRIO 4: Juliana Rocha (Em Desbloqueio em Confiança Ativo de 48h)
+        // -------------------------------------------------------------------------
+        Customer c4 = Customer.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .name("Juliana Rocha (Desbloqueio Confiança)")
+                .cpf(generateValidCpf(44))
+                .email("juliana.rocha@gmail.com")
+                .phone("(93) 98144-4444")
+                .address("Rua das Orquídeas, 210")
+                .city("Altamira")
+                .state("PA")
+                .zipCode("68370-000")
+                .active(true)
+                .createdAt(LocalDateTime.now().minusMonths(2))
+                .updatedAt(LocalDateTime.now().minusMonths(2))
+                .build();
+        c4 = customerRepository.save(c4);
+
+        Contract ctr4 = Contract.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .customerId(c4.getId())
+                .planId(p600.getId())
+                .contractNumber("CTR-2026-CICLO-04")
+                .status(Contract.ContractStatus.ACTIVE) // Restabelecida temporariamente pela política de 48h
+                .monthlyFee(p600.getPrice())
+                .dueDay(10)
+                .installationAddress(c4.getAddress())
+                .city(c4.getCity())
+                .state(c4.getState())
+                .zipCode(c4.getZipCode())
+                .ctoId(ctoJardins != null ? ctoJardins.getId() : null)
+                .ctoPortNumber(10)
+                .createdAt(LocalDateTime.now().minusMonths(2))
+                .updatedAt(LocalDateTime.now().minusMonths(2))
+                .build();
+        ctr4 = contractRepository.save(ctr4);
+
+        serializedAssetRepository.save(SerializedAsset.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .serialNumber("HWTC-JUL-4803")
+                .macAddress("48:57:02:CC:30:03")
+                .brandModel("Huawei EG8145V5")
+                .category(SerializedAsset.AssetCategory.ONU_ONT)
+                .replacementValue(new BigDecimal("420.00"))
+                .currentCustomerId(c4.getId())
+                .currentContractId(ctr4.getId())
+                .status(SerializedAsset.AssetStatus.INSTALADO_CLIENTE)
+                .build());
+
+        Invoice inv4 = Invoice.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr4.getId())
+                .customerId(c4.getId())
+                .gatewayType("XINGUBIT_PAY")
+                .amount(p600.getPrice())
+                .discountAmount(BigDecimal.ZERO)
+                .dueDate(today.minusDays(9))
+                .status(Invoice.InvoiceStatus.OVERDUE)
+                .protectedAgainstSuspension(true)
+                .build();
+        invoiceRepository.save(inv4);
+
+        trustUnblockRepository.save(TrustUnblock.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr4.getId())
+                .invoiceId(inv4.getId())
+                .requestedAt(LocalDateTime.now().minusHours(20))
+                .expiresAt(LocalDateTime.now().plusHours(28))
+                .unblockType("BOT_AUTO")
+                .status("ACTIVE")
+                .build());
+
+        // -------------------------------------------------------------------------
+        // CENÁRIO 5: Roberto Silva (Inadimplente 32 dias, O.S. de Retirada Aberta)
+        // -------------------------------------------------------------------------
+        Customer c5 = Customer.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .name("Roberto Silva (Retirada 30d+)")
+                .cpf(generateValidCpf(45))
+                .email("roberto.silva@gmail.com")
+                .phone("(93) 98145-5555")
+                .address("Rua Coronel Mota, 540")
+                .city("Altamira")
+                .state("PA")
+                .zipCode("68370-000")
+                .active(true)
+                .createdAt(LocalDateTime.now().minusMonths(5))
+                .updatedAt(LocalDateTime.now().minusMonths(5))
+                .build();
+        c5 = customerRepository.save(c5);
+
+        Contract ctr5 = Contract.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .customerId(c5.getId())
+                .planId(p300.getId())
+                .contractNumber("CTR-2026-CICLO-05")
+                .status(Contract.ContractStatus.SUSPENDED)
+                .monthlyFee(p300.getPrice())
+                .dueDay(10)
+                .installationAddress(c5.getAddress())
+                .city(c5.getCity())
+                .state(c5.getState())
+                .zipCode(c5.getZipCode())
+                .ctoId(ctoJardins != null ? ctoJardins.getId() : null)
+                .ctoPortNumber(11)
+                .createdAt(LocalDateTime.now().minusMonths(5))
+                .updatedAt(LocalDateTime.now().minusMonths(5))
+                .build();
+        ctr5 = contractRepository.save(ctr5);
+
+        serializedAssetRepository.save(SerializedAsset.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .serialNumber("ZTEG-ROB-3204")
+                .macAddress("68:DB:54:DD:40:04")
+                .brandModel("ZTE F670L")
+                .category(SerializedAsset.AssetCategory.ONU_ONT)
+                .replacementValue(new BigDecimal("420.00"))
+                .currentCustomerId(c5.getId())
+                .currentContractId(ctr5.getId())
+                .status(SerializedAsset.AssetStatus.INSTALADO_CLIENTE)
+                .build());
+
+        Invoice inv5 = Invoice.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr5.getId())
+                .customerId(c5.getId())
+                .gatewayType("XINGUBIT_PAY")
+                .amount(p300.getPrice())
+                .discountAmount(BigDecimal.ZERO)
+                .dueDate(today.minusDays(32))
+                .status(Invoice.InvoiceStatus.OVERDUE)
+                .protectedAgainstSuspension(false)
+                .build();
+        invoiceRepository.save(inv5);
+
+        WorkOrder wo5 = WorkOrder.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr5.getId())
+                .customerId(c5.getId())
+                .type(WorkOrder.WorkOrderType.RETIRADA)
+                .status(WorkOrder.WorkOrderStatus.SCHEDULED)
+                .scheduledDate(today)
+                .scheduledPeriod("TARDE")
+                .technicianName(users.get("carlos").getName())
+                .notes("Ordem de serviço de retirada gerada automaticamente por inadimplência superior a 30 dias (Fatura vencida há 32 dias).")
+                .standardFeeAmount(BigDecimal.ZERO)
+                .feeStatus(FeeStatus.NOT_APPLICABLE)
+                .createdAt(LocalDateTime.now().minusDays(1))
+                .updatedAt(LocalDateTime.now())
+                .build();
+        workOrderRepository.save(wo5);
+
+        // -------------------------------------------------------------------------
+        // CENÁRIO 6: Mariana Costa (Retirada Concluída com Sucesso, Equipamento Devolvido)
+        // -------------------------------------------------------------------------
+        Customer c6 = Customer.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .name("Mariana Costa (Retirada Concluída)")
+                .cpf(generateValidCpf(46))
+                .email("mariana.costa@gmail.com")
+                .phone("(93) 98146-6666")
+                .address("Rua da Paz, 99")
+                .city("Altamira")
+                .state("PA")
+                .zipCode("68370-000")
+                .active(true)
+                .createdAt(LocalDateTime.now().minusMonths(6))
+                .updatedAt(LocalDateTime.now().minusMonths(6))
+                .build();
+        c6 = customerRepository.save(c6);
+
+        Contract ctr6 = Contract.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .customerId(c6.getId())
+                .planId(p600.getId())
+                .contractNumber("CTR-2026-CICLO-06")
+                .status(Contract.ContractStatus.CANCELED)
+                .monthlyFee(p600.getPrice())
+                .dueDay(10)
+                .installationAddress(c6.getAddress())
+                .city(c6.getCity())
+                .state(c6.getState())
+                .zipCode(c6.getZipCode())
+                .ctoId(ctoJardins != null ? ctoJardins.getId() : null)
+                .ctoPortNumber(12)
+                .createdAt(LocalDateTime.now().minusMonths(6))
+                .updatedAt(LocalDateTime.now().minusDays(2))
+                .build();
+        ctr6 = contractRepository.save(ctr6);
+
+        WorkOrder wo6 = WorkOrder.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr6.getId())
+                .customerId(c6.getId())
+                .type(WorkOrder.WorkOrderType.RETIRADA)
+                .status(WorkOrder.WorkOrderStatus.COMPLETED)
+                .scheduledDate(today.minusDays(2))
+                .completedAt(LocalDateTime.now().minusDays(2))
+                .technicianName(users.get("andre").getName())
+                .notes("ONT recolhida com sucesso em perfeitas condições. Acessórios e fonte conferidos. Contrato rescindido e logística reversa concluída.")
+                .standardFeeAmount(BigDecimal.ZERO)
+                .feeStatus(FeeStatus.NOT_APPLICABLE)
+                .build();
+        workOrderRepository.save(wo6);
+
+        serializedAssetRepository.save(SerializedAsset.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .serialNumber("HWTC-MAR-9905")
+                .macAddress("48:57:02:EE:50:05")
+                .brandModel("Huawei EG8145V5")
+                .category(SerializedAsset.AssetCategory.ONU_ONT)
+                .replacementValue(new BigDecimal("420.00"))
+                .currentWarehouseId(centralWarehouse != null ? centralWarehouse.getId() : null)
+                .currentCustomerId(null)
+                .currentContractId(null)
+                .status(SerializedAsset.AssetStatus.DISPONIVEL_DEPOSITO) // Retornou ao depósito central!
+                .build());
+
+        // -------------------------------------------------------------------------
+        // CENÁRIO 7: Rodrigo Mendes (Retirada Infrutífera -> Jurídico / SPC/Serasa)
+        // -------------------------------------------------------------------------
+        Customer c7 = Customer.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .name("Rodrigo Mendes (Cobrança Jurídica / SPC)")
+                .cpf(generateValidCpf(47))
+                .email("rodrigo.mendes@gmail.com")
+                .phone("(93) 98147-7777")
+                .address("Rua Travessa Treze, 700")
+                .city("Altamira")
+                .state("PA")
+                .zipCode("68370-000")
+                .active(true)
+                .createdAt(LocalDateTime.now().minusMonths(6))
+                .updatedAt(LocalDateTime.now().minusDays(3))
+                .build();
+        c7 = customerRepository.save(c7);
+
+        Contract ctr7 = Contract.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .customerId(c7.getId())
+                .planId(p600.getId())
+                .contractNumber("CTR-2026-CICLO-07")
+                .status(Contract.ContractStatus.CANCELED)
+                .monthlyFee(p600.getPrice())
+                .dueDay(10)
+                .installationAddress(c7.getAddress())
+                .city(c7.getCity())
+                .state(c7.getState())
+                .zipCode(c7.getZipCode())
+                .ctoId(ctoJardins != null ? ctoJardins.getId() : null)
+                .ctoPortNumber(13)
+                .createdAt(LocalDateTime.now().minusMonths(6))
+                .updatedAt(LocalDateTime.now().minusDays(3))
+                .build();
+        ctr7 = contractRepository.save(ctr7);
+
+        Invoice inv7a = Invoice.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr7.getId())
+                .customerId(c7.getId())
+                .gatewayType("XINGUBIT_PAY")
+                .amount(p600.getPrice())
+                .discountAmount(BigDecimal.ZERO)
+                .dueDate(today.minusDays(45))
+                .status(Invoice.InvoiceStatus.OVERDUE)
+                .protectedAgainstSuspension(false)
+                .build();
+        invoiceRepository.save(inv7a);
+
+        Invoice inv7b = Invoice.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr7.getId())
+                .customerId(c7.getId())
+                .gatewayType("XINGUBIT_PAY")
+                .amount(p600.getPrice())
+                .discountAmount(BigDecimal.ZERO)
+                .dueDate(today.minusDays(15))
+                .status(Invoice.InvoiceStatus.OVERDUE)
+                .protectedAgainstSuspension(false)
+                .build();
+        invoiceRepository.save(inv7b);
+
+        WorkOrder wo7 = WorkOrder.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(ctr7.getId())
+                .customerId(c7.getId())
+                .type(WorkOrder.WorkOrderType.RETIRADA)
+                .status(WorkOrder.WorkOrderStatus.INFRUTIFERA)
+                .unsuccessReason("CLIENTE_MUDOU_SE")
+                .scheduledDate(today.minusDays(3))
+                .completedAt(LocalDateTime.now().minusDays(3))
+                .technicianName(users.get("marcos").getName())
+                .notes("Tentativa de recolhimento frustrada. Imóvel desocupado e placa de Aluga-se. Vizinhos confirmaram mudança sem aviso prévio.")
+                .standardFeeAmount(BigDecimal.ZERO)
+                .feeStatus(FeeStatus.NOT_APPLICABLE)
+                .build();
+        workOrderRepository.save(wo7);
+
+        serializedAssetRepository.save(SerializedAsset.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .serialNumber("HWTC-ROD-8806")
+                .macAddress("48:57:02:FF:60:06")
+                .brandModel("Huawei EG8145V5")
+                .category(SerializedAsset.AssetCategory.ONU_ONT)
+                .replacementValue(new BigDecimal("420.00"))
+                .currentCustomerId(c7.getId())
+                .currentContractId(ctr7.getId())
+                .status(SerializedAsset.AssetStatus.INSTALADO_CLIENTE) // Não recuperada
+                .build());
+
+        legalCollectionRepository.save(LegalCollectionRecord.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .customerId(c7.getId())
+                .contractId(ctr7.getId())
+                .workOrderId(wo7.getId())
+                .totalDebtInvoices(new BigDecimal("199.80"))
+                .equipmentIndemnityAmount(new BigDecimal("420.00"))
+                .totalClaimAmount(new BigDecimal("619.80"))
+                .status(LegalCollectionRecord.LegalCollectionStatus.PENDING_BUREAU_SUBMISSION)
+                .evidenceNotes("Retirada de ONT frustrada por mudança sem notificação prévia. Débito consolidado: 2 faturas em aberto (R$ 199,80) + Indenização de comodato ONT Huawei SN HWTC-ROD-8806 (R$ 420,00). Encaminhado para negativação e cobrança extrajudicial.")
+                .build());
+
+        // -------------------------------------------------------------------------
+        // CLIENTE DE TESTE DE ASSINATURA ELETRÔNICA PIX (/sign/:token)
+        // -------------------------------------------------------------------------
         Customer pixSignCustomer = Customer.builder()
                 .id(UuidCreatorUtils.generateUuidV7())
                 .name("Thiago Alencar (Pendente Assinatura)")
-                .cpf(generateValidCpf(32))
+                .cpf(generateValidCpf(48))
                 .email("thiago.alencar@gmail.com")
                 .phone("(93) 98155-7777")
                 .address("Rua Tapajós, 320")
