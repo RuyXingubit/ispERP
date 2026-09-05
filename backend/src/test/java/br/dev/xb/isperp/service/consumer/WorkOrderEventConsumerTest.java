@@ -2,9 +2,11 @@ package br.dev.xb.isperp.service.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import br.dev.xb.isperp.entity.Contract;
+import br.dev.xb.isperp.entity.WorkOrder;
 import br.dev.xb.isperp.event.GenericDomainEvent;
 import br.dev.xb.isperp.service.ContractService;
 import br.dev.xb.isperp.service.IdempotencyService;
+import br.dev.xb.isperp.service.InstallationDemandService;
 import br.dev.xb.isperp.service.WorkOrderService;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +37,9 @@ class WorkOrderEventConsumerTest {
 
     @Mock
     private IdempotencyService idempotencyService;
+
+    @Mock
+    private InstallationDemandService installationDemandService;
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -75,9 +80,17 @@ class WorkOrderEventConsumerTest {
                 .payload(payload)
                 .build();
 
+        WorkOrder mockWorkOrder = WorkOrder.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .contractId(contractId)
+                .customerId(customerId)
+                .build();
+        when(workOrderService.createInitialInstallationWorkOrder(any(), any(), any())).thenReturn(mockWorkOrder);
+
         workOrderEventConsumer.handleDomainEvent(event);
 
         verify(workOrderService, times(1)).createInitialInstallationWorkOrder(eq(contractId), eq(customerId), anyString());
+        verify(installationDemandService, times(1)).generateDemandForWorkOrder(mockWorkOrder.getId());
     }
 
     @Test

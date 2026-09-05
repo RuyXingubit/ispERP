@@ -142,11 +142,6 @@ class InstallationDemandServiceTest {
     @DisplayName("Deve confirmar materiais no almoxarifado central com status ALLOCATED_CENTRAL e emitir evento")
     void testConfirmStockAllocation() {
         UUID centralWarehouseId = UuidCreatorUtils.generateUuidV7();
-        Warehouse central = Warehouse.builder()
-                .id(centralWarehouseId)
-                .name("Depósito Central Altamira")
-                .active(true)
-                .build();
 
         InstallationMaterialDemand existingDemand = InstallationMaterialDemand.builder()
                 .id(UuidCreatorUtils.generateUuidV7())

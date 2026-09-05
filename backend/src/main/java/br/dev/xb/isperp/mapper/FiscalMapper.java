@@ -4,7 +4,6 @@ import br.dev.xb.isperp.api.dto.*;
 import br.dev.xb.isperp.entity.FiscalCompany;
 import br.dev.xb.isperp.entity.FiscalGatewayConfig;
 import br.dev.xb.isperp.entity.NfcomRecord;
-import br.dev.xb.isperp.fiscal.FiscalGatewayType;
 import br.dev.xb.isperp.fiscal.dto.CertificateUploadResult;
 import br.dev.xb.isperp.fiscal.dto.NfcomCancelResult;
 import org.mapstruct.Mapper;

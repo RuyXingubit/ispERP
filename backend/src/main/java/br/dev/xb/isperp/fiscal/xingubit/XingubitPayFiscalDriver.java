@@ -15,7 +15,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -356,6 +355,7 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
                 .build();
     }
 
+    @SuppressWarnings("unused")
     private int calculateMod11(String key) {
         int[] weights = {2, 3, 4, 5, 6, 7, 8, 9};
         int sum = 0;
