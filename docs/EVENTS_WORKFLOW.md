@@ -176,15 +176,114 @@ Disparado quando o técnico de campo confirma o número predial e a coordenada G
 
 ### 2.12. `RemovalOrderGeneratedEvent`
 Disparado automaticamente quando um contrato atinge inadimplência severa (>= 30 dias de atraso).
-- **Efeito:** Criação compulsória de O.S. de `RETIRADA` na Torre de Despacho com agendamento de recolhimento da ONT comodatada e notificação preventiva ao assinante.
+- **Produtor:** `WorkOrderRemovalService.generateRemovalOrdersForOverdueContracts`
+- **Consumidores:** `NotificationEventConsumer` (`MultiChannelNotificationConsumer_RemovalOrderGen`)
+- **Efeito:** Criação compulsória de O.S. de `RETIRADA` na Torre de Despacho com agendamento de recolhimento da ONT comodatada e envio de mensagem WhatsApp preventiva com opção de 2ª via Pix.
+- **Payload Exemplo:**
+```json
+{
+  "eventId": "01918e95-7b12-7000-8000-000000000050",
+  "eventType": "REMOVAL_ORDER_GENERATED",
+  "aggregateType": "WorkOrder",
+  "aggregateId": "01918e95-7b12-7000-8000-000000000051",
+  "occurredAt": "2026-09-05T15:00:00",
+  "payload": {
+    "workOrderId": "01918e95-7b12-7000-8000-000000000051",
+    "contractId": "01918e95-7b12-7000-8000-000000000010",
+    "contractNumber": "CTR-2026-004",
+    "customerId": "01918e95-7b12-7000-8000-000000000004",
+    "scheduledDate": "2026-09-07",
+    "scheduledPeriod": "MANHA",
+    "daysOverdue": 35,
+    "notes": "Inadimplência de 35 dias. Recolhimento compulsório de ONT/Roteador em comodato."
+  }
+}
+```
 
 ### 2.13. `RemovalOrderCompletedEvent`
 Disparado quando a equipe técnica conclui a visita de recolhimento da ONT com sucesso.
-- **Efeito:** Cancelamento formal do contrato (`CANCELED`), reincorporação da ONT com fonte e cabo ao depósito central via logística reversa (`DISPONIVEL_DEPOSITO`) e quitação patrimonial.
+- **Produtor:** `WorkOrderRemovalService.completeSuccessfulRemoval`
+- **Consumidores:** `NotificationEventConsumer` (`MultiChannelNotificationConsumer_RemovalOrderCompleted`)
+- **Efeito:** Cancelamento formal do contrato (`CANCELED`), devolução do ativo serializado ao almoxarifado via custódia reversa (`DISPONIVEL_DEPOSITO`) e envio de comprovante de quitação de comodato ao cliente via WhatsApp.
+- **Payload Exemplo:**
+```json
+{
+  "eventId": "01918e95-7b12-7000-8000-000000000052",
+  "eventType": "REMOVAL_ORDER_COMPLETED",
+  "aggregateType": "WorkOrder",
+  "aggregateId": "01918e95-7b12-7000-8000-000000000051",
+  "occurredAt": "2026-09-05T15:30:00",
+  "payload": {
+    "workOrderId": "01918e95-7b12-7000-8000-000000000051",
+    "contractId": "01918e95-7b12-7000-8000-000000000010",
+    "customerId": "01918e95-7b12-7000-8000-000000000004",
+    "warehouseId": "01918a22-35b1-7000-8000-b00000000001",
+    "completedAt": "2026-09-05T15:30:00",
+    "notes": "Remoção de equipamento executada com sucesso. Equipamento recuperado e recolhido."
+  }
+}
+```
 
 ### 2.14. `LegalCollectionRecordCreatedEvent`
 Disparado quando a visita de retirada é marcada como `INFRUTIFERA` (cliente mudou-se, recusou devolução ou extraviou o equipamento).
-- **Efeito:** Cancelamento do contrato, consolidação de faturas vencidas + indenização contratual do comodato da ONT (R$ 420,00) e abertura automática de Processo de Proteção ao Crédito (SPC/Serasa) e Execução Jurídica.
+- **Produtor:** `WorkOrderRemovalService.completeUnsuccessfulRemoval`
+- **Consumidores:** `NotificationEventConsumer` (`MultiChannelNotificationConsumer_LegalCollectionCreated`)
+- **Efeito:** Cancelamento do contrato, consolidação de faturas vencidas + indenização contratual do comodato da ONT (R$ 420,00), abertura de processo de proteção ao crédito (SPC/Serasa) e envio de Notificação Extrajudicial ao cliente via WhatsApp.
+- **Payload Exemplo:**
+```json
+{
+  "eventId": "01918e95-7b12-7000-8000-000000000053",
+  "eventType": "LEGAL_COLLECTION_RECORD_CREATED",
+  "aggregateType": "LegalCollectionRecord",
+  "aggregateId": "01918e95-7b12-7000-8000-000000000054",
+  "occurredAt": "2026-09-05T16:00:00",
+  "payload": {
+    "legalCollectionId": "01918e95-7b12-7000-8000-000000000054",
+    "workOrderId": "01918e95-7b12-7000-8000-000000000051",
+    "contractId": "01918e95-7b12-7000-8000-000000000010",
+    "customerId": "01918e95-7b12-7000-8000-000000000004",
+    "totalDebtInvoices": "200.00",
+    "equipmentIndemnityAmount": "420.00",
+    "totalClaimAmount": "620.00",
+    "unsuccessReason": "CLIENTE_RECUSOU_ENTREGA",
+    "status": "PENDING_BUREAU_SUBMISSION"
+  }
+}
+```
+
+### 2.15. Diagrama: Ciclo de Remoção, Logística Reversa & Cobrança Jurídica
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cron as Rotina de Inadimplência (30d+)
+    participant RemovalService as WorkOrderRemovalService
+    participant Outbox as Transactional Outbox
+    participant Tech as Técnico em Campo
+    participant Custody as AssetCustodyService
+    participant Legal as LegalCollectionRepository
+    participant Notify as NotificationConsumer
+    participant Cliente as WhatsApp do Cliente
+
+    Cron->>RemovalService: generateRemovalOrdersForOverdueContracts(30)
+    RemovalService->>Outbox: Emite REMOVAL_ORDER_GENERATED
+    Outbox-->>Notify: Processa REMOVAL_ORDER_GENERATED
+    Notify->>Cliente: Envia aviso de agendamento de recolhimento
+
+    alt Cenário A: Retirada com Sucesso
+        Tech->>RemovalService: completeSuccessfulRemoval(woId, warehouseId)
+        RemovalService->>Custody: returnAssetFromWorkOrder() (Devolve ONT ao almoxarifado)
+        RemovalService->>Outbox: Emite REMOVAL_ORDER_COMPLETED
+        Outbox-->>Notify: Processa REMOVAL_ORDER_COMPLETED
+        Notify->>Cliente: Envia termo de quitação e rescisão amigável
+    else Cenário B: Retirada Infrutífera (Recusa / Ausente)
+        Tech->>RemovalService: completeUnsuccessfulRemoval(woId, motivo)
+        RemovalService->>Legal: Cria LegalCollectionRecord (Faturas + R$ 420 ONT)
+        RemovalService->>Outbox: Emite LEGAL_COLLECTION_RECORD_CREATED
+        Outbox-->>Notify: Processa LEGAL_COLLECTION_RECORD_CREATED
+        Notify->>Cliente: Envia Notificação Extrajudicial antes de negativar SPC/Serasa
+    end
+```
 
 ---
 

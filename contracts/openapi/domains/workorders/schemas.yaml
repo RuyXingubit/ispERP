@@ -99,6 +99,10 @@ WorkOrderResponse:
       type: string
       nullable: true
       example: "Instalação concluída com potência perfeita na CTO-04."
+    unsuccessReason:
+      type: string
+      nullable: true
+      example: "Cliente ausente e imóvel desocupado"
 
 ScheduleWorkOrderRequest:
   type: object
@@ -271,3 +275,82 @@ RadiusStatusResponse:
       type: integer
       nullable: true
       example: 120
+
+CompleteRemovalWorkOrderRequest:
+  type: object
+  required:
+    - warehouseId
+  properties:
+    warehouseId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    photoUrl:
+      type: string
+      nullable: true
+      example: "https://minio.provedor.com.br/isperp/removals/termo-devolucao.jpg"
+    notes:
+      type: string
+      nullable: true
+      example: "Equipamento recolhido em perfeito estado e retornado ao estoque."
+
+FailRemovalWorkOrderRequest:
+  type: object
+  required:
+    - unsuccessReason
+  properties:
+    unsuccessReason:
+      type: string
+      example: "Cliente ausente e imóvel desocupado"
+    photoUrl:
+      type: string
+      nullable: true
+      example: "https://minio.provedor.com.br/isperp/removals/fachada-fechada.jpg"
+    notes:
+      type: string
+      nullable: true
+      example: "Tentativa de contato no local sem sucesso."
+
+BatchRemovalRequest:
+  type: object
+  properties:
+    thresholdDays:
+      type: integer
+      default: 30
+      example: 30
+      description: Quantidade mínima de dias de inadimplência para gerar O.S. de retirada.
+
+LegalCollectionResponse:
+  type: object
+  required:
+    - id
+    - customerId
+    - contractId
+    - totalClaimAmount
+    - status
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    workOrderId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    totalDebtInvoices:
+      type: number
+      format: double
+      example: 219.80
+    equipmentIndemnityAmount:
+      type: number
+      format: double
+      example: 420.00
+    totalClaimAmount:
+      type: number
+      format: double
+      example: 639.80
+    status:
+      type: string
+      example: "PENDING_BUREAU_SUBMISSION"
+    evidenceNotes:
+      type: string
+      nullable: true
+      example: "Tentativa de recolha de equipamento frustrada."

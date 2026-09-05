@@ -43,6 +43,9 @@ class WorkOrderRemovalServiceTest {
     @Mock
     private LegalCollectionRepository legalCollectionRepository;
 
+    @Mock
+    private DomainEventPublisher domainEventPublisher;
+
     @InjectMocks
     private WorkOrderRemovalService workOrderRemovalService;
 
@@ -93,6 +96,7 @@ class WorkOrderRemovalServiceTest {
         assertThat(wo.getType()).isEqualTo(WorkOrder.WorkOrderType.RETIRADA);
         assertThat(wo.getStatus()).isEqualTo(WorkOrder.WorkOrderStatus.PENDING_SCHEDULE);
         verify(workOrderRepository, times(1)).save(any(WorkOrder.class));
+        verify(domainEventPublisher, times(1)).publish(argThat(evt -> "REMOVAL_ORDER_GENERATED".equals(evt.getEventType())));
     }
 
     @Test
@@ -165,6 +169,9 @@ class WorkOrderRemovalServiceTest {
         // Verifica que o contrato foi cancelado
         assertThat(contract.getStatus()).isEqualTo(Contract.ContractStatus.CANCELED);
         verify(contractRepository, times(1)).save(contract);
+
+        // Verifica emissão do evento de remoção concluída
+        verify(domainEventPublisher, times(1)).publish(argThat(evt -> "REMOVAL_ORDER_COMPLETED".equals(evt.getEventType())));
     }
 
     @Test
@@ -232,5 +239,8 @@ class WorkOrderRemovalServiceTest {
         assertThat(record.getEvidenceNotes()).contains("CLIENTE_RECUSOU_ENTREGA");
 
         verify(legalCollectionRepository, times(1)).save(any(LegalCollectionRecord.class));
+
+        // Verifica emissão do evento de cobrança jurídica/SPC
+        verify(domainEventPublisher, times(1)).publish(argThat(evt -> "LEGAL_COLLECTION_RECORD_CREATED".equals(evt.getEventType())));
     }
 }

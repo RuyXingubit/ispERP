@@ -74,6 +74,12 @@ paths:
     $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}~1schedule'
   /work-orders/{id}/complete:
     $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}~1complete'
+  /work-orders/{id}/complete-removal:
+    $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}~1complete-removal'
+  /work-orders/{id}/fail-removal:
+    $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}~1fail-removal'
+  /work-orders/batch-generate-removals:
+    $ref: './domains/workorders/workorders.yaml#/~1work-orders~1batch-generate-removals'
   /technician/execution/{workOrderId}/unprovisioned-onus:
     $ref: './domains/workorders/workorders.yaml#/~1technician~1execution~1{workOrderId}~1unprovisioned-onus'
   /technician/execution/{workOrderId}/provision:

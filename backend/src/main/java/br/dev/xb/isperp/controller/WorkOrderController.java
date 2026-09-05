@@ -1,12 +1,11 @@
 package br.dev.xb.isperp.controller;
 
 import br.dev.xb.isperp.api.contract.WorkOrdersApi;
-import br.dev.xb.isperp.api.dto.CompleteWorkOrderRequest;
-import br.dev.xb.isperp.api.dto.ScheduleWorkOrderRequest;
-import br.dev.xb.isperp.api.dto.WorkOrderResponse;
-import br.dev.xb.isperp.api.dto.WorkOrderStatus;
+import br.dev.xb.isperp.api.dto.*;
+import br.dev.xb.isperp.entity.LegalCollectionRecord;
 import br.dev.xb.isperp.entity.WorkOrder;
 import br.dev.xb.isperp.mapper.WorkOrderMapper;
+import br.dev.xb.isperp.service.WorkOrderRemovalService;
 import br.dev.xb.isperp.service.WorkOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +22,7 @@ import java.util.UUID;
 public class WorkOrderController implements WorkOrdersApi {
 
     private final WorkOrderService workOrderService;
+    private final WorkOrderRemovalService workOrderRemovalService;
     private final WorkOrderMapper workOrderMapper;
 
     @Override
@@ -52,6 +52,35 @@ public class WorkOrderController implements WorkOrdersApi {
     public ResponseEntity<WorkOrderResponse> completeWorkOrder(UUID id, CompleteWorkOrderRequest request) {
         WorkOrder completed = workOrderService.completeWorkOrder(id, workOrderMapper.toCompleteRequest(request));
         return ResponseEntity.ok(workOrderMapper.toResponse(completed));
+    }
+
+    @Override
+    public ResponseEntity<WorkOrderResponse> completeRemovalWorkOrder(UUID id, CompleteRemovalWorkOrderRequest request) {
+        WorkOrder wo = workOrderRemovalService.completeSuccessfulRemoval(
+                id,
+                request.getWarehouseId(),
+                request.getPhotoUrl(),
+                request.getNotes()
+        );
+        return ResponseEntity.ok(workOrderMapper.toResponse(wo));
+    }
+
+    @Override
+    public ResponseEntity<LegalCollectionResponse> failRemovalWorkOrder(UUID id, FailRemovalWorkOrderRequest request) {
+        LegalCollectionRecord record = workOrderRemovalService.completeUnsuccessfulRemoval(
+                id,
+                request.getUnsuccessReason(),
+                request.getPhotoUrl(),
+                request.getNotes()
+        );
+        return ResponseEntity.ok(workOrderMapper.toLegalCollectionResponse(record));
+    }
+
+    @Override
+    public ResponseEntity<List<WorkOrderResponse>> batchGenerateRemovals(BatchRemovalRequest request) {
+        int threshold = (request != null && request.getThresholdDays() != null) ? request.getThresholdDays() : 30;
+        List<WorkOrder> generated = workOrderRemovalService.generateRemovalOrdersForOverdueContracts(threshold);
+        return ResponseEntity.ok(workOrderMapper.toResponseList(generated));
     }
 
     @GetMapping("/work-orders/contract/{contractId}")

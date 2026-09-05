@@ -7,8 +7,14 @@ import br.dev.xb.isperp.api.dto.WorkOrderStatus;
 import br.dev.xb.isperp.api.dto.WorkOrderType;
 import br.dev.xb.isperp.entity.WorkOrder;
 import br.dev.xb.isperp.mapper.WorkOrderMapper;
+import br.dev.xb.isperp.service.WorkOrderRemovalService;
 import br.dev.xb.isperp.service.WorkOrderService;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
+import br.dev.xb.isperp.entity.LegalCollectionRecord;
+import br.dev.xb.isperp.api.dto.CompleteRemovalWorkOrderRequest;
+import br.dev.xb.isperp.api.dto.FailRemovalWorkOrderRequest;
+import br.dev.xb.isperp.api.dto.BatchRemovalRequest;
+import br.dev.xb.isperp.api.dto.LegalCollectionResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +50,9 @@ class WorkOrderControllerTest {
 
     @MockitoBean
     private WorkOrderService workOrderService;
+
+    @MockitoBean
+    private WorkOrderRemovalService workOrderRemovalService;
 
     @MockitoBean
     private WorkOrderMapper workOrderMapper;
@@ -143,5 +152,77 @@ class WorkOrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("COMPLETED"))
                 .andExpect(jsonPath("$.onuSerial").value("ZTEGC89A12B3"));
+    }
+
+    @Test
+    @DisplayName("POST /work-orders/{id}/complete-removal - Deve concluir remoção com devolução ao depósito")
+    void shouldCompleteRemovalWorkOrderSuccessfully() throws Exception {
+        UUID warehouseId = UuidCreatorUtils.generateUuidV7();
+        CompleteRemovalWorkOrderRequest request = new CompleteRemovalWorkOrderRequest();
+        request.setWarehouseId(warehouseId);
+        request.setNotes("Equipamento recolhido");
+
+        workOrderResponse.setStatus(WorkOrderStatus.COMPLETED);
+
+        when(workOrderRemovalService.completeSuccessfulRemoval(eq(workOrderId), eq(warehouseId), any(), any())).thenReturn(workOrder);
+        when(workOrderMapper.toResponse(any())).thenReturn(workOrderResponse);
+
+        mockMvc.perform(post("/work-orders/{id}/complete-removal", workOrderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("COMPLETED"));
+    }
+
+    @Test
+    @DisplayName("POST /work-orders/{id}/fail-removal - Deve concluir remoção infrutífera gerando cobrança jurídica")
+    void shouldFailRemovalWorkOrderSuccessfully() throws Exception {
+        FailRemovalWorkOrderRequest request = new FailRemovalWorkOrderRequest();
+        request.setUnsuccessReason("CLIENTE_RECUSOU_ENTREGA");
+        request.setNotes("Tentativa infrutífera");
+
+        LegalCollectionRecord record = LegalCollectionRecord.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .customerId(customerId)
+                .contractId(contractId)
+                .workOrderId(workOrderId)
+                .build();
+
+        LegalCollectionResponse response = new LegalCollectionResponse();
+        response.setId(record.getId());
+        response.setCustomerId(customerId);
+        response.setContractId(contractId);
+        response.setTotalClaimAmount(620.00);
+        response.setStatus("PENDING_BUREAU_SUBMISSION");
+
+        when(workOrderRemovalService.completeUnsuccessfulRemoval(eq(workOrderId), eq("CLIENTE_RECUSOU_ENTREGA"), any(), any())).thenReturn(record);
+        when(workOrderMapper.toLegalCollectionResponse(any())).thenReturn(response);
+
+        mockMvc.perform(post("/work-orders/{id}/fail-removal", workOrderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalClaimAmount").value(620.00))
+                .andExpect(jsonPath("$.status").value("PENDING_BUREAU_SUBMISSION"));
+    }
+
+    @Test
+    @DisplayName("POST /work-orders/batch-generate-removals - Deve gerar O.S. de retirada em lote")
+    void shouldBatchGenerateRemovalsSuccessfully() throws Exception {
+        BatchRemovalRequest request = new BatchRemovalRequest();
+        request.setThresholdDays(30);
+
+        workOrderResponse.setType(WorkOrderType.RETIRADA);
+        workOrderResponse.setStatus(WorkOrderStatus.PENDING_SCHEDULE);
+
+        when(workOrderRemovalService.generateRemovalOrdersForOverdueContracts(30)).thenReturn(List.of(workOrder));
+        when(workOrderMapper.toResponseList(any())).thenReturn(List.of(workOrderResponse));
+
+        mockMvc.perform(post("/work-orders/batch-generate-removals")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].type").value("RETIRADA"))
+                .andExpect(jsonPath("$[0].status").value("PENDING_SCHEDULE"));
     }
 }

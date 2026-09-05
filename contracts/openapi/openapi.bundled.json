@@ -305,6 +305,145 @@
         }
       }
     },
+    "/work-orders/{id}/complete-removal": {
+      "post": {
+        "tags": [
+          "WorkOrders"
+        ],
+        "summary": "Concluir remoção com sucesso (Devolução ao Almoxarifado)",
+        "operationId": "completeRemovalWorkOrder",
+        "description": "Registra a devolução do equipamento comodatado ao almoxarifado e cancela o contrato.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteRemovalWorkOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Remoção concluída com sucesso e contrato rescindido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro na conclusão da remoção.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/work-orders/{id}/fail-removal": {
+      "post": {
+        "tags": [
+          "WorkOrders"
+        ],
+        "summary": "Concluir remoção como infrutífera (Cobrança Jurídica / SPC)",
+        "operationId": "failRemovalWorkOrder",
+        "description": "Registra a impossibilidade de recuperar o equipamento, cancela o contrato e abre processo no SPC/Serasa e Cobrança Jurídica.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FailRemovalWorkOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O.S. marcada como INFRUTIFERA e registro de cobrança jurídica gerado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalCollectionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Erro no registro de insucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/work-orders/batch-generate-removals": {
+      "post": {
+        "tags": [
+          "WorkOrders"
+        ],
+        "summary": "Gerar O.S. de retirada em lote para contratos inadimplentes",
+        "operationId": "batchGenerateRemovals",
+        "description": "Identifica clientes inadimplentes há mais de N dias e agenda automaticamente ordens de serviço de recolhimento de comodato.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchRemovalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lista de ordens de serviço de retirada geradas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkOrderResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/technician/execution/{workOrderId}/unprovisioned-onus": {
       "get": {
         "tags": [
@@ -5348,6 +5487,11 @@
             "type": "string",
             "nullable": true,
             "example": "Instalação concluída com potência perfeita na CTO-04."
+          },
+          "unsuccessReason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Cliente ausente e imóvel desocupado"
           }
         }
       },
@@ -9524,6 +9668,108 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          }
+        }
+      },
+      "CompleteRemovalWorkOrderRequest": {
+        "type": "object",
+        "required": [
+          "warehouseId"
+        ],
+        "properties": {
+          "warehouseId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "photoUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://minio.provedor.com.br/isperp/removals/termo-devolucao.jpg"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Equipamento recolhido em perfeito estado e retornado ao estoque."
+          }
+        }
+      },
+      "FailRemovalWorkOrderRequest": {
+        "type": "object",
+        "required": [
+          "unsuccessReason"
+        ],
+        "properties": {
+          "unsuccessReason": {
+            "type": "string",
+            "example": "Cliente ausente e imóvel desocupado"
+          },
+          "photoUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://minio.provedor.com.br/isperp/removals/fachada-fechada.jpg"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Tentativa de contato no local sem sucesso."
+          }
+        }
+      },
+      "LegalCollectionResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "customerId",
+          "contractId",
+          "totalClaimAmount",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "workOrderId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "totalDebtInvoices": {
+            "type": "number",
+            "format": "double",
+            "example": 219.8
+          },
+          "equipmentIndemnityAmount": {
+            "type": "number",
+            "format": "double",
+            "example": 420
+          },
+          "totalClaimAmount": {
+            "type": "number",
+            "format": "double",
+            "example": 639.8
+          },
+          "status": {
+            "type": "string",
+            "example": "PENDING_BUREAU_SUBMISSION"
+          },
+          "evidenceNotes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Tentativa de recolha de equipamento frustrada."
+          }
+        }
+      },
+      "BatchRemovalRequest": {
+        "type": "object",
+        "properties": {
+          "thresholdDays": {
+            "type": "integer",
+            "default": 30,
+            "example": 30,
+            "description": "Quantidade mínima de dias de inadimplência para gerar O.S. de retirada."
           }
         }
       },

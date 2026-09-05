@@ -26,6 +26,7 @@ public class NotificationEventConsumer {
     private final br.dev.xb.isperp.service.WhatsAppNotificationService whatsAppService;
     private final IdempotencyService idempotencyService;
     private final ObjectMapper objectMapper;
+    private final br.dev.xb.isperp.repository.CustomerRepository customerRepository;
 
     @Async("eventTaskExecutor")
     @EventListener
@@ -40,6 +41,12 @@ public class NotificationEventConsumer {
             handleClientAccessGenerated(event);
         } else if ("PLAN_UPGRADED".equals(type)) {
             handlePlanUpgraded(event);
+        } else if ("REMOVAL_ORDER_GENERATED".equals(type)) {
+            handleRemovalOrderGenerated(event);
+        } else if ("REMOVAL_ORDER_COMPLETED".equals(type)) {
+            handleRemovalOrderCompleted(event);
+        } else if ("LEGAL_COLLECTION_RECORD_CREATED".equals(type)) {
+            handleLegalCollectionRecordCreated(event);
         }
     }
 
@@ -121,6 +128,70 @@ public class NotificationEventConsumer {
                 String msg = String.format("⚡ *Upgrade de Plano Ativado!*\n\nSua velocidade foi atualizada para %s Mbps com sucesso. Aproveite sua conexão ultra-rápida!", downloadSpeed);
                 whatsAppService.sendTextMessage(customerId, phone, msg, "PLAN_UPGRADED");
             }
+        });
+    }
+
+    private void handleRemovalOrderGenerated(DomainEvent event) {
+        idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "_RemovalOrderGen", () -> {
+            Map<String, Object> data = extractPayload(event.getPayload());
+            UUID customerId = UUID.fromString((String) data.get("customerId"));
+            String contractNumber = (String) data.get("contractNumber");
+            String scheduledDate = (String) data.get("scheduledDate");
+            String scheduledPeriod = (String) data.get("scheduledPeriod");
+
+            customerRepository.findById(customerId).ifPresent(customer -> {
+                String phone = customer.getPhone();
+                if (phone != null && !phone.isEmpty()) {
+                    String msg = String.format("⚠️ *Aviso de Recolhimento de Equipamento*\n\n" +
+                            "Olá %s, identificamos pendências financeiras no seu contrato %s. " +
+                            "Informamos que uma visita técnica para recolhimento dos equipamentos em comodato foi agendada para o dia *%s* (Período: *%s*).\n\n" +
+                            "Caso deseje regularizar sua situação e evitar o cancelamento definitivo, responda a esta mensagem para obter sua 2ª via Pix.",
+                            customer.getName(), contractNumber, scheduledDate, scheduledPeriod);
+                    whatsAppService.sendTextMessage(customerId, phone, msg, "REMOVAL_ORDER_SCHEDULED");
+                }
+            });
+        });
+    }
+
+    private void handleRemovalOrderCompleted(DomainEvent event) {
+        idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "_RemovalOrderCompleted", () -> {
+            Map<String, Object> data = extractPayload(event.getPayload());
+            UUID customerId = UUID.fromString((String) data.get("customerId"));
+
+            customerRepository.findById(customerId).ifPresent(customer -> {
+                String phone = customer.getPhone();
+                if (phone != null && !phone.isEmpty()) {
+                    String msg = String.format("📦 *Comprovante de Devolução de Equipamento*\n\n" +
+                            "Olá %s, confirmamos o recolhimento e devolução dos seus equipamentos comodatados ao nosso estoque. " +
+                            "O contrato foi formalmente rescindido e nenhuma pendência material de comodato consta em seu nome.",
+                            customer.getName());
+                    whatsAppService.sendTextMessage(customerId, phone, msg, "REMOVAL_ORDER_RECEIPT");
+                }
+            });
+        });
+    }
+
+    private void handleLegalCollectionRecordCreated(DomainEvent event) {
+        idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "_LegalCollectionCreated", () -> {
+            Map<String, Object> data = extractPayload(event.getPayload());
+            UUID customerId = UUID.fromString((String) data.get("customerId"));
+            String totalClaim = (String) data.get("totalClaimAmount");
+            String indemnity = (String) data.get("equipmentIndemnityAmount");
+            String unsuccessReason = (String) data.get("unsuccessReason");
+
+            customerRepository.findById(customerId).ifPresent(customer -> {
+                String phone = customer.getPhone();
+                if (phone != null && !phone.isEmpty()) {
+                    String msg = String.format("⚖️ *Notificação Extrajudicial / Cobrança Jurídica*\n\n" +
+                            "Prezado(a) %s,\n" +
+                            "Devido à tentativa infrutífera de recolhimento do equipamento comodatado (%s), " +
+                            "seu contrato foi rescindido e o débito consolidado no valor total de *R$ %s* (incluindo indenização por retenção indevida da ONT de R$ %s) " +
+                            "foi encaminhado para registro nos órgãos de proteção ao crédito (SPC/Serasa) e execução jurídica.\n\n" +
+                            "Para quitar e evitar negativação do seu CPF/CNPJ, entre em contato imediatamente com nossa central financeira.",
+                            customer.getName(), unsuccessReason, totalClaim, indemnity);
+                    whatsAppService.sendTextMessage(customerId, phone, msg, "LEGAL_COLLECTION_WARNING");
+                }
+            });
         });
     }
 

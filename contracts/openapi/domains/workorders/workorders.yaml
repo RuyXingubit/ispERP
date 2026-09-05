@@ -121,6 +121,95 @@
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
 
+/work-orders/{id}/complete-removal:
+  post:
+    tags:
+      - WorkOrders
+    summary: Concluir remoção com sucesso (Devolução ao Almoxarifado)
+    operationId: completeRemovalWorkOrder
+    description: Registra a devolução do equipamento comodatado ao almoxarifado e cancela o contrato.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CompleteRemovalWorkOrderRequest'
+    responses:
+      '200':
+        description: Remoção concluída com sucesso e contrato rescindido.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WorkOrderResponse'
+      '400':
+        description: Erro na conclusão da remoção.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/work-orders/{id}/fail-removal:
+  post:
+    tags:
+      - WorkOrders
+    summary: Concluir remoção como infrutífera (Cobrança Jurídica / SPC)
+    operationId: failRemovalWorkOrder
+    description: Registra a impossibilidade de recuperar o equipamento, cancela o contrato e abre processo no SPC/Serasa e Cobrança Jurídica.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FailRemovalWorkOrderRequest'
+    responses:
+      '200':
+        description: O.S. marcada como INFRUTIFERA e registro de cobrança jurídica gerado.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/LegalCollectionResponse'
+      '400':
+        description: Erro no registro de insucesso.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/work-orders/batch-generate-removals:
+  post:
+    tags:
+      - WorkOrders
+    summary: Gerar O.S. de retirada em lote para contratos inadimplentes
+    operationId: batchGenerateRemovals
+    description: Identifica clientes inadimplentes há mais de N dias e agenda automaticamente ordens de serviço de recolhimento de comodato.
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/BatchRemovalRequest'
+    responses:
+      '200':
+        description: Lista de ordens de serviço de retirada geradas.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/WorkOrderResponse'
+
 /technician/execution/{workOrderId}/unprovisioned-onus:
   get:
     tags:

@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import br.dev.xb.isperp.event.GenericDomainEvent;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class WorkOrderRemovalService {
     private final SerializedAssetRepository serializedAssetRepository;
     private final AssetCustodyService assetCustodyService;
     private final LegalCollectionRepository legalCollectionRepository;
+    private final DomainEventPublisher domainEventPublisher;
 
     /**
      * Identifica contratos inadimplentes há mais de 30 dias e gera automaticamente a O.S. de Retirada.
@@ -75,6 +78,24 @@ public class WorkOrderRemovalService {
                 generatedOrders.add(saved);
                 log.warn("O.S. de RETIRADA gerada para contrato {}: {} dias de atraso na fatura {}",
                         contract.getContractNumber(), daysOverdue, invoice.getId());
+
+                // Publica evento de domínio REMOVAL_ORDER_GENERATED
+                Map<String, Object> payload = Map.of(
+                        "workOrderId", saved.getId().toString(),
+                        "contractId", contract.getId().toString(),
+                        "contractNumber", contract.getContractNumber(),
+                        "customerId", contract.getCustomerId().toString(),
+                        "scheduledDate", saved.getScheduledDate() != null ? saved.getScheduledDate().toString() : "",
+                        "scheduledPeriod", saved.getScheduledPeriod() != null ? saved.getScheduledPeriod() : "",
+                        "daysOverdue", daysOverdue,
+                        "notes", saved.getNotes() != null ? saved.getNotes() : ""
+                );
+                domainEventPublisher.publish(GenericDomainEvent.builder()
+                        .eventType("REMOVAL_ORDER_GENERATED")
+                        .aggregateType("WorkOrder")
+                        .aggregateId(saved.getId().toString())
+                        .payload(payload)
+                        .build());
             }
         }
 
@@ -117,6 +138,22 @@ public class WorkOrderRemovalService {
             contractRepository.save(c);
             log.info("Contrato {} cancelado após recolhimento com sucesso de seus equipamentos comodatados.", c.getContractNumber());
         });
+
+        // Publica evento de domínio REMOVAL_ORDER_COMPLETED
+        Map<String, Object> payload = Map.of(
+                "workOrderId", savedWo.getId().toString(),
+                "contractId", savedWo.getContractId().toString(),
+                "customerId", savedWo.getCustomerId().toString(),
+                "warehouseId", warehouseId.toString(),
+                "completedAt", savedWo.getCompletedAt() != null ? savedWo.getCompletedAt().toString() : LocalDateTime.now().toString(),
+                "notes", savedWo.getNotes() != null ? savedWo.getNotes() : ""
+        );
+        domainEventPublisher.publish(GenericDomainEvent.builder()
+                .eventType("REMOVAL_ORDER_COMPLETED")
+                .aggregateType("WorkOrder")
+                .aggregateId(savedWo.getId().toString())
+                .payload(payload)
+                .build());
 
         return savedWo;
     }
@@ -190,6 +227,25 @@ public class WorkOrderRemovalService {
         LegalCollectionRecord saved = legalCollectionRepository.save(collectionRecord);
         log.warn("PROCESSO JURÍDICO / SPC GERADO para cliente {}: Total Executável = R$ {} (Faturas: R$ {}, ONT: R$ {})",
                 wo.getCustomerId(), totalClaim, totalDebt, equipmentValue);
+
+        // Publica evento de domínio LEGAL_COLLECTION_RECORD_CREATED
+        Map<String, Object> payload = Map.of(
+                "legalCollectionId", saved.getId().toString(),
+                "workOrderId", wo.getId().toString(),
+                "contractId", wo.getContractId().toString(),
+                "customerId", wo.getCustomerId().toString(),
+                "totalDebtInvoices", totalDebt.toString(),
+                "equipmentIndemnityAmount", equipmentValue.toString(),
+                "totalClaimAmount", totalClaim.toString(),
+                "unsuccessReason", unsuccessReason,
+                "status", saved.getStatus().name()
+        );
+        domainEventPublisher.publish(GenericDomainEvent.builder()
+                .eventType("LEGAL_COLLECTION_RECORD_CREATED")
+                .aggregateType("LegalCollectionRecord")
+                .aggregateId(saved.getId().toString())
+                .payload(payload)
+                .build());
 
         return saved;
     }
