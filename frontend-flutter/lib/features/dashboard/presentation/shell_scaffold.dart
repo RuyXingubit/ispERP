@@ -88,12 +88,13 @@ class ShellScaffold extends ConsumerWidget {
     UserRole role,
     String currentPath,
   ) {
-    return Container(
-      width: 250,
+    return Material(
       color: AppTheme.darkSurface,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+      child: SizedBox(
+        width: 250,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           // Topo: Logo & Servidor
           Padding(
             padding: const EdgeInsets.all(20.0),
@@ -217,8 +218,9 @@ class ShellScaffold extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   List<Widget> _buildNavMenuItems(BuildContext context, UserRole role, String currentPath) {
     final List<Widget> items = [];
@@ -263,19 +265,23 @@ class ShellScaffold extends ConsumerWidget {
   Widget _buildNavItem(BuildContext context, String path, String title, IconData icon, bool isSelected) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
-      child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        tileColor: isSelected ? AppTheme.primaryBlue.withValues(alpha: 0.15) : Colors.transparent,
-        leading: Icon(icon, size: 20, color: isSelected ? AppTheme.primaryBlue : AppTheme.textSecondary),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? AppTheme.primaryBlue : AppTheme.textPrimary,
+      child: Material(
+        color: isSelected ? AppTheme.primaryBlue.withValues(alpha: 0.15) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          leading: Icon(icon, size: 20, color: isSelected ? AppTheme.primaryBlue : AppTheme.textSecondary),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? AppTheme.primaryBlue : AppTheme.textPrimary,
+            ),
           ),
+          onTap: () => context.go(path),
         ),
-        onTap: () => context.go(path),
       ),
     );
   }
