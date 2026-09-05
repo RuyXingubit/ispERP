@@ -226,6 +226,7 @@ class ShellScaffold extends ConsumerWidget {
     // Se o usuário for ADMIN, ele tem acesso a todos os módulos
     if (role == UserRole.admin) {
       items.add(_buildNavItem(context, '/admin', 'Diretoria & OLTs', Icons.shield_outlined, currentPath == '/admin'));
+      items.add(_buildNavItem(context, '/dispatch', 'Torre de O.S. & Estoque', Icons.local_shipping_outlined, currentPath == '/dispatch'));
       items.add(_buildNavItem(context, '/financial', 'Financeiro & DRE', Icons.account_balance_outlined, currentPath == '/financial'));
       items.add(_buildNavItem(context, '/support', 'Atendimento & SAC', Icons.headset_mic_outlined, currentPath == '/support'));
       items.add(_buildNavItem(context, '/sales', 'Vendas & Planos', Icons.trending_up_outlined, currentPath == '/sales'));
@@ -237,7 +238,8 @@ class ShellScaffold extends ConsumerWidget {
           items.add(_buildNavItem(context, '/financial', 'Tesouraria & DRE', Icons.account_balance_outlined, true));
           break;
         case UserRole.support:
-          items.add(_buildNavItem(context, '/support', 'Central de Suporte', Icons.headset_mic_outlined, true));
+          items.add(_buildNavItem(context, '/support', 'Central de Suporte', Icons.headset_mic_outlined, currentPath == '/support'));
+          items.add(_buildNavItem(context, '/dispatch', 'Torre de O.S. & Estoque', Icons.local_shipping_outlined, currentPath == '/dispatch'));
           break;
         case UserRole.sales:
           items.add(_buildNavItem(context, '/sales', 'Comercial & Vendas', Icons.trending_up_outlined, true));

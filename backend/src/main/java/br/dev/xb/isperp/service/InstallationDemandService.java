@@ -106,8 +106,22 @@ public class InstallationDemandService {
         return saved;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<InstallationMaterialDemandResponse> listPendingDemands() {
+        List<WorkOrder> pendingOrders = workOrderRepository.findAll().stream()
+                .filter(wo -> wo.getType() == WorkOrder.WorkOrderType.INSTALACAO)
+                .toList();
+
+        for (WorkOrder wo : pendingOrders) {
+            if (demandRepository.findByWorkOrderId(wo.getId()).isEmpty()) {
+                try {
+                    generateDemandForWorkOrder(wo.getId());
+                } catch (Exception e) {
+                    log.warn("Não foi possível auto-gerar demanda para O.S. {}: {}", wo.getId(), e.getMessage());
+                }
+            }
+        }
+
         List<InstallationMaterialDemand> demands = demandRepository.findAll();
         List<InstallationMaterialDemandResponse> responses = new ArrayList<>();
         for (InstallationMaterialDemand d : demands) {

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/admin/presentation/admin_dashboard_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/dashboard/presentation/shell_scaffold.dart';
+import '../../features/dispatch/presentation/dispatch_control_tower_screen.dart';
 import '../../features/financial/presentation/financial_dashboard_screen.dart';
 import '../../features/financial/presentation/my_cash_custody_screen.dart';
 import '../../features/sales/presentation/sales_dashboard_screen.dart';
@@ -89,6 +90,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/my-cash-custody',
             builder: (context, state) => const MyCashCustodyScreen(),
+          ),
+          GoRoute(
+            path: '/dispatch',
+            builder: (context, state) => const DispatchControlTowerScreen(),
           ),
         ],
       ),

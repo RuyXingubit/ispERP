@@ -26,28 +26,28 @@ public class InstallationDispatchController {
     private final TechnicianDispatchService dispatchService;
 
     @GetMapping("/demands")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT_ANALYST', 'SUPPORT_N2', 'FINANCIAL')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'SUPPORT_ANALYST', 'SUPPORT_N2', 'FINANCIAL', 'SALES')")
     @Operation(summary = "Listar todas as demandas de instalação e dimensionamento FTTH")
     public ResponseEntity<List<InstallationMaterialDemandResponse>> listDemands() {
         return ResponseEntity.ok(demandService.listPendingDemands());
     }
 
     @GetMapping("/demands/{workOrderId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT_ANALYST', 'SUPPORT_N2', 'FINANCIAL')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'SUPPORT_ANALYST', 'SUPPORT_N2', 'FINANCIAL', 'SALES')")
     @Operation(summary = "Obter detalhes da demanda e kit FTTH de uma O.S.")
     public ResponseEntity<InstallationMaterialDemandResponse> getDemand(@PathVariable UUID workOrderId) {
         return ResponseEntity.ok(demandService.getDemandByWorkOrder(workOrderId));
     }
 
     @GetMapping("/{workOrderId}/candidates")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT_ANALYST', 'SUPPORT_N2')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'SUPPORT_ANALYST', 'SUPPORT_N2')")
     @Operation(summary = "Listar técnicos candidatos ranqueados por estoque no veículo e proximidade GPS")
     public ResponseEntity<List<TechnicianDispatchCandidateResponse>> listCandidates(@PathVariable UUID workOrderId) {
         return ResponseEntity.ok(dispatchService.listCandidatesForWorkOrder(workOrderId));
     }
 
     @PostMapping("/{workOrderId}/dispatch")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT_ANALYST', 'SUPPORT_N2')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'SUPPORT_ANALYST', 'SUPPORT_N2')")
     @Operation(summary = "Despachar O.S. para um técnico com alocação automática de estoque do veículo")
     public ResponseEntity<WorkOrder> dispatchWorkOrder(
             @PathVariable UUID workOrderId,

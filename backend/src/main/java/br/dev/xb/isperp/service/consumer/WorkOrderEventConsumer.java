@@ -29,6 +29,7 @@ public class WorkOrderEventConsumer {
     private final ContractService contractService;
     private final IdempotencyService idempotencyService;
     private final ObjectMapper objectMapper;
+    private final br.dev.xb.isperp.service.InstallationDemandService installationDemandService;
 
     @Async("eventTaskExecutor")
     @EventListener
@@ -51,8 +52,15 @@ public class WorkOrderEventConsumer {
                 UUID customerId = UUID.fromString(data.get("customerId").toString());
                 String notes = "Endereço: " + data.get("installationAddress") + " - " + data.get("city") + "/" + data.get("state");
 
-                workOrderService.createInitialInstallationWorkOrder(contractId, customerId, notes);
+                var workOrder = workOrderService.createInitialInstallationWorkOrder(contractId, customerId, notes);
                 log.info("Ordem de Serviço criada com status PENDING_SCHEDULE para o contrato {}", contractId);
+
+                try {
+                    installationDemandService.generateDemandForWorkOrder(workOrder.getId());
+                    log.info("Demanda de materiais FTTH e metragem do drop calculadas para O.S. {}", workOrder.getId());
+                } catch (Exception ex) {
+                    log.warn("Aviso: Falha não bloqueante ao gerar demanda de material para O.S. {}: {}", workOrder.getId(), ex.getMessage());
+                }
             } catch (Exception e) {
                 log.error("Erro ao criar Ordem de Serviço para o contrato: {}", e.getMessage(), e);
                 throw new RuntimeException("Falha ao criar O.S. de instalação", e);
