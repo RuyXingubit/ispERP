@@ -10,6 +10,9 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.dev.xb.isperp.event.GenericDomainEvent;
+import br.dev.xb.isperp.util.UuidCreatorUtils;
+
 import java.util.*;
 
 @Service
@@ -26,6 +29,8 @@ public class InstallationDemandService {
     private final FtthCtoRepository ctoRepository;
     private final WarehouseRepository warehouseRepository;
     private final InstallationMaterialDemandMapper demandMapper;
+    private final InventoryService inventoryService;
+    private final DomainEventPublisher domainEventPublisher;
 
     /**
      * Gera a demanda de materiais FTTH e metragem do drop para uma Ordem de Serviço de Instalação.
@@ -135,6 +140,63 @@ public class InstallationDemandService {
         InstallationMaterialDemand demand = demandRepository.findByWorkOrderId(workOrderId)
                 .orElseGet(() -> generateDemandForWorkOrder(workOrderId));
         return enrichResponse(demand);
+    }
+
+    /**
+     * Confirma e separa os materiais no Almoxarifado Central (status ALLOCATED_CENTRAL),
+     * debitando/reservando insumos físicos e emitindo evento de auditoria.
+     */
+    @Transactional
+    public InstallationMaterialDemandResponse confirmStockAllocation(UUID workOrderId, @Nullable UUID warehouseId) {
+        InstallationMaterialDemand demand = demandRepository.findByWorkOrderId(workOrderId)
+                .orElseGet(() -> generateDemandForWorkOrder(workOrderId));
+
+        UUID selectedWarehouseId = warehouseId;
+        if (selectedWarehouseId == null) {
+            Warehouse central = warehouseRepository.findAll().stream()
+                    .filter(w -> Boolean.TRUE.equals(w.getActive()))
+                    .findFirst()
+                    .orElse(null);
+            if (central != null) {
+                selectedWarehouseId = central.getId();
+            }
+        }
+
+        demand.setStatus(MaterialDemandStatus.ALLOCATED_CENTRAL);
+        if (selectedWarehouseId != null) {
+            demand.setAllocatedWarehouseId(selectedWarehouseId);
+        }
+        InstallationMaterialDemand saved = demandRepository.save(demand);
+
+        // Reserva insumos essenciais no estoque
+        if (demand.getContractId() != null) {
+            try {
+                inventoryService.checkAndReserveInstallationMaterials(demand.getContractId());
+            } catch (Exception e) {
+                log.warn("Aviso ao reservar itens de estoque para contrato {}: {}", demand.getContractId(), e.getMessage());
+            }
+        }
+
+        // Emite evento de domínio de estoque confirmado
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("workOrderId", workOrderId.toString());
+        payload.put("contractId", demand.getContractId() != null ? demand.getContractId().toString() : null);
+        payload.put("allocatedWarehouseId", selectedWarehouseId != null ? selectedWarehouseId.toString() : null);
+        payload.put("status", MaterialDemandStatus.ALLOCATED_CENTRAL.name());
+
+        GenericDomainEvent event = GenericDomainEvent.builder()
+                .eventId(UuidCreatorUtils.generateUuidV7())
+                .eventType("INSTALLATION_STOCK_ALLOCATED")
+                .aggregateType("InstallationMaterialDemand")
+                .aggregateId(saved.getId().toString())
+                .payload(payload)
+                .build();
+
+        domainEventPublisher.publish(event);
+        log.info("Materiais confirmados no estoque para O.S. {}: status=ALLOCATED_CENTRAL, warehouse={}",
+                workOrderId, selectedWarehouseId);
+
+        return enrichResponse(saved);
     }
 
     private InstallationMaterialDemandResponse enrichResponse(InstallationMaterialDemand demand) {

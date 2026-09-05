@@ -54,4 +54,13 @@ public class InstallationDispatchController {
             @RequestParam UUID technicianId) {
         return ResponseEntity.ok(dispatchService.dispatchWorkOrder(workOrderId, technicianId));
     }
+
+    @PostMapping("/demands/{workOrderId}/confirm-stock")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'SUPPORT_ANALYST', 'SUPPORT_N2', 'FINANCIAL', 'SALES')")
+    @Operation(summary = "Confirmar e reservar materiais no almoxarifado para a O.S.")
+    public ResponseEntity<InstallationMaterialDemandResponse> confirmStockAllocation(
+            @PathVariable UUID workOrderId,
+            @RequestParam(required = false) UUID warehouseId) {
+        return ResponseEntity.ok(demandService.confirmStockAllocation(workOrderId, warehouseId));
+    }
 }

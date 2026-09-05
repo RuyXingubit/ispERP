@@ -102,4 +102,16 @@ public class AssetCustodyController implements AssetCustodyApi {
         SerializedAsset saved = assetCustodyService.returnAssetFromWorkOrder(id, warehouseId, isDamaged, photoUrl, notes);
         return ResponseEntity.ok(inventoryMapper.toResponse(saved));
     }
+
+    @org.springframework.web.bind.annotation.PostMapping({"/inventory/custody/materials/checkout-os", "/api/inventory/custody/materials/checkout-os"})
+    public ResponseEntity<br.dev.xb.isperp.entity.CustodyLog> checkoutMaterialForWorkOrder(
+            @org.springframework.web.bind.annotation.RequestBody br.dev.xb.isperp.dto.MaterialCheckoutOsRequest request) {
+        return ResponseEntity.ok(assetCustodyService.checkoutMaterialForWorkOrder(request));
+    }
+
+    @org.springframework.web.bind.annotation.PostMapping({"/inventory/custody/materials/checkin-os", "/api/inventory/custody/materials/checkin-os"})
+    public ResponseEntity<br.dev.xb.isperp.dto.MaterialCheckinResponse> checkinMaterialForWorkOrder(
+            @org.springframework.web.bind.annotation.RequestBody br.dev.xb.isperp.dto.MaterialCheckinOsRequest request) {
+        return ResponseEntity.ok(assetCustodyService.checkinMaterialForWorkOrder(request));
+    }
 }

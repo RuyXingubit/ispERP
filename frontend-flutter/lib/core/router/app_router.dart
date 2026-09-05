@@ -7,6 +7,7 @@ import '../../features/dashboard/presentation/shell_scaffold.dart';
 import '../../features/dispatch/presentation/dispatch_control_tower_screen.dart';
 import '../../features/financial/presentation/financial_dashboard_screen.dart';
 import '../../features/financial/presentation/my_cash_custody_screen.dart';
+import '../../features/inventory/presentation/inventory_screen.dart';
 import '../../features/sales/presentation/sales_dashboard_screen.dart';
 import '../../features/server_setup/presentation/server_setup_screen.dart';
 import '../../features/support/presentation/support_dashboard_screen.dart';
@@ -94,6 +95,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dispatch',
             builder: (context, state) => const DispatchControlTowerScreen(),
+          ),
+          GoRoute(
+            path: '/inventory',
+            builder: (context, state) => const InventoryScreen(),
           ),
         ],
       ),

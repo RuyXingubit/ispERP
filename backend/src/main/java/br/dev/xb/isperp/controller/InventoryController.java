@@ -24,4 +24,19 @@ public class InventoryController implements InventoryApi {
     public ResponseEntity<List<InventoryItemResponse>> getAllInventoryItems() {
         return ResponseEntity.ok(inventoryMapper.toInventoryItemResponseList(inventoryService.getAllItems()));
     }
+
+    @org.springframework.web.bind.annotation.PostMapping({"/inventory/entry", "/api/inventory/entry"})
+    public ResponseEntity<InventoryItemResponse> registerStockEntry(
+            @org.springframework.web.bind.annotation.RequestBody br.dev.xb.isperp.dto.StockEntryRequest request) {
+        var item = inventoryService.registerStockEntry(
+                request.getWarehouseId(),
+                request.getItemCode(),
+                request.getItemName(),
+                request.getCategory(),
+                request.getQuantity(),
+                request.getUnit(),
+                request.getNotes()
+        );
+        return ResponseEntity.ok(inventoryMapper.toResponse(item));
+    }
 }

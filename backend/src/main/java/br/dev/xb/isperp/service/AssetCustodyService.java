@@ -17,6 +17,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
+import br.dev.xb.isperp.dto.MaterialCheckinOsRequest;
+import br.dev.xb.isperp.dto.MaterialCheckinResponse;
+import br.dev.xb.isperp.dto.MaterialCheckoutOsRequest;
+import br.dev.xb.isperp.event.GenericDomainEvent;
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +35,9 @@ public class AssetCustodyService {
     private final StockTransferItemRepository transferItemRepository;
     private final ToolCustodyAgreementRepository agreementRepository;
     private final CustodyLogRepository custodyLogRepository;
+    private final WorkOrderRepository workOrderRepository;
+    private final DomainEventPublisher domainEventPublisher;
+    private final InventoryItemRepository inventoryItemRepository;
 
     public List<SerializedAsset> getAllAssets() {
         return assetRepository.findAll();
@@ -308,5 +318,113 @@ public class AssetCustodyService {
 
         log.info("Equipamento {} recebido no depósito {} via logística reversa", asset.getSerialNumber(), warehouseId);
         return saved;
+    }
+
+    @Transactional
+    public CustodyLog checkoutMaterialForWorkOrder(MaterialCheckoutOsRequest request) {
+        if (request.getWorkOrderId() == null) {
+            throw new IllegalArgumentException("Regra de Ouro violada: É impossível retirar material do estoque sem Ordem de Serviço vinculada.");
+        }
+        WorkOrder wo = workOrderRepository.findById(request.getWorkOrderId())
+                .orElseThrow(() -> new IllegalArgumentException("Ordem de Serviço não encontrada: " + request.getWorkOrderId()));
+
+        UUID itemId = null;
+        if (request.getItemCode() != null) {
+            itemId = inventoryItemRepository.findByCode(request.getItemCode())
+                    .map(InventoryItem::getId)
+                    .orElse(null);
+        }
+
+        CustodyLog logEntry = CustodyLog.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .workOrderId(wo.getId())
+                .assetId(request.getAssetId())
+                .itemId(itemId)
+                .fromWarehouseId(request.getWarehouseId())
+                .toUserId(request.getTechnicianUserId())
+                .eventType("MATERIAL_CHECKOUT_OS")
+                .photoUrl(request.getBeforePhotoUrl())
+                .notes("Retirada de insumo para O.S. " + wo.getId() + ". Qtd/Metros: " + request.getQuantityOrMeters() + ". " + (request.getNotes() != null ? request.getNotes() : ""))
+                .build();
+
+        CustodyLog saved = custodyLogRepository.save(logEntry);
+        log.info("Material retirado sob custódia do técnico {} para O.S. {}", request.getTechnicianUserId(), wo.getId());
+        return saved;
+    }
+
+    @Transactional
+    public MaterialCheckinResponse checkinMaterialForWorkOrder(MaterialCheckinOsRequest request) {
+        if (request.getWorkOrderId() == null) {
+            throw new IllegalArgumentException("O.S. obrigatória para devolução de materiais.");
+        }
+
+        int expectedRemaining = request.getInitialMetersOrQty() - request.getConsumedMetersOrQty();
+        int divergence = request.getActualRemainingMetersOrQty() - expectedRemaining;
+        boolean hasDivergence = (divergence != 0);
+
+        String eventType = hasDivergence ? "MATERIAL_RETURN_DIVERGENT" : "MATERIAL_RETURN_CONFORMANT";
+        String notes = (hasDivergence ? "[RESSALVA DE DIVERGÊNCIA: " + divergence + "] " : "[DEVOLUÇÃO CONFORME] ")
+                + (request.getNotes() != null ? request.getNotes() : "");
+
+        UUID itemId = null;
+        if (request.getItemCode() != null) {
+            itemId = inventoryItemRepository.findByCode(request.getItemCode())
+                    .map(InventoryItem::getId)
+                    .orElse(null);
+        }
+
+        CustodyLog logEntry = CustodyLog.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .workOrderId(request.getWorkOrderId())
+                .assetId(request.getAssetId())
+                .itemId(itemId)
+                .fromUserId(request.getTechnicianUserId())
+                .toWarehouseId(request.getWarehouseId())
+                .eventType(eventType)
+                .photoUrl(request.getReturnPhotoUrl())
+                .notes(notes + " | Evidências: Antes=" + request.getBeforePhotoUrl() + ", Instalado=" + request.getInstalledPhotoUrl() + ", Devolução=" + request.getReturnPhotoUrl())
+                .build();
+
+        CustodyLog saved = custodyLogRepository.save(logEntry);
+
+        if (hasDivergence) {
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("workOrderId", request.getWorkOrderId().toString());
+            payload.put("technicianUserId", request.getTechnicianUserId().toString());
+            payload.put("divergence", divergence);
+            payload.put("expectedRemaining", expectedRemaining);
+            payload.put("actualRemaining", request.getActualRemainingMetersOrQty());
+            payload.put("beforePhotoUrl", request.getBeforePhotoUrl());
+            payload.put("installedPhotoUrl", request.getInstalledPhotoUrl());
+            payload.put("returnPhotoUrl", request.getReturnPhotoUrl());
+
+            GenericDomainEvent event = GenericDomainEvent.builder()
+                    .eventId(UuidCreatorUtils.generateUuidV7())
+                    .eventType("STOCK_DIVERGENCE_DETECTED")
+                    .aggregateType("WorkOrder")
+                    .aggregateId(request.getWorkOrderId().toString())
+                    .payload(payload)
+                    .build();
+
+            domainEventPublisher.publish(event);
+            log.warn("DIVERGÊNCIA DE MATERIAL DETECTADA NA O.S. {}: técnico={}, esperava={}, apurado={}",
+                    request.getWorkOrderId(), request.getTechnicianUserId(), expectedRemaining, request.getActualRemainingMetersOrQty());
+        }
+
+        return MaterialCheckinResponse.builder()
+                .logId(saved.getId())
+                .workOrderId(request.getWorkOrderId())
+                .technicianUserId(request.getTechnicianUserId())
+                .status(hasDivergence ? "DIVERGENT" : "CONFORMANT")
+                .hasDivergence(hasDivergence)
+                .expectedRemaining(expectedRemaining)
+                .actualRemaining(request.getActualRemainingMetersOrQty())
+                .divergenceQuantity(divergence)
+                .beforePhotoUrl(request.getBeforePhotoUrl())
+                .installedPhotoUrl(request.getInstalledPhotoUrl())
+                .returnPhotoUrl(request.getReturnPhotoUrl())
+                .notes(notes)
+                .checkedAt(LocalDateTime.now())
+                .build();
     }
 }

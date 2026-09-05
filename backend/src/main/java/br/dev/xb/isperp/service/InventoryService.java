@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import br.dev.xb.isperp.util.UuidCreatorUtils;
+import org.jspecify.annotations.Nullable;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,6 +33,35 @@ public class InventoryService {
 
     public InventoryItem saveItem(InventoryItem item) {
         return inventoryItemRepository.save(item);
+    }
+
+    @Transactional
+    public InventoryItem registerStockEntry(UUID warehouseId, String itemCode, String itemName, String category, int quantity, String unit, @Nullable String notes) {
+        InventoryItem item = inventoryItemRepository.findByCode(itemCode)
+                .orElseGet(() -> {
+                    InventoryItem newItem = InventoryItem.builder()
+                            .id(UuidCreatorUtils.generateUuidV7())
+                            .code(itemCode)
+                            .name(itemName != null && !itemName.isBlank() ? itemName : itemCode)
+                            .category(category != null && !category.isBlank() ? category : "GERAL")
+                            .quantityInStock(0)
+                            .minQuantity(10)
+                            .unit(unit != null && !unit.isBlank() ? unit : "UN")
+                            .build();
+                    return inventoryItemRepository.save(newItem);
+                });
+
+        item.setQuantityInStock(item.getQuantityInStock() + quantity);
+        if (itemName != null && !itemName.isBlank()) {
+            item.setName(itemName);
+        }
+        if (unit != null && !unit.isBlank()) {
+            item.setUnit(unit);
+        }
+        InventoryItem saved = inventoryItemRepository.save(item);
+
+        log.info("Entrada de estoque registrada: {} (+{} {}), saldo atual={}", itemCode, quantity, item.getUnit(), saved.getQuantityInStock());
+        return saved;
     }
 
     /**

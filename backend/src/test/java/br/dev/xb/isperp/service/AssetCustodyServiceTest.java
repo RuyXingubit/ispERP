@@ -41,6 +41,15 @@ class AssetCustodyServiceTest {
     @Mock
     private CustodyLogRepository custodyLogRepository;
 
+    @Mock
+    private WorkOrderRepository workOrderRepository;
+
+    @Mock
+    private DomainEventPublisher domainEventPublisher;
+
+    @Mock
+    private InventoryItemRepository inventoryItemRepository;
+
     @InjectMocks
     private AssetCustodyService assetCustodyService;
 
@@ -161,5 +170,79 @@ class AssetCustodyServiceTest {
         assertTrue(agreement.getAgreementText().contains("18500.00"));
         assertEquals(SerializedAsset.AssetStatus.CUSTODIA_COLABORADOR, fusionMachine.getStatus());
         assertEquals(carrierUserId, fusionMachine.getCurrentHolderUserId());
+    }
+
+    @Test
+    @DisplayName("Regra de Ouro: Deve rejeitar retirada de material caso O.S. não seja informada")
+    void shouldRejectMaterialCheckoutWithoutWorkOrder() {
+        var request = br.dev.xb.isperp.dto.MaterialCheckoutOsRequest.builder()
+                .workOrderId(null)
+                .technicianUserId(carrierUserId)
+                .quantityOrMeters(100)
+                .build();
+
+        assertThrows(IllegalArgumentException.class, () -> assetCustodyService.checkoutMaterialForWorkOrder(request));
+    }
+
+    @Test
+    @DisplayName("Deve autorizar saída de material vinculado à O.S. e ao CPF do técnico")
+    void shouldAuthorizeMaterialCheckoutWithWorkOrder() {
+        UUID woId = UuidCreatorUtils.generateUuidV7();
+        WorkOrder wo = WorkOrder.builder().id(woId).build();
+
+        var request = br.dev.xb.isperp.dto.MaterialCheckoutOsRequest.builder()
+                .workOrderId(woId)
+                .technicianUserId(carrierUserId)
+                .warehouseId(originWarehouseId)
+                .itemCode("DROP-OPT-1FO")
+                .quantityOrMeters(200)
+                .beforePhotoUrl("http://foto-metro-inicial.jpg")
+                .notes("Retirada de bobina para O.S.")
+                .build();
+
+        when(workOrderRepository.findById(woId)).thenReturn(Optional.of(wo));
+        when(custodyLogRepository.save(any(CustodyLog.class))).thenAnswer(i -> i.getArgument(0));
+
+        CustodyLog log = assetCustodyService.checkoutMaterialForWorkOrder(request);
+
+        assertNotNull(log);
+        assertEquals("MATERIAL_CHECKOUT_OS", log.getEventType());
+        assertEquals(woId, log.getWorkOrderId());
+        assertEquals(carrierUserId, log.getToUserId());
+        assertEquals("http://foto-metro-inicial.jpg", log.getPhotoUrl());
+    }
+
+    @Test
+    @DisplayName("Deve registrar devolução com ressalva de divergência e emitir evento caso metragem não coincida")
+    void shouldRegisterCheckinWithDivergenceWhenMetersDoNotMatch() {
+        UUID woId = UuidCreatorUtils.generateUuidV7();
+
+        // Inicial: 2.000m, Consumo apontado na O.S.: 500m -> Esperava: 1.500m. Apurado restante: 1.200m (faltando 300m)
+        var request = br.dev.xb.isperp.dto.MaterialCheckinOsRequest.builder()
+                .workOrderId(woId)
+                .technicianUserId(carrierUserId)
+                .warehouseId(originWarehouseId)
+                .itemCode("DROP-OPT-1FO")
+                .initialMetersOrQty(2000)
+                .consumedMetersOrQty(500)
+                .actualRemainingMetersOrQty(1200)
+                .beforePhotoUrl("http://foto-inicial.jpg")
+                .installedPhotoUrl("http://foto-poste.jpg")
+                .returnPhotoUrl("http://foto-final.jpg")
+                .notes("Divergência de 300m a justificar")
+                .build();
+
+        when(custodyLogRepository.save(any(CustodyLog.class))).thenAnswer(i -> i.getArgument(0));
+
+        var response = assetCustodyService.checkinMaterialForWorkOrder(request);
+
+        assertNotNull(response);
+        assertTrue(response.isHasDivergence());
+        assertEquals("DIVERGENT", response.getStatus());
+        assertEquals(1500, response.getExpectedRemaining());
+        assertEquals(1200, response.getActualRemaining());
+        assertEquals(-300, response.getDivergenceQuantity());
+        verify(domainEventPublisher, times(1)).publish(any());
+        verify(custodyLogRepository, times(1)).save(any(CustodyLog.class));
     }
 }

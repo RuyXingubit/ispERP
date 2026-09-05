@@ -45,6 +45,12 @@ class InstallationDemandServiceTest {
     @Mock
     private WarehouseRepository warehouseRepository;
 
+    @Mock
+    private InventoryService inventoryService;
+
+    @Mock
+    private DomainEventPublisher domainEventPublisher;
+
     private final InstallationMaterialDemandMapper demandMapper = Mappers.getMapper(InstallationMaterialDemandMapper.class);
 
     private InstallationDemandService demandService;
@@ -65,7 +71,9 @@ class InstallationDemandServiceTest {
                 planRepository,
                 ctoRepository,
                 warehouseRepository,
-                demandMapper
+                demandMapper,
+                inventoryService,
+                domainEventPublisher
         );
 
         workOrderId = UuidCreatorUtils.generateUuidV7();
@@ -128,5 +136,36 @@ class InstallationDemandServiceTest {
         assertThat(result.getFastConnectorsCount()).isEqualTo(2);
         assertThat(result.getPtoRosetteCount()).isEqualTo(1);
         assertThat(result.getStatus()).isEqualTo(MaterialDemandStatus.PENDING_ALLOCATION);
+    }
+
+    @Test
+    @DisplayName("Deve confirmar materiais no almoxarifado central com status ALLOCATED_CENTRAL e emitir evento")
+    void testConfirmStockAllocation() {
+        UUID centralWarehouseId = UuidCreatorUtils.generateUuidV7();
+        Warehouse central = Warehouse.builder()
+                .id(centralWarehouseId)
+                .name("Depósito Central Altamira")
+                .active(true)
+                .build();
+
+        InstallationMaterialDemand existingDemand = InstallationMaterialDemand.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .workOrderId(workOrderId)
+                .contractId(contractId)
+                .estimatedDropMeters(60)
+                .status(MaterialDemandStatus.PENDING_ALLOCATION)
+                .build();
+
+        when(demandRepository.findByWorkOrderId(workOrderId)).thenReturn(Optional.of(existingDemand));
+        when(demandRepository.save(any(InstallationMaterialDemand.class))).thenAnswer(i -> i.getArgument(0));
+
+        var response = demandService.confirmStockAllocation(workOrderId, centralWarehouseId);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(MaterialDemandStatus.ALLOCATED_CENTRAL);
+        assertThat(response.getAllocatedWarehouseId()).isEqualTo(centralWarehouseId);
+        verify(demandRepository, times(1)).save(any(InstallationMaterialDemand.class));
+        verify(domainEventPublisher, times(1)).publish(any());
+        verify(inventoryService, times(1)).checkAndReserveInstallationMaterials(contractId);
     }
 }
