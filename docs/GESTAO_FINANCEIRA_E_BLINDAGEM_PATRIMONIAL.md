@@ -91,6 +91,14 @@ O dinheiro em espécie percorre uma cadeia de custódia ininterrupta:
        > *"Olá, {{nome}}! Informamos que a taxa de R$ 100,00 referente à sua Mudança de Endereço foi **100% ISENTADA** pelo nosso gestor {{gestor_nome}} em agradecimento à sua fidelidade. ⚠️ **AVISO IMPORTANTE:** Este serviço é totalmente gratuito. Nenhum técnico ou colaborador está autorizado a cobrar qualquer valor no ato da visita."*
      - Se o técnico tentar cobrar o cliente em campo, o próprio cliente o desmascara exibindo o comunicado oficial da diretoria.
 
+### 2.6. Blindagem de Comodatos de Clientes, Inadimplência Severa & Recuperação Extrajudicial
+- **O Sangramento Financeiro do ISP:** Clientes inadimplentes que mudam de endereço ou deixam de pagar retendo a ONT Wi-Fi 6 ou roteadores Mesh geram prejuízo patrimonial direto de R$ 350 a R$ 600 por ponto abandonado, além das mensalidades perdidas.
+- **Rastreabilidade de Comodato (`SerializedAsset`):** Todo equipamento em cliente possui número de série/MAC amarrado ao contrato e com `replacement_value` contratual expresso (padrão R$ 420,00 para ONT Wi-Fi 6 Dual-Band).
+- **Gatilho de 30 Dias:** Ao ultrapassar 30 dias de inadimplência, o sistema agenda automaticamente uma O.S. de `RETIRADA` na Torre de Despacho.
+- **Bifurcação de Desfecho:**
+  1. *Recolhimento com Sucesso:* O equipamento é transferido do CPF do cliente para o Almoxarifado via `AssetCustodyService`, com conferência física do técnico e quitação patrimonial.
+  2. *Retirada Infrutífera (Recusa/Ausência):* A retenção indébita do aparelho é convertida automaticamente em título executável em `LegalCollectionRecord`, somando faturas vencidas + indenização integral do equipamento comodatado (ex: R$ 200 faturas + R$ 420 ONT = R$ 620 total executável), com notificação extrajudicial imediata por WhatsApp/E-mail e fila de envio ao SPC/Serasa.
+
 ---
 
 ## 3. Gestão Financeira Contínua, DRE & Curva de Desalavancagem
@@ -163,3 +171,4 @@ Para afastar completamente a sensação de "templates genéricos de IA", o front
 | `PayableInvoice` | Título de contas a pagar com rateio por plano de contas e centro de custo/projeto. |
 | `ExpenseInstallment` | Parcelas individuais de dívidas e parcelamentos com datas de vencimento e juros. |
 | `NetworkProject` | Projeto de expansão de rede com centro de custo, topologia FTTH associada e métricas de ROI. |
+| `LegalCollectionRecord` | Dossiê de cobrança extrajudicial/judicial consolidando faturas atrasadas e indenização por retenção de comodato para negativação no SPC/Serasa. |

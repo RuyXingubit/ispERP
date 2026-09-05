@@ -161,6 +161,20 @@ O **ispERP** é uma plataforma moderna, aberta e altamente escalável para gest�
 - **Baixa Automática de Estoque & Ativação:**
   - Baixa de ativos serializados e insumos da custódia do veículo do técnico, ativação imediata do contrato (`ACTIVE`) e liberação da fatura inicial.
 
+### 4.15. Módulo de Inadimplência Severa, Retirada de Comodato & Proteção ao Crédito (SPC/Serasa)
+- **Gatilho de Inadimplência Severa (>= 30 dias):**
+  - Monitoramento contínuo de faturas vencidas além do período de corte de sinal RADIUS e carência contratual.
+  - Ao atingir 30 dias de atraso, o sistema agenda automaticamente uma Ordem de Serviço de `RETIRADA` na Torre de Despacho, emitindo o evento `REMOVAL_ORDER_GENERATED` e enviando aviso prévio ao assinante por WhatsApp com link Pix para regularização imediata.
+- **Logística Reversa de Equipamento em Comodato (Sucesso):**
+  - No ato da visita técnica bem-sucedida, a ONT/Roteador comodatado é reincorporado ao estoque via `AssetCustodyService.returnAssetFromWorkOrder`, o contrato é cancelado formalmente (`CANCELED`) e o evento `REMOVAL_ORDER_COMPLETED` emite o termo de quitação patrimonial ao cliente.
+- **Retirada Infrutífera & Dossiê de Cobrança Jurídica (`LegalCollectionRecord`):**
+  - Se o cliente recusar a entrega, mudar-se sem aviso prévio ou extraviar o aparelho, a O.S. é encerrada como `INFRUTIFERA` com anexo de justificativa e foto de evidência.
+  - O contrato é cancelado por inadimplência com retenção indevida de patrimônio.
+  - O sistema consolida automaticamente o débito: **Total de Faturas em Aberto + Indenização Contratual do Equipamento (R$ 420,00 por ONT Wi-Fi 6)**.
+  - Geração do registro em `LegalCollectionRecord` (Status: `PENDING_BUREAU_SUBMISSION`) pronto para integração com birôs de crédito (SPC/Serasa) e ajuizamento extrajudicial/judicial.
+- **Notificação Extrajudicial Multicanal:**
+  - Consumo do evento `LEGAL_COLLECTION_RECORD_CREATED` com envio imediato de notificação formal via WhatsApp/E-mail advertindo sobre o valor consolidado e prazo final para quitação antes da negativação formal do CPF/CNPJ.
+
 ---
 
 ## 5. Requisitos Não Funcionais (NFRs)
@@ -168,6 +182,6 @@ O **ispERP** é uma plataforma moderna, aberta e altamente escalável para gest�
 - **Consistência e Confiabilidade:** Padrão **Transactional Outbox** para garantir que nenhum evento seja perdido se uma conexão externa oscilar.
 - **Auditoria:** Registro imutável de logs de alteração cadastral, liberação manual de sinal, transferências de estoque e estornos financeiros.
 - **Null-Safety:** Governança estrita de nulos via **JSpecify** (`@NullMarked`) no Java 25.
-- **Cobertura de Testes:** Suíte automatizada com mais de 100 testes unitários, integrados e teste de ciclo de vida operacional E2E completo.
+- **Cobertura de Testes:** Suíte automatizada com mais de 400 testes unitários, testes de contratos OpenAPI e validação de ciclo de vida operacional E2E completo.
 - **Banco de Dados:** PostgreSQL 17+ com Flyway para versionamento de schema.
 

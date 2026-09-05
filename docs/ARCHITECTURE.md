@@ -510,4 +510,25 @@ sequenceDiagram
   - Eliminação completa de avisos de chunks pesados no bundler.
   - Carregamento instantâneo em redes móveis 4G/5G de campo e na tela pública de assinatura Pix.
 
+---
+
+### ADR 035: Ciclo de Inadimplência Severa (30d+), Logística Reversa de Comodato e Execução de Cobrança Judicial / SPC
+- **Contexto:** Em provedores de internet, a inadimplência prolongada (> 30 dias) causa duplo prejuízo patrimonial: o acúmulo de mensalidades não pagas e o extravio de equipamentos comodatados de alto valor agregado (ONTs Wi-Fi 6 e roteadores Mesh). A transição entre corte de sinal RADIUS, agendamento de recolhimento em campo, devolução patrimonial ao almoxarifado ou envio para proteção ao crédito (SPC/Serasa) precisa ser 100% auditável, idempotente e orientada a eventos, sem perda de rastreabilidade.
+- **Decisão:** Criar o serviço `WorkOrderRemovalService` acoplado ao Transactional Outbox (`DomainEventPublisher`), à governança de estoque (`AssetCustodyService`) e à entidade de proteção ao crédito (`LegalCollectionRecord`).
+- **Diretrizes de Implementação:**
+  1. **Schema de Cobrança Judicial & Status Infrutífera (`V34`):** Criação da tabela `legal_collection_records` e adição do status `INFRUTIFERA` e coluna `unsuccess_reason` na tabela `work_orders`.
+  2. **Varredura e Agendamento Automático de Retirada:** Rotina que identifica faturas vencidas além do limite tolerado (>= 30 dias) e gera a O.S. de `RETIRADA` na Torre de Despacho com status `PENDING_SCHEDULE`, publicando o evento `REMOVAL_ORDER_GENERATED`.
+  3. **Logística Reversa de Comodato com Rescisão Amigável:** Quando o equipamento é recolhido com sucesso, o método `completeSuccessfulRemoval` devolve o ativo serializado ao almoxarifado via `AssetCustodyService`, altera o contrato para `CANCELED` e publica `REMOVAL_ORDER_COMPLETED`, acionando o envio de termo de quitação ao cliente via WhatsApp.
+  4. **Proteção ao Crédito & Cobrança Judicial (`completeUnsuccessfulRemoval`):** Caso a tentativa seja frustrada (cliente mudou-se, recusou entrega ou extraviou o aparelho), o sistema:
+     - Marca a O.S. como `INFRUTIFERA` com a justificativa técnica;
+     - Cancela o contrato formalmente;
+     - Apura a soma de faturas atrasadas + indenização de retenção indevida do hardware (R$ 420,00 da ONT Wi-Fi 6);
+     - Grava o dossiê executável em `LegalCollectionRecord` com fotos e evidências;
+     - Emite `LEGAL_COLLECTION_RECORD_CREATED` para notificação extrajudicial preventiva antes da negativação formal no SPC/Serasa.
+  5. **Resiliência e Contratos API-First:** Todos os endpoints expostos via OpenAPI (`POST /work-orders/{id}/complete-removal`, `POST /work-orders/{id}/fail-removal`) com DTOs gerados e validação estrita.
+- **Consequências:**
+  - Blindagem patrimonial contra retenção indébita de ONTs comodatadas.
+  - Redução de perdas financeiras com cobrança consolidada executável extrajudicialmente.
+  - Zero intervenção manual em planilhas ou cadastros paralelos.
+
 

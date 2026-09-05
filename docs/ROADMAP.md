@@ -627,6 +627,60 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
   - `BackupCryptoServiceTest`: Validação unitária de criptografia/descriptografia AES-256 reversa com integridade byte a byte.
   - `BackupAndDisasterRecoveryIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando todo o ciclo de streaming, compressão ZSTD, integridade pericial (Dry-Run Restore) e emissão do Kit de Resgate. Suíte completa de testes verdes.
 
+---
+
+## 🎯 Milestone 34: Frontend Desktop & Multiplataforma Flutter (macOS, Web, Mobile) com Arquitetura Riverpod & Material 3 (Concluído)
+> **Objetivo:** Aplicação cliente de alta densidade e performance nativa para equipes de operação, atendimento e campo, desenvolvida em Flutter 3.29+, Riverpod 2.6+, GoRouter e Material 3 com tema escuro imersivo, constraints defensivas contra overflow e zero dados falsos/placeholders.
+
+- [x] **Arquitetura & Design System:**
+  - Shell responsivo multi-painel com suporte a macOS Desktop, Web e Mobile.
+  - Design Tokens refinados com paleta escura semafórica, tipagem estrita de status e tipografia Inter.
+  - Tratamento defensivo de layout com `Expanded`, `Flexible`, `SingleChildScrollView` e `TextOverflow.ellipsis` prevenindo qualquer estouro de pixels.
+- [x] **Módulos Operacionais Implementados:**
+  - **Torre de Despacho & Candidatos Técnicos:** Triagem de O.S. pendentes, visualização de demandas de cabos e insumos, ranking de técnicos por proximidade e despacho instantâneo.
+  - **Controle de Estoque, Almoxarifado & Kardex:** Visão de saldos por depósito, histórico cronológico de movimentações auditável (+10, +5 = 15, -2 = 13), autorização de saídas com vinculação de O.S., confirmação de devoluções e transferências inter-bases vinculadas estritamente ao CPF de colaboradores ou motoristas terceiros cadastrados.
+  - **Atendimento ao Assinante (Raio-X 360°):** Busca inteligente por CPF ou nome, diagnóstico de conexão em tempo real, régua de faturamento, liquidação instantânea Pix e esteira de Desbloqueio em Confiança (48h).
+  - **Onboarding de Vendas & GeoCEP:** Consulta de viabilidade por CEP/Rua, mapa interativo de CTOs, seleção de planos oficiais e contribuição de coordenadas GPS submétricas em campo.
+  - **Cockpit Executivo & DRE BI:** Indicadores de MRR, CAC, churn, EBITDA e projeção de fluxo de caixa com consumo de dados 100% reais do backend.
+- [x] **Testes Automatizados:**
+  - 56 testes unitários e de máquinas de estado Riverpod passando 100% via `flutter test`.
+
+---
+
+## 🎯 Milestone 35: Ciclo de Vida Operacional E2E, Retirada Compulsória (Inadimplência 30d+), Proteção ao Crédito (SPC/Serasa) & Sincronização EDA/OpenAPI (Concluído)
+> **Objetivo:** Fechamento completo do ciclo de vida do cliente em casos de inadimplência severa, integrando detecção automatizada de faturas vencidas há mais de 30 dias, emissão de O.S. de retirada de comodato, logística reversa rastreada, abertura de processo de proteção ao crédito (SPC/Serasa) em caso de recusa/ausência, arquitetura orientada a eventos (EDA) assíncrona via Transactional Outbox e sincronização de contratos OpenAPI.
+
+- [x] **Migração Flyway:**
+  - `V34__create_legal_collections_and_removal_enhancements.sql`: Criação da tabela `legal_collection_records` para formalização de processos extrajudiciais/judiciais de cobrança e inclusão do status `INFRUTIFERA` e coluna `unsuccess_reason` na tabela `work_orders`.
+- [x] **Serviço de Negócio (`WorkOrderRemovalService`):**
+  - Varredura de faturas vencidas há mais de 30 dias (`generateRemovalOrdersForOverdueContracts`) gerando automaticamente ordens de serviço de retirada na Torre de Despacho.
+  - Conclusão com sucesso (`completeSuccessfulRemoval`): devolução física dos equipamentos comodatados ao almoxarifado via `AssetCustodyService.returnAssetFromWorkOrder` e rescisão formal do contrato (`CANCELED`).
+  - Conclusão como infrutífera (`completeUnsuccessfulRemoval`): apuração do débito consolidado de faturas + valor indenizatório por retenção indevida da ONT (R$ 420,00 padrão), rescisão do contrato e geração do processo em `LegalCollectionRecord`.
+- [x] **Arquitetura Orientada a Eventos (EDA) & Mensageria Multicanal:**
+  - Injeção do `DomainEventPublisher` no serviço de remoção, publicando `REMOVAL_ORDER_GENERATED`, `REMOVAL_ORDER_COMPLETED` e `LEGAL_COLLECTION_RECORD_CREATED` no Transactional Outbox.
+  - Consumo assíncrono e idempotente em `NotificationEventConsumer`:
+    - Aviso preventivo de agendamento de recolhimento via WhatsApp com opção de 2ª via Pix;
+    - Comprovante formal de recebimento e quitação de comodato via WhatsApp;
+    - Notificação extrajudicial preventiva contendo o valor consolidado da dívida e indenização da ONT antes da inclusão nos birôs de crédito (SPC/Serasa).
+- [x] **Contratos OpenAPI (API-First):**
+  - Atualização dos schemas com `unsuccessReason`, `CompleteRemovalWorkOrderRequest`, `FailRemovalWorkOrderRequest`, `BatchRemovalRequest` e `LegalCollectionResponse`.
+  - Novos endpoints: `POST /work-orders/{id}/complete-removal`, `POST /work-orders/{id}/fail-removal` e `POST /work-orders/batch-generate-removals`.
+  - Bundling via `./scripts/bundle-contracts.sh` e implementação dos métodos gerados em `WorkOrderController` e `WorkOrderMapper`.
+- [x] **Matriz E2E de Seeders Operacionais (`DevDataSeederService`):**
+  - Enriquecimento do seeder de desenvolvimento com 7 clientes representativos com dados 100% rastreáveis, CPFs matematicamente válidos e equipamentos reais percorrendo cada etapa do ciclo de vida:
+    1. *Lucas Andrade:* Venda recente com O.S. agendada para hoje;
+    2. *Beatriz Santos:* Ativa e adimplente com 3 faturas pagas e ONT provisionada;
+    3. *Fernando Lima:* Inadimplente há 7 dias com auto-corte RADIUS (elegível ao desbloqueio em confiança);
+    4. *Juliana Rocha:* Em tolerância de 48h de desbloqueio em confiança (2ª solicitação bloqueada);
+    5. *Roberto Silva:* Inadimplente há 32 dias com O.S. de retirada agendada para hoje;
+    6. *Mariana Costa:* Retirada concluída com sucesso e ONT devolvida ao almoxarifado;
+    7. *Rodrigo Mendes:* Retirada infrutífera (mudou-se) com contrato cancelado e processo executável de R$ 619,80 no SPC/Serasa.
+- [x] **Testes Automatizados:**
+  - `WorkOrderRemovalServiceTest`: Asserções para os 3 fluxos de remoção e verificação da publicação de eventos no Outbox.
+  - `NotificationEventConsumerTest`: Testes unitários para envio de mensagens multicanais de forma idempotente.
+  - `WorkOrderControllerTest`: Testes de integração WebMvc para os novos endpoints de remoção.
+  - Suíte completa do backend aprovada com 416 testes verdes (`BUILD SUCCESSFUL`).
+
 
 
 
