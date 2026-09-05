@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../dispatch/data/dispatch_models.dart';
 import '../data/inventory_models.dart';
@@ -509,81 +510,98 @@ class InventoryScreen extends ConsumerWidget {
               separatorBuilder: (_, _) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final item = state.items[index];
-                return Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppTheme.darkSurface,
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: item.isCriticalStock ? AppTheme.accentError.withValues(alpha: 0.4) : AppTheme.darkBorder,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: (item.isCriticalStock ? AppTheme.accentError : AppTheme.primaryBlue).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          item.isCriticalStock ? Icons.warning_amber_rounded : Icons.inventory_2,
-                          size: 20,
-                          color: item.isCriticalStock ? AppTheme.accentError : AppTheme.primaryBlue,
+                    onTap: () => _showItemHistoryModal(context, item, state, notifier),
+                    hoverColor: AppTheme.primaryBlue.withValues(alpha: 0.08),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.darkSurface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: item.isCriticalStock ? AppTheme.accentError.withValues(alpha: 0.4) : AppTheme.darkBorder,
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: (item.isCriticalStock ? AppTheme.accentError : AppTheme.primaryBlue).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              item.isCriticalStock ? Icons.warning_amber_rounded : Icons.inventory_2,
+                              size: 20,
+                              color: item.isCriticalStock ? AppTheme.accentError : AppTheme.primaryBlue,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  item.name,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        item.name,
+                                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.darkBg,
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(color: AppTheme.darkBorder),
+                                      ),
+                                      child: Text(item.code, style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.darkBg,
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(color: AppTheme.darkBorder),
-                                  ),
-                                  child: Text(item.code, style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Categoria: ${item.category} • Mínimo de Segurança: ${item.minQuantity} ${item.unit}',
+                                  style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Categoria: ${item.category} • Mínimo de Segurança: ${item.minQuantity} ${item.unit}',
-                              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${item.quantityInStock} ${item.unit}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: item.isCriticalStock ? AppTheme.accentError : AppTheme.accentGreen,
-                            ),
                           ),
-                          Text(
-                            item.isCriticalStock ? 'Estoque Crítico' : 'Normal',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: item.isCriticalStock ? AppTheme.accentError : AppTheme.textSecondary,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '${item.quantityInStock} ${item.unit}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: item.isCriticalStock ? AppTheme.accentError : AppTheme.accentGreen,
+                                ),
+                              ),
+                              Text(
+                                item.isCriticalStock ? 'Estoque Crítico' : 'Normal',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: item.isCriticalStock ? AppTheme.accentError : AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: AppTheme.textSecondary,
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 );
               },
@@ -813,14 +831,435 @@ class InventoryScreen extends ConsumerWidget {
   }
 
   // ---------------------------------------------------------------------------
+  // MODAL DE DETALHES, RASTREABILIDADE & KARDEX DO ITEM
+  // ---------------------------------------------------------------------------
+  void _showItemHistoryModal(
+    BuildContext context,
+    InventoryItemModel item,
+    InventoryState state,
+    InventoryNotifier notifier,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: AppTheme.darkSurface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 860, maxHeight: 720),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: FutureBuilder<List<StockMovementModel>>(
+                future: notifier.fetchItemMovements(item.id),
+                builder: (context, snapshot) {
+                  final movements = snapshot.data ?? [];
+                  final isLoading = snapshot.connectionState == ConnectionState.waiting;
+
+                  int totalEntries = 0;
+                  int totalExits = 0;
+                  for (final m in movements) {
+                    if (m.isEntry) {
+                      totalEntries += m.quantity;
+                    } else if (m.isExit) {
+                      totalExits += m.quantity.abs();
+                    }
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: (item.isCriticalStock ? AppTheme.accentError : AppTheme.primaryBlue).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              item.isCriticalStock ? Icons.warning_amber_rounded : Icons.inventory_2,
+                              size: 28,
+                              color: item.isCriticalStock ? AppTheme.accentError : AppTheme.primaryBlue,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        item.name,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTheme.textPrimary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.darkBg,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: AppTheme.darkBorder),
+                                      ),
+                                      child: Text(
+                                        item.code,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.primaryBlue,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Categoria: ${item.category} • Unidade: ${item.unit} • Saldo em Estoque: ${item.quantityInStock} ${item.unit}',
+                                  style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryBlue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _showStockEntryModal(context, state, notifier, prefillItem: item);
+                            },
+                            icon: const Icon(Icons.add_box_outlined, size: 16),
+                            label: const Text('Nova Entrada deste Item'),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            icon: const Icon(Icons.close, color: AppTheme.textSecondary),
+                            tooltip: 'Fechar',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Cards Resumo de Saldo e Movimentação
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          _buildKardexKpiCard(
+                            title: 'Saldo Físico Atual',
+                            value: '${item.quantityInStock} ${item.unit}',
+                            subtitle: item.isCriticalStock ? 'Abaixo do Mínimo' : 'Nível Normal',
+                            color: item.isCriticalStock ? AppTheme.accentError : AppTheme.accentGreen,
+                            icon: Icons.account_balance_wallet_outlined,
+                          ),
+                          _buildKardexKpiCard(
+                            title: 'Entradas Acumuladas',
+                            value: '+$totalEntries ${item.unit}',
+                            subtitle: 'Compras e Lotes',
+                            color: AppTheme.accentGreen,
+                            icon: Icons.call_received_rounded,
+                          ),
+                          _buildKardexKpiCard(
+                            title: 'Saídas / Consumo O.S.',
+                            value: '-$totalExits ${item.unit}',
+                            subtitle: 'Baixas para Ordens',
+                            color: AppTheme.accentError,
+                            icon: Icons.call_made_rounded,
+                          ),
+                          _buildKardexKpiCard(
+                            title: 'Mínimo de Segurança',
+                            value: '${item.minQuantity} ${item.unit}',
+                            subtitle: 'Ponto de Pedido',
+                            color: AppTheme.textSecondary,
+                            icon: Icons.shield_outlined,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Título da Seção do Extrato
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.history, size: 18, color: AppTheme.primaryBlue),
+                              SizedBox(width: 8),
+                              Text(
+                                'Extrato Cronológico & Rastreabilidade (Kardex)',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            '${movements.length} registro(s)',
+                            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(color: AppTheme.darkBorder, height: 1),
+                      const SizedBox(height: 12),
+
+                      // Lista / Timeline de Movimentações
+                      Expanded(
+                        child: isLoading
+                            ? const Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(height: 12),
+                                    Text('Carregando extrato de movimentações...', style: TextStyle(color: AppTheme.textSecondary)),
+                                  ],
+                                ),
+                              )
+                            : movements.isEmpty
+                                ? Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.receipt_long_outlined, size: 48, color: AppTheme.textSecondary.withValues(alpha: 0.5)),
+                                        const SizedBox(height: 12),
+                                        const Text(
+                                          'Nenhuma movimentação registrada no histórico deste item.',
+                                          style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : ListView.separated(
+                                    itemCount: movements.length,
+                                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                                    itemBuilder: (context, idx) {
+                                      final m = movements[idx];
+                                      return _buildMovementRow(m, item.unit);
+                                    },
+                                  ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildKardexKpiCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Container(
+      width: 190,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.darkBg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.darkBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+              ),
+              Icon(icon, size: 16, color: color),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMovementRow(StockMovementModel m, String unit) {
+    Color badgeColor;
+    IconData badgeIcon;
+
+    if (m.eventType == 'STOCK_ENTRY') {
+      badgeColor = AppTheme.accentGreen;
+      badgeIcon = Icons.call_received_rounded;
+    } else if (m.eventType == 'MATERIAL_CHECKOUT_OS') {
+      badgeColor = AppTheme.accentError;
+      badgeIcon = Icons.call_made_rounded;
+    } else if (m.eventType.contains('DIVERGENT')) {
+      badgeColor = Colors.orange;
+      badgeIcon = Icons.warning_amber_rounded;
+    } else if (m.eventType.contains('CONFORMANT')) {
+      badgeColor = AppTheme.primaryBlue;
+      badgeIcon = Icons.assignment_turned_in_outlined;
+    } else {
+      badgeColor = AppTheme.textSecondary;
+      badgeIcon = Icons.swap_horiz_rounded;
+    }
+
+    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(m.createdAt);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.darkBg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.darkBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: badgeColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(badgeIcon, size: 18, color: badgeColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        m.eventDescription,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: badgeColor,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      dateStr,
+                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
+                  children: [
+                    if (m.warehouseName != null && m.warehouseName!.isNotEmpty)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.warehouse_outlined, size: 12, color: AppTheme.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(m.warehouseName!, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                        ],
+                      ),
+                    if (m.userName != null && m.userName!.isNotEmpty)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.person_outline, size: 12, color: AppTheme.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(m.userName!, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                        ],
+                      ),
+                    if (m.workOrderId != null && m.workOrderId!.isNotEmpty)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.build_circle_outlined, size: 12, color: AppTheme.textSecondary),
+                          const SizedBox(width: 4),
+                          Text('O.S. #${m.workOrderId!.length > 8 ? m.workOrderId!.substring(0, 8) : m.workOrderId}',
+                              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                        ],
+                      ),
+                  ],
+                ),
+                if (m.notes != null && m.notes!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    m.notes!,
+                    style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: AppTheme.textPrimary),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${m.formattedQuantity} $unit',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: m.isEntry ? AppTheme.accentGreen : (m.isExit ? AppTheme.accentError : AppTheme.textPrimary),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Saldo após: ${m.balanceAfter} $unit',
+                style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // MODAL DE ENTRADA DE MATERIAL / COMPRA
   // ---------------------------------------------------------------------------
-  void _showStockEntryModal(BuildContext context, InventoryState state, InventoryNotifier notifier) {
-    final codeCtrl = TextEditingController(text: 'BOB-FIBRA-12FO-AS80');
-    final nameCtrl = TextEditingController(text: 'Bobina de Fibra 12FO AS80 2000m');
-    final catCtrl = TextEditingController(text: 'CABO_FIBRA');
+  void _showStockEntryModal(
+    BuildContext context,
+    InventoryState state,
+    InventoryNotifier notifier, {
+    InventoryItemModel? prefillItem,
+  }) {
+    final codeCtrl = TextEditingController(text: prefillItem?.code ?? 'BOB-FIBRA-12FO-AS80');
+    final nameCtrl = TextEditingController(text: prefillItem?.name ?? 'Bobina de Fibra 12FO AS80 2000m');
+    final catCtrl = TextEditingController(text: prefillItem?.category ?? 'CABO_FIBRA');
     final qtyCtrl = TextEditingController(text: '10');
-    final unitCtrl = TextEditingController(text: 'BOB');
+    final unitCtrl = TextEditingController(text: prefillItem?.unit ?? 'BOB');
     final notesCtrl = TextEditingController();
 
     showDialog(

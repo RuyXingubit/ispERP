@@ -191,6 +191,11 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
     }
   }
 
+  /// Busca o extrato cronológico e rastreabilidade (Kardex) de um insumo.
+  Future<List<StockMovementModel>> fetchItemMovements(String itemId) async {
+    return _repository.getItemMovements(itemId);
+  }
+
   /// Cadastra formalmente um terceiro ou colaborador para transporte de estoque.
   Future<CollaboratorModel?> registerCollaborator({
     required String name,

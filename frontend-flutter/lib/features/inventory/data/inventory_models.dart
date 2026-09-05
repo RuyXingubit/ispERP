@@ -425,3 +425,79 @@ class CollaboratorModel {
     return '$name$doc';
   }
 }
+
+@immutable
+class StockMovementModel {
+  final String id;
+  final DateTime createdAt;
+  final String eventType;
+  final String eventDescription;
+  final int quantity;
+  final int balanceAfter;
+  final String? warehouseName;
+  final String? warehouseId;
+  final String? userName;
+  final String? userId;
+  final String? workOrderId;
+  final String? notes;
+  final String? photoUrl;
+
+  const StockMovementModel({
+    required this.id,
+    required this.createdAt,
+    required this.eventType,
+    required this.eventDescription,
+    required this.quantity,
+    required this.balanceAfter,
+    this.warehouseName,
+    this.warehouseId,
+    this.userName,
+    this.userId,
+    this.workOrderId,
+    this.notes,
+    this.photoUrl,
+  });
+
+  bool get isEntry => quantity > 0;
+  bool get isExit => quantity < 0;
+
+  String get formattedQuantity => isEntry ? '+$quantity' : '$quantity';
+
+  factory StockMovementModel.fromJson(Map<String, dynamic> json) {
+    return StockMovementModel(
+      id: json['id']?.toString() ?? '',
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      eventType: json['eventType']?.toString() ?? 'STOCK_ENTRY',
+      eventDescription: json['eventDescription']?.toString() ?? 'Movimentação',
+      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+      balanceAfter: (json['balanceAfter'] as num?)?.toInt() ?? 0,
+      warehouseName: json['warehouseName']?.toString(),
+      warehouseId: json['warehouseId']?.toString(),
+      userName: json['userName']?.toString(),
+      userId: json['userId']?.toString(),
+      workOrderId: json['workOrderId']?.toString(),
+      notes: json['notes']?.toString(),
+      photoUrl: json['photoUrl']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'createdAt': createdAt.toIso8601String(),
+      'eventType': eventType,
+      'eventDescription': eventDescription,
+      'quantity': quantity,
+      'balanceAfter': balanceAfter,
+      'warehouseName': warehouseName,
+      'warehouseId': warehouseId,
+      'userName': userName,
+      'userId': userId,
+      'workOrderId': workOrderId,
+      'notes': notes,
+      'photoUrl': photoUrl,
+    };
+  }
+}

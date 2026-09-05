@@ -150,6 +150,46 @@ class FakeInventoryRepository implements InventoryRepository {
   }
 
   @override
+  Future<List<StockMovementModel>> getItemMovements(String itemId) async {
+    return [
+      StockMovementModel(
+        id: '01a0674e-mov-001',
+        createdAt: DateTime(2026, 9, 1, 10, 0),
+        eventType: 'STOCK_ENTRY',
+        eventDescription: 'Entrada / Compra de Fornecedor',
+        quantity: 10,
+        balanceAfter: 10,
+        warehouseName: 'Depósito Central Altamira',
+        warehouseId: '01a0674e-eb97-7373-b812-6b3fd5205f59',
+        notes: 'NF 1042 - Lote 1',
+      ),
+      StockMovementModel(
+        id: '01a0674e-mov-002',
+        createdAt: DateTime(2026, 9, 3, 14, 30),
+        eventType: 'STOCK_ENTRY',
+        eventDescription: 'Entrada / Compra de Fornecedor',
+        quantity: 5,
+        balanceAfter: 15,
+        warehouseName: 'Depósito Central Altamira',
+        warehouseId: '01a0674e-eb97-7373-b812-6b3fd5205f59',
+        notes: 'NF 1088 - Lote 2',
+      ),
+      StockMovementModel(
+        id: '01a0674e-mov-003',
+        createdAt: DateTime(2026, 9, 4, 9, 15),
+        eventType: 'MATERIAL_CHECKOUT_OS',
+        eventDescription: 'Saída para Ordem de Serviço',
+        quantity: -2,
+        balanceAfter: 13,
+        warehouseName: 'Depósito Central Altamira',
+        workOrderId: '01912345-0000-7000-8000-000000000010',
+        userName: 'João Técnico',
+        notes: 'Instalação Fibra Cliente Ruy',
+      ),
+    ];
+  }
+
+  @override
   Future<StockTransferModel?> createTransfer({
     required String originWarehouseId,
     required String destinationWarehouseId,
@@ -409,6 +449,48 @@ void main() {
 
       expect(success, isTrue);
       expect(notifier.state.successMessage, contains('criada com sucesso'));
+    });
+
+    test('StockMovementModel deve serializar/desserializar e formatar quantidade corretamente', () {
+      final mov = StockMovementModel(
+        id: '01a0674e-mov-test',
+        createdAt: DateTime(2026, 9, 5, 14, 0),
+        eventType: 'STOCK_ENTRY',
+        eventDescription: 'Entrada / Compra de Fornecedor',
+        quantity: 10,
+        balanceAfter: 10,
+        warehouseName: 'Depósito Central Altamira',
+        notes: 'NF 1001',
+      );
+
+      expect(mov.isEntry, isTrue);
+      expect(mov.isExit, isFalse);
+      expect(mov.formattedQuantity, equals('+10'));
+
+      final json = mov.toJson();
+      expect(json['quantity'], equals(10));
+      expect(json['balanceAfter'], equals(10));
+
+      final fromJson = StockMovementModel.fromJson(json);
+      expect(fromJson.quantity, equals(10));
+      expect(fromJson.balanceAfter, equals(10));
+      expect(fromJson.eventType, equals('STOCK_ENTRY'));
+    });
+
+    test('Deve buscar movimentações e histórico Kardex do item (+10 e +5 = 15, saída -2 = 13)', () async {
+      await Future.delayed(const Duration(milliseconds: 10));
+
+      final movements = await notifier.fetchItemMovements('01a0674e-eb55-7a47-ae2c-5ab0e1b06675');
+
+      expect(movements.length, equals(3));
+      expect(movements[0].quantity, equals(10));
+      expect(movements[0].balanceAfter, equals(10));
+      expect(movements[1].quantity, equals(5));
+      expect(movements[1].balanceAfter, equals(15));
+      expect(movements[2].quantity, equals(-2));
+      expect(movements[2].balanceAfter, equals(13));
+      expect(movements[2].isExit, isTrue);
+      expect(movements[2].formattedQuantity, equals('-2'));
     });
   });
 }

@@ -39,4 +39,15 @@ public class InventoryController implements InventoryApi {
         );
         return ResponseEntity.ok(inventoryMapper.toResponse(item));
     }
+
+    @org.springframework.web.bind.annotation.GetMapping({"/inventory/items/{itemId}/movements", "/api/inventory/items/{itemId}/movements"})
+    public ResponseEntity<List<br.dev.xb.isperp.dto.StockMovementResponse>> getItemMovements(
+            @org.springframework.web.bind.annotation.PathVariable("itemId") String itemIdOrCode) {
+        try {
+            java.util.UUID itemId = java.util.UUID.fromString(itemIdOrCode);
+            return ResponseEntity.ok(inventoryService.getItemMovements(itemId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.ok(inventoryService.getItemMovementsByCode(itemIdOrCode));
+        }
+    }
 }

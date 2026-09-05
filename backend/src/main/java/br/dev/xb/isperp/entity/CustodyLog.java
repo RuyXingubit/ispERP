@@ -58,6 +58,14 @@ public class CustodyLog {
     private String eventType;
 
     @Nullable
+    @Column(name = "quantity")
+    private Integer quantity;
+
+    @Nullable
+    @Column(name = "balance_after")
+    private Integer balanceAfter;
+
+    @Nullable
     @Column(name = "photo_url", columnDefinition = "text")
     private String photoUrl;
 

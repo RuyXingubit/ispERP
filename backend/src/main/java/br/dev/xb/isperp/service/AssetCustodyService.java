@@ -329,10 +329,18 @@ public class AssetCustodyService {
                 .orElseThrow(() -> new IllegalArgumentException("Ordem de Serviço não encontrada: " + request.getWorkOrderId()));
 
         UUID itemId = null;
+        Integer newBalance = null;
+        int qty = request.getQuantityOrMeters() > 0 ? request.getQuantityOrMeters() : 1;
+
         if (request.getItemCode() != null) {
-            itemId = inventoryItemRepository.findByCode(request.getItemCode())
-                    .map(InventoryItem::getId)
-                    .orElse(null);
+            var itemOpt = inventoryItemRepository.findByCode(request.getItemCode());
+            if (itemOpt.isPresent()) {
+                InventoryItem item = itemOpt.get();
+                itemId = item.getId();
+                newBalance = Math.max(0, item.getQuantityInStock() - qty);
+                item.setQuantityInStock(newBalance);
+                inventoryItemRepository.save(item);
+            }
         }
 
         CustodyLog logEntry = CustodyLog.builder()
@@ -343,8 +351,10 @@ public class AssetCustodyService {
                 .fromWarehouseId(request.getWarehouseId())
                 .toUserId(request.getTechnicianUserId())
                 .eventType("MATERIAL_CHECKOUT_OS")
+                .quantity(-qty)
+                .balanceAfter(newBalance)
                 .photoUrl(request.getBeforePhotoUrl())
-                .notes("Retirada de insumo para O.S. " + wo.getId() + ". Qtd/Metros: " + request.getQuantityOrMeters() + ". " + (request.getNotes() != null ? request.getNotes() : ""))
+                .notes("Retirada de insumo para O.S. " + wo.getId() + ". Qtd/Metros: " + qty + ". " + (request.getNotes() != null ? request.getNotes() : ""))
                 .build();
 
         CustodyLog saved = custodyLogRepository.save(logEntry);
@@ -367,10 +377,18 @@ public class AssetCustodyService {
                 + (request.getNotes() != null ? request.getNotes() : "");
 
         UUID itemId = null;
+        Integer newBalance = null;
+        int returnQty = request.getActualRemainingMetersOrQty();
+
         if (request.getItemCode() != null) {
-            itemId = inventoryItemRepository.findByCode(request.getItemCode())
-                    .map(InventoryItem::getId)
-                    .orElse(null);
+            var itemOpt = inventoryItemRepository.findByCode(request.getItemCode());
+            if (itemOpt.isPresent()) {
+                InventoryItem item = itemOpt.get();
+                itemId = item.getId();
+                newBalance = item.getQuantityInStock() + returnQty;
+                item.setQuantityInStock(newBalance);
+                inventoryItemRepository.save(item);
+            }
         }
 
         CustodyLog logEntry = CustodyLog.builder()
@@ -381,6 +399,8 @@ public class AssetCustodyService {
                 .fromUserId(request.getTechnicianUserId())
                 .toWarehouseId(request.getWarehouseId())
                 .eventType(eventType)
+                .quantity(+returnQty)
+                .balanceAfter(newBalance)
                 .photoUrl(request.getReturnPhotoUrl())
                 .notes(notes + " | Evidências: Antes=" + request.getBeforePhotoUrl() + ", Instalado=" + request.getInstalledPhotoUrl() + ", Devolução=" + request.getReturnPhotoUrl())
                 .build();

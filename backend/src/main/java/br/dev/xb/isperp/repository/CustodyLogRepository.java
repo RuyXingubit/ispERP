@@ -15,4 +15,6 @@ public interface CustodyLogRepository extends JpaRepository<CustodyLog, UUID> {
     List<CustodyLog> findByToUserIdOrderByCreatedAtDesc(UUID toUserId);
 
     List<CustodyLog> findByWorkOrderIdOrderByCreatedAtDesc(UUID workOrderId);
+
+    List<CustodyLog> findByItemIdOrderByCreatedAtDesc(UUID itemId);
 }

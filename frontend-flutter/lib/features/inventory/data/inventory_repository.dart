@@ -128,6 +128,21 @@ class InventoryRepository {
     }
   }
 
+  /// Obtém o extrato cronológico de movimentações e rastreabilidade (Kardex) de um item.
+  Future<List<StockMovementModel>> getItemMovements(String itemId) async {
+    try {
+      final response = await _dio.get('/inventory/items/$itemId/movements');
+      if (response.statusCode == 200 && response.data is List) {
+        return (response.data as List)
+            .map((e) => StockMovementModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   /// Lista todas as guias de transferência inter-bases.
   Future<List<StockTransferModel>> listTransfers() async {
     try {
