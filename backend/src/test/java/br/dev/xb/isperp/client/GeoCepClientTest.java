@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SuppressWarnings("null")
 class GeoCepClientTest {
 
-    private final GeoCepClient geoCepClient = new GeoCepClient("https://api.geocep.api.br", "");
+    private final GeoCepClient geoCepClient = new GeoCepClient("https://geocep.api.br", "");
 
     @Test
     @DisplayName("Deve buscar dados de endereço e coordenadas a partir do CEP")
@@ -23,6 +23,16 @@ class GeoCepClientTest {
         assertNotNull(result.getLatitude());
         assertNotNull(result.getLongitude());
         assertNotNull(result.getLocalidade());
+    }
+
+    @Test
+    @DisplayName("Deve buscar endereço por avenida brigadeiro eduardo gomes com sucesso")
+    void shouldSearchAddressesForEduardoGomes() {
+        List<GeoCepClient.CepLookupResult> results = geoCepClient.searchAddresses("avenida brigadeiro eduardo gomes");
+
+        assertNotNull(results);
+        assertFalse(results.isEmpty());
+        assertTrue(results.stream().anyMatch(r -> r.getLogradouro().toLowerCase().contains("eduardo gomes")));
     }
 
     @Test

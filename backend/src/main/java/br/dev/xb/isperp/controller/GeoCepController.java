@@ -27,8 +27,10 @@ public class GeoCepController {
     private final RouteOptimizationService routeOptimizationService;
 
     @GetMapping("/cep/{cep}")
-    public ResponseEntity<GeoCepClient.CepLookupResult> lookupCep(@PathVariable String cep) {
-        return ResponseEntity.ok(geoCepClient.lookupCep(cep));
+    public ResponseEntity<GeoCepClient.CepLookupResult> lookupCep(
+            @PathVariable String cep,
+            @RequestParam(required = false) String numero) {
+        return ResponseEntity.ok(geoCepClient.lookupCep(cep, numero));
     }
 
     @GetMapping("/search")

@@ -183,6 +183,15 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
     final cleanInput = input.trim();
     if (cleanInput.isEmpty) return;
 
+    // Detecta se usuário digitou o número junto no campo de busca (ex: "Av Brigadeiro Eduardo Gomes, 3554")
+    final numberMatch = RegExp(r'[,;\s]+(\d+)\s*$').firstMatch(cleanInput);
+    String queryOnly = cleanInput;
+    if (numberMatch != null) {
+      final numStr = numberMatch.group(1)!;
+      state = state.copyWith(number: numStr);
+      queryOnly = cleanInput.substring(0, numberMatch.start).trim();
+    }
+
     state = state.copyWith(
       searchQuery: cleanInput,
       isSearchingAddress: true,
@@ -222,7 +231,7 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
 
     // 3. Busca Textual por Nome de Rua / Logradouro / Bairro
     try {
-      final results = await _repository.searchAddress(cleanInput);
+      final results = await _repository.searchAddress(queryOnly.isNotEmpty ? queryOnly : cleanInput);
       if (results.isNotEmpty) {
         if (results.length == 1) {
           // Apenas um resultado: preenche automaticamente
@@ -320,16 +329,16 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
   }
 
   // Atualização manual de campos de endereço
-  void setStreet(String val) => state = state.copyWith(street: val);
-  void setNumber(String val) => state = state.copyWith(number: val);
-  void setComplement(String val) => state = state.copyWith(complement: val);
-  void setNeighborhood(String val) => state = state.copyWith(neighborhood: val);
-  void setCity(String val) => state = state.copyWith(city: val);
-  void setStateUf(String val) => state = state.copyWith(state: val);
+  void setStreet(String val) => state = state.copyWith(street: val, clearError: true);
+  void setNumber(String val) => state = state.copyWith(number: val, clearError: true);
+  void setComplement(String val) => state = state.copyWith(complement: val, clearError: true);
+  void setNeighborhood(String val) => state = state.copyWith(neighborhood: val, clearError: true);
+  void setCity(String val) => state = state.copyWith(city: val, clearError: true);
+  void setStateUf(String val) => state = state.copyWith(state: val, clearError: true);
 
   // Seleção de Plano e Condição
-  void selectPlan(CommercialPlan plan) => state = state.copyWith(selectedPlan: plan);
-  void setPreferredDueDate(int day) => state = state.copyWith(preferredDueDate: day);
+  void selectPlan(CommercialPlan plan) => state = state.copyWith(selectedPlan: plan, clearError: true);
+  void setPreferredDueDate(int day) => state = state.copyWith(preferredDueDate: day, clearError: true);
 
   // Dados do Assinante
   void setCustomerCpf(String raw) {
@@ -342,10 +351,10 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
     );
   }
 
-  void setCustomerName(String val) => state = state.copyWith(customerName: val);
-  void setCustomerPhone(String val) => state = state.copyWith(customerPhone: val);
-  void setCustomerEmail(String val) => state = state.copyWith(customerEmail: val);
-  void setNotificationChannel(String val) => state = state.copyWith(notificationChannel: val);
+  void setCustomerName(String val) => state = state.copyWith(customerName: val, clearError: true);
+  void setCustomerPhone(String val) => state = state.copyWith(customerPhone: val, clearError: true);
+  void setCustomerEmail(String val) => state = state.copyWith(customerEmail: val, clearError: true);
+  void setNotificationChannel(String val) => state = state.copyWith(notificationChannel: val, clearError: true);
 
   /// Validação antes de avançar cada etapa.
   bool canAdvanceFromCurrentStep() {
@@ -375,10 +384,20 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
     switch (state.step) {
       case SalesOnboardingStep.feasibility:
         if (!canAdvanceFromCurrentStep()) {
-          state = state.copyWith(errorMessage: 'Preencha o endereço completo (Rua, Número, Cidade e UF).');
+          final missing = <String>[];
+          if (state.street.trim().isEmpty) missing.add('Rua');
+          if (state.number.trim().isEmpty) missing.add('Número');
+          if (state.city.trim().isEmpty) missing.add('Cidade');
+          if (state.state.trim().isEmpty) missing.add('UF');
+          state = state.copyWith(errorMessage: 'Preencha os campos obrigatórios: ${missing.join(", ")}.');
           return;
         }
-        state = state.copyWith(step: SalesOnboardingStep.planSelection);
+        // Se bairro estiver vazio, preenche fallback amigável
+        final effectiveNeighborhood = state.neighborhood.trim().isNotEmpty ? state.neighborhood.trim() : 'Centro';
+        state = state.copyWith(
+          neighborhood: effectiveNeighborhood,
+          step: SalesOnboardingStep.planSelection,
+        );
         break;
 
       case SalesOnboardingStep.planSelection:

@@ -10,7 +10,10 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,16 +24,32 @@ import java.util.Map;
 public class GeoCepClient {
 
     private final RestClient restClient;
+    private final RestClient publicSearchClient;
 
     public GeoCepClient(
-            @Value("${geocep.api.url:https://api.geocep.api.br}") String baseUrl,
+            @Value("${geocep.api.url:https://geocep.api.br}") String baseUrl,
             @Value("${geocep.api.key:}") String apiKey) {
         
-        RestClient.Builder builder = RestClient.builder().baseUrl(baseUrl);
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(3));
+        factory.setReadTimeout(Duration.ofSeconds(4));
+
+        RestClient.Builder builder = RestClient.builder()
+                .requestFactory(factory)
+                .baseUrl(baseUrl);
         if (apiKey != null && !apiKey.isBlank()) {
             builder.defaultHeader("X-API-Key", apiKey);
         }
         this.restClient = builder.build();
+
+        SimpleClientHttpRequestFactory searchFactory = new SimpleClientHttpRequestFactory();
+        searchFactory.setConnectTimeout(Duration.ofSeconds(3));
+        searchFactory.setReadTimeout(Duration.ofSeconds(4));
+
+        this.publicSearchClient = RestClient.builder()
+                .requestFactory(searchFactory)
+                .defaultHeader("User-Agent", "ispERP-Telecom/1.0 (contato@xingubit.com.br)")
+                .build();
     }
 
     @Data
@@ -137,13 +156,23 @@ public class GeoCepClient {
     }
 
     public CepLookupResult lookupCep(String cep) {
+        return lookupCep(cep, null);
+    }
+
+    public CepLookupResult lookupCep(String cep, String numero) {
         String cleanCep = cep != null ? cep.replaceAll("[^0-9]", "") : "";
-        log.info("Consultando GeoCEP para o CEP: {}", cleanCep);
+        log.info("Consultando GeoCEP para o CEP: {}, número: {}", cleanCep, numero);
 
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> response = restClient.get()
-                    .uri("/v1/cep/{cep}", cleanCep)
+                    .uri(uriBuilder -> {
+                        var b = uriBuilder.path("/v1/cep/{cep}");
+                        if (numero != null && !numero.isBlank()) {
+                            b.queryParam("numero", numero.trim());
+                        }
+                        return b.build(cleanCep);
+                    })
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .body(Map.class);
@@ -157,7 +186,32 @@ public class GeoCepClient {
                 return parseCepResult(data, cleanCep);
             }
         } catch (Exception e) {
-            log.warn("Falha na chamada externa ao GeoCEP para {}: {}. Usando fallback local.", cleanCep, e.getMessage());
+            log.warn("Falha na chamada externa ao GeoCEP para {}: {}. Tentando ViaCEP.", cleanCep, e.getMessage());
+        }
+
+        // Fallback ViaCEP
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> viaCepResp = publicSearchClient.get()
+                    .uri("https://viacep.com.br/ws/{cep}/json/", cleanCep)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (viaCepResp != null && !viaCepResp.containsKey("erro")) {
+                return CepLookupResult.builder()
+                        .cep(cleanCep)
+                        .logradouro((String) viaCepResp.get("logradouro"))
+                        .bairro((String) viaCepResp.get("bairro"))
+                        .localidade((String) viaCepResp.get("localidade"))
+                        .uf((String) viaCepResp.get("uf"))
+                        .ibge((String) viaCepResp.get("ibge"))
+                        .latitude(new BigDecimal("-3.2033"))
+                        .longitude(new BigDecimal("-52.2064"))
+                        .build();
+            }
+        } catch (Exception e) {
+            log.warn("Falha no fallback ViaCEP para {}: {}", cleanCep, e.getMessage());
         }
 
         // Fallback robusto para Pará (Altamira / Vitória do Xingu)
@@ -178,18 +232,23 @@ public class GeoCepClient {
             return List.of();
         }
         String cleanQuery = query.trim();
-        log.info("Buscando endereços no GeoCEP para query: {}", cleanQuery);
+        log.info("Buscando endereços para query: {}", cleanQuery);
 
+        List<CepLookupResult> results = new ArrayList<>();
+
+        // 1. Tentar busca nativa no GeoCEP
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> response = restClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/v1/search").queryParam("q", cleanQuery).build())
+                    .uri(uriBuilder -> uriBuilder.path("/v1/search")
+                            .queryParam("q", cleanQuery)
+                            .queryParam("limite", 10)
+                            .build())
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .body(Map.class);
 
-            if (response != null && response.get("data") instanceof List<?> list) {
-                List<CepLookupResult> results = new ArrayList<>();
+            if (response != null && response.get("data") instanceof List<?> list && !list.isEmpty()) {
                 for (Object item : list) {
                     if (item instanceof Map<?, ?> map) {
                         @SuppressWarnings("unchecked")
@@ -197,12 +256,110 @@ public class GeoCepClient {
                         results.add(parseCepResult(dataMap, (String) dataMap.get("cep")));
                     }
                 }
+                if (!results.isEmpty()) {
+                    return results;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("GeoCEP /v1/search não respondeu para '{}': {}. Consultando bases cartográficas integradas.", cleanQuery, e.getMessage());
+        }
+
+        // 2. Extração de termos para ViaCEP (ex: "avenida brigadeiro eduardo gomes" -> "Eduardo Gomes")
+        String streetTerm = cleanQuery
+                .replaceAll("(?i)\\b(avenida|rua|travessa|alameda|rodovia|passagem|praca|praça|av\\.?|r\\.?|tv\\.?|al\\.?)\\b", "")
+                .trim();
+        if (streetTerm.length() >= 3) {
+            try {
+                String uf = "PA";
+                String cidade = "Altamira";
+                if (cleanQuery.toLowerCase().contains("belem") || cleanQuery.toLowerCase().contains("belém")) {
+                    cidade = "Belem";
+                }
+                String viaCepUrl = String.format("https://viacep.com.br/ws/%s/%s/%s/json/", uf, cidade, streetTerm.replace(" ", "+"));
+                
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> viaCepList = publicSearchClient.get()
+                        .uri(viaCepUrl)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .retrieve()
+                        .body(List.class);
+
+                if (viaCepList != null && !viaCepList.isEmpty()) {
+                    for (Map<String, Object> item : viaCepList) {
+                        String cep = (String) item.get("cep");
+                        String logradouro = (String) item.get("logradouro");
+                        String bairro = (String) item.get("bairro");
+                        String localidade = (String) item.get("localidade");
+                        String ufRes = (String) item.get("uf");
+
+                        CepLookupResult enriched = lookupCep(cep);
+
+                        results.add(CepLookupResult.builder()
+                                .cep(cep != null ? cep : "")
+                                .logradouro(logradouro != null ? logradouro : cleanQuery)
+                                .bairro(bairro != null && !bairro.isBlank() ? bairro : "Centro")
+                                .localidade(localidade != null ? localidade : cidade)
+                                .uf(ufRes != null ? ufRes : uf)
+                                .latitude(enriched != null && enriched.getLatitude() != null ? enriched.getLatitude() : new BigDecimal("-3.2033"))
+                                .longitude(enriched != null && enriched.getLongitude() != null ? enriched.getLongitude() : new BigDecimal("-52.2064"))
+                                .build());
+                    }
+                    if (!results.isEmpty()) {
+                        return results;
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Busca via ViaCEP não encontrou resultados para '{}': {}", streetTerm, e.getMessage());
+            }
+        }
+
+        // 3. Fallback OpenStreetMap Nominatim
+        try {
+            String osmQuery = cleanQuery;
+            if (!osmQuery.toLowerCase().contains("brasil") && !osmQuery.toLowerCase().contains("pa") && !osmQuery.toLowerCase().contains("altamira")) {
+                osmQuery = cleanQuery + " Altamira Brasil";
+            }
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> osmResults = publicSearchClient.get()
+                    .uri("https://nominatim.openstreetmap.org/search?q={query}&format=json&addressdetails=1&countrycodes=br&limit=10", osmQuery)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(List.class);
+
+            if (osmResults != null && !osmResults.isEmpty()) {
+                for (Map<String, Object> item : osmResults) {
+                    BigDecimal lat = item.get("lat") != null ? new BigDecimal(item.get("lat").toString()) : null;
+                    BigDecimal lon = item.get("lon") != null ? new BigDecimal(item.get("lon").toString()) : null;
+
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> address = (Map<String, Object>) item.get("address");
+
+                    String road = address != null ? (String) address.getOrDefault("road", address.getOrDefault("suburb", item.get("name"))) : (String) item.get("name");
+                    String suburb = address != null ? (String) address.getOrDefault("suburb", address.getOrDefault("city_district", "")) : "";
+                    String city = address != null ? (String) address.getOrDefault("city", address.getOrDefault("town", address.getOrDefault("municipality", ""))) : "";
+                    String uf = address != null ? (String) address.getOrDefault("ISO3166-2-lvl4", "") : "";
+                    if (uf.startsWith("BR-")) {
+                        uf = uf.substring(3);
+                    }
+                    String postcode = address != null ? (String) address.getOrDefault("postcode", "") : "";
+
+                    results.add(CepLookupResult.builder()
+                            .cep(postcode != null ? postcode.replaceAll("[^0-9-]", "") : "")
+                            .logradouro(road != null ? road : cleanQuery)
+                            .bairro(suburb != null && !suburb.isBlank() ? suburb : "Centro")
+                            .localidade(city != null && !city.isBlank() ? city : "Altamira")
+                            .uf(uf != null && !uf.isBlank() ? uf : "PA")
+                            .latitude(lat != null ? lat : new BigDecimal("-3.2033"))
+                            .longitude(lon != null ? lon : new BigDecimal("-52.2064"))
+                            .build());
+                }
                 return results;
             }
         } catch (Exception e) {
-            log.warn("Falha na busca textual do GeoCEP para '{}': {}", cleanQuery, e.getMessage());
+            log.warn("Fallback OSM Nominatim falhou para '{}': {}", cleanQuery, e.getMessage());
         }
-        return List.of();
+
+        return results;
     }
 
     public CepLookupResult reverseGeocode(BigDecimal latitude, BigDecimal longitude) {

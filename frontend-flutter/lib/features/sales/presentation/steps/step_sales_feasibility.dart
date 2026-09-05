@@ -210,6 +210,11 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
                           onTap: () {
                             notifier.selectSuggestion(item);
                             _searchCtrl.text = item.street;
+                            _streetCtrl.text = item.street;
+                            _neighborhoodCtrl.text = item.neighborhood;
+                            _cityCtrl.text = item.city;
+                            _stateCtrl.text = item.state;
+                            _cepCtrl.text = CpfUtils.formatCep(item.cep);
                           },
                         );
                       },
@@ -388,6 +393,28 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
                   style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                 ),
               ],
+            ),
+          ] else if (state.street.trim().isNotEmpty) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: state.isSearchingAddress
+                    ? null
+                    : () {
+                        final numPart = state.number.trim().isNotEmpty ? ' ${state.number.trim()}' : '';
+                        final cityPart = state.city.trim().isNotEmpty ? ' ${state.city.trim()}' : '';
+                        final q = '${state.street}$numPart$cityPart';
+                        _searchCtrl.text = q;
+                        notifier.performSmartSearch(q);
+                      },
+                icon: const Icon(Icons.location_searching, size: 16, color: AppTheme.primaryBlue),
+                label: const Text('Localizar Coordenadas e Checar Viabilidade de Fibra'),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppTheme.primaryBlue.withValues(alpha: 0.5)),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                ),
+              ),
             ),
           ],
         ],
