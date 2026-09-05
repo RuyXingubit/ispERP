@@ -68,6 +68,23 @@ class SalesRepository {
     }
   }
 
+  /// Envia a coordenada mais precisa (obtida via GPS do dispositivo) para atualizar a base GeoCEP.
+  Future<GeoCepContributeResult?> contributeCoordinate(ContributeCoordinatePayload payload) async {
+    try {
+      final response = await _dio.post(
+        '/geocep/contribute',
+        data: payload.toJson(),
+      );
+
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        return GeoCepContributeResult.fromJson(response.data as Map<String, dynamic>);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Consulta viabilidade óptica FTTH real contra caixas CTO e portas livres.
   Future<FtthFeasibilityModel?> checkFeasibility(
     double latitude,

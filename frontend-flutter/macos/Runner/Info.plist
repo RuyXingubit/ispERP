@@ -28,6 +28,10 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>O ispERP utiliza sua localização para identificar o endereço e checar a viabilidade de fibra óptica.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>O ispERP utiliza sua localização para identificar o endereço e checar a viabilidade de fibra óptica.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

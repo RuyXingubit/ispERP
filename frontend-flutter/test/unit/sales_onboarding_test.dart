@@ -110,10 +110,19 @@ class FakeSalesRepository implements SalesRepository {
   @override
   Future<SaleResult?> submitSale(CreateSalePayload payload) async {
     return SaleResult(
-      id: '01912345-9999-7000-8000-000000000999',
+      id: '01912345-9999-7000-8000-0000000999',
       status: 'SUBMITTED',
       customerName: payload.customerName,
       customerCpf: payload.customerCpf,
+    );
+  }
+
+  @override
+  Future<GeoCepContributeResult?> contributeCoordinate(ContributeCoordinatePayload payload) async {
+    return GeoCepContributeResult(
+      status: 'success',
+      isSuccess: true,
+      message: 'Contribuição registrada com sucesso para o CEP ${payload.cep}. Consenso pendente.',
     );
   }
 }
@@ -194,6 +203,35 @@ void main() {
       expect(model.nearbyCtos.length, equals(1));
       expect(model.nearbyCtos.first.ctoName, equals('CTO-CENTRO-05'));
       expect(model.nearbyCtos.first.freePorts, equals(3));
+    });
+
+    test('ContributeCoordinatePayload e GeoCepContributeResult devem serializar/desserializar corretamente', () {
+      final payload = const ContributeCoordinatePayload(
+        cep: '68371-000',
+        numero: '3554',
+        latitude: -3.2033,
+        longitude: -52.2064,
+        precisaoGpsMetros: 3.5,
+      );
+
+      final json = payload.toJson();
+      expect(json['cep'], equals('68371-000'));
+      expect(json['numero'], equals('3554'));
+      expect(json['latitude'], equals(-3.2033));
+      expect(json['longitude'], equals(-52.2064));
+      expect(json['precisao_gps_metros'], equals(3.5));
+
+      final responseJson = {
+        'status': 'success',
+        'data': {
+          'mensagem': 'Coordenada registrada no consenso',
+        },
+      };
+
+      final result = GeoCepContributeResult.fromJson(responseJson);
+      expect(result.isSuccess, isTrue);
+      expect(result.status, equals('success'));
+      expect(result.message, equals('Coordenada registrada no consenso'));
     });
   });
 
@@ -288,6 +326,25 @@ void main() {
       notifier.reset();
       expect(notifier.state.step, equals(SalesOnboardingStep.feasibility));
       expect(notifier.state.customerName, isEmpty);
+    });
+
+    test('Deve rejeitar contribuição ao GeoCEP se coordenadas não existirem', () async {
+      await notifier.contributeCoordinateToGeoCep();
+      expect(notifier.state.errorMessage, contains('Coordenadas GPS não disponíveis'));
+      expect(notifier.state.hasContributedCoordinate, isFalse);
+    });
+
+    test('Deve registrar contribuição precisa de coordenadas ao GeoCEP com sucesso', () async {
+      // 1. Simula preenchimento com coordenadas
+      await notifier.performSmartSearch('-3.2107, -52.2371');
+      expect(notifier.state.latitude, isNotNull);
+      expect(notifier.state.longitude, isNotNull);
+
+      // 2. Dispara contribuição GeoCEP
+      await notifier.contributeCoordinateToGeoCep();
+      expect(notifier.state.isContributingCoordinate, isFalse);
+      expect(notifier.state.hasContributedCoordinate, isTrue);
+      expect(notifier.state.coordinateContributionMessage, contains('Contribuição registrada'));
     });
   });
 }

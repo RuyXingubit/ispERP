@@ -271,3 +271,58 @@ class CpfUtils {
     return int.parse(cleanCpf[9]) == d1 && int.parse(cleanCpf[10]) == d2;
   }
 }
+
+/// Payload para contribuição/atualização de coordenadas prediais no GeoCEP.
+class ContributeCoordinatePayload {
+  final String cep;
+  final String numero;
+  final double latitude;
+  final double longitude;
+  final double precisaoGpsMetros;
+
+  const ContributeCoordinatePayload({
+    required this.cep,
+    required this.numero,
+    required this.latitude,
+    required this.longitude,
+    this.precisaoGpsMetros = 5.0,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'cep': cep,
+    'numero': numero,
+    'latitude': latitude,
+    'longitude': longitude,
+    'precisaoGpsMetros': precisaoGpsMetros,
+    'precisao_gps_metros': precisaoGpsMetros,
+  };
+}
+
+/// Resposta do endpoint de contribuição do GeoCEP.
+class GeoCepContributeResult {
+  final String status;
+  final String message;
+  final bool isSuccess;
+
+  const GeoCepContributeResult({
+    required this.status,
+    required this.message,
+    required this.isSuccess,
+  });
+
+  factory GeoCepContributeResult.fromJson(Map<String, dynamic> json) {
+    final status = json['status']?.toString() ?? 'success';
+    String msg = 'Coordenada enviada para consenso no GeoCEP com sucesso.';
+    if (json['data'] is Map) {
+      final data = json['data'] as Map;
+      if (data['mensagem'] != null) {
+        msg = data['mensagem'].toString();
+      }
+    }
+    return GeoCepContributeResult(
+      status: status,
+      message: msg,
+      isSuccess: status == 'success',
+    );
+  }
+}

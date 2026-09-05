@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'sales_models.dart';
 import 'sales_repository.dart';
 
@@ -30,6 +31,13 @@ class SalesOnboardingState {
   final double? longitude;
   final bool isCheckingFeasibility;
   final FtthFeasibilityModel? feasibility;
+
+  // 1.1 Precisão de GPS e Contribuição GeoCEP
+  final bool isAcquiringGps;
+  final double? gpsAccuracy;
+  final bool isContributingCoordinate;
+  final String? coordinateContributionMessage;
+  final bool hasContributedCoordinate;
 
   // 2. Plano e Vencimento
   final List<CommercialPlan> plans;
@@ -67,6 +75,11 @@ class SalesOnboardingState {
     this.longitude,
     this.isCheckingFeasibility = false,
     this.feasibility,
+    this.isAcquiringGps = false,
+    this.gpsAccuracy,
+    this.isContributingCoordinate = false,
+    this.coordinateContributionMessage,
+    this.hasContributedCoordinate = false,
     this.plans = const [],
     this.isLoadingPlans = false,
     this.selectedPlan,
@@ -99,6 +112,11 @@ class SalesOnboardingState {
     double? longitude,
     bool? isCheckingFeasibility,
     FtthFeasibilityModel? feasibility,
+    bool? isAcquiringGps,
+    double? gpsAccuracy,
+    bool? isContributingCoordinate,
+    String? coordinateContributionMessage,
+    bool? hasContributedCoordinate,
     List<CommercialPlan>? plans,
     bool? isLoadingPlans,
     CommercialPlan? selectedPlan,
@@ -131,6 +149,11 @@ class SalesOnboardingState {
       longitude: longitude ?? this.longitude,
       isCheckingFeasibility: isCheckingFeasibility ?? this.isCheckingFeasibility,
       feasibility: feasibility ?? this.feasibility,
+      isAcquiringGps: isAcquiringGps ?? this.isAcquiringGps,
+      gpsAccuracy: gpsAccuracy ?? this.gpsAccuracy,
+      isContributingCoordinate: isContributingCoordinate ?? this.isContributingCoordinate,
+      coordinateContributionMessage: coordinateContributionMessage ?? this.coordinateContributionMessage,
+      hasContributedCoordinate: hasContributedCoordinate ?? this.hasContributedCoordinate,
       plans: plans ?? this.plans,
       isLoadingPlans: isLoadingPlans ?? this.isLoadingPlans,
       selectedPlan: selectedPlan ?? this.selectedPlan,
@@ -262,6 +285,109 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
 
   void clearSuggestions() {
     state = state.copyWith(searchSuggestions: const []);
+  }
+
+  /// Obtém a localização via GPS físico do dispositivo e realiza geocodificação reversa.
+  Future<void> acquireDeviceLocation() async {
+    state = state.copyWith(isAcquiringGps: true, clearError: true);
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        state = state.copyWith(
+          isAcquiringGps: false,
+          errorMessage: 'O serviço de localização (GPS) está desativado no dispositivo.',
+        );
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          state = state.copyWith(
+            isAcquiringGps: false,
+            errorMessage: 'Permissão de localização negada pelo usuário.',
+          );
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        state = state.copyWith(
+          isAcquiringGps: false,
+          errorMessage: 'Permissão de localização permanentemente negada. Habilite nas configurações do sistema.',
+        );
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+
+      state = state.copyWith(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        gpsAccuracy: position.accuracy,
+        isAcquiringGps: false,
+      );
+
+      // Geocodificação reversa para auto-preencher os dados de endereço
+      final address = await _repository.reverseGeocode(position.latitude, position.longitude);
+      if (address != null) {
+        await _applyAddress(address);
+      } else {
+        await checkFeasibility(position.latitude, position.longitude);
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isAcquiringGps: false,
+        errorMessage: 'Não foi possível obter a coordenada do GPS: $e',
+      );
+    }
+  }
+
+  /// Envia a coordenada mais precisa (obtida via GPS) para atualizar a base GeoCEP.
+  Future<void> contributeCoordinateToGeoCep() async {
+    if (state.latitude == null || state.longitude == null) {
+      state = state.copyWith(errorMessage: 'Coordenadas GPS não disponíveis para contribuição.');
+      return;
+    }
+
+    final effectiveCep = state.cep.isNotEmpty ? state.cep : '68370-000';
+    final effectiveNumber = state.number.isNotEmpty ? state.number : 'S/N';
+
+    state = state.copyWith(isContributingCoordinate: true, clearError: true);
+    try {
+      final payload = ContributeCoordinatePayload(
+        cep: effectiveCep,
+        numero: effectiveNumber,
+        latitude: state.latitude!,
+        longitude: state.longitude!,
+        precisaoGpsMetros: state.gpsAccuracy ?? 5.0,
+      );
+
+      final result = await _repository.contributeCoordinate(payload);
+      if (result != null && result.isSuccess) {
+        state = state.copyWith(
+          isContributingCoordinate: false,
+          hasContributedCoordinate: true,
+          coordinateContributionMessage: result.message,
+        );
+      } else {
+        state = state.copyWith(
+          isContributingCoordinate: false,
+          errorMessage: 'Não foi possível atualizar a coordenada no GeoCEP.',
+        );
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isContributingCoordinate: false,
+        errorMessage: 'Erro ao enviar coordenada para o GeoCEP: $e',
+      );
+    }
   }
 
   Future<void> _applyAddress(CepLookupModel res) async {

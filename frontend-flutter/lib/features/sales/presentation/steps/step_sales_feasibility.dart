@@ -109,12 +109,11 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
           ),
           const SizedBox(height: 14),
 
-          // Barra de Busca Inteligente GeoCEP
+          // Barra de Busca Inteligente GeoCEP + Botão GPS Físico
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                flex: 4,
                 child: TextField(
                   controller: _searchCtrl,
                   decoration: InputDecoration(
@@ -143,19 +142,76 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                flex: 1,
-                child: ElevatedButton.icon(
-                  onPressed: state.isSearchingAddress ? null : _triggerSearch,
-                  icon: const Icon(Icons.search, size: 18),
-                  label: const Text('Buscar'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
+              ElevatedButton.icon(
+                onPressed: state.isSearchingAddress ? null : _triggerSearch,
+                icon: const Icon(Icons.search, size: 18),
+                label: const Text('Buscar'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: (state.isSearchingAddress || state.isAcquiringGps)
+                    ? null
+                    : () async {
+                        await notifier.acquireDeviceLocation();
+                        final s = ref.read(salesOnboardingProvider);
+                        if (s.street.isNotEmpty) {
+                          _searchCtrl.text = s.street;
+                          _streetCtrl.text = s.street;
+                          _cityCtrl.text = s.city;
+                          _stateCtrl.text = s.state;
+                          _neighborhoodCtrl.text = s.neighborhood;
+                          _cepCtrl.text = CpfUtils.formatCep(s.cep);
+                        }
+                      },
+                icon: state.isAcquiringGps
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accentGreen),
+                      )
+                    : const Icon(Icons.my_location_rounded, size: 18, color: AppTheme.accentGreen),
+                label: Text(
+                  state.isAcquiringGps ? 'Buscando GPS...' : 'Usar GPS',
+                  style: const TextStyle(color: AppTheme.accentGreen, fontWeight: FontWeight.bold),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppTheme.accentGreen.withValues(alpha: 0.6)),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                 ),
               ),
             ],
           ),
+
+          if (state.isAcquiringGps) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.accentGreen.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
+              ),
+              child: const Row(
+                children: [
+                  SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accentGreen),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Sintonizando satélites GPS do dispositivo com alta precisão...',
+                      style: TextStyle(fontSize: 12, color: AppTheme.accentGreen),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           // Lista de Sugestões de Ruas Encontradas no GeoCEP
           if (state.searchSuggestions.isNotEmpty) ...[
@@ -383,16 +439,123 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
           ),
 
           if (state.latitude != null && state.longitude != null) ...[
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(Icons.gps_fixed, size: 14, color: AppTheme.textSecondary),
-                const SizedBox(width: 6),
-                Text(
-                  'Coordenadas GPS GeoCEP: ${state.latitude!.toStringAsFixed(6)}, ${state.longitude!.toStringAsFixed(6)}',
-                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                ),
-              ],
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.darkSurface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.darkBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.gps_fixed, size: 16, color: AppTheme.primaryBlue),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Coordenadas GPS: ${state.latitude!.toStringAsFixed(6)}, ${state.longitude!.toStringAsFixed(6)}'
+                          '${state.gpsAccuracy != null ? " (Precisão: ±${state.gpsAccuracy!.toStringAsFixed(1)}m)" : ""}',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  const Divider(height: 1),
+                  const SizedBox(height: 10),
+
+                  // Área de Contribuição Colaborativa GeoCEP (Crowdsourcing)
+                  if (state.hasContributedCoordinate)
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentGreen.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.verified_rounded, color: AppTheme.accentGreen, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Coordenada Registrada no GeoCEP!',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.accentGreen,
+                                  ),
+                                ),
+                                if (state.coordinateContributionMessage != null && state.coordinateContributionMessage!.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    state.coordinateContributionMessage!,
+                                    style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 12,
+                      runSpacing: 8,
+                      children: [
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 420),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Atualizar Coordenada Precisa no GeoCEP',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Contribua com o posicionamento real deste imóvel para atualizar a base cartográfica colaborativa do GeoCEP.',
+                                style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: state.isContributingCoordinate
+                              ? null
+                              : () => notifier.contributeCoordinateToGeoCep(),
+                          icon: state.isContributingCoordinate
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Icon(Icons.cloud_upload_outlined, size: 16),
+                          label: Text(
+                            state.isContributingCoordinate ? 'Atualizando...' : 'Atualizar no GeoCEP',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryBlue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
           ] else if (state.street.trim().isNotEmpty) ...[
             const SizedBox(height: 12),

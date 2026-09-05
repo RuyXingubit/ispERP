@@ -53,6 +53,9 @@ dependencies:
   # UUID generator (v7 support)
   uuid: ^4.5.1
 
+  # GPS Geolocation & Precision Coordinates
+  geolocator: ^14.0.2
+
   # Formatting & Localization
   intl: ^0.20.2
 
