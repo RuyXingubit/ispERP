@@ -14,7 +14,10 @@ enum SalesOnboardingStep {
 class SalesOnboardingState {
   final SalesOnboardingStep step;
 
-  // 1. Endereço e Viabilidade
+  // 1. Endereço e Viabilidade Inteligente GeoCEP
+  final String searchQuery;
+  final bool isSearchingAddress;
+  final List<CepLookupModel> searchSuggestions;
   final String cep;
   final bool isSearchingCep;
   final String street;
@@ -49,6 +52,9 @@ class SalesOnboardingState {
 
   const SalesOnboardingState({
     this.step = SalesOnboardingStep.feasibility,
+    this.searchQuery = '',
+    this.isSearchingAddress = false,
+    this.searchSuggestions = const [],
     this.cep = '',
     this.isSearchingCep = false,
     this.street = '',
@@ -78,6 +84,9 @@ class SalesOnboardingState {
 
   SalesOnboardingState copyWith({
     SalesOnboardingStep? step,
+    String? searchQuery,
+    bool? isSearchingAddress,
+    List<CepLookupModel>? searchSuggestions,
     String? cep,
     bool? isSearchingCep,
     String? street,
@@ -107,6 +116,9 @@ class SalesOnboardingState {
   }) {
     return SalesOnboardingState(
       step: step ?? this.step,
+      searchQuery: searchQuery ?? this.searchQuery,
+      isSearchingAddress: isSearchingAddress ?? this.isSearchingAddress,
+      searchSuggestions: searchSuggestions ?? this.searchSuggestions,
       cep: cep ?? this.cep,
       isSearchingCep: isSearchingCep ?? this.isSearchingCep,
       street: street ?? this.street,
@@ -166,6 +178,100 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
     }
   }
 
+  /// Busca Inteligente GeoCEP (Auto-detecta: CEP, Coordenadas GPS ou Nome da Rua).
+  Future<void> performSmartSearch(String input) async {
+    final cleanInput = input.trim();
+    if (cleanInput.isEmpty) return;
+
+    state = state.copyWith(
+      searchQuery: cleanInput,
+      isSearchingAddress: true,
+      searchSuggestions: const [],
+      clearError: true,
+    );
+
+    // 1. Detecção de Coordenadas GPS (ex: "-3.2107, -52.2371" ou "-3.2107 -52.2371")
+    final coordParts = cleanInput.split(RegExp(r'[,;\s]+')).where((s) => s.isNotEmpty).toList();
+    if (coordParts.length == 2) {
+      final lat = double.tryParse(coordParts[0]);
+      final lon = double.tryParse(coordParts[1]);
+      if (lat != null && lon != null && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+        try {
+          final res = await _repository.reverseGeocode(lat, lon);
+          if (res != null) {
+            await _applyAddress(res);
+            state = state.copyWith(isSearchingAddress: false);
+            return;
+          }
+        } catch (_) {}
+      }
+    }
+
+    // 2. Detecção de CEP (8 dígitos)
+    final digitsOnly = CpfUtils.clean(cleanInput);
+    if (digitsOnly.length == 8) {
+      try {
+        final res = await _repository.lookupCep(digitsOnly);
+        if (res != null) {
+          await _applyAddress(res);
+          state = state.copyWith(isSearchingAddress: false);
+          return;
+        }
+      } catch (_) {}
+    }
+
+    // 3. Busca Textual por Nome de Rua / Logradouro / Bairro
+    try {
+      final results = await _repository.searchAddress(cleanInput);
+      if (results.isNotEmpty) {
+        if (results.length == 1) {
+          // Apenas um resultado: preenche automaticamente
+          await _applyAddress(results.first);
+          state = state.copyWith(isSearchingAddress: false, searchSuggestions: const []);
+        } else {
+          // Múltiplos resultados: lista sugestões para o usuário escolher
+          state = state.copyWith(
+            isSearchingAddress: false,
+            searchSuggestions: results,
+          );
+        }
+        return;
+      }
+    } catch (_) {}
+
+    state = state.copyWith(
+      isSearchingAddress: false,
+      errorMessage: 'Nenhum endereço encontrado para "$cleanInput". Verifique a grafia ou informe o CEP.',
+    );
+  }
+
+  /// Seleciona uma das sugestões retornadas pela busca de rua.
+  Future<void> selectSuggestion(CepLookupModel suggestion) async {
+    await _applyAddress(suggestion);
+    state = state.copyWith(searchSuggestions: const []);
+  }
+
+  void clearSuggestions() {
+    state = state.copyWith(searchSuggestions: const []);
+  }
+
+  Future<void> _applyAddress(CepLookupModel res) async {
+    state = state.copyWith(
+      cep: res.cep.isNotEmpty ? res.cep : state.cep,
+      street: res.street.isNotEmpty ? res.street : state.street,
+      neighborhood: res.neighborhood.isNotEmpty ? res.neighborhood : state.neighborhood,
+      city: res.city.isNotEmpty ? res.city : state.city,
+      state: res.state.isNotEmpty ? res.state : state.state,
+      latitude: res.latitude,
+      longitude: res.longitude,
+    );
+
+    // Se possui coordenadas geográficas válidas, checa viabilidade de fibra imediatamente
+    if (res.latitude != null && res.longitude != null) {
+      await checkFeasibility(res.latitude!, res.longitude!);
+    }
+  }
+
   /// Atualiza e busca CEP automaticamente quando completar 8 dígitos.
   Future<void> setCep(String raw) async {
     state = state.copyWith(cep: raw, clearError: true);
@@ -181,20 +287,8 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
     try {
       final result = await _repository.lookupCep(cleanCep);
       if (result != null) {
-        state = state.copyWith(
-          isSearchingCep: false,
-          street: result.street,
-          neighborhood: result.neighborhood,
-          city: result.city,
-          state: result.state,
-          latitude: result.latitude,
-          longitude: result.longitude,
-        );
-
-        // Se tiver coordenadas geográficas, checa viabilidade de fibra automaticamente
-        if (result.latitude != null && result.longitude != null) {
-          await checkFeasibility(result.latitude!, result.longitude!);
-        }
+        await _applyAddress(result);
+        state = state.copyWith(isSearchingCep: false);
       } else {
         state = state.copyWith(
           isSearchingCep: false,

@@ -45,6 +45,49 @@ class FakeSalesRepository implements SalesRepository {
   }
 
   @override
+  Future<List<CepLookupModel>> searchAddress(String query) async {
+    if (query.toLowerCase().contains('djalma')) {
+      return [
+        const CepLookupModel(
+          cep: '68371-000',
+          street: 'Avenida Djalma Dutra',
+          neighborhood: 'Centro',
+          city: 'Altamira',
+          state: 'PA',
+          latitude: -3.2033,
+          longitude: -52.2064,
+        ),
+        const CepLookupModel(
+          cep: '53110-471',
+          street: 'Travessa Primeira Djalma Dutra',
+          neighborhood: 'Salgadinho',
+          city: 'Olinda',
+          state: 'PE',
+          latitude: -8.0269,
+          longitude: -34.8682,
+        ),
+      ];
+    }
+    return [];
+  }
+
+  @override
+  Future<CepLookupModel?> reverseGeocode(double lat, double lng) async {
+    if ((lat - (-3.2107)).abs() < 0.1 && (lng - (-52.2371)).abs() < 0.1) {
+      return const CepLookupModel(
+        cep: '68371-000',
+        street: 'Passagem Elza',
+        neighborhood: 'Bela Vista',
+        city: 'Altamira',
+        state: 'PA',
+        latitude: -3.210714,
+        longitude: -52.237143,
+      );
+    }
+    return null;
+  }
+
+  @override
   Future<FtthFeasibilityModel?> checkFeasibility(
     double latitude,
     double longitude, {
@@ -78,14 +121,11 @@ class FakeSalesRepository implements SalesRepository {
 void main() {
   group('Sales Models & CpfUtils Tests', () {
     test('CpfUtils deve validar CPFs matematicamente e rejeitar dígitos falsos', () {
-      // CPFs com formato ou dígitos inválidos
       expect(CpfUtils.isValid(''), isFalse);
       expect(CpfUtils.isValid('123'), isFalse);
       expect(CpfUtils.isValid('11111111111'), isFalse);
       expect(CpfUtils.isValid('00000000000'), isFalse);
       expect(CpfUtils.isValid('12345678900'), isFalse);
-
-      // CPF matematicamente válido padrão brasileiro (algoritmo mod 11)
       expect(CpfUtils.isValid('52998224725'), isTrue);
       expect(CpfUtils.isValid('529.982.247-25'), isTrue);
     });
@@ -115,6 +155,26 @@ void main() {
       expect(model.latitude, equals(-3.205));
     });
 
+    test('CepLookupModel deve suportar coordenadas aninhadas e logradouro alternativo', () {
+      final json = {
+        'cep': '68371-000',
+        'endereco': 'Passagem Elza, 3295',
+        'bairro': 'Bela Vista',
+        'cidade': 'Altamira',
+        'uf': 'PA',
+        'coordenadas': {
+          'latitude': -3.210714,
+          'longitude': -52.237143,
+        },
+      };
+
+      final model = CepLookupModel.fromJson(json);
+      expect(model.street, equals('Passagem Elza, 3295'));
+      expect(model.city, equals('Altamira'));
+      expect(model.latitude, equals(-3.210714));
+      expect(model.longitude, equals(-52.237143));
+    });
+
     test('FtthFeasibilityModel deve desserializar viabilidade e caixas CTO', () {
       final json = {
         'viable': true,
@@ -137,7 +197,7 @@ void main() {
     });
   });
 
-  group('SalesOnboardingNotifier State Machine Tests', () {
+  group('SalesOnboardingNotifier State Machine & Smart Search Tests', () {
     late FakeSalesRepository fakeRepo;
     late SalesOnboardingNotifier notifier;
 
@@ -154,13 +214,34 @@ void main() {
       expect(notifier.state.preferredDueDate, equals(10));
     });
 
-    test('Deve preencher endereço e calcular viabilidade ao buscar CEP', () async {
-      await notifier.searchCep('68371000');
+    test('Busca inteligente GeoCEP por CEP numérico', () async {
+      await notifier.performSmartSearch('68371-000');
       expect(notifier.state.street, equals('Avenida Djalma Dutra'));
       expect(notifier.state.city, equals('Altamira'));
       expect(notifier.state.state, equals('PA'));
       expect(notifier.state.feasibility, isNotNull);
       expect(notifier.state.feasibility!.viable, isTrue);
+    });
+
+    test('Busca inteligente GeoCEP por Coordenadas GPS (Geocodificação Reversa)', () async {
+      await notifier.performSmartSearch('-3.2107, -52.2371');
+      expect(notifier.state.street, equals('Passagem Elza'));
+      expect(notifier.state.neighborhood, equals('Bela Vista'));
+      expect(notifier.state.city, equals('Altamira'));
+      expect(notifier.state.feasibility, isNotNull);
+      expect(notifier.state.feasibility!.viable, isTrue);
+    });
+
+    test('Busca inteligente GeoCEP por Nome da Rua com sugestões e seleção', () async {
+      await notifier.performSmartSearch('Djalma Dutra');
+      expect(notifier.state.searchSuggestions.length, equals(2));
+
+      // Seleciona a primeira sugestão (Altamira)
+      await notifier.selectSuggestion(notifier.state.searchSuggestions.first);
+      expect(notifier.state.searchSuggestions, isEmpty);
+      expect(notifier.state.street, equals('Avenida Djalma Dutra'));
+      expect(notifier.state.city, equals('Altamira'));
+      expect(notifier.state.feasibility, isNotNull);
     });
 
     test('Deve impedir avanço para próximo passo se endereço estiver incompleto', () {
@@ -188,7 +269,7 @@ void main() {
       expect(notifier.state.step, equals(SalesOnboardingStep.customerData));
 
       // 3. Passo CustomerData com validação
-      notifier.setCustomerCpf('52998224725'); // CPF válido
+      notifier.setCustomerCpf('52998224725');
       notifier.setCustomerName('Maria da Silva Santos');
       notifier.setCustomerPhone('93991234567');
       notifier.setCustomerEmail('maria@teste.com');

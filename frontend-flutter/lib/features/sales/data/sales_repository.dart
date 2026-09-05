@@ -28,6 +28,46 @@ class SalesRepository {
     }
   }
 
+  /// Busca endereços por nome de rua/logradouro via GeoCep API.
+  Future<List<CepLookupModel>> searchAddress(String query) async {
+    final cleanQuery = query.trim();
+    if (cleanQuery.isEmpty) return [];
+
+    try {
+      final response = await _dio.get(
+        '/geocep/search',
+        queryParameters: {'q': cleanQuery},
+      );
+
+      if (response.statusCode == 200 && response.data is List) {
+        final list = response.data as List;
+        return list
+            .map((item) => CepLookupModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Geocodificação reversa a partir de coordenadas GPS (Latitude e Longitude).
+  Future<CepLookupModel?> reverseGeocode(double lat, double lng) async {
+    try {
+      final response = await _dio.get(
+        '/geocep/reverse',
+        queryParameters: {'lat': lat, 'lon': lng},
+      );
+
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        return CepLookupModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Consulta viabilidade óptica FTTH real contra caixas CTO e portas livres.
   Future<FtthFeasibilityModel?> checkFeasibility(
     double latitude,

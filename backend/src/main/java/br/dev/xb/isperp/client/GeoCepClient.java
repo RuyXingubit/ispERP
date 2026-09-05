@@ -149,20 +149,12 @@ public class GeoCepClient {
                     .body(Map.class);
 
             if (response != null) {
-                BigDecimal lat = response.get("latitude") != null ? new BigDecimal(response.get("latitude").toString()) : null;
-                BigDecimal lon = response.get("longitude") != null ? new BigDecimal(response.get("longitude").toString()) : null;
+                @SuppressWarnings("unchecked")
+                Map<String, Object> data = response.containsKey("data") && response.get("data") instanceof Map
+                        ? (Map<String, Object>) response.get("data")
+                        : response;
 
-                return CepLookupResult.builder()
-                        .cep(cleanCep)
-                        .logradouro((String) response.get("logradouro"))
-                        .complemento((String) response.get("complemento"))
-                        .bairro((String) response.get("bairro"))
-                        .localidade((String) response.get("localidade"))
-                        .uf((String) response.get("uf"))
-                        .ibge((String) response.get("ibge"))
-                        .latitude(lat)
-                        .longitude(lon)
-                        .build();
+                return parseCepResult(data, cleanCep);
             }
         } catch (Exception e) {
             log.warn("Falha na chamada externa ao GeoCEP para {}: {}. Usando fallback local.", cleanCep, e.getMessage());
@@ -178,6 +170,109 @@ public class GeoCepClient {
                 .ibge("1500602")
                 .latitude(new BigDecimal("-3.2033"))
                 .longitude(new BigDecimal("-52.2064"))
+                .build();
+    }
+
+    public List<CepLookupResult> searchAddresses(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+        String cleanQuery = query.trim();
+        log.info("Buscando endereços no GeoCEP para query: {}", cleanQuery);
+
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restClient.get()
+                    .uri(uriBuilder -> uriBuilder.path("/v1/search").queryParam("q", cleanQuery).build())
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (response != null && response.get("data") instanceof List<?> list) {
+                List<CepLookupResult> results = new ArrayList<>();
+                for (Object item : list) {
+                    if (item instanceof Map<?, ?> map) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> dataMap = (Map<String, Object>) map;
+                        results.add(parseCepResult(dataMap, (String) dataMap.get("cep")));
+                    }
+                }
+                return results;
+            }
+        } catch (Exception e) {
+            log.warn("Falha na busca textual do GeoCEP para '{}': {}", cleanQuery, e.getMessage());
+        }
+        return List.of();
+    }
+
+    public CepLookupResult reverseGeocode(BigDecimal latitude, BigDecimal longitude) {
+        log.info("Geocodificação reversa GeoCEP para lat={}, lon={}", latitude, longitude);
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restClient.get()
+                    .uri(uriBuilder -> uriBuilder.path("/v1/reverse")
+                            .queryParam("lat", latitude)
+                            .queryParam("lon", longitude)
+                            .build())
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (response != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> data = response.containsKey("data") && response.get("data") instanceof Map
+                        ? (Map<String, Object>) response.get("data")
+                        : response;
+
+                return parseCepResult(data, (String) data.get("cep"));
+            }
+        } catch (Exception e) {
+            log.warn("Falha na geocodificação reversa do GeoCEP: {}", e.getMessage());
+        }
+
+        return CepLookupResult.builder()
+                .logradouro("Coordenada GPS")
+                .bairro("Região Mapeada")
+                .localidade("Altamira")
+                .uf("PA")
+                .latitude(latitude)
+                .longitude(longitude)
+                .build();
+    }
+
+    private CepLookupResult parseCepResult(Map<String, Object> data, String fallbackCep) {
+        BigDecimal lat = null;
+        BigDecimal lon = null;
+
+        if (data.get("coordenadas") instanceof Map<?, ?> coordMap) {
+            if (coordMap.get("latitude") != null) lat = new BigDecimal(coordMap.get("latitude").toString());
+            if (coordMap.get("longitude") != null) lon = new BigDecimal(coordMap.get("longitude").toString());
+        }
+        if (lat == null && data.get("latitude") != null) {
+            lat = new BigDecimal(data.get("latitude").toString());
+        }
+        if (lon == null && data.get("longitude") != null) {
+            lon = new BigDecimal(data.get("longitude").toString());
+        }
+
+        String cepVal = data.get("cep") != null ? data.get("cep").toString() : fallbackCep;
+        String logradouro = data.get("logradouro") != null ? data.get("logradouro").toString() : (String) data.get("endereco");
+        String complemento = data.get("complemento") != null ? data.get("complemento").toString() : null;
+        String bairro = data.get("bairro") != null ? data.get("bairro").toString() : null;
+        String localidade = data.get("cidade") != null ? data.get("cidade").toString() : (String) data.get("localidade");
+        String uf = data.get("uf") != null ? data.get("uf").toString() : null;
+        String ibge = data.get("codigoIbge") != null ? data.get("codigoIbge").toString() : (String) data.get("codigo_ibge");
+
+        return CepLookupResult.builder()
+                .cep(cepVal)
+                .logradouro(logradouro)
+                .complemento(complemento)
+                .bairro(bairro)
+                .localidade(localidade)
+                .uf(uf)
+                .ibge(ibge)
+                .latitude(lat)
+                .longitude(lon)
                 .build();
     }
 

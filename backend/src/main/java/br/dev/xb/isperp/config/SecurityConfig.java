@@ -75,7 +75,9 @@ public class SecurityConfig {
                     "/webjars/**",
                     "/files/**",
                     "/api/public/**",
-                    "/contracts/signature/**"
+                    "/contracts/signature/**",
+                    "/geocep/**",
+                    "/api/geocep/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             );

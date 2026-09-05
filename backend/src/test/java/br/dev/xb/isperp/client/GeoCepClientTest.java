@@ -77,4 +77,31 @@ class GeoCepClientTest {
         assertEquals("success", response.getStatus());
         assertNotNull(response.getData());
     }
+
+    @Test
+    @DisplayName("Deve buscar endereços textuais por nome de rua no GeoCEP")
+    void shouldSearchAddressesByStreetName() {
+        List<GeoCepClient.CepLookupResult> results = geoCepClient.searchAddresses("Djalma Dutra");
+
+        assertNotNull(results);
+        assertFalse(results.isEmpty());
+        assertNotNull(results.get(0).getLogradouro());
+        assertNotNull(results.get(0).getLatitude());
+        assertNotNull(results.get(0).getLongitude());
+    }
+
+    @Test
+    @DisplayName("Deve realizar geocodificação reversa a partir de coordenadas GPS")
+    void shouldReverseGeocodeCoordinates() {
+        GeoCepClient.CepLookupResult result = geoCepClient.reverseGeocode(
+                new BigDecimal("-3.210714"),
+                new BigDecimal("-52.237143")
+        );
+
+        assertNotNull(result);
+        assertNotNull(result.getLogradouro());
+        assertNotNull(result.getBairro());
+        assertEquals("Altamira", result.getLocalidade());
+        assertEquals("PA", result.getUf());
+    }
 }

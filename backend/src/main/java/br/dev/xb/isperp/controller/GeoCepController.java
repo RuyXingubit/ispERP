@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +29,18 @@ public class GeoCepController {
     @GetMapping("/cep/{cep}")
     public ResponseEntity<GeoCepClient.CepLookupResult> lookupCep(@PathVariable String cep) {
         return ResponseEntity.ok(geoCepClient.lookupCep(cep));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<GeoCepClient.CepLookupResult>> searchAddresses(@RequestParam String q) {
+        return ResponseEntity.ok(geoCepClient.searchAddresses(q));
+    }
+
+    @GetMapping("/reverse")
+    public ResponseEntity<GeoCepClient.CepLookupResult> reverseGeocode(
+            @RequestParam BigDecimal lat,
+            @RequestParam BigDecimal lon) {
+        return ResponseEntity.ok(geoCepClient.reverseGeocode(lat, lon));
     }
 
     @PostMapping("/routes/optimize")

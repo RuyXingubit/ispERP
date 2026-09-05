@@ -4,7 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../data/sales_models.dart';
 import '../../data/sales_onboarding_notifier.dart';
 
-/// Passo 1 do Onboarding de Venda Expressa: Endereço & Viabilidade FTTH.
+/// Passo 1 do Onboarding de Venda Expressa: Endereço & Viabilidade FTTH com GeoCEP Inteligente.
 class StepSalesFeasibility extends ConsumerStatefulWidget {
   const StepSalesFeasibility({super.key});
 
@@ -13,6 +13,7 @@ class StepSalesFeasibility extends ConsumerStatefulWidget {
 }
 
 class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
+  late TextEditingController _searchCtrl;
   late TextEditingController _cepCtrl;
   late TextEditingController _streetCtrl;
   late TextEditingController _numberCtrl;
@@ -25,6 +26,7 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
   void initState() {
     super.initState();
     final state = ref.read(salesOnboardingProvider);
+    _searchCtrl = TextEditingController(text: state.searchQuery.isNotEmpty ? state.searchQuery : state.cep);
     _cepCtrl = TextEditingController(text: CpfUtils.formatCep(state.cep));
     _streetCtrl = TextEditingController(text: state.street);
     _numberCtrl = TextEditingController(text: state.number);
@@ -36,7 +38,8 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
 
   @override
   void dispose() {
-    _cepCtrl.dispose;
+    _searchCtrl.dispose();
+    _cepCtrl.dispose();
     _streetCtrl.dispose();
     _numberCtrl.dispose();
     _complementCtrl.dispose();
@@ -46,12 +49,22 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
     super.dispose();
   }
 
+  void _triggerSearch() {
+    final query = _searchCtrl.text.trim();
+    if (query.isNotEmpty) {
+      ref.read(salesOnboardingProvider.notifier).performSmartSearch(query);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(salesOnboardingProvider);
     final notifier = ref.read(salesOnboardingProvider.notifier);
 
-    // Sincroniza controllers se preenchido via GeoCep
+    // Sincroniza controllers se preenchido via busca inteligente
+    if (_cepCtrl.text != state.cep && state.cep.isNotEmpty) {
+      _cepCtrl.text = CpfUtils.formatCep(state.cep);
+    }
     if (_streetCtrl.text != state.street && state.street.isNotEmpty) {
       _streetCtrl.text = state.street;
     }
@@ -69,31 +82,45 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            '1. Consulta de Viabilidade & Endereço',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '1. Localização & Viabilidade GeoCEP',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'CEP • Rua • Coordenadas GPS',
+                  style: TextStyle(color: AppTheme.primaryBlue, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           const Text(
-            'Digite o CEP para localizar a rota de fibra e verificar portas livres na CTO mais próxima.',
+            'Busque por CEP (68371-000), nome da rua (ex: Djalma Dutra) ou coordenadas (-3.2107, -52.2371).',
             style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
-          // Campo CEP com botão de busca
+          // Barra de Busca Inteligente GeoCEP
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                flex: 3,
+                flex: 4,
                 child: TextField(
-                  controller: _cepCtrl,
-                  keyboardType: TextInputType.number,
+                  controller: _searchCtrl,
                   decoration: InputDecoration(
-                    labelText: 'CEP *',
-                    hintText: '00000-000',
-                    prefixIcon: const Icon(Icons.location_on_outlined, size: 20),
-                    suffixIcon: state.isSearchingCep
+                    hintText: 'Digite o CEP, Nome da Rua ou Coordenadas...',
+                    prefixIcon: const Icon(Icons.explore_outlined, color: AppTheme.primaryBlue, size: 20),
+                    suffixIcon: state.isSearchingAddress
                         ? const Padding(
                             padding: EdgeInsets.all(12.0),
                             child: SizedBox(
@@ -102,18 +129,24 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             ),
                           )
-                        : null,
+                        : (_searchCtrl.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  notifier.clearSuggestions();
+                                },
+                              )
+                            : null),
                   ),
-                  onChanged: (val) => notifier.setCep(val),
+                  onSubmitted: (_) => _triggerSearch(),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                flex: 2,
+                flex: 1,
                 child: ElevatedButton.icon(
-                  onPressed: state.isSearchingCep
-                      ? null
-                      : () => notifier.searchCep(CpfUtils.clean(_cepCtrl.text)),
+                  onPressed: state.isSearchingAddress ? null : _triggerSearch,
                   icon: const Icon(Icons.search, size: 18),
                   label: const Text('Buscar'),
                   style: ElevatedButton.styleFrom(
@@ -123,9 +156,73 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
               ),
             ],
           ),
+
+          // Lista de Sugestões de Ruas Encontradas no GeoCEP
+          if (state.searchSuggestions.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.darkSurface,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.4)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Selecione o endereço encontrado (${state.searchSuggestions.length}):',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTheme.primaryBlue),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 16),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => notifier.clearSuggestions(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 180),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: state.searchSuggestions.length,
+                      separatorBuilder: (_, index) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final item = state.searchSuggestions[index];
+                        return ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          leading: const Icon(Icons.location_city_outlined, size: 18, color: AppTheme.primaryBlue),
+                          title: Text(
+                            item.street,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Text(
+                            '${item.neighborhood.isNotEmpty ? "${item.neighborhood}, " : ""}${item.city} - ${item.state} (CEP ${CpfUtils.formatCep(item.cep)})',
+                            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          ),
+                          trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.textSecondary),
+                          onTap: () {
+                            notifier.selectSuggestion(item);
+                            _searchCtrl.text = item.street;
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           const SizedBox(height: 14),
 
-          // Badge de Viabilidade Técnica FTTH (Real)
+          // Badge de Viabilidade Técnica FTTH Real
           if (state.isCheckingFeasibility)
             Container(
               padding: const EdgeInsets.all(12),
@@ -211,7 +308,7 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
 
           const SizedBox(height: 16),
 
-          // Campos de Endereço Completo
+          // Campos de Endereço Preenchidos / Editáveis
           Row(
             children: [
               Expanded(
@@ -279,6 +376,20 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
               ),
             ],
           ),
+
+          if (state.latitude != null && state.longitude != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.gps_fixed, size: 14, color: AppTheme.textSecondary),
+                const SizedBox(width: 6),
+                Text(
+                  'Coordenadas GPS GeoCEP: ${state.latitude!.toStringAsFixed(6)}, ${state.longitude!.toStringAsFixed(6)}',
+                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

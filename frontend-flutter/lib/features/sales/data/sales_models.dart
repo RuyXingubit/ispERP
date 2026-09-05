@@ -25,14 +25,40 @@ class CepLookupModel {
       return double.tryParse(val.toString());
     }
 
+    double? lat = parseCoord(json['latitude']);
+    double? lon = parseCoord(json['longitude']);
+    if ((lat == null || lon == null) && json['coordenadas'] is Map) {
+      final coords = json['coordenadas'] as Map;
+      lat ??= parseCoord(coords['latitude']);
+      lon ??= parseCoord(coords['longitude']);
+    }
+
+    final street = json['logradouro']?.toString() ??
+        json['street']?.toString() ??
+        json['endereco']?.toString() ??
+        '';
+
+    final neighborhood = json['bairro']?.toString() ??
+        json['neighborhood']?.toString() ??
+        '';
+
+    final city = json['cidade']?.toString() ??
+        json['localidade']?.toString() ??
+        json['city']?.toString() ??
+        '';
+
+    final state = json['uf']?.toString() ??
+        json['state']?.toString() ??
+        '';
+
     return CepLookupModel(
       cep: json['cep']?.toString() ?? '',
-      street: json['logradouro']?.toString() ?? '',
-      neighborhood: json['bairro']?.toString() ?? '',
-      city: json['localidade']?.toString() ?? '',
-      state: json['uf']?.toString() ?? '',
-      latitude: parseCoord(json['latitude']),
-      longitude: parseCoord(json['longitude']),
+      street: street,
+      neighborhood: neighborhood,
+      city: city,
+      state: state,
+      latitude: lat,
+      longitude: lon,
     );
   }
 }
