@@ -27,6 +27,51 @@ class InventoryRepository {
     }
   }
 
+  /// Lista todos os colaboradores e usuários cadastrados para atribuição de transporte.
+  Future<List<CollaboratorModel>> listCollaborators() async {
+    try {
+      final response = await _dio.get('/users');
+      if (response.statusCode == 200 && response.data is List) {
+        return (response.data as List)
+            .map((e) => CollaboratorModel.fromJson(e as Map<String, dynamic>))
+            .where((c) => c.active)
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Cadastra uma pessoa / terceiro formalmente no sistema para atuar no transporte.
+  Future<CollaboratorModel?> createCollaborator({
+    required String name,
+    required String email,
+    required String password,
+    String? cpf,
+    String role = 'USER',
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/users',
+        data: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'cpf': cpf,
+          'role': role,
+          'active': true,
+        },
+      );
+      if ((response.statusCode == 200 || response.statusCode == 201) && response.data is Map<String, dynamic>) {
+        return CollaboratorModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// Lista os itens do catálogo e saldos de insumos.
   Future<List<InventoryItemModel>> listInventoryItems() async {
     try {

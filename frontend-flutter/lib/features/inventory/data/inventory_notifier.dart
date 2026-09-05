@@ -12,6 +12,7 @@ class InventoryState {
   final List<InventoryItemModel> items;
   final List<InstallationDemandModel> demands;
   final List<StockTransferModel> transfers;
+  final List<CollaboratorModel> collaborators;
   final int selectedTab;
   final bool isSubmitting;
   final MaterialCheckinResult? lastCheckinResult;
@@ -25,6 +26,7 @@ class InventoryState {
     this.items = const [],
     this.demands = const [],
     this.transfers = const [],
+    this.collaborators = const [],
     this.selectedTab = 0,
     this.isSubmitting = false,
     this.lastCheckinResult,
@@ -40,6 +42,7 @@ class InventoryState {
     List<InventoryItemModel>? items,
     List<InstallationDemandModel>? demands,
     List<StockTransferModel>? transfers,
+    List<CollaboratorModel>? collaborators,
     int? selectedTab,
     bool? isSubmitting,
     MaterialCheckinResult? lastCheckinResult,
@@ -55,6 +58,7 @@ class InventoryState {
       items: items ?? this.items,
       demands: demands ?? this.demands,
       transfers: transfers ?? this.transfers,
+      collaborators: collaborators ?? this.collaborators,
       selectedTab: selectedTab ?? this.selectedTab,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       lastCheckinResult: clearCheckinResult ? null : (lastCheckinResult ?? this.lastCheckinResult),
@@ -77,7 +81,7 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
     loadAll();
   }
 
-  /// Carrega depósitos, catálogo de insumos, demandas de instalação e transferências.
+  /// Carrega depósitos, catálogo de insumos, demandas, transferências e colaboradores cadastrados.
   Future<void> loadAll({bool clearMessages = true}) async {
     state = state.copyWith(isLoading: true, clearMessages: clearMessages);
     try {
@@ -86,12 +90,14 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
         _repository.listInventoryItems(),
         _repository.listInstallationDemands(),
         _repository.listTransfers(),
+        _repository.listCollaborators(),
       ]);
 
       final warehouses = results[0] as List<WarehouseModel>;
       final items = results[1] as List<InventoryItemModel>;
       final demands = results[2] as List<InstallationDemandModel>;
       final transfers = results[3] as List<StockTransferModel>;
+      final collaborators = results[4] as List<CollaboratorModel>;
 
       WarehouseModel? selected = state.selectedWarehouse;
       if (selected == null && warehouses.isNotEmpty) {
@@ -105,6 +111,7 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
         items: items,
         demands: demands,
         transfers: transfers,
+        collaborators: collaborators,
       );
     } catch (e) {
       state = state.copyWith(
@@ -181,6 +188,48 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
         errorMessage: 'Erro na entrada de material: $e',
       );
       return false;
+    }
+  }
+
+  /// Cadastra formalmente um terceiro ou colaborador para transporte de estoque.
+  Future<CollaboratorModel?> registerCollaborator({
+    required String name,
+    required String email,
+    required String password,
+    String? cpf,
+    String role = 'USER',
+  }) async {
+    state = state.copyWith(isSubmitting: true, clearMessages: true);
+    try {
+      final created = await _repository.createCollaborator(
+        name: name,
+        email: email,
+        password: password,
+        cpf: cpf,
+        role: role,
+      );
+      if (created != null) {
+        final current = state.collaborators.where((c) => c.id != created.id).toList();
+        final updatedList = [...current, created];
+        state = state.copyWith(
+          isSubmitting: false,
+          collaborators: updatedList,
+          successMessage: 'Portador/terceiro ${created.name} cadastrado com sucesso!',
+        );
+        return created;
+      } else {
+        state = state.copyWith(
+          isSubmitting: false,
+          errorMessage: 'Não foi possível cadastrar o portador/terceiro.',
+        );
+        return null;
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: 'Erro ao cadastrar portador: $e',
+      );
+      return null;
     }
   }
 

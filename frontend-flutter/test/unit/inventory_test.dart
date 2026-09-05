@@ -72,9 +72,29 @@ class FakeInventoryRepository implements InventoryRepository {
       code: 'TRF-98214',
       originWarehouseId: '01a0674e-eb97-7373-b812-6b3fd5205f59',
       destinationWarehouseId: '01a0674e-eb97-7e9d-85a6-c0b7662db2ca',
+      carrierUserId: '01a0674e-collab-001',
       carrierName: 'João Técnico',
       carrierDocument: '123.456.789-00',
       status: TransferStatus.inTransit,
+    ),
+  ];
+
+  final List<CollaboratorModel> dummyCollaborators = [
+    const CollaboratorModel(
+      id: '01a0674e-collab-001',
+      name: 'João Técnico',
+      email: 'joao.tecnico@nexusfibra.com.br',
+      cpf: '123.456.789-00',
+      role: 'TECHNICIAN',
+      active: true,
+    ),
+    const CollaboratorModel(
+      id: '01a0674e-collab-002',
+      name: 'Renata Supervisora',
+      email: 'renata.supervisora@nexusfibra.com.br',
+      cpf: '987.654.321-99',
+      role: 'ADMINISTRATIVE_ASSISTANT',
+      active: true,
     ),
   ];
 
@@ -89,6 +109,29 @@ class FakeInventoryRepository implements InventoryRepository {
 
   @override
   Future<List<StockTransferModel>> listTransfers() async => dummyTransfers;
+
+  @override
+  Future<List<CollaboratorModel>> listCollaborators() async => List.from(dummyCollaborators);
+
+  @override
+  Future<CollaboratorModel?> createCollaborator({
+    required String name,
+    required String email,
+    required String password,
+    String? cpf,
+    String role = 'USER',
+  }) async {
+    final created = CollaboratorModel(
+      id: '01a0674e-collab-new',
+      name: name,
+      email: email,
+      cpf: cpf,
+      role: role,
+      active: true,
+    );
+    dummyCollaborators.add(created);
+    return created;
+  }
 
   @override
   Future<bool> confirmStockAllocation(String workOrderId, {String? warehouseId}) async => true;
@@ -121,8 +164,10 @@ class FakeInventoryRepository implements InventoryRepository {
       code: 'TRF-12399',
       originWarehouseId: originWarehouseId,
       destinationWarehouseId: destinationWarehouseId,
+      carrierUserId: carrierUserId,
       carrierName: carrierName,
       carrierDocument: carrierDocument,
+      carrierType: carrierType,
       status: TransferStatus.pending,
     );
   }
@@ -296,6 +341,74 @@ void main() {
       expect(result.divergenceQuantity, equals(-300));
       expect(result.status, equals('DIVERGENT'));
       expect(notifier.state.successMessage, contains('RESSALVA DE DIVERGÊNCIA'));
+    });
+
+    test('Deve carregar lista de colaboradores cadastrados no estado', () async {
+      await Future.delayed(const Duration(milliseconds: 10));
+
+      expect(notifier.state.collaborators, isNotEmpty);
+      expect(notifier.state.collaborators.length, equals(2));
+      expect(notifier.state.collaborators.first.name, equals('João Técnico'));
+      expect(notifier.state.collaborators.first.cpf, equals('123.456.789-00'));
+    });
+
+    test('CollaboratorModel deve serializar e formatar displayNameWithCpf corretamente', () {
+      const collab = CollaboratorModel(
+        id: '01a0674e-collab-001',
+        name: 'Carlos Portador',
+        email: 'carlos@nexusfibra.com.br',
+        cpf: '111.222.333-44',
+        role: 'USER',
+        active: true,
+      );
+
+      expect(collab.displayNameWithCpf, equals('Carlos Portador (CPF: 111.222.333-44)'));
+
+      final json = collab.toJson();
+      expect(json['name'], equals('Carlos Portador'));
+      expect(json['cpf'], equals('111.222.333-44'));
+
+      final fromJson = CollaboratorModel.fromJson(json);
+      expect(fromJson.name, equals(collab.name));
+      expect(fromJson.cpf, equals(collab.cpf));
+    });
+
+    test('Deve cadastrar terceiro/motorista e incluí-lo na lista de portadores', () async {
+      await Future.delayed(const Duration(milliseconds: 10));
+
+      final countBefore = notifier.state.collaborators.length;
+
+      final newCarrier = await notifier.registerCollaborator(
+        name: 'Marcos Terceirizado Frete',
+        email: 'marcos.frete@parceiro.com',
+        password: 'SenhaForte@2026',
+        cpf: '555.666.777-88',
+        role: 'USER',
+      );
+
+      expect(newCarrier, isNotNull);
+      expect(newCarrier!.name, equals('Marcos Terceirizado Frete'));
+      expect(newCarrier.cpf, equals('555.666.777-88'));
+      expect(notifier.state.collaborators.length, equals(countBefore + 1));
+      expect(notifier.state.successMessage, contains('cadastrado com sucesso'));
+    });
+
+    test('Deve criar transferência inter-bases vinculada ao colaborador selecionado', () async {
+      await Future.delayed(const Duration(milliseconds: 10));
+
+      final selectedCarrier = notifier.state.collaborators.first;
+
+      final success = await notifier.createTransfer(
+        destinationWarehouseId: fakeRepo.dummyWarehouses[1].id,
+        carrierUserId: selectedCarrier.id,
+        carrierName: selectedCarrier.name,
+        carrierDocument: selectedCarrier.cpf ?? '123.456.789-00',
+        carrierType: 'COLABORADOR',
+        notes: 'Transferência de 4 bobinas para Vitória do Xingu',
+      );
+
+      expect(success, isTrue);
+      expect(notifier.state.successMessage, contains('criada com sucesso'));
     });
   });
 }

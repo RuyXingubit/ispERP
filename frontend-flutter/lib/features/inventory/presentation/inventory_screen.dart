@@ -903,53 +903,185 @@ class InventoryScreen extends ConsumerWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // MODAL DE NOVA TRANSFERÊNCIA INTER-BASES
+  // MODAL DE NOVA TRANSFERÊNCIA INTER-BASES COM SELEÇÃO DE COLABORADOR
   // ---------------------------------------------------------------------------
   void _showCreateTransferModal(BuildContext context, InventoryState state, InventoryNotifier notifier) {
-    String? destWarehouseId = state.warehouses.length > 1 ? state.warehouses[1].id : null;
-    final carrierNameCtrl = TextEditingController(text: 'João Técnico');
-    final carrierDocCtrl = TextEditingController(text: '123.456.789-00');
-    final notesCtrl = TextEditingController(text: 'Transporte de bobinas para ponto de apoio');
+    final availableWarehouses = state.warehouses.where((w) => w.id != state.selectedWarehouse?.id).toList();
+    String? destWarehouseId = availableWarehouses.isNotEmpty ? availableWarehouses.first.id : null;
+
+    CollaboratorModel? selectedCarrier = state.collaborators.isNotEmpty ? state.collaborators.first : null;
+    final notesCtrl = TextEditingController();
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocalState) => AlertDialog(
           backgroundColor: AppTheme.darkSurface,
-          title: const Text('Nova Transferência Inter-Bases', style: TextStyle(color: AppTheme.textPrimary)),
+          title: Row(
+            children: const [
+              Icon(Icons.local_shipping_outlined, color: AppTheme.primaryBlue),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('Nova Transferência Inter-Bases', style: TextStyle(color: AppTheme.textPrimary, fontSize: 18)),
+              ),
+            ],
+          ),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<String>(
-                  dropdownColor: AppTheme.darkSurface,
-                  initialValue: destWarehouseId,
-                  style: const TextStyle(color: AppTheme.textPrimary),
-                  decoration: const InputDecoration(labelText: 'Depósito de Destino', labelStyle: TextStyle(color: AppTheme.textSecondary)),
-                  items: state.warehouses.where((w) => w.id != state.selectedWarehouse?.id).map((w) {
-                    return DropdownMenuItem(value: w.id, child: Text('${w.name} (${w.city})'));
-                  }).toList(),
-                  onChanged: (val) => setLocalState(() => destWarehouseId = val),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: carrierNameCtrl,
-                  style: const TextStyle(color: AppTheme.textPrimary),
-                  decoration: const InputDecoration(labelText: 'Nome do Portador / Motorista', labelStyle: TextStyle(color: AppTheme.textSecondary)),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: carrierDocCtrl,
-                  style: const TextStyle(color: AppTheme.textPrimary),
-                  decoration: const InputDecoration(labelText: 'CPF do Portador', labelStyle: TextStyle(color: AppTheme.textSecondary)),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: notesCtrl,
-                  style: const TextStyle(color: AppTheme.textPrimary),
-                  decoration: const InputDecoration(labelText: 'Observações / Lacre', labelStyle: TextStyle(color: AppTheme.textSecondary)),
-                ),
-              ],
+            child: SizedBox(
+              width: 500,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  DropdownButtonFormField<String>(
+                    dropdownColor: AppTheme.darkSurface,
+                    initialValue: destWarehouseId,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                    decoration: const InputDecoration(
+                      labelText: 'Depósito de Destino *',
+                      labelStyle: TextStyle(color: AppTheme.textSecondary),
+                      prefixIcon: Icon(Icons.warehouse_outlined, size: 20),
+                    ),
+                    items: availableWarehouses.map((w) {
+                      return DropdownMenuItem(value: w.id, child: Text('${w.name} (${w.city}/${w.state})'));
+                    }).toList(),
+                    onChanged: (val) => setLocalState(() => destWarehouseId = val),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Portador Responsável *',
+                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                      TextButton.icon(
+                        icon: const Icon(Icons.person_add_alt_1, size: 16, color: AppTheme.primaryBlue),
+                        label: const Text('Cadastrar Terceiro', style: TextStyle(fontSize: 12, color: AppTheme.primaryBlue)),
+                        style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                        onPressed: () {
+                          _showCreateCollaboratorDialog(context, notifier, (CollaboratorModel newCarrier) {
+                            setLocalState(() {
+                              selectedCarrier = newCarrier;
+                            });
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  if (state.collaborators.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentWarning.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.accentWarning.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.warning_amber_rounded, color: AppTheme.accentWarning, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Nenhum colaborador encontrado. Clique em "Cadastrar Terceiro" para cadastrar o motorista responsável.',
+                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    DropdownButtonFormField<String>(
+                      dropdownColor: AppTheme.darkSurface,
+                      initialValue: selectedCarrier?.id,
+                      style: const TextStyle(color: AppTheme.textPrimary),
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Selecionar Colaborador Cadastrado',
+                        labelStyle: TextStyle(color: AppTheme.textSecondary),
+                        prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                      ),
+                      items: state.collaborators.map((c) {
+                        return DropdownMenuItem(
+                          value: c.id,
+                          child: Text(
+                            c.displayNameWithCpf,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        final found = state.collaborators.where((c) => c.id == val).toList();
+                        if (found.isNotEmpty) {
+                          setLocalState(() => selectedCarrier = found.first);
+                        }
+                      },
+                    ),
+                  if (selectedCarrier != null) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.darkBg,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.2),
+                            child: const Icon(Icons.person, color: AppTheme.primaryBlue, size: 18),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  selectedCarrier!.name,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textPrimary, fontSize: 13),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'CPF: ${selectedCarrier!.cpf ?? "Não informado"} • E-mail: ${selectedCarrier!.email}',
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentGreen.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'Vinculado',
+                              style: TextStyle(color: AppTheme.accentGreen, fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: notesCtrl,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Observações / Lacre / Rastreamento',
+                      hintText: 'Ex: Lacre nº 88219 - Transporte de 4 bobinas',
+                      labelStyle: TextStyle(color: AppTheme.textSecondary),
+                      prefixIcon: Icon(Icons.notes_outlined, size: 20),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -959,14 +1091,19 @@ class InventoryScreen extends ConsumerWidget {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue, foregroundColor: Colors.white),
-              onPressed: destWarehouseId == null
+              onPressed: (destWarehouseId == null || selectedCarrier == null)
                   ? null
                   : () async {
+                      final isTerceiro = selectedCarrier!.role.toUpperCase() == 'TERCEIRO' ||
+                          selectedCarrier!.role.toUpperCase() == 'CLIENT' ||
+                          selectedCarrier!.email.contains('terceiro');
                       final ok = await notifier.createTransfer(
                         destinationWarehouseId: destWarehouseId!,
-                        carrierName: carrierNameCtrl.text.trim(),
-                        carrierDocument: carrierDocCtrl.text.trim(),
-                        notes: notesCtrl.text.trim(),
+                        carrierUserId: selectedCarrier!.id,
+                        carrierName: selectedCarrier!.name,
+                        carrierDocument: selectedCarrier!.cpf ?? '000.000.000-00',
+                        carrierType: isTerceiro ? 'TERCEIRO' : 'COLABORADOR',
+                        notes: notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
                       );
                       if (ctx.mounted && ok) Navigator.pop(ctx);
                     },
@@ -979,14 +1116,178 @@ class InventoryScreen extends ConsumerWidget {
   }
 
   // ---------------------------------------------------------------------------
+  // DIÁLOGO DE CADASTRO DE TERCEIRO / MOTORISTA DE TRANSPORTE
+  // ---------------------------------------------------------------------------
+  void _showCreateCollaboratorDialog(
+    BuildContext context,
+    InventoryNotifier notifier,
+    void Function(CollaboratorModel newCollab) onCreated,
+  ) {
+    final nameCtrl = TextEditingController();
+    final cpfCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final passwordCtrl = TextEditingController(text: 'Mudar@123');
+    bool isSaving = false;
+    String? localError;
+
+    showDialog(
+      context: context,
+      builder: (dlgCtx) => StatefulBuilder(
+        builder: (dlgCtx, setDlgState) => AlertDialog(
+          backgroundColor: AppTheme.darkSurface,
+          title: Row(
+            children: const [
+              Icon(Icons.person_add_alt_1, color: AppTheme.primaryBlue),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('Cadastrar Terceiro / Motorista', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16)),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: 420,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Cadastre a pessoa responsável pelo transporte para vincular à cadeia de custódia do ERP.',
+                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                  ),
+                  const SizedBox(height: 14),
+                  if (localError != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentError.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppTheme.accentError),
+                      ),
+                      child: Text(localError!, style: const TextStyle(color: AppTheme.accentError, fontSize: 12)),
+                    ),
+                  ],
+                  TextField(
+                    controller: nameCtrl,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                    decoration: const InputDecoration(
+                      labelText: 'Nome Completo *',
+                      hintText: 'Ex: Carlos Alberto da Silva',
+                      prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: cpfCtrl,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'CPF do Portador *',
+                      hintText: '000.000.000-00',
+                      prefixIcon: Icon(Icons.pin_outlined, size: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: emailCtrl,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'E-mail de Contato *',
+                      hintText: 'motorista@exemplo.com',
+                      prefixIcon: Icon(Icons.email_outlined, size: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: passwordCtrl,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Senha de Acesso (Mín. 6 dígitos) *',
+                      prefixIcon: Icon(Icons.lock_outline, size: 20),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isSaving ? null : () => Navigator.pop(dlgCtx),
+              child: const Text('Cancelar', style: TextStyle(color: AppTheme.textSecondary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryBlue,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: isSaving
+                  ? null
+                  : () async {
+                      final name = nameCtrl.text.trim();
+                      final cpf = cpfCtrl.text.trim();
+                      final email = emailCtrl.text.trim();
+                      final pwd = passwordCtrl.text.trim();
+
+                      if (name.isEmpty) {
+                        setDlgState(() => localError = 'Informe o nome completo do portador.');
+                        return;
+                      }
+                      if (cpf.isEmpty) {
+                        setDlgState(() => localError = 'O CPF é obrigatório para a cadeia de custódia.');
+                        return;
+                      }
+                      if (email.isEmpty || !email.contains('@')) {
+                        setDlgState(() => localError = 'Informe um e-mail válido para o cadastro.');
+                        return;
+                      }
+                      if (pwd.length < 6) {
+                        setDlgState(() => localError = 'A senha deve conter no mínimo 6 caracteres.');
+                        return;
+                      }
+
+                      setDlgState(() {
+                        isSaving = true;
+                        localError = null;
+                      });
+
+                      final created = await notifier.registerCollaborator(
+                        name: name,
+                        email: email,
+                        password: pwd,
+                        cpf: cpf,
+                        role: 'USER',
+                      );
+
+                      if (dlgCtx.mounted) {
+                        setDlgState(() => isSaving = false);
+                        if (created != null) {
+                          Navigator.pop(dlgCtx);
+                          onCreated(created);
+                        }
+                      }
+                    },
+              child: isSaving
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Salvar e Selecionar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // MODAL DE RETIRADA VINCULADA À O.S. (REGRA DE OURO)
   // ---------------------------------------------------------------------------
   void _showCheckoutModal(BuildContext context, InventoryState state, InventoryNotifier notifier) {
     String? selectedWoId = state.demands.isNotEmpty ? state.demands.first.workOrderId : null;
-    final techIdCtrl = TextEditingController(text: '01a0674f-01cc-7b04-b81b-87a0b9335d7d');
-    final qtyCtrl = TextEditingController(text: '2000');
-    final beforePhotoCtrl = TextEditingController(text: 'https://isperp.fotos.com/metro-inicial-2000.jpg');
-    final notesCtrl = TextEditingController(text: 'Retirada de bobina 2000m');
+    String? selectedTechId = state.collaborators.isNotEmpty ? state.collaborators.first.id : null;
+    final qtyCtrl = TextEditingController();
+    final beforePhotoCtrl = TextEditingController();
+    final notesCtrl = TextEditingController();
 
     showDialog(
       context: context,
@@ -1002,18 +1303,39 @@ class InventoryScreen extends ConsumerWidget {
                   dropdownColor: AppTheme.darkSurface,
                   initialValue: selectedWoId,
                   style: const TextStyle(color: AppTheme.textPrimary),
-                  decoration: const InputDecoration(labelText: 'Ordem de Serviço Obrigatória', labelStyle: TextStyle(color: AppTheme.textSecondary)),
+                  decoration: const InputDecoration(labelText: 'Ordem de Serviço Obrigatória *', labelStyle: TextStyle(color: AppTheme.textSecondary)),
                   items: state.demands.map((d) {
                     return DropdownMenuItem(value: d.workOrderId, child: Text('${d.customerName} (${d.workOrderId.substring(0, 8)})'));
                   }).toList(),
                   onChanged: (val) => setLocalState(() => selectedWoId = val),
                 ),
                 const SizedBox(height: 10),
+                if (state.collaborators.isNotEmpty)
+                  DropdownButtonFormField<String>(
+                    dropdownColor: AppTheme.darkSurface,
+                    initialValue: selectedTechId,
+                    style: const TextStyle(color: AppTheme.textPrimary),
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Técnico Responsável *',
+                      labelStyle: TextStyle(color: AppTheme.textSecondary),
+                      prefixIcon: Icon(Icons.engineering_outlined, size: 20),
+                    ),
+                    items: state.collaborators.map((c) {
+                      return DropdownMenuItem(value: c.id, child: Text(c.displayNameWithCpf, overflow: TextOverflow.ellipsis));
+                    }).toList(),
+                    onChanged: (val) => setLocalState(() => selectedTechId = val),
+                  ),
+                const SizedBox(height: 10),
                 TextField(
                   controller: qtyCtrl,
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: AppTheme.textPrimary),
-                  decoration: const InputDecoration(labelText: 'Metragem ou Quantidade Retirada', labelStyle: TextStyle(color: AppTheme.textSecondary)),
+                  decoration: const InputDecoration(
+                    labelText: 'Metragem ou Quantidade Retirada *',
+                    hintText: 'Ex: 2000',
+                    labelStyle: TextStyle(color: AppTheme.textSecondary),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
@@ -1021,6 +1343,7 @@ class InventoryScreen extends ConsumerWidget {
                   style: const TextStyle(color: AppTheme.textPrimary),
                   decoration: const InputDecoration(
                     labelText: 'URL da Foto Inicial (Hodômetro / Marcação)',
+                    hintText: 'https://exemplo.com/odometro-inicial.jpg',
                     labelStyle: TextStyle(color: AppTheme.textSecondary),
                   ),
                 ),
@@ -1028,7 +1351,11 @@ class InventoryScreen extends ConsumerWidget {
                 TextField(
                   controller: notesCtrl,
                   style: const TextStyle(color: AppTheme.textPrimary),
-                  decoration: const InputDecoration(labelText: 'Observações da Saída', labelStyle: TextStyle(color: AppTheme.textSecondary)),
+                  decoration: const InputDecoration(
+                    labelText: 'Observações da Saída',
+                    hintText: 'Observações do estado do material',
+                    labelStyle: TextStyle(color: AppTheme.textSecondary),
+                  ),
                 ),
               ],
             ),
@@ -1040,17 +1367,21 @@ class InventoryScreen extends ConsumerWidget {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue, foregroundColor: Colors.white),
-              onPressed: selectedWoId == null
+              onPressed: (selectedWoId == null || selectedTechId == null)
                   ? null
                   : () async {
+                      final qty = int.tryParse(qtyCtrl.text.trim()) ?? 0;
+                      if (qty <= 0) {
+                        return;
+                      }
                       final ok = await notifier.checkoutMaterial(
                         MaterialCheckoutPayload(
                           workOrderId: selectedWoId!,
-                          technicianUserId: techIdCtrl.text.trim(),
+                          technicianUserId: selectedTechId!,
                           warehouseId: state.selectedWarehouse?.id,
-                          quantityOrMeters: int.tryParse(qtyCtrl.text) ?? 2000,
-                          beforePhotoUrl: beforePhotoCtrl.text.trim(),
-                          notes: notesCtrl.text.trim(),
+                          quantityOrMeters: qty,
+                          beforePhotoUrl: beforePhotoCtrl.text.trim().isEmpty ? null : beforePhotoCtrl.text.trim(),
+                          notes: notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
                         ),
                       );
                       if (ctx.mounted && ok) Navigator.pop(ctx);
@@ -1068,23 +1399,23 @@ class InventoryScreen extends ConsumerWidget {
   // ---------------------------------------------------------------------------
   void _showCheckinModal(BuildContext context, InventoryState state, InventoryNotifier notifier) {
     String? selectedWoId = state.demands.isNotEmpty ? state.demands.first.workOrderId : null;
-    final initialCtrl = TextEditingController(text: '2000');
-    final consumedCtrl = TextEditingController(text: '500');
-    final remainingCtrl = TextEditingController(text: '1500');
-    final beforePhotoCtrl = TextEditingController(text: 'https://isperp.fotos.com/metro-inicial-2000.jpg');
-    final installedPhotoCtrl = TextEditingController(text: 'https://isperp.fotos.com/instalado-poste-pto.jpg');
-    final returnPhotoCtrl = TextEditingController(text: 'https://isperp.fotos.com/metro-final-1500.jpg');
+    final initialCtrl = TextEditingController();
+    final consumedCtrl = TextEditingController();
+    final remainingCtrl = TextEditingController();
+    final beforePhotoCtrl = TextEditingController();
+    final installedPhotoCtrl = TextEditingController();
+    final returnPhotoCtrl = TextEditingController();
     final notesCtrl = TextEditingController();
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocalState) {
-          final initVal = int.tryParse(initialCtrl.text) ?? 2000;
-          final consVal = int.tryParse(consumedCtrl.text) ?? 500;
-          final remVal = int.tryParse(remainingCtrl.text) ?? 1500;
+          final initVal = int.tryParse(initialCtrl.text) ?? 0;
+          final consVal = int.tryParse(consumedCtrl.text) ?? 0;
+          final remVal = int.tryParse(remainingCtrl.text) ?? 0;
           final expected = initVal - consVal;
-          final hasDiv = remVal != expected;
+          final hasDiv = initVal > 0 && remVal != expected;
 
           return AlertDialog(
             backgroundColor: AppTheme.darkSurface,
@@ -1098,7 +1429,7 @@ class InventoryScreen extends ConsumerWidget {
                     dropdownColor: AppTheme.darkSurface,
                     initialValue: selectedWoId,
                     style: const TextStyle(color: AppTheme.textPrimary),
-                    decoration: const InputDecoration(labelText: 'Ordem de Serviço Executada', labelStyle: TextStyle(color: AppTheme.textSecondary)),
+                    decoration: const InputDecoration(labelText: 'Ordem de Serviço Executada *', labelStyle: TextStyle(color: AppTheme.textSecondary)),
                     items: state.demands.map((d) {
                       return DropdownMenuItem(value: d.workOrderId, child: Text('${d.customerName} (${d.workOrderId.substring(0, 8)})'));
                     }).toList(),
@@ -1112,7 +1443,11 @@ class InventoryScreen extends ConsumerWidget {
                           controller: initialCtrl,
                           keyboardType: TextInputType.number,
                           style: const TextStyle(color: AppTheme.textPrimary),
-                          decoration: const InputDecoration(labelText: 'Metragem Inicial', labelStyle: TextStyle(color: AppTheme.textSecondary)),
+                          decoration: const InputDecoration(
+                            labelText: 'Metragem Inicial *',
+                            hintText: 'Ex: 2000',
+                            labelStyle: TextStyle(color: AppTheme.textSecondary),
+                          ),
                           onChanged: (_) => setLocalState(() {}),
                         ),
                       ),
@@ -1122,7 +1457,11 @@ class InventoryScreen extends ConsumerWidget {
                           controller: consumedCtrl,
                           keyboardType: TextInputType.number,
                           style: const TextStyle(color: AppTheme.textPrimary),
-                          decoration: const InputDecoration(labelText: 'Consumo na O.S.', labelStyle: TextStyle(color: AppTheme.textSecondary)),
+                          decoration: const InputDecoration(
+                            labelText: 'Consumo na O.S. *',
+                            hintText: 'Ex: 500',
+                            labelStyle: TextStyle(color: AppTheme.textSecondary),
+                          ),
                           onChanged: (_) => setLocalState(() {}),
                         ),
                       ),
@@ -1132,30 +1471,36 @@ class InventoryScreen extends ConsumerWidget {
                           controller: remainingCtrl,
                           keyboardType: TextInputType.number,
                           style: const TextStyle(color: AppTheme.textPrimary),
-                          decoration: const InputDecoration(labelText: 'Saldo Devolvido', labelStyle: TextStyle(color: AppTheme.textSecondary)),
+                          decoration: const InputDecoration(
+                            labelText: 'Saldo Devolvido *',
+                            hintText: 'Ex: 1500',
+                            labelStyle: TextStyle(color: AppTheme.textSecondary),
+                          ),
                           onChanged: (_) => setLocalState(() {}),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: (hasDiv ? AppTheme.accentError : AppTheme.accentGreen).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      hasDiv
-                          ? 'DIVERGÊNCIA DETECTADA: Esperava $expected m, mas foi medido $remVal m (${remVal - expected} m).'
-                          : 'CONFORME: Metragem esperada bate exatamente com o saldo devolvido ($expected m).',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: hasDiv ? AppTheme.accentError : AppTheme.accentGreen,
+                  if (initVal > 0) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: (hasDiv ? AppTheme.accentError : AppTheme.accentGreen).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        hasDiv
+                            ? 'DIVERGÊNCIA DETECTADA: Esperava $expected m, mas foi medido $remVal m (${remVal - expected} m).'
+                            : 'CONFORME: Metragem esperada bate exatamente com o saldo devolvido ($expected m).',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: hasDiv ? AppTheme.accentError : AppTheme.accentGreen,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                   const SizedBox(height: 12),
                   const Text('Evidências Visuais da O.S. (3 Fases):', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
                   const SizedBox(height: 6),

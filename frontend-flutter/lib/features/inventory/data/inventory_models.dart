@@ -378,3 +378,50 @@ class MaterialCheckinResult {
     );
   }
 }
+
+@immutable
+class CollaboratorModel {
+  final String id;
+  final String name;
+  final String email;
+  final String? cpf;
+  final String role;
+  final bool active;
+
+  const CollaboratorModel({
+    required this.id,
+    required this.name,
+    required this.email,
+    this.cpf,
+    this.role = 'USER',
+    this.active = true,
+  });
+
+  factory CollaboratorModel.fromJson(Map<String, dynamic> json) {
+    return CollaboratorModel(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      cpf: json['cpf']?.toString(),
+      role: json['role']?.toString() ?? 'USER',
+      active: json['active'] as bool? ?? true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'cpf': cpf,
+      'role': role,
+      'active': active,
+    };
+  }
+
+  /// Retorna o rótulo formatado para exibição e busca em seletores.
+  String get displayNameWithCpf {
+    final doc = (cpf != null && cpf!.trim().isNotEmpty) ? ' (CPF: $cpf)' : '';
+    return '$name$doc';
+  }
+}
