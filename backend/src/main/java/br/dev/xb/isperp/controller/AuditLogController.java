@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/admin/audit-logs")
+@RequestMapping("/admin/audit-logs")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @SuppressWarnings("null")

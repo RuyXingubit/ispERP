@@ -23,6 +23,7 @@ class ServerHealthResult {
 class ApiClient {
   final StorageService _storageService;
   late final Dio dio;
+  void Function()? onSessionExpired;
 
   ApiClient(this._storageService) {
     dio = Dio(
@@ -60,9 +61,10 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException error, handler) async {
-          // Se receber 401 (Não autorizado), limpa sessão para forçar novo login
+          // Se receber 401 (Não autorizado/Token expirado), limpa sessão e notifica Riverpod
           if (error.response?.statusCode == 401) {
             await _storageService.clearSession();
+            onSessionExpired?.call();
           }
           return handler.next(error);
         },

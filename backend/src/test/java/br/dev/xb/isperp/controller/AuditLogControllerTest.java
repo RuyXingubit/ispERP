@@ -56,7 +56,7 @@ class AuditLogControllerTest {
         when(auditLogService.searchLogs(any(), any(), any(), any(), any(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(dto)));
 
-        mockMvc.perform(get("/api/admin/audit-logs")
+        mockMvc.perform(get("/admin/audit-logs")
                         .param("entityName", "FINANCIAL")
                         .param("action", "ENTRY")
                         .param("page", "0")

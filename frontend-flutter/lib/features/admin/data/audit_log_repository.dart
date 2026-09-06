@@ -39,7 +39,7 @@ class AuditLogRepository {
       };
 
       final response = await _dio.get(
-        '/api/admin/audit-logs',
+        '/admin/audit-logs',
         queryParameters: queryParameters,
       );
 

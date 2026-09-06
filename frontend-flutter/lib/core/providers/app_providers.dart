@@ -208,11 +208,22 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Desconecta o colaborador e limpa a sessão.
   Future<void> logout() async {
     await _storage.clearSession();
-    state = state.copyWith(
+    state = AuthState(
+      isLoading: false,
+      hasServerConfigured: state.hasServerConfigured,
       isAuthenticated: false,
-      role: null,
-      email: null,
-      name: null,
+      serverUrl: state.serverUrl,
+    );
+  }
+
+  /// Trata a expiração da sessão (HTTP 401) redirecionando suavemente para o Login.
+  void handleSessionExpired() {
+    state = AuthState(
+      isLoading: false,
+      hasServerConfigured: state.hasServerConfigured,
+      isAuthenticated: false,
+      serverUrl: state.serverUrl,
+      errorMessage: 'Sua sessão expirou. Por favor, faça login novamente.',
     );
   }
 
@@ -233,5 +244,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final storage = ref.watch(storageServiceProvider);
   final api = ref.watch(apiClientProvider);
-  return AuthNotifier(storage, api);
+  final notifier = AuthNotifier(storage, api);
+  api.onSessionExpired = notifier.handleSessionExpired;
+  return notifier;
 });
