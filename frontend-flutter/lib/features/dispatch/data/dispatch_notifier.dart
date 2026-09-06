@@ -152,8 +152,10 @@ class DispatchNotifier extends StateNotifier<DispatchState> {
         final tech = state.candidates.where((c) => c.technicianId == technicianId).toList();
         final techName = tech.isNotEmpty ? tech.first.technicianName : 'Técnico';
 
+        // Transiciona a aba para "Alocadas / Em Campo" (Tab 1) para que o usuário veja a O.S. despachada imediatamente
         state = state.copyWith(
           isDispatching: false,
+          selectedFilterTab: 1,
           dispatchSuccessMessage: 'O.S. despachada com sucesso para $techName! Estoque veicular alocado.',
         );
         await loadDemands(clearMessages: false);

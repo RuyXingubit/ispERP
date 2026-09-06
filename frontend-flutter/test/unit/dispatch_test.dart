@@ -183,12 +183,13 @@ void main() {
       expect(notifier.state.filteredDemands.first.status, equals(MaterialDemandStatus.allocatedVehicle));
     });
 
-    test('Deve despachar O.S. para o técnico com sucesso e exibir mensagem', () async {
+    test('Deve despachar O.S. para o técnico com sucesso, alternar para aba 1 e exibir mensagem', () async {
       await Future.delayed(const Duration(milliseconds: 10));
 
       final success = await notifier.dispatchToTechnician('tech-001');
       expect(success, isTrue);
       expect(notifier.state.isDispatching, isFalse);
+      expect(notifier.state.selectedFilterTab, equals(1));
       expect(notifier.state.dispatchSuccessMessage, contains('despachada com sucesso para Pedro Henrique'));
     });
   });

@@ -337,6 +337,26 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                       ),
                   ],
                 ),
+                if (item.allocatedTechnicianName != null) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.person_pin_circle_rounded, size: 14, color: AppTheme.accentGreen),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'Técnico: ${item.allocatedTechnicianName}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.accentGreen,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -373,6 +393,51 @@ class DispatchControlTowerScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Banner Operacional se a O.S. já estiver despachada/agendada
+          if (demand.status == MaterialDemandStatus.allocatedVehicle ||
+              demand.status == MaterialDemandStatus.allocatedCentral ||
+              demand.allocatedTechnicianName != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: AppTheme.accentGreen.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: AppTheme.accentGreen, size: 28),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'ORDEM DE SERVIÇO DESPACHADA & AGENDADA',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.accentGreen,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          demand.allocatedTechnicianName != null
+                              ? 'Técnico Designado: ${demand.allocatedTechnicianName} (Insumos alocados no veículo)'
+                              : 'Insumos alocados para atendimento imediato',
+                          style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
           // Card 1: Auditoria de Insumos & Kit de Materiais Obrigatório
           Container(
             padding: const EdgeInsets.all(16),
@@ -540,13 +605,24 @@ class DispatchControlTowerScreen extends ConsumerWidget {
     bool isDispatching,
     DispatchNotifier notifier,
   ) {
+    final isAssigned = demand.allocatedTechnicianName != null &&
+        (demand.allocatedTechnicianName == tech.technicianName ||
+            demand.allocatedTechnicianName!.toLowerCase() == tech.technicianName.toLowerCase());
+    final isDemandDispatched = demand.status == MaterialDemandStatus.allocatedVehicle ||
+        demand.status == MaterialDemandStatus.allocatedCentral;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.darkCard.withValues(alpha: 0.4),
+        color: isAssigned
+            ? AppTheme.accentGreen.withValues(alpha: 0.08)
+            : AppTheme.darkCard.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: tech.hasCompleteKit ? AppTheme.accentGreen.withValues(alpha: 0.3) : AppTheme.darkBorder,
+          color: isAssigned
+              ? AppTheme.accentGreen
+              : (tech.hasCompleteKit ? AppTheme.accentGreen.withValues(alpha: 0.3) : AppTheme.darkBorder),
+          width: isAssigned ? 1.5 : 1,
         ),
       ),
       child: Column(
@@ -560,10 +636,16 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 14,
-                      backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.2),
+                      backgroundColor: isAssigned
+                          ? AppTheme.accentGreen.withValues(alpha: 0.2)
+                          : AppTheme.primaryBlue.withValues(alpha: 0.2),
                       child: Text(
                         tech.technicianName.isNotEmpty ? tech.technicianName[0] : 'T',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: isAssigned ? AppTheme.accentGreen : AppTheme.primaryBlue,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -571,14 +653,39 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            tech.technicianName,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  tech.technicianName,
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (isAssigned) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.accentGreen.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    'ATUAL',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.accentGreen,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                           Text(
                             tech.vehicleWarehouseName ?? 'Veículo Operacional',
                             style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -587,18 +694,52 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: isDispatching
-                    ? null
-                    : () => _confirmDispatch(context, tech, demand, notifier),
-                icon: const Icon(Icons.send_rounded, size: 14),
-                label: const Text('Despachar', style: TextStyle(fontSize: 12)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryBlue,
-                  foregroundColor: Colors.white,
+              if (isAssigned)
+                Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.accentGreen),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.check_circle_rounded, size: 14, color: AppTheme.accentGreen),
+                      SizedBox(width: 6),
+                      Text(
+                        'Técnico Designado',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.accentGreen),
+                      ),
+                    ],
+                  ),
+                )
+              else if (isDemandDispatched)
+                OutlinedButton.icon(
+                  onPressed: isDispatching
+                      ? null
+                      : () => _confirmDispatch(context, tech, demand, notifier, isReassignment: true),
+                  icon: const Icon(Icons.swap_horiz_rounded, size: 14),
+                  label: const Text('Reatribuir', style: TextStyle(fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primaryBlue,
+                    side: const BorderSide(color: AppTheme.primaryBlue),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  ),
+                )
+              else
+                ElevatedButton.icon(
+                  onPressed: isDispatching
+                      ? null
+                      : () => _confirmDispatch(context, tech, demand, notifier),
+                  icon: const Icon(Icons.send_rounded, size: 14),
+                  label: const Text('Despachar', style: TextStyle(fontSize: 12)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryBlue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -659,29 +800,36 @@ class DispatchControlTowerScreen extends ConsumerWidget {
     BuildContext context,
     TechnicianCandidateModel tech,
     InstallationDemandModel demand,
-    DispatchNotifier notifier,
-  ) {
+    DispatchNotifier notifier, {
+    bool isReassignment = false,
+  }) {
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
           backgroundColor: AppTheme.darkSurface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: const Text('Confirmar Despacho de O.S.'),
+          title: Text(isReassignment ? 'Confirmar Reatribuição de O.S.' : 'Confirmar Despacho de O.S.'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Deseja despachar esta instalação para o técnico ${tech.technicianName}?'),
+              Text(
+                isReassignment
+                    ? 'Deseja reatribuir esta O.S. para o técnico ${tech.technicianName}?'
+                    : 'Deseja despachar esta instalação para o técnico ${tech.technicianName}?',
+              ),
               const SizedBox(height: 12),
               Text('Cliente: ${demand.customerName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
               Text('Endereço: ${demand.customerAddress}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
               Text('Insumo ONU: ${demand.onuModelRequired}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
               Text('Cabo Drop: ${demand.estimatedDropMeters}m', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
               const SizedBox(height: 12),
-              const Text(
-                'Ao confirmar, a O.S. será agendada e os materiais serão alocados no estoque do veículo.',
-                style: TextStyle(fontSize: 11, color: AppTheme.accentGreen),
+              Text(
+                isReassignment
+                    ? 'Ao confirmar, a O.S. será transferida e os materiais serão realocados no veículo de ${tech.technicianName}.'
+                    : 'Ao confirmar, a O.S. será agendada e os materiais serão alocados no estoque do veículo.',
+                style: const TextStyle(fontSize: 11, color: AppTheme.accentGreen),
               ),
             ],
           ),
@@ -691,11 +839,32 @@ class DispatchControlTowerScreen extends ConsumerWidget {
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(ctx);
-                notifier.dispatchToTechnician(tech.technicianId);
+                final success = await notifier.dispatchToTechnician(tech.technicianId);
+                if (context.mounted && success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: AppTheme.accentGreen,
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 4),
+                      content: Row(
+                        children: [
+                          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'O.S. despachada com sucesso para ${tech.technicianName}! Movida para Alocadas / Em Campo.',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
               },
-              child: const Text('Confirmar & Despachar'),
+              child: Text(isReassignment ? 'Confirmar Reatribuição' : 'Confirmar & Despachar'),
             ),
           ],
         );
