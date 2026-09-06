@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,6 +18,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -36,7 +38,9 @@ public class UserService {
         }
         
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        User created = userRepository.save(user);
+        auditLogService.logAction("USER_CREATED", "USER", created.getId().toString(), Map.of("email", created.getEmail(), "role", created.getRole().name()));
+        return created;
     }
 
     public User updateUser(UUID id, User userDetails) {
@@ -60,21 +64,27 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
         }
 
-        return userRepository.save(user);
+        User updated = userRepository.save(user);
+        auditLogService.logAction("USER_UPDATED", "USER", id.toString(), Map.of("email", updated.getEmail(), "role", updated.getRole().name()));
+        return updated;
     }
 
     public User updateUserStatus(UUID id, boolean active) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         user.setActive(active);
-        return userRepository.save(user);
+        User updated = userRepository.save(user);
+        auditLogService.logAction("USER_STATUS_CHANGED", "USER", id.toString(), Map.of("active", active));
+        return updated;
     }
 
     public User updateUserRole(UUID id, br.dev.xb.isperp.entity.UserRole role) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         user.setRole(role);
-        return userRepository.save(user);
+        User updated = userRepository.save(user);
+        auditLogService.logAction("USER_ROLE_CHANGED", "USER", id.toString(), Map.of("role", role.name()));
+        return updated;
     }
 
     public User resetPassword(UUID id, String newPassword) {
@@ -84,13 +94,16 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         user.setPassword(passwordEncoder.encode(newPassword));
-        return userRepository.save(user);
+        User updated = userRepository.save(user);
+        auditLogService.logAction("USER_PASSWORD_RESET", "USER", id.toString(), Map.of("action", "ADMIN_RESET"));
+        return updated;
     }
 
     public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("Usuário não encontrado");
         }
+        auditLogService.logAction("USER_DELETED", "USER", id.toString(), Map.of("deletedId", id.toString()));
         userRepository.deleteById(id);
     }
 }

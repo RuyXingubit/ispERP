@@ -52,6 +52,9 @@ class InvoiceServiceTest {
     @Mock
     private PaymentGateway paymentGateway;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     @InjectMocks
     private InvoiceService invoiceService;
 

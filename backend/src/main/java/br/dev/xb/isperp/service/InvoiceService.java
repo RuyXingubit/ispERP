@@ -40,6 +40,7 @@ public class InvoiceService {
     private final PaymentTransactionRepository transactionRepository;
     private final PaymentGatewayResolver gatewayResolver;
     private final DomainEventPublisher domainEventPublisher;
+    private final AuditLogService auditLogService;
 
     public List<Invoice> getAllInvoices() {
         return invoiceRepository.findAll();
@@ -146,6 +147,9 @@ public class InvoiceService {
 
         domainEventPublisher.publish(event);
 
+        auditLogService.logAction("INVOICE_CREATED", "INVOICE", saved.getId().toString(),
+                Map.of("contractId", contract.getId().toString(), "amount", saved.getAmount().toString(), "dueDate", saved.getDueDate().toString()));
+
         log.info("Fatura {} emitida com sucesso via {}. TxId={}", saved.getId(), saved.getGatewayType(), saved.getExternalTransactionId());
         return saved;
     }
@@ -184,6 +188,9 @@ public class InvoiceService {
 
         domainEventPublisher.publish(event);
 
+        auditLogService.logAction("INVOICE_PAID", "INVOICE", saved.getId().toString(),
+                Map.of("paidAmount", saved.getPaidAmount().toString(), "paymentMethod", saved.getPaymentMethod()));
+
         return saved;
     }
 
@@ -193,6 +200,11 @@ public class InvoiceService {
                 .orElseThrow(() -> new RuntimeException("Fatura não encontrada"));
 
         invoice.setStatus(Invoice.InvoiceStatus.CANCELED);
-        return invoiceRepository.save(invoice);
+        Invoice saved = invoiceRepository.save(invoice);
+
+        auditLogService.logAction("INVOICE_CANCELLED", "INVOICE", invoiceId.toString(),
+                Map.of("action", "CANCEL_INVOICE"));
+
+        return saved;
     }
 }

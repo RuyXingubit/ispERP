@@ -183,9 +183,9 @@ A central é organizada em 4 abas coesas:
 
 ## 7. Roteiro de Execução em Fases
 
-| Fase | Foco | Entregáveis Técnicos |
-| :--- | :--- | :--- |
-| **Fase 1** | **Colaboradores & RBAC** | • Endpoints REST em `UserController` (suspensão, reativação, troca de role, reset de senha).<br>• Testes unitários com JUnit/Mockito (`UserServiceTest`, `UserControllerTest`).<br>• Tela `UsersManagementScreen` no Flutter com listagem real, badges de status, modal de cadastro e ações.<br>• Teste de widget no Flutter e verificação visual no app macOS. |
-| **Fase 2** | **Trilha de Auditoria Forense (`audit_logs`)** | • Entidade JPA `AuditLog`, `AuditLogRepository` com `JpaSpecificationExecutor`.<br>• `AuditLogService` e interceptação em baixas manuais, débitos/créditos e contratos.<br>• Controller `AuditLogController` com filtros multi-critério.<br>• Tela `AuditTrailScreen` no Flutter com filtros combinados e modal de detalhes JSONB. |
-| **Fase 3** | **Central de Configurações do Provedor** | • Tela `ProviderSettingsScreen` com 4 abas (Comunicação/WhatsApp, Financeiro/Gateways, Telecom/RADIUS/Anatel, Fiscal/NFCom).<br>• Conexão dos formulários aos endpoints já existentes no backend.<br>• Teste de disparo de e-mail SMTP em 1 clique. |
-| **Fase 4** | **Painel Executivo, Sentinela & DRE** | • Enriquecimento do painel `/admin` com DRE gerencial, alertas do Sentinela e sessões PPPoE ativas. |
+| Fase | Foco | Entregáveis Técnicos | Status |
+| :--- | :--- | :--- | :--- |
+| **Fase 1** | **Colaboradores & RBAC** | • Endpoints REST em `UserController` (suspensão, reativação, troca de role, reset de senha).<br>• Testes unitários com JUnit/Mockito (`UserServiceTest`, `UserControllerTest`).<br>• Tela `UsersManagementScreen` no Flutter com listagem real, badges de status, modal de cadastro e ações.<br>• Teste de widget no Flutter e verificação visual no app macOS. | **CONCLUÍDO (Commit 0bf6336)** |
+| **Fase 2** | **Trilha de Auditoria Forense (`audit_logs`)** | • Entidade JPA `AuditLog`, `AuditLogRepository` com `JpaSpecificationExecutor`.<br>• `AuditLogService` com interceptação em baixas de faturas, débitos/créditos e usuários.<br>• Controller `AuditLogController` com filtros multi-critério e paginação.<br>• Tela `AuditTrailScreen` no Flutter com filtros combinados e modal de dossiê JSONB.<br>• Cobertura de testes unitários e de widget anti-overflow (100% passed). | **CONCLUÍDO** |
+| **Fase 3** | **Central de Configurações do Provedor** | • Tela `ProviderSettingsScreen` com abas (Comunicação/SMTP/WhatsApp, Financeiro/Xingubit Pay, Telecom/NAS/PPPoE, Catálogo de Planos, Fiscal/NFCom).<br>• Conexão dos formulários aos endpoints no backend.<br>• Teste de disparo de e-mail SMTP em 1 clique. | **PRÓXIMA ETAPA** |
+| **Fase 4** | **Painel Executivo, Sentinela & DRE** | • Enriquecimento do painel `/admin` com DRE gerencial, alertas do Sentinela e sessões PPPoE ativas. | Planejado |

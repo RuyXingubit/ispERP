@@ -229,6 +229,7 @@ class ShellScaffold extends ConsumerWidget {
     if (role == UserRole.admin) {
       items.add(_buildNavItem(context, '/admin', 'Diretoria & OLTs', Icons.shield_outlined, currentPath == '/admin'));
       items.add(_buildNavItem(context, '/admin/users', 'Colaboradores & RBAC', Icons.manage_accounts_outlined, currentPath == '/admin/users'));
+      items.add(_buildNavItem(context, '/admin/audit-logs', 'Trilha de Auditoria', Icons.fingerprint, currentPath == '/admin/audit-logs'));
       items.add(_buildNavItem(context, '/inventory', 'Estoque & Almoxarifado', Icons.inventory_2_outlined, currentPath == '/inventory'));
       items.add(_buildNavItem(context, '/dispatch', 'Torre de Despacho', Icons.local_shipping_outlined, currentPath == '/dispatch'));
       items.add(_buildNavItem(context, '/financial', 'Financeiro & DRE', Icons.account_balance_outlined, currentPath == '/financial'));
