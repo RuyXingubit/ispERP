@@ -56,10 +56,34 @@ public class UserService {
             user.setCpf(userDetails.getCpf());
         }
 
-        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+        if (userDetails.getPassword() != null && !userDetails.getPassword().isBlank() && !userDetails.getPassword().equals(user.getPassword())) {
             user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
         }
 
+        return userRepository.save(user);
+    }
+
+    public User updateUserStatus(UUID id, boolean active) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        user.setActive(active);
+        return userRepository.save(user);
+    }
+
+    public User updateUserRole(UUID id, br.dev.xb.isperp.entity.UserRole role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        user.setRole(role);
+        return userRepository.save(user);
+    }
+
+    public User resetPassword(UUID id, String newPassword) {
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new IllegalArgumentException("A nova senha deve ter no mínimo 6 caracteres");
+        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        user.setPassword(passwordEncoder.encode(newPassword));
         return userRepository.save(user);
     }
 

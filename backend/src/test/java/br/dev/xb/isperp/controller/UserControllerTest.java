@@ -20,6 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -197,5 +198,50 @@ class UserControllerTest {
         mockMvc.perform(delete("/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("PATCH /users/{id}/status - Deve suspender/reativar usuário com sucesso")
+    void shouldUpdateUserStatus() throws Exception {
+        when(userService.updateUserStatus(userId, false)).thenReturn(user);
+        when(userMapper.toResponse(user)).thenReturn(userResponse);
+
+        mockMvc.perform(patch("/users/{id}/status", userId)
+                        .param("active", "false")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId.toString()));
+
+        verify(userService).updateUserStatus(userId, false);
+    }
+
+    @Test
+    @DisplayName("PATCH /users/{id}/role - Deve alterar cargo/perfil do usuário")
+    void shouldUpdateUserRole() throws Exception {
+        when(userService.updateUserRole(userId, br.dev.xb.isperp.entity.UserRole.ADMIN)).thenReturn(user);
+        when(userMapper.toResponse(user)).thenReturn(userResponse);
+
+        mockMvc.perform(patch("/users/{id}/role", userId)
+                        .param("role", "ADMIN")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId.toString()));
+
+        verify(userService).updateUserRole(userId, br.dev.xb.isperp.entity.UserRole.ADMIN);
+    }
+
+    @Test
+    @DisplayName("POST /users/{id}/reset-password - Deve redefinir senha do usuário")
+    void shouldResetPassword() throws Exception {
+        when(userService.resetPassword(userId, "novaSenha123")).thenReturn(user);
+        when(userMapper.toResponse(user)).thenReturn(userResponse);
+
+        mockMvc.perform(post("/users/{id}/reset-password", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("newPassword", "novaSenha123"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId.toString()));
+
+        verify(userService).resetPassword(userId, "novaSenha123");
     }
 }

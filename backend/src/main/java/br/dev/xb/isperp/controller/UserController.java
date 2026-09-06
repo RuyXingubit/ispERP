@@ -10,10 +10,10 @@ import br.dev.xb.isperp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -60,6 +60,25 @@ public class UserController implements UsersApi {
         }
 
         User updated = userService.updateUser(id, user);
+        return ResponseEntity.ok(userMapper.toResponse(updated));
+    }
+
+    @PatchMapping("/users/{id}/status")
+    public ResponseEntity<UserResponse> updateUserStatus(@PathVariable UUID id, @RequestParam boolean active) {
+        User updated = userService.updateUserStatus(id, active);
+        return ResponseEntity.ok(userMapper.toResponse(updated));
+    }
+
+    @PatchMapping("/users/{id}/role")
+    public ResponseEntity<UserResponse> updateUserRole(@PathVariable UUID id, @RequestParam br.dev.xb.isperp.entity.UserRole role) {
+        User updated = userService.updateUserRole(id, role);
+        return ResponseEntity.ok(userMapper.toResponse(updated));
+    }
+
+    @PostMapping("/users/{id}/reset-password")
+    public ResponseEntity<UserResponse> resetPassword(@PathVariable UUID id, @RequestBody Map<String, String> payload) {
+        String newPassword = payload.get("newPassword");
+        User updated = userService.resetPassword(id, newPassword);
         return ResponseEntity.ok(userMapper.toResponse(updated));
     }
 
