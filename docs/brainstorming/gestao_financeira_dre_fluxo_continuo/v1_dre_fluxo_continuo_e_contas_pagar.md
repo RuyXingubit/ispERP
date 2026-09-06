@@ -9,11 +9,11 @@
 
 ## 1. O Diagnóstico: Por que os ERPs de Provedor Falham Miseravelmente no Financeiro?
 
-A esmagadora maioria dos sistemas de mercado (IXC, MK-Auth, SGP, RadiusNet, Voalle) foi construída por profissionais de rede/telecom, e não por gestores financeiros ou contadores.
+A esmagadora maioria dos sistemas tradicionais de mercado foi construída por profissionais de rede/telecom, e não por gestores financeiros ou contadores.
 
-### As Falhas Crônicas dos Sistemas Concorrentes:
-1. **Foco Míope em "Cobrança de Boleto":** Eles sabem emitir boleto e bloquear o sinal no RADIUS. Mas quase nenhum possui um **Contas a Pagar** que converse nativamente com o **Contas a Receber**.
-2. **Abandono do Contas a Pagar:** O dono do provedor é obrigado a usar um sistema separado (Bling, Omie, Conta Azul ou planilhas de Excel caóticas) para cadastrar contas de luz, aluguel de postes, compra de bobinas de fibra e folha de pagamento.
+### As Falhas Crônicas das Abordagens Legadas:
+1. **Foco Míope em "Cobrança de Boleto":** Focam apenas em emitir faturamento básico e bloquear o sinal no concentrador. Mas quase nenhum possui um **Contas a Pagar** que converse nativamente com o **Contas a Receber**.
+2. **Abandono do Contas a Pagar:** O gestor do provedor é obrigado a usar sistemas auxiliares desconectados ou planilhas caóticas para cadastrar contas de infraestrutura, aluguel de postes, compra de bobinas de fibra e folha de pagamento.
 3. **Ausência de DRE (Demonstração do Resultado do Exercício):** O empresário não sabe se o provedor dá lucro ou prejuízo no fim do mês. Ele confunde *"ter dinheiro na conta hoje"* com *"a empresa ser lucrativa"*.
 4. **Cegueira de Futuro (Desalavancagem e Saída do Vermelho):** Provedores de internet compram máquinas de fusão, caminhonetes e quilômetros de fibra em parcelamentos longos (12x, 24x, 36x) ou empréstimos bancários. Nenhum sistema mostra: **"Dado o meu crescimento de contratos e as parcelas das minhas dívidas, em qual mês exato meu caixa vira e eu saio do vermelho?"**
 
