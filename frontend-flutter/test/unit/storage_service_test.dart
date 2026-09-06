@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isperp_app/core/models/user_role.dart';
@@ -115,6 +116,46 @@ void main() {
       expect(await storageService.getRefreshToken(), isNull);
       expect(storageService.getUserRole(), isNull);
       expect(await storageService.hasValidSession(), isFalse);
+    });
+
+    test('Deve detectar token JWT expirado, limpar a sessão proativamente e retornar false', () async {
+      final pastEpoch = (DateTime.now().millisecondsSinceEpoch ~/ 1000) - 3600;
+      final payload = base64Url.encode(utf8.encode('{"sub":"admin@nexusfibra.com.br","exp":$pastEpoch}')).replaceAll('=', '');
+      final expiredJwt = 'eyJhbGciOiJIUzUxMiJ9.$payload.mockSignature';
+
+      await storageService.saveSession(
+        accessToken: expiredJwt,
+        refreshToken: 'refresh_123',
+        role: UserRole.admin,
+        email: 'admin@nexusfibra.com.br',
+        name: 'Admin Nexus',
+      );
+
+      // Deve identificar que o token expirou e retornar false
+      final isValid = await storageService.hasValidSession();
+      expect(isValid, isFalse);
+
+      // Deve ter limpado a sessão automaticamente
+      expect(await storageService.getAccessToken(), isNull);
+      expect(storageService.getUserRole(), isNull);
+    });
+
+    test('Deve validar com sucesso token JWT dentro do prazo de validade', () async {
+      final futureEpoch = (DateTime.now().millisecondsSinceEpoch ~/ 1000) + 86400;
+      final payload = base64Url.encode(utf8.encode('{"sub":"admin@nexusfibra.com.br","exp":$futureEpoch}')).replaceAll('=', '');
+      final validJwt = 'eyJhbGciOiJIUzUxMiJ9.$payload.mockSignature';
+
+      await storageService.saveSession(
+        accessToken: validJwt,
+        refreshToken: 'refresh_123',
+        role: UserRole.admin,
+        email: 'admin@nexusfibra.com.br',
+        name: 'Admin Nexus',
+      );
+
+      final isValid = await storageService.hasValidSession();
+      expect(isValid, isTrue);
+      expect(await storageService.getAccessToken(), validJwt);
     });
   });
 }

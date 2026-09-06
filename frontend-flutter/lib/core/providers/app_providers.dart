@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_role.dart';
@@ -73,27 +74,54 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final StorageService _storage;
   final ApiClient _apiClient;
 
-  AuthNotifier(this._storage, this._apiClient) : super(const AuthState(isLoading: true)) {
+  AuthNotifier(this._storage, this._apiClient)
+      : super(
+          AuthState(
+            isLoading: false,
+            hasServerConfigured: _storage.getServerUrl() != null && _storage.getServerUrl()!.isNotEmpty,
+            serverUrl: _storage.getServerUrl(),
+            role: _storage.getUserRole(),
+            email: _storage.getUserEmail(),
+            name: _storage.getUserName(),
+          ),
+        ) {
     _init();
   }
 
   Future<void> _init() async {
-    final serverUrl = _storage.getServerUrl();
-    final hasServer = serverUrl != null && serverUrl.isNotEmpty;
-    final hasSession = await _storage.hasValidSession();
-    final role = _storage.getUserRole();
-    final email = _storage.getUserEmail();
-    final name = _storage.getUserName();
+    debugPrint('[AUTH] AuthNotifier._init() iniciado');
+    try {
+      final serverUrl = _storage.getServerUrl();
+      debugPrint('[AUTH] serverUrl do storage: $serverUrl');
+      final hasServer = serverUrl != null && serverUrl.isNotEmpty;
+      debugPrint('[AUTH] Chamando hasValidSession()...');
+      final hasSession = await _storage.hasValidSession();
+      debugPrint('[AUTH] hasValidSession() retornou: $hasSession');
+      final role = _storage.getUserRole();
+      final email = _storage.getUserEmail();
+      final name = _storage.getUserName();
 
-    state = AuthState(
-      isLoading: false,
-      hasServerConfigured: hasServer,
-      isAuthenticated: hasSession,
-      role: role,
-      email: email,
-      name: name,
-      serverUrl: serverUrl,
-    );
+      state = AuthState(
+        isLoading: false,
+        hasServerConfigured: hasServer,
+        isAuthenticated: hasSession,
+        role: role,
+        email: email,
+        name: name,
+        serverUrl: serverUrl,
+      );
+      debugPrint('[AUTH] AuthNotifier state atualizado: isLoading=false, auth=$hasSession, server=$serverUrl');
+    } catch (e, st) {
+      debugPrint('[AUTH] Excecao em _init(): $e\n$st');
+      final serverUrl = _storage.getServerUrl();
+      state = AuthState(
+        isLoading: false,
+        hasServerConfigured: serverUrl != null && serverUrl.isNotEmpty,
+        isAuthenticated: false,
+        serverUrl: serverUrl,
+      );
+      debugPrint('[AUTH] AuthNotifier fallback state atualizado: isLoading=false');
+    }
   }
 
   /// Salva a URL do servidor após validar sua conectividade com o backend.
@@ -218,6 +246,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Trata a expiração da sessão (HTTP 401) redirecionando suavemente para o Login.
   void handleSessionExpired() {
+    _storage.clearSession();
     state = AuthState(
       isLoading: false,
       hasServerConfigured: state.hasServerConfigured,

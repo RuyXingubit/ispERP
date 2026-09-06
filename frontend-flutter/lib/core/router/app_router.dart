@@ -32,7 +32,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(routerNotifierProvider);
 
   return GoRouter(
-    initialLocation: '/server-setup',
+    initialLocation: '/login',
     refreshListenable: notifier,
     redirect: (context, state) {
       final currentAuth = ref.read(authProvider);
