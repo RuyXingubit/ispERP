@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/process_lifecycle_stepper.dart';
 import '../data/dispatch_models.dart';
 import '../data/dispatch_notifier.dart';
 
@@ -10,8 +12,10 @@ class DispatchControlTowerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
     final state = ref.watch(dispatchProvider);
     final notifier = ref.read(dispatchProvider.notifier);
+    final currentUserRole = authState.role?.name.toUpperCase();
 
     return Scaffold(
       body: LayoutBuilder(
@@ -165,7 +169,7 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                                 // Coluna Direita: Auditoria de Estoque & Técnicos
                                 Expanded(
                                   flex: 6,
-                                  child: _buildDemandDetails(context, state, notifier),
+                                  child: _buildDemandDetails(context, state, notifier, currentUserRole),
                                 ),
                               ],
                             )
@@ -178,7 +182,7 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                                     child: _buildDemandsList(context, state, notifier),
                                   ),
                                   const SizedBox(height: 16),
-                                  _buildDemandDetails(context, state, notifier),
+                                  _buildDemandDetails(context, state, notifier, currentUserRole),
                                 ],
                               ),
                             )),
@@ -369,6 +373,7 @@ class DispatchControlTowerScreen extends ConsumerWidget {
     BuildContext context,
     DispatchState state,
     DispatchNotifier notifier,
+    String? currentUserRole,
   ) {
     final demand = state.selectedDemand;
 
@@ -393,6 +398,14 @@ class DispatchControlTowerScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Esteira Visual de Processo (Governança e Atribuição de Etapa)
+          ProcessLifecycleStepper(
+            processTitle: 'Esteira Operacional de Instalação FTTH (Order to Cash)',
+            steps: _buildInstallationSteps(demand),
+            currentUserRole: currentUserRole,
+          ),
+          const SizedBox(height: 16),
+
           // Banner Operacional se a O.S. já estiver despachada/agendada
           if (demand.status == MaterialDemandStatus.allocatedVehicle ||
               demand.status == MaterialDemandStatus.allocatedCentral ||
@@ -884,5 +897,99 @@ class DispatchControlTowerScreen extends ConsumerWidget {
       case MaterialDemandStatus.cancelled:
         return AppTheme.accentError;
     }
+  }
+
+  List<ProcessLifecycleStep> _buildInstallationSteps(InstallationDemandModel demand) {
+    final isPending = demand.status == MaterialDemandStatus.pendingAllocation;
+    final isDispatched = demand.status == MaterialDemandStatus.allocatedVehicle ||
+        demand.status == MaterialDemandStatus.allocatedCentral;
+    final isCompleted = demand.status == MaterialDemandStatus.consumedInField;
+
+    return [
+      ProcessLifecycleStep(
+        id: 'step_sale',
+        title: '1. Venda & Contrato',
+        subtitle: demand.contractNumber != null ? 'Contrato ${demand.contractNumber}' : 'Contrato Formalizado',
+        responsibleRoleName: 'Vendas',
+        allowedRoles: const ['SALES', 'ADMIN'],
+        isCompleted: true,
+        isActive: false,
+        icon: Icons.assignment_turned_in_rounded,
+        popGuideTitle: 'POP-VEN-01: Formalização e Assinatura de Contrato',
+        popGuideContent:
+            '1. Objetivo: Garantir a captação correta dos dados cadastrais, endereço com viabilidade técnica e plano escolhido.\n\n'
+            '2. Entradas: Documento de identificação, comprovante de residência e assinatura do contrato.\n\n'
+            '3. Saída: Contrato formalizado e emissão automática da Ordem de Serviço de Instalação no sistema.\n\n'
+            '4. Regra de Governança: Somente contratos formalizados liberam a triagem técnica de insumos.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_triage',
+        title: '2. Triagem FTTH',
+        subtitle: demand.ctoName != null
+            ? 'CTO ${demand.ctoName} (${demand.estimatedDropMeters}m)'
+            : '${demand.estimatedDropMeters}m Cabo Drop',
+        responsibleRoleName: 'Torre de Controle',
+        allowedRoles: const ['SUPPORT_ANALYST', 'SUPPORT_N2', 'ADMIN'],
+        isCompleted: true,
+        isActive: false,
+        icon: Icons.cable_rounded,
+        popGuideTitle: 'POP-ENG-02: Dimensionamento de Materiais FTTH',
+        popGuideContent:
+            '1. Objetivo: Calcular a metragem necessária de cabo drop autossustentado e identificar a CTO mais próxima.\n\n'
+            '2. Critério de Cálculo: Distância geodésica com 20% de folga técnica para curvas e ancoragem no poste.\n\n'
+            '3. Equipamentos: Modelo de ONU compatível com a velocidade contratada e kit de conectores rápidos SC-APC.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_dispatch',
+        title: '3. Despacho & Veículo',
+        subtitle: demand.allocatedTechnicianName != null
+            ? 'Técnico: ${demand.allocatedTechnicianName}'
+            : 'Aguardando Alocação',
+        responsibleRoleName: 'Torre de Controle',
+        allowedRoles: const ['SUPPORT_ANALYST', 'SUPPORT_N2', 'ADMIN'],
+        isCompleted: isDispatched || isCompleted,
+        isActive: isPending,
+        assignedPersonName: demand.allocatedTechnicianName,
+        icon: Icons.local_shipping_rounded,
+        popGuideTitle: 'POP-DSP-03: Despacho e Custódia de Estoque Veicular',
+        popGuideContent:
+            '1. Objetivo: Alocar a O.S. para um técnico em campo que possua kit completo (drop, ONU e conectores) no veículo operacional.\n\n'
+            '2. Verificações: Priorizar técnicos com menor distância GPS até o imóvel e saldo positivo de insumos no veículo.\n\n'
+            '3. Ação: Selecionar o técnico candidato recomendado e confirmar o despacho para agendamento imediato.\n\n'
+            '4. Exceção: Se nenhum veículo tiver insumos completos, confirmar separação no Almoxarifado Central.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_field',
+        title: '4. Instalação em Campo',
+        subtitle: isCompleted
+            ? 'Instalação Concluída'
+            : (isDispatched ? 'Em Atendimento no Imóvel' : 'Aguardando Despacho'),
+        responsibleRoleName: 'Técnico de Campo',
+        allowedRoles: const ['TECHNICIAN', 'ADMIN'],
+        isCompleted: isCompleted,
+        isActive: isDispatched,
+        assignedPersonName: demand.allocatedTechnicianName,
+        icon: Icons.engineering_rounded,
+        popGuideTitle: 'POP-CAM-04: Conectorização e Ancoragem FTTH',
+        popGuideContent:
+            '1. Objetivo: Lançamento do drop óptico, conectorização na CTO e instalação da roseta PTO na residência.\n\n'
+            '2. Validação Óptica: Medição no Power Meter no ponto de terminação (potência permitida entre -15 dBm e -25 dBm).\n\n'
+            '3. Finalização: Leitura do serial/MAC da ONU e coleta da confirmação de entrega do serviço.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_activation',
+        title: '5. Ativação & Faturamento',
+        subtitle: isCompleted ? 'Cliente Navegando' : 'Aguardando Conclusão',
+        responsibleRoleName: 'Financeiro / Sistema',
+        allowedRoles: const ['FINANCIAL', 'ADMIN'],
+        isCompleted: isCompleted,
+        isActive: false,
+        icon: Icons.verified_user_rounded,
+        popGuideTitle: 'POP-FIN-05: Ativação de Acesso e Ciclo de Faturamento',
+        popGuideContent:
+            '1. Objetivo: Provisionamento automático na OLT via TR-069/RADIUS e início da régua de faturamento no Xingubit Pay.\n\n'
+            '2. Validação: Checagem do status PPPoE/IPoE ativo e geração do primeiro ciclo proporcional.',
+      ),
+    ];
   }
 }
