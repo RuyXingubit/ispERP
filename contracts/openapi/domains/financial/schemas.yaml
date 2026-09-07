@@ -1,0 +1,900 @@
+AccountingMethod:
+  type: string
+  enum:
+    - ACCRUAL
+    - CASH
+  description: Regime contábil de apuração (Competência ou Caixa)
+
+CashTransferStatus:
+  type: string
+  enum:
+    - PENDING_ACCEPTANCE
+    - ACCEPTED
+    - REJECTED
+    - CANCELLED
+  description: Status do aceite de custódia entre colaboradores
+
+BankDepositStatus:
+  type: string
+  enum:
+    - PENDING_AUDIT
+    - CONFIRMED_IN_BANK
+    - REJECTED
+  description: Status da conciliação bancária do depósito em dinheiro vivo
+
+AccountType:
+  type: string
+  enum:
+    - REVENUE
+    - TAX
+    - DIRECT_COST
+    - OPEX
+    - CAPEX
+  description: Tipo de conta contábil
+
+DreCategory:
+  type: string
+  enum:
+    - GROSS_REVENUE
+    - TAX_DEDUCTION
+    - DIRECT_COST_INTERCONNECTION
+    - OPEX_HR
+    - OPEX_FLEET
+    - OPEX_POLES
+    - OPEX_MARKETING
+    - OPEX_ADMIN
+    - CAPEX_NETWORK
+    - CAPEX_EQUIPMENT
+    - CAPEX_FLEET
+  description: Categoria contábil para classificação no DRE
+
+ProjectStatus:
+  type: string
+  enum:
+    - PLANNING
+    - DEPLOYING
+    - ACTIVE
+    - COMPLETED
+  description: Status do projeto de rede e expansão de infraestrutura
+
+PayableStatus:
+  type: string
+  enum:
+    - PENDING
+    - PARTIALLY_PAID
+    - PAID
+    - CANCELLED
+  description: Status da conta a pagar
+
+SentinelSeverity:
+  type: string
+  enum:
+    - LOW
+    - MEDIUM
+    - HIGH
+    - CRITICAL
+  description: Severidade pericial do alerta de auditoria do Sentinela IA
+
+FeeStatus:
+  type: string
+  enum:
+    - NOT_APPLICABLE
+    - BILLABLE
+    - PENDING_WAIVER_APPROVAL
+    - WAIVED_APPROVED
+    - WAIVED_REJECTED
+  description: Status da cobrança de taxa de ordem de serviço
+
+CashCustodyDto:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    userId:
+      type: string
+      format: uuid
+    userName:
+      type: string
+    userEmail:
+      type: string
+    userRole:
+      type: string
+    cpf:
+      type: string
+    currentBalance:
+      type: number
+      format: double
+    updatedAt:
+      type: string
+      format: date-time
+
+CashSettlementRequest:
+  type: object
+  required:
+    - invoiceId
+    - amount
+  properties:
+    invoiceId:
+      type: string
+      format: uuid
+    amount:
+      type: number
+      format: double
+    receiptNumber:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+
+CashTransferRequest:
+  type: object
+  required:
+    - receiverUserId
+    - amount
+  properties:
+    receiverUserId:
+      type: string
+      format: uuid
+    amount:
+      type: number
+      format: double
+    reason:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+
+CashTransferResponseDto:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    senderUserId:
+      type: string
+      format: uuid
+    senderUserName:
+      type: string
+    receiverUserId:
+      type: string
+      format: uuid
+    receiverUserName:
+      type: string
+    amount:
+      type: number
+      format: double
+    reason:
+      type: string
+      nullable: true
+    status:
+      $ref: '#/CashTransferStatus'
+    requestedAt:
+      type: string
+      format: date-time
+    respondedAt:
+      type: string
+      format: date-time
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+
+BankDepositRequest:
+  type: object
+  required:
+    - amount
+    - bankName
+    - receiptFileUrl
+  properties:
+    amount:
+      type: number
+      format: double
+    bankName:
+      type: string
+    bankAgency:
+      type: string
+      nullable: true
+    bankAccount:
+      type: string
+      nullable: true
+    receiptFileUrl:
+      type: string
+
+BankDepositResponseDto:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    depositorUserId:
+      type: string
+      format: uuid
+    depositorUserName:
+      type: string
+    depositorCpf:
+      type: string
+    amount:
+      type: number
+      format: double
+    bankName:
+      type: string
+    bankAgency:
+      type: string
+      nullable: true
+    bankAccount:
+      type: string
+      nullable: true
+    receiptFileUrl:
+      type: string
+    depositDate:
+      type: string
+      format: date-time
+    status:
+      $ref: '#/BankDepositStatus'
+    auditedByUserId:
+      type: string
+      format: uuid
+      nullable: true
+    auditedByUserName:
+      type: string
+      nullable: true
+
+BankDepositAuditRequest:
+  type: object
+  required:
+    - approved
+  properties:
+    approved:
+      type: boolean
+    notes:
+      type: string
+      nullable: true
+    rejectionReason:
+      type: string
+      nullable: true
+
+ChartOfAccountDto:
+  type: object
+  required:
+    - code
+    - name
+    - accountType
+    - dreCategory
+  properties:
+    id:
+      type: string
+      format: uuid
+      nullable: true
+    parentId:
+      type: string
+      format: uuid
+      nullable: true
+    parentCode:
+      type: string
+      nullable: true
+    code:
+      type: string
+      example: "3.1.01.001"
+    name:
+      type: string
+      example: "Receita de Planos Fibra Residencial"
+    accountType:
+      $ref: '#/AccountType'
+    dreCategory:
+      $ref: '#/DreCategory'
+    level:
+      type: integer
+      example: 4
+    acceptsEntries:
+      type: boolean
+      default: true
+    active:
+      type: boolean
+      default: true
+    children:
+      type: array
+      items:
+        $ref: '#/ChartOfAccountDto'
+
+MonthlyProjectionPointDto:
+  type: object
+  properties:
+    yearMonth:
+      type: string
+      example: "2026-10"
+    projectedMrr:
+      type: number
+      format: double
+    projectedDirectCosts:
+      type: number
+      format: double
+    projectedOpex:
+      type: number
+      format: double
+    projectedDebtInstallments:
+      type: number
+      format: double
+    projectedNetCashFlow:
+      type: number
+      format: double
+    cumulativeCashBalance:
+      type: number
+      format: double
+    isNegativeBalance:
+      type: boolean
+
+DeleveragingProjectionDto:
+  type: object
+  properties:
+    currentEbitda:
+      type: number
+      format: double
+    currentMrr:
+      type: number
+      format: double
+    monthlyChurnRatePercentage:
+      type: number
+      format: double
+    startingCashBalance:
+      type: number
+      format: double
+    worstMonthYearMonth:
+      type: string
+      example: "2027-02"
+    worstMonthProjectedBalance:
+      type: number
+      format: double
+    breakEvenYearMonth:
+      type: string
+      example: "2027-11"
+    monthsUntilFreedom:
+      type: integer
+    timeline:
+      type: array
+      items:
+        $ref: '#/MonthlyProjectionPointDto'
+
+SimulationRequest:
+  type: object
+  required:
+    - description
+    - totalAmount
+    - installmentsCount
+    - firstDueDate
+  properties:
+    description:
+      type: string
+      example: "Aquisição de OLT Huawei 16 Portas"
+    totalAmount:
+      type: number
+      format: double
+      example: 48000.00
+    installmentsCount:
+      type: integer
+      example: 12
+    firstDueDate:
+      type: string
+      format: date
+
+SimulationResponse:
+  type: object
+  properties:
+    feasible:
+      type: boolean
+    monthlyInstallmentAmount:
+      type: number
+      format: double
+    simulatedWorstMonth:
+      type: string
+    simulatedWorstBalance:
+      type: number
+      format: double
+    balanceImpactAtWorstMonth:
+      type: number
+      format: double
+    originalBreakEvenMonth:
+      type: string
+    simulatedBreakEvenMonth:
+      type: string
+    delayInMonthsForFreedom:
+      type: integer
+    riskAnalysisSummary:
+      type: string
+
+DreReportDto:
+  type: object
+  properties:
+    periodStart:
+      type: string
+      format: date
+    periodEnd:
+      type: string
+      format: date
+    accountingMethod:
+      $ref: '#/AccountingMethod'
+    grossRevenue:
+      type: number
+      format: double
+    taxDeductions:
+      type: number
+      format: double
+    netRevenue:
+      type: number
+      format: double
+    directCostsInterconnection:
+      type: number
+      format: double
+    contributionMargin:
+      type: number
+      format: double
+    opexPersonnel:
+      type: number
+      format: double
+    opexInfrastructure:
+      type: number
+      format: double
+    opexAdministrative:
+      type: number
+      format: double
+    opexCommercial:
+      type: number
+      format: double
+    totalOpex:
+      type: number
+      format: double
+    ebitda:
+      type: number
+      format: double
+    ebitdaMarginPercentage:
+      type: number
+      format: double
+    financialResult:
+      type: number
+      format: double
+    netIncome:
+      type: number
+      format: double
+    netMarginPercentage:
+      type: number
+      format: double
+
+MaterialCustodyDto:
+  type: object
+  required:
+    - itemName
+    - quantity
+  properties:
+    id:
+      type: string
+      format: uuid
+      nullable: true
+    userId:
+      type: string
+      format: uuid
+    userName:
+      type: string
+      nullable: true
+    userEmail:
+      type: string
+      nullable: true
+    itemName:
+      type: string
+      example: "Máquina de Fusão Óptica"
+    itemCategory:
+      type: string
+      nullable: true
+      example: "FERRAMENTAL"
+    serialNumber:
+      type: string
+      nullable: true
+      example: "FUS-889922"
+    quantity:
+      type: number
+      format: double
+      example: 1.0
+    unitOfMeasure:
+      type: string
+      nullable: true
+      example: "UN"
+    unitValue:
+      type: number
+      format: double
+      nullable: true
+    totalValue:
+      type: number
+      format: double
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+    allocatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+MaterialTransferRequest:
+  type: object
+  required:
+    - receiverUserId
+    - materialCustodyId
+    - quantity
+  properties:
+    receiverUserId:
+      type: string
+      format: uuid
+    materialCustodyId:
+      type: string
+      format: uuid
+    quantity:
+      type: number
+      format: double
+    notes:
+      type: string
+      nullable: true
+
+MaterialTransferResponseDto:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    senderUserId:
+      type: string
+      format: uuid
+    senderUserName:
+      type: string
+    receiverUserId:
+      type: string
+      format: uuid
+    receiverUserName:
+      type: string
+    materialCustodyId:
+      type: string
+      format: uuid
+    itemName:
+      type: string
+    serialNumber:
+      type: string
+      nullable: true
+    quantity:
+      type: number
+      format: double
+    status:
+      $ref: '#/CashTransferStatus'
+    requestedAt:
+      type: string
+      format: date-time
+    respondedAt:
+      type: string
+      format: date-time
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+
+NetworkProjectRequest:
+  type: object
+  required:
+    - name
+    - neighborhood
+    - city
+    - budgetAmount
+    - targetSubscribers
+    - startDate
+  properties:
+    name:
+      type: string
+      example: "Expansão Bairro Esperança - Fase 1"
+    neighborhood:
+      type: string
+      example: "Esperança"
+    city:
+      type: string
+      example: "Santarém"
+    budgetAmount:
+      type: number
+      format: double
+      example: 65000.00
+    targetSubscribers:
+      type: integer
+      example: 300
+    startDate:
+      type: string
+      format: date
+
+NetworkProjectResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    neighborhood:
+      type: string
+    city:
+      type: string
+    status:
+      $ref: '#/ProjectStatus'
+    budgetAmount:
+      type: number
+      format: double
+    targetSubscribers:
+      type: integer
+    startDate:
+      type: string
+      format: date
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+NetworkProjectPaybackDto:
+  type: object
+  properties:
+    projectId:
+      type: string
+      format: uuid
+    name:
+      type: string
+    neighborhood:
+      type: string
+    city:
+      type: string
+    status:
+      $ref: '#/ProjectStatus'
+    budgetAmount:
+      type: number
+      format: double
+    targetSubscribers:
+      type: integer
+    startDate:
+      type: string
+      format: date
+    ctoCount:
+      type: integer
+    totalPorts:
+      type: integer
+    occupiedPorts:
+      type: integer
+    penetrationRate:
+      type: number
+      format: double
+    monthlyRevenue:
+      type: number
+      format: double
+    accumulatedRevenue:
+      type: number
+      format: double
+    paybackMonthsEstimated:
+      type: integer
+    isPaybackAchieved:
+      type: boolean
+    commercialPriority:
+      type: string
+      example: "ALTA_PORTAS_LIVRES"
+
+ExpenseInstallmentDto:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    payableInvoiceId:
+      type: string
+      format: uuid
+    installmentNumber:
+      type: integer
+    dueDate:
+      type: string
+      format: date
+    amount:
+      type: number
+      format: double
+    paidAmount:
+      type: number
+      format: double
+      nullable: true
+    paidAt:
+      type: string
+      format: date-time
+      nullable: true
+    status:
+      $ref: '#/PayableStatus'
+    paymentMethod:
+      type: string
+      nullable: true
+    receiptUrl:
+      type: string
+      nullable: true
+
+PayableInvoiceRequest:
+  type: object
+  required:
+    - supplierName
+    - chartOfAccountId
+    - description
+    - totalAmount
+    - issueDate
+    - installmentsCount
+    - firstDueDate
+  properties:
+    supplierName:
+      type: string
+      example: "Fiberhome do Brasil Ltda"
+    supplierDocument:
+      type: string
+      nullable: true
+      example: "12345678000199"
+    chartOfAccountId:
+      type: string
+      format: uuid
+    description:
+      type: string
+      example: "Compra de Bobinas Drop 1FO e Conectores"
+    invoiceNumber:
+      type: string
+      nullable: true
+      example: "NF-88221"
+    totalAmount:
+      type: number
+      format: double
+      example: 24000.00
+    issueDate:
+      type: string
+      format: date
+    installmentsCount:
+      type: integer
+      example: 6
+    firstDueDate:
+      type: string
+      format: date
+    projectId:
+      type: string
+      format: uuid
+      nullable: true
+
+PayableInvoiceDto:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    supplierName:
+      type: string
+    supplierDocument:
+      type: string
+      nullable: true
+    chartOfAccountId:
+      type: string
+      format: uuid
+    chartOfAccountCode:
+      type: string
+      nullable: true
+    chartOfAccountName:
+      type: string
+      nullable: true
+    description:
+      type: string
+    invoiceNumber:
+      type: string
+      nullable: true
+    totalAmount:
+      type: number
+      format: double
+    issueDate:
+      type: string
+      format: date
+    status:
+      $ref: '#/PayableStatus'
+    projectId:
+      type: string
+      format: uuid
+      nullable: true
+    projectName:
+      type: string
+      nullable: true
+    installments:
+      type: array
+      items:
+        $ref: '#/ExpenseInstallmentDto'
+    createdAt:
+      type: string
+      format: date-time
+
+SentinelAuditLogDto:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    auditType:
+      type: string
+      example: "DINHEIRO_RETIDO_SEM_DEPOSITO"
+    severity:
+      $ref: '#/SentinelSeverity'
+    title:
+      type: string
+    description:
+      type: string
+    geminiAnalysis:
+      type: string
+    recommendedAction:
+      type: string
+    resolved:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+
+WorkOrderFeeDto:
+  type: object
+  properties:
+    workOrderId:
+      type: string
+      format: uuid
+    protocol:
+      type: string
+    customerId:
+      type: string
+      format: uuid
+    customerName:
+      type: string
+    serviceType:
+      type: string
+    standardFeeAmount:
+      type: number
+      format: double
+    feeStatus:
+      $ref: '#/FeeStatus'
+    waiverReason:
+      type: string
+      nullable: true
+    waiverRequestedByUserId:
+      type: string
+      format: uuid
+      nullable: true
+    waiverRequestedByName:
+      type: string
+      nullable: true
+    waiverAuditedByUserId:
+      type: string
+      format: uuid
+      nullable: true
+    waiverAuditedByName:
+      type: string
+      nullable: true
+    waiverAuditedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+WorkOrderFeeWaiverRequest:
+  type: object
+  required:
+    - workOrderId
+    - waiverReason
+  properties:
+    workOrderId:
+      type: string
+      format: uuid
+    waiverReason:
+      type: string
+      example: "Cliente ameaçou cancelar por lentidão prévia não solucionada"
+
+WorkOrderFeeAuditRequest:
+  type: object
+  required:
+    - approved
+  properties:
+    approved:
+      type: boolean
+    notes:
+      type: string
+      nullable: true

@@ -1,65 +1,59 @@
 package br.dev.xb.isperp.controller.financial;
 
-import br.dev.xb.isperp.dto.financial.MaterialCustodyDto;
-import br.dev.xb.isperp.dto.financial.MaterialTransferRequest;
-import br.dev.xb.isperp.dto.financial.MaterialTransferResponseDto;
+import br.dev.xb.isperp.api.contract.MaterialCustodyApi;
+import br.dev.xb.isperp.api.dto.MaterialCustodyDto;
+import br.dev.xb.isperp.api.dto.MaterialTransferRequest;
+import br.dev.xb.isperp.api.dto.MaterialTransferResponseDto;
+import br.dev.xb.isperp.mapper.FinancialDomainMapper;
 import br.dev.xb.isperp.service.financial.MaterialCustodyService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/financial/custody/materials")
+@RequestMapping({"", "/api"})
 @RequiredArgsConstructor
-@Tag(name = "Custódia Material por CPF", description = "Endpoints para controle de carga patrimonial de equipamentos e ferramentas no CPF do técnico")
-public class MaterialCustodyController {
+@CrossOrigin(origins = "*")
+public class MaterialCustodyController implements MaterialCustodyApi {
 
     private final MaterialCustodyService materialCustodyService;
+    private final FinancialDomainMapper financialDomainMapper;
 
-    @GetMapping("/user/{userId}")
-    @Operation(summary = "Lista equipamentos e ferramentas sob custódia de um técnico específico")
-    public ResponseEntity<List<MaterialCustodyDto>> getMaterialsByUserId(@PathVariable UUID userId) {
-        return ResponseEntity.ok(materialCustodyService.getMaterialsByUserId(userId));
+    @Override
+    public ResponseEntity<List<MaterialCustodyDto>> getMaterialsByUserId(UUID userId) {
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiMaterialCustodyList(materialCustodyService.getMaterialsByUserId(userId)));
     }
 
-    @PostMapping("/user/{userId}/allocate")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL', 'SUPPORT_N2')")
-    @Operation(summary = "Almoxarifado aloca itens e seriais diretamente na carga do CPF do colaborador")
-    public ResponseEntity<MaterialCustodyDto> allocateMaterial(
-            @PathVariable UUID userId,
-            @Valid @RequestBody MaterialCustodyDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(materialCustodyService.allocateMaterialToUser(userId, dto));
+    public ResponseEntity<MaterialCustodyDto> allocateMaterialToUser(UUID userId, MaterialCustodyDto dto) {
+        var domainDto = financialDomainMapper.toDomainMaterialCustody(dto);
+        var allocated = materialCustodyService.allocateMaterialToUser(userId, domainDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(financialDomainMapper.toOpenApiMaterialCustody(allocated));
     }
 
-    @PostMapping("/transfer/request")
-    @Operation(summary = "Técnico solicita transferência de peças para outro técnico (Duplo Aceite na rua)")
-    public ResponseEntity<MaterialTransferResponseDto> requestMaterialTransfer(
-            @RequestHeader("X-User-Id") UUID senderUserId,
-            @Valid @RequestBody MaterialTransferRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(materialCustodyService.requestMaterialTransfer(senderUserId, request));
+    @Override
+    public ResponseEntity<MaterialTransferResponseDto> requestMaterialTransfer(UUID xUserId, MaterialTransferRequest request) {
+        var domainRequest = financialDomainMapper.toDomainMaterialTransferRequest(request);
+        var created = materialCustodyService.requestMaterialTransfer(xUserId, domainRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(financialDomainMapper.toOpenApiMaterialTransferResponse(created));
     }
 
-    @PostMapping("/transfer/{id}/respond")
-    @Operation(summary = "Técnico recebedor aceita ou rejeita a carga de material recebida")
-    public ResponseEntity<MaterialTransferResponseDto> respondMaterialTransfer(
-            @RequestHeader("X-User-Id") UUID receiverUserId,
-            @PathVariable UUID id,
-            @RequestParam boolean accept) {
-        return ResponseEntity.ok(materialCustodyService.respondMaterialTransfer(receiverUserId, id, accept));
+    @Override
+    public ResponseEntity<MaterialTransferResponseDto> respondMaterialTransfer(UUID xUserId, UUID id, Boolean accept) {
+        var responded = materialCustodyService.respondMaterialTransfer(xUserId, id, Boolean.TRUE.equals(accept));
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiMaterialTransferResponse(responded));
     }
 
-    @GetMapping("/transfer/pending")
-    @Operation(summary = "Lista transferências de equipamentos pendentes de aceite para o técnico logado")
-    public ResponseEntity<List<MaterialTransferResponseDto>> getPendingTransfers(
-            @RequestHeader("X-User-Id") UUID receiverUserId) {
-        return ResponseEntity.ok(materialCustodyService.getPendingTransfersForReceiver(receiverUserId));
+    @Override
+    public ResponseEntity<List<MaterialTransferResponseDto>> getPendingMaterialTransfers(UUID xUserId) {
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiMaterialTransferResponseList(materialCustodyService.getPendingTransfersForReceiver(xUserId)));
     }
 }

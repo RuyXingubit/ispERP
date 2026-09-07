@@ -204,6 +204,42 @@
     {
       "name": "BackupDisasterRecovery",
       "description": "Governança de Backup Criptografado AES-256, Destinos Remotos e Kit de Resgate"
+    },
+    {
+      "name": "CashCustody",
+      "description": "Custódia de Dinheiro Vivo, Transferência por Duplo Aceite e Depósitos"
+    },
+    {
+      "name": "ChartOfAccounts",
+      "description": "Plano de Contas Hierárquico Contábil e Categorização DRE"
+    },
+    {
+      "name": "Deleveraging",
+      "description": "Motor de Desalavancagem Financeira, Curva de Caixa de 36 Meses e Simulador"
+    },
+    {
+      "name": "DreReports",
+      "description": "DRE Telecom em Tempo Real com Margens EBITDA e Resultado Contábil/Caixa"
+    },
+    {
+      "name": "MaterialCustody",
+      "description": "Custódia de Materiais e Ferramental por CPF com Duplo Aceite"
+    },
+    {
+      "name": "NetworkProjects",
+      "description": "Payback de Projetos de Expansão de Rede FTTH e Associação de CTOs"
+    },
+    {
+      "name": "PayableInvoices",
+      "description": "Contas a Pagar, CAPEX e Parcelamento de Dívidas com Fornecedores"
+    },
+    {
+      "name": "SentinelAudit",
+      "description": "Sentinela IA para Auditoria Forense, Detecção de Anomalias e Desvios"
+    },
+    {
+      "name": "WorkOrderFees",
+      "description": "Tarifação de Serviços Técnicos de Campo e Esteira de Isenção Auditada"
     }
   ],
   "paths": {
@@ -9927,6 +9963,1233 @@
           }
         }
       }
+    },
+    "/financial/custody/cash/all": {
+      "get": {
+        "tags": [
+          "CashCustody"
+        ],
+        "summary": "Lista todos os saldos sob custódia de colaboradores na empresa",
+        "operationId": "getAllCashCustodies",
+        "responses": {
+          "200": {
+            "description": "Lista de custódias retornada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CashCustodyDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/cash/user/{userId}": {
+      "get": {
+        "tags": [
+          "CashCustody"
+        ],
+        "summary": "Consulta o saldo sob custódia de um colaborador específico",
+        "operationId": "getCashCustodyByUserId",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Custódia do usuário retornada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashCustodyDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/cash/settle": {
+      "post": {
+        "tags": [
+          "CashCustody"
+        ],
+        "summary": "Registra recebimento de fatura em dinheiro vivo e debita na custódia do CPF",
+        "operationId": "recordCashSettlement",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashSettlementRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recebimento liquidado e debitado na custódia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashCustodyDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/cash/transfer/request": {
+      "post": {
+        "tags": [
+          "CashCustody"
+        ],
+        "summary": "Solicita transferência de valores para outro colaborador (Passagem de Gaveta/Turno)",
+        "operationId": "requestCashTransfer",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashTransferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Solicitação de transferência criada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashTransferResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/cash/transfer/{id}/respond": {
+      "post": {
+        "tags": [
+          "CashCustody"
+        ],
+        "summary": "Aceita ou rejeita transferência de custódia recebida (Duplo Aceite)",
+        "operationId": "respondCashTransfer",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "accept",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transferência respondida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashTransferResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/cash/transfer/pending": {
+      "get": {
+        "tags": [
+          "CashCustody"
+        ],
+        "summary": "Lista transferências de dinheiro pendentes de aceite para o colaborador logado",
+        "operationId": "getPendingCashTransfers",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de transferências pendentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CashTransferResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/cash/deposit": {
+      "post": {
+        "tags": [
+          "CashCustody"
+        ],
+        "summary": "Submete comprovante de depósito bancário para prestação de contas de dinheiro vivo",
+        "operationId": "submitBankDeposit",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankDepositRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Depósito submetido para conciliação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankDepositResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/cash/deposit/pending": {
+      "get": {
+        "tags": [
+          "CashCustody"
+        ],
+        "summary": "Lista depósitos bancários pendentes de conciliação pelo CFO/Auditor",
+        "operationId": "getPendingBankDeposits",
+        "responses": {
+          "200": {
+            "description": "Lista de depósitos pendentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BankDepositResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/cash/deposit/{id}/audit": {
+      "post": {
+        "tags": [
+          "CashCustody"
+        ],
+        "summary": "Audita e concilia depósito bancário pelo extrato real, liquidando a custódia",
+        "operationId": "auditBankDeposit",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankDepositAuditRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Depósito auditado e conciliado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BankDepositResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/chart-of-accounts/tree": {
+      "get": {
+        "tags": [
+          "ChartOfAccounts"
+        ],
+        "summary": "Retorna a árvore hierárquica completa do plano de contas de 5 níveis",
+        "operationId": "getChartOfAccountsTree",
+        "responses": {
+          "200": {
+            "description": "Árvore hierárquica do plano de contas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChartOfAccountDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/chart-of-accounts": {
+      "get": {
+        "tags": [
+          "ChartOfAccounts"
+        ],
+        "summary": "Lista todas as contas contábeis de forma plana",
+        "operationId": "getAllChartOfAccountsFlat",
+        "responses": {
+          "200": {
+            "description": "Lista plana de contas contábeis",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChartOfAccountDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ChartOfAccounts"
+        ],
+        "summary": "Cadastra uma nova conta contábil analítica ou sintética",
+        "operationId": "createChartOfAccount",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChartOfAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Conta criada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChartOfAccountDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/chart-of-accounts/{id}": {
+      "put": {
+        "tags": [
+          "ChartOfAccounts"
+        ],
+        "summary": "Atualiza uma conta contábil existente",
+        "operationId": "updateChartOfAccount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChartOfAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Conta atualizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChartOfAccountDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/deleveraging/projection": {
+      "get": {
+        "tags": [
+          "Deleveraging"
+        ],
+        "summary": "Calcula a curva contínua de caixa para os próximos 36 meses com os 3 números sagrados",
+        "operationId": "get36MonthsDeleveragingProjection",
+        "responses": {
+          "200": {
+            "description": "Projeção de desalavancagem calculada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleveragingProjectionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/deleveraging/simulate": {
+      "post": {
+        "tags": [
+          "Deleveraging"
+        ],
+        "summary": "Simula o impacto financeiro de um novo investimento parcelado no caixa",
+        "operationId": "simulateNewInvestment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Simulação calculada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/reports/dre": {
+      "get": {
+        "tags": [
+          "DreReports"
+        ],
+        "summary": "Gera o DRE oficial consolidado para o período informado",
+        "operationId": "getDreReport",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/AccountingMethod",
+              "default": "ACCRUAL"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Relatório DRE consolidado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DreReportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/materials/user/{userId}": {
+      "get": {
+        "tags": [
+          "MaterialCustody"
+        ],
+        "summary": "Lista equipamentos e ferramentas sob custódia de um técnico específico",
+        "operationId": "getMaterialsByUserId",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de materiais sob custódia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MaterialCustodyDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/materials/user/{userId}/allocate": {
+      "post": {
+        "tags": [
+          "MaterialCustody"
+        ],
+        "summary": "Almoxarifado aloca itens e seriais diretamente na carga do CPF do colaborador",
+        "operationId": "allocateMaterialToUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaterialCustodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Material alocado na carga do colaborador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaterialCustodyDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/materials/transfer/request": {
+      "post": {
+        "tags": [
+          "MaterialCustody"
+        ],
+        "summary": "Técnico solicita transferência de peças para outro técnico (Duplo Aceite na rua)",
+        "operationId": "requestMaterialTransfer",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaterialTransferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transferência solicitada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaterialTransferResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/materials/transfer/{id}/respond": {
+      "post": {
+        "tags": [
+          "MaterialCustody"
+        ],
+        "summary": "Técnico recebedor aceita ou rejeita a carga de material recebida",
+        "operationId": "respondMaterialTransfer",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "accept",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transferência respondida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaterialTransferResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/custody/materials/transfer/pending": {
+      "get": {
+        "tags": [
+          "MaterialCustody"
+        ],
+        "summary": "Lista transferências de equipamentos pendentes de aceite para o técnico logado",
+        "operationId": "getPendingMaterialTransfers",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de transferências pendentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MaterialTransferResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/network-projects/payback": {
+      "get": {
+        "tags": [
+          "NetworkProjects"
+        ],
+        "summary": "Retorna todos os projetos de expansão com cálculo de payback acumulado",
+        "operationId": "getAllProjectsWithPayback",
+        "responses": {
+          "200": {
+            "description": "Lista de projetos com payback",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NetworkProjectPaybackDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/network-projects": {
+      "post": {
+        "tags": [
+          "NetworkProjects"
+        ],
+        "summary": "Cadastra um novo projeto de expansão de rede para acompanhamento de CAPEX",
+        "operationId": "createNetworkProject",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NetworkProjectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Projeto criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkProjectResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/network-projects/{projectId}/assign-cto/{ctoId}": {
+      "post": {
+        "tags": [
+          "NetworkProjects"
+        ],
+        "summary": "Vincula uma CTO instalada na rua ao projeto de rede correspondente",
+        "operationId": "assignCtoToProject",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ctoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "CTO vinculada ao projeto com sucesso"
+          }
+        }
+      }
+    },
+    "/financial/payables": {
+      "get": {
+        "tags": [
+          "PayableInvoices"
+        ],
+        "summary": "Lista todas as contas a pagar da empresa",
+        "operationId": "getAllPayableInvoices",
+        "responses": {
+          "200": {
+            "description": "Lista de contas a pagar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayableInvoiceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "PayableInvoices"
+        ],
+        "summary": "Cadastra uma nova conta a pagar com geração automática de parcelas",
+        "operationId": "createPayableInvoice",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayableInvoiceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Conta a pagar criada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayableInvoiceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/payables/installments/pending": {
+      "get": {
+        "tags": [
+          "PayableInvoices"
+        ],
+        "summary": "Lista todas as parcelas de despesas e compras pendentes de pagamento",
+        "operationId": "getPendingExpenseInstallments",
+        "responses": {
+          "200": {
+            "description": "Lista de parcelas pendentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExpenseInstallmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/payables/installments/{id}/pay": {
+      "post": {
+        "tags": [
+          "PayableInvoices"
+        ],
+        "summary": "Baixa o pagamento de uma parcela de despesa",
+        "operationId": "payExpenseInstallment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "paidAmount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "paymentMethod",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "TRANSFERENCIA_BANCARIA"
+            }
+          },
+          {
+            "name": "receiptUrl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parcela baixada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpenseInstallmentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/sentinel/alerts": {
+      "get": {
+        "tags": [
+          "SentinelAudit"
+        ],
+        "summary": "Lista todos os alertas de auditoria pericial pendentes de resolução",
+        "operationId": "getActiveSentinelAlerts",
+        "responses": {
+          "200": {
+            "description": "Lista de alertas ativos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SentinelAuditLogDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/sentinel/sweep": {
+      "post": {
+        "tags": [
+          "SentinelAudit"
+        ],
+        "summary": "Dispara varredura pericial manual no sistema",
+        "operationId": "triggerSentinelSweep",
+        "responses": {
+          "200": {
+            "description": "Lista de alertas encontrados durante a varredura",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SentinelAuditLogDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/sentinel/alerts/{id}/resolve": {
+      "post": {
+        "tags": [
+          "SentinelAudit"
+        ],
+        "summary": "Marca um alerta pericial como auditado e resolvido pela diretoria",
+        "operationId": "resolveSentinelAlert",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alerta resolvido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SentinelAuditLogDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/work-orders/{id}/assign-fee": {
+      "post": {
+        "tags": [
+          "WorkOrderFees"
+        ],
+        "summary": "Atribui taxa padrão da tabela de serviços à Ordem de Serviço",
+        "operationId": "assignStandardWorkOrderFee",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Taxa atribuída à O.S.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderFeeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/work-orders/waiver/request": {
+      "post": {
+        "tags": [
+          "WorkOrderFees"
+        ],
+        "summary": "Atendente solicita isenção da taxa de serviço com justificativa",
+        "operationId": "requestWorkOrderFeeWaiver",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkOrderFeeWaiverRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Solicitação de isenção criada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderFeeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/work-orders/waiver/pending": {
+      "get": {
+        "tags": [
+          "WorkOrderFees"
+        ],
+        "summary": "Lista solicitações de isenção de taxas pendentes de aprovação gerencial",
+        "operationId": "getPendingWorkOrderFeeWaivers",
+        "responses": {
+          "200": {
+            "description": "Lista de isenções pendentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkOrderFeeDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/work-orders/{id}/waiver/audit": {
+      "post": {
+        "tags": [
+          "WorkOrderFees"
+        ],
+        "summary": "Gestor/CFO aprova ou rejeita isenção de taxa",
+        "operationId": "auditWorkOrderFeeWaiver",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkOrderFeeAuditRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Isenção auditada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderFeeDto"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -19397,6 +20660,1188 @@
         "type": "object",
         "properties": {
           "masterKey": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "AccountingMethod": {
+        "type": "string",
+        "enum": [
+          "ACCRUAL",
+          "CASH"
+        ],
+        "description": "Regime contábil de apuração (Competência ou Caixa)"
+      },
+      "CashTransferStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING_ACCEPTANCE",
+          "ACCEPTED",
+          "REJECTED",
+          "CANCELLED"
+        ],
+        "description": "Status do aceite de custódia entre colaboradores"
+      },
+      "BankDepositStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING_AUDIT",
+          "CONFIRMED_IN_BANK",
+          "REJECTED"
+        ],
+        "description": "Status da conciliação bancária do depósito em dinheiro vivo"
+      },
+      "AccountType": {
+        "type": "string",
+        "enum": [
+          "REVENUE",
+          "TAX",
+          "DIRECT_COST",
+          "OPEX",
+          "CAPEX"
+        ],
+        "description": "Tipo de conta contábil"
+      },
+      "DreCategory": {
+        "type": "string",
+        "enum": [
+          "GROSS_REVENUE",
+          "TAX_DEDUCTION",
+          "DIRECT_COST_INTERCONNECTION",
+          "OPEX_HR",
+          "OPEX_FLEET",
+          "OPEX_POLES",
+          "OPEX_MARKETING",
+          "OPEX_ADMIN",
+          "CAPEX_NETWORK",
+          "CAPEX_EQUIPMENT",
+          "CAPEX_FLEET"
+        ],
+        "description": "Categoria contábil para classificação no DRE"
+      },
+      "ProjectStatus": {
+        "type": "string",
+        "enum": [
+          "PLANNING",
+          "DEPLOYING",
+          "ACTIVE",
+          "COMPLETED"
+        ],
+        "description": "Status do projeto de rede e expansão de infraestrutura"
+      },
+      "PayableStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "PARTIALLY_PAID",
+          "PAID",
+          "CANCELLED"
+        ],
+        "description": "Status da conta a pagar"
+      },
+      "SentinelSeverity": {
+        "type": "string",
+        "enum": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "CRITICAL"
+        ],
+        "description": "Severidade pericial do alerta de auditoria do Sentinela IA"
+      },
+      "FeeStatus": {
+        "type": "string",
+        "enum": [
+          "NOT_APPLICABLE",
+          "BILLABLE",
+          "PENDING_WAIVER_APPROVAL",
+          "WAIVED_APPROVED",
+          "WAIVED_REJECTED"
+        ],
+        "description": "Status da cobrança de taxa de ordem de serviço"
+      },
+      "CashCustodyDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "userEmail": {
+            "type": "string"
+          },
+          "userRole": {
+            "type": "string"
+          },
+          "cpf": {
+            "type": "string"
+          },
+          "currentBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CashSettlementRequest": {
+        "type": "object",
+        "required": [
+          "invoiceId",
+          "amount"
+        ],
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "receiptNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CashTransferRequest": {
+        "type": "object",
+        "required": [
+          "receiverUserId",
+          "amount"
+        ],
+        "properties": {
+          "receiverUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CashTransferResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "senderUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "senderUserName": {
+            "type": "string"
+          },
+          "receiverUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receiverUserName": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/CashTransferStatus"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "respondedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "BankDepositRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "bankName",
+          "receiptFileUrl"
+        ],
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "bankName": {
+            "type": "string"
+          },
+          "bankAgency": {
+            "type": "string",
+            "nullable": true
+          },
+          "bankAccount": {
+            "type": "string",
+            "nullable": true
+          },
+          "receiptFileUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "BankDepositResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "depositorUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "depositorUserName": {
+            "type": "string"
+          },
+          "depositorCpf": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "bankName": {
+            "type": "string"
+          },
+          "bankAgency": {
+            "type": "string",
+            "nullable": true
+          },
+          "bankAccount": {
+            "type": "string",
+            "nullable": true
+          },
+          "receiptFileUrl": {
+            "type": "string"
+          },
+          "depositDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BankDepositStatus"
+          },
+          "auditedByUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "auditedByUserName": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "BankDepositAuditRequest": {
+        "type": "object",
+        "required": [
+          "approved"
+        ],
+        "properties": {
+          "approved": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ChartOfAccountDto": {
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "accountType",
+          "dreCategory"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "parentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "parentCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "example": "3.1.01.001"
+          },
+          "name": {
+            "type": "string",
+            "example": "Receita de Planos Fibra Residencial"
+          },
+          "accountType": {
+            "$ref": "#/components/schemas/AccountType"
+          },
+          "dreCategory": {
+            "$ref": "#/components/schemas/DreCategory"
+          },
+          "level": {
+            "type": "integer",
+            "example": 4
+          },
+          "acceptsEntries": {
+            "type": "boolean",
+            "default": true
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChartOfAccountDto"
+            }
+          }
+        }
+      },
+      "MonthlyProjectionPointDto": {
+        "type": "object",
+        "properties": {
+          "yearMonth": {
+            "type": "string",
+            "example": "2026-10"
+          },
+          "projectedMrr": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectedDirectCosts": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectedOpex": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectedDebtInstallments": {
+            "type": "number",
+            "format": "double"
+          },
+          "projectedNetCashFlow": {
+            "type": "number",
+            "format": "double"
+          },
+          "cumulativeCashBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "isNegativeBalance": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DeleveragingProjectionDto": {
+        "type": "object",
+        "properties": {
+          "currentEbitda": {
+            "type": "number",
+            "format": "double"
+          },
+          "currentMrr": {
+            "type": "number",
+            "format": "double"
+          },
+          "monthlyChurnRatePercentage": {
+            "type": "number",
+            "format": "double"
+          },
+          "startingCashBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "worstMonthYearMonth": {
+            "type": "string",
+            "example": "2027-02"
+          },
+          "worstMonthProjectedBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "breakEvenYearMonth": {
+            "type": "string",
+            "example": "2027-11"
+          },
+          "monthsUntilFreedom": {
+            "type": "integer"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonthlyProjectionPointDto"
+            }
+          }
+        }
+      },
+      "SimulationRequest": {
+        "type": "object",
+        "required": [
+          "description",
+          "totalAmount",
+          "installmentsCount",
+          "firstDueDate"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "example": "Aquisição de OLT Huawei 16 Portas"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double",
+            "example": 48000
+          },
+          "installmentsCount": {
+            "type": "integer",
+            "example": 12
+          },
+          "firstDueDate": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "SimulationResponse": {
+        "type": "object",
+        "properties": {
+          "feasible": {
+            "type": "boolean"
+          },
+          "monthlyInstallmentAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "simulatedWorstMonth": {
+            "type": "string"
+          },
+          "simulatedWorstBalance": {
+            "type": "number",
+            "format": "double"
+          },
+          "balanceImpactAtWorstMonth": {
+            "type": "number",
+            "format": "double"
+          },
+          "originalBreakEvenMonth": {
+            "type": "string"
+          },
+          "simulatedBreakEvenMonth": {
+            "type": "string"
+          },
+          "delayInMonthsForFreedom": {
+            "type": "integer"
+          },
+          "riskAnalysisSummary": {
+            "type": "string"
+          }
+        }
+      },
+      "DreReportDto": {
+        "type": "object",
+        "properties": {
+          "periodStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "periodEnd": {
+            "type": "string",
+            "format": "date"
+          },
+          "accountingMethod": {
+            "$ref": "#/components/schemas/AccountingMethod"
+          },
+          "grossRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "taxDeductions": {
+            "type": "number",
+            "format": "double"
+          },
+          "netRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "directCostsInterconnection": {
+            "type": "number",
+            "format": "double"
+          },
+          "contributionMargin": {
+            "type": "number",
+            "format": "double"
+          },
+          "opexPersonnel": {
+            "type": "number",
+            "format": "double"
+          },
+          "opexInfrastructure": {
+            "type": "number",
+            "format": "double"
+          },
+          "opexAdministrative": {
+            "type": "number",
+            "format": "double"
+          },
+          "opexCommercial": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalOpex": {
+            "type": "number",
+            "format": "double"
+          },
+          "ebitda": {
+            "type": "number",
+            "format": "double"
+          },
+          "ebitdaMarginPercentage": {
+            "type": "number",
+            "format": "double"
+          },
+          "financialResult": {
+            "type": "number",
+            "format": "double"
+          },
+          "netIncome": {
+            "type": "number",
+            "format": "double"
+          },
+          "netMarginPercentage": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "MaterialCustodyDto": {
+        "type": "object",
+        "required": [
+          "itemName",
+          "quantity"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userName": {
+            "type": "string",
+            "nullable": true
+          },
+          "userEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "itemName": {
+            "type": "string",
+            "example": "Máquina de Fusão Óptica"
+          },
+          "itemCategory": {
+            "type": "string",
+            "nullable": true,
+            "example": "FERRAMENTAL"
+          },
+          "serialNumber": {
+            "type": "string",
+            "nullable": true,
+            "example": "FUS-889922"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double",
+            "example": 1
+          },
+          "unitOfMeasure": {
+            "type": "string",
+            "nullable": true,
+            "example": "UN"
+          },
+          "unitValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "allocatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "MaterialTransferRequest": {
+        "type": "object",
+        "required": [
+          "receiverUserId",
+          "materialCustodyId",
+          "quantity"
+        ],
+        "properties": {
+          "receiverUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "materialCustodyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "MaterialTransferResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "senderUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "senderUserName": {
+            "type": "string"
+          },
+          "receiverUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "receiverUserName": {
+            "type": "string"
+          },
+          "materialCustodyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CashTransferStatus"
+          },
+          "requestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "respondedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "NetworkProjectRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "neighborhood",
+          "city",
+          "budgetAmount",
+          "targetSubscribers",
+          "startDate"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Expansão Bairro Esperança - Fase 1"
+          },
+          "neighborhood": {
+            "type": "string",
+            "example": "Esperança"
+          },
+          "city": {
+            "type": "string",
+            "example": "Santarém"
+          },
+          "budgetAmount": {
+            "type": "number",
+            "format": "double",
+            "example": 65000
+          },
+          "targetSubscribers": {
+            "type": "integer",
+            "example": 300
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "NetworkProjectResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "neighborhood": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProjectStatus"
+          },
+          "budgetAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "targetSubscribers": {
+            "type": "integer"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "NetworkProjectPaybackDto": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "neighborhood": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProjectStatus"
+          },
+          "budgetAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "targetSubscribers": {
+            "type": "integer"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "ctoCount": {
+            "type": "integer"
+          },
+          "totalPorts": {
+            "type": "integer"
+          },
+          "occupiedPorts": {
+            "type": "integer"
+          },
+          "penetrationRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "monthlyRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "accumulatedRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "paybackMonthsEstimated": {
+            "type": "integer"
+          },
+          "isPaybackAchieved": {
+            "type": "boolean"
+          },
+          "commercialPriority": {
+            "type": "string",
+            "example": "ALTA_PORTAS_LIVRES"
+          }
+        }
+      },
+      "ExpenseInstallmentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "payableInvoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "installmentNumber": {
+            "type": "integer"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paidAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "paidAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayableStatus"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "receiptUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PayableInvoiceRequest": {
+        "type": "object",
+        "required": [
+          "supplierName",
+          "chartOfAccountId",
+          "description",
+          "totalAmount",
+          "issueDate",
+          "installmentsCount",
+          "firstDueDate"
+        ],
+        "properties": {
+          "supplierName": {
+            "type": "string",
+            "example": "Fiberhome do Brasil Ltda"
+          },
+          "supplierDocument": {
+            "type": "string",
+            "nullable": true,
+            "example": "12345678000199"
+          },
+          "chartOfAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string",
+            "example": "Compra de Bobinas Drop 1FO e Conectores"
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "nullable": true,
+            "example": "NF-88221"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double",
+            "example": 24000
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "installmentsCount": {
+            "type": "integer",
+            "example": 6
+          },
+          "firstDueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        }
+      },
+      "PayableInvoiceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "supplierDocument": {
+            "type": "string",
+            "nullable": true
+          },
+          "chartOfAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "chartOfAccountCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "chartOfAccountName": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string"
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "issueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PayableStatus"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "projectName": {
+            "type": "string",
+            "nullable": true
+          },
+          "installments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpenseInstallmentDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SentinelAuditLogDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "auditType": {
+            "type": "string",
+            "example": "DINHEIRO_RETIDO_SEM_DEPOSITO"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/SentinelSeverity"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "geminiAnalysis": {
+            "type": "string"
+          },
+          "recommendedAction": {
+            "type": "string"
+          },
+          "resolved": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WorkOrderFeeDto": {
+        "type": "object",
+        "properties": {
+          "workOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "serviceType": {
+            "type": "string"
+          },
+          "standardFeeAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "feeStatus": {
+            "$ref": "#/components/schemas/FeeStatus"
+          },
+          "waiverReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "waiverRequestedByUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "waiverRequestedByName": {
+            "type": "string",
+            "nullable": true
+          },
+          "waiverAuditedByUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "waiverAuditedByName": {
+            "type": "string",
+            "nullable": true
+          },
+          "waiverAuditedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "WorkOrderFeeWaiverRequest": {
+        "type": "object",
+        "required": [
+          "workOrderId",
+          "waiverReason"
+        ],
+        "properties": {
+          "workOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "waiverReason": {
+            "type": "string",
+            "example": "Cliente ameaçou cancelar por lentidão prévia não solucionada"
+          }
+        }
+      },
+      "WorkOrderFeeAuditRequest": {
+        "type": "object",
+        "required": [
+          "approved"
+        ],
+        "properties": {
+          "approved": {
+            "type": "boolean"
+          },
+          "notes": {
             "type": "string",
             "nullable": true
           }

@@ -109,6 +109,24 @@ tags:
     description: Métricas Executivas, MRR, ARPU, Churn e Saúde Operacional do Provedor
   - name: BackupDisasterRecovery
     description: Governança de Backup Criptografado AES-256, Destinos Remotos e Kit de Resgate
+  - name: CashCustody
+    description: Custódia de Dinheiro Vivo, Transferência por Duplo Aceite e Depósitos
+  - name: ChartOfAccounts
+    description: Plano de Contas Hierárquico Contábil e Categorização DRE
+  - name: Deleveraging
+    description: Motor de Desalavancagem Financeira, Curva de Caixa de 36 Meses e Simulador
+  - name: DreReports
+    description: DRE Telecom em Tempo Real com Margens EBITDA e Resultado Contábil/Caixa
+  - name: MaterialCustody
+    description: Custódia de Materiais e Ferramental por CPF com Duplo Aceite
+  - name: NetworkProjects
+    description: Payback de Projetos de Expansão de Rede FTTH e Associação de CTOs
+  - name: PayableInvoices
+    description: Contas a Pagar, CAPEX e Parcelamento de Dívidas com Fornecedores
+  - name: SentinelAudit
+    description: Sentinela IA para Auditoria Forense, Detecção de Anomalias e Desvios
+  - name: WorkOrderFees
+    description: Tarifação de Serviços Técnicos de Campo e Esteira de Isenção Auditada
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -562,6 +580,82 @@ paths:
     $ref: './domains/backup/backup.yaml#/~1financial~1backup~1history'
   /financial/backup/emergency-kit:
     $ref: './domains/backup/backup.yaml#/~1financial~1backup~1emergency-kit'
+
+  # Módulo Financeiro Avançado
+  /financial/custody/cash/all:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1cash~1all'
+  /financial/custody/cash/user/{userId}:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1cash~1user~1{userId}'
+  /financial/custody/cash/settle:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1cash~1settle'
+  /financial/custody/cash/transfer/request:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1cash~1transfer~1request'
+  /financial/custody/cash/transfer/{id}/respond:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1cash~1transfer~1{id}~1respond'
+  /financial/custody/cash/transfer/pending:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1cash~1transfer~1pending'
+  /financial/custody/cash/deposit:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1cash~1deposit'
+  /financial/custody/cash/deposit/pending:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1cash~1deposit~1pending'
+  /financial/custody/cash/deposit/{id}/audit:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1cash~1deposit~1{id}~1audit'
+
+  /financial/chart-of-accounts/tree:
+    $ref: './domains/financial/financial.yaml#/~1financial~1chart-of-accounts~1tree'
+  /financial/chart-of-accounts:
+    $ref: './domains/financial/financial.yaml#/~1financial~1chart-of-accounts'
+  /financial/chart-of-accounts/{id}:
+    $ref: './domains/financial/financial.yaml#/~1financial~1chart-of-accounts~1{id}'
+
+  /financial/deleveraging/projection:
+    $ref: './domains/financial/financial.yaml#/~1financial~1deleveraging~1projection'
+  /financial/deleveraging/simulate:
+    $ref: './domains/financial/financial.yaml#/~1financial~1deleveraging~1simulate'
+
+  /financial/reports/dre:
+    $ref: './domains/financial/financial.yaml#/~1financial~1reports~1dre'
+
+  /financial/custody/materials/user/{userId}:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1materials~1user~1{userId}'
+  /financial/custody/materials/user/{userId}/allocate:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1materials~1user~1{userId}~1allocate'
+  /financial/custody/materials/transfer/request:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1materials~1transfer~1request'
+  /financial/custody/materials/transfer/{id}/respond:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1materials~1transfer~1{id}~1respond'
+  /financial/custody/materials/transfer/pending:
+    $ref: './domains/financial/financial.yaml#/~1financial~1custody~1materials~1transfer~1pending'
+
+  /financial/network-projects/payback:
+    $ref: './domains/financial/financial.yaml#/~1financial~1network-projects~1payback'
+  /financial/network-projects:
+    $ref: './domains/financial/financial.yaml#/~1financial~1network-projects'
+  /financial/network-projects/{projectId}/assign-cto/{ctoId}:
+    $ref: './domains/financial/financial.yaml#/~1financial~1network-projects~1{projectId}~1assign-cto~1{ctoId}'
+
+  /financial/payables:
+    $ref: './domains/financial/financial.yaml#/~1financial~1payables'
+  /financial/payables/installments/pending:
+    $ref: './domains/financial/financial.yaml#/~1financial~1payables~1installments~1pending'
+  /financial/payables/installments/{id}/pay:
+    $ref: './domains/financial/financial.yaml#/~1financial~1payables~1installments~1{id}~1pay'
+
+  /financial/sentinel/alerts:
+    $ref: './domains/financial/financial.yaml#/~1financial~1sentinel~1alerts'
+  /financial/sentinel/sweep:
+    $ref: './domains/financial/financial.yaml#/~1financial~1sentinel~1sweep'
+  /financial/sentinel/alerts/{id}/resolve:
+    $ref: './domains/financial/financial.yaml#/~1financial~1sentinel~1alerts~1{id}~1resolve'
+
+  /financial/work-orders/{id}/assign-fee:
+    $ref: './domains/financial/financial.yaml#/~1financial~1work-orders~1{id}~1assign-fee'
+  /financial/work-orders/waiver/request:
+    $ref: './domains/financial/financial.yaml#/~1financial~1work-orders~1waiver~1request'
+  /financial/work-orders/waiver/pending:
+    $ref: './domains/financial/financial.yaml#/~1financial~1work-orders~1waiver~1pending'
+  /financial/work-orders/{id}/waiver/audit:
+    $ref: './domains/financial/financial.yaml#/~1financial~1work-orders~1{id}~1waiver~1audit'
 
 components:
   securitySchemes:
@@ -1092,3 +1186,75 @@ components:
       $ref: './domains/backup/schemas.yaml#/BackupExecutionLogDto'
     ExecuteBackupRequest:
       $ref: './domains/backup/schemas.yaml#/ExecuteBackupRequest'
+
+    # Módulo Financeiro
+    AccountingMethod:
+      $ref: './domains/financial/schemas.yaml#/AccountingMethod'
+    CashTransferStatus:
+      $ref: './domains/financial/schemas.yaml#/CashTransferStatus'
+    BankDepositStatus:
+      $ref: './domains/financial/schemas.yaml#/BankDepositStatus'
+    AccountType:
+      $ref: './domains/financial/schemas.yaml#/AccountType'
+    DreCategory:
+      $ref: './domains/financial/schemas.yaml#/DreCategory'
+    ProjectStatus:
+      $ref: './domains/financial/schemas.yaml#/ProjectStatus'
+    PayableStatus:
+      $ref: './domains/financial/schemas.yaml#/PayableStatus'
+    SentinelSeverity:
+      $ref: './domains/financial/schemas.yaml#/SentinelSeverity'
+    FeeStatus:
+      $ref: './domains/financial/schemas.yaml#/FeeStatus'
+    CashCustodyDto:
+      $ref: './domains/financial/schemas.yaml#/CashCustodyDto'
+    CashSettlementRequest:
+      $ref: './domains/financial/schemas.yaml#/CashSettlementRequest'
+    CashTransferRequest:
+      $ref: './domains/financial/schemas.yaml#/CashTransferRequest'
+    CashTransferResponseDto:
+      $ref: './domains/financial/schemas.yaml#/CashTransferResponseDto'
+    BankDepositRequest:
+      $ref: './domains/financial/schemas.yaml#/BankDepositRequest'
+    BankDepositResponseDto:
+      $ref: './domains/financial/schemas.yaml#/BankDepositResponseDto'
+    BankDepositAuditRequest:
+      $ref: './domains/financial/schemas.yaml#/BankDepositAuditRequest'
+    ChartOfAccountDto:
+      $ref: './domains/financial/schemas.yaml#/ChartOfAccountDto'
+    MonthlyProjectionPointDto:
+      $ref: './domains/financial/schemas.yaml#/MonthlyProjectionPointDto'
+    DeleveragingProjectionDto:
+      $ref: './domains/financial/schemas.yaml#/DeleveragingProjectionDto'
+    SimulationRequest:
+      $ref: './domains/financial/schemas.yaml#/SimulationRequest'
+    SimulationResponse:
+      $ref: './domains/financial/schemas.yaml#/SimulationResponse'
+    DreReportDto:
+      $ref: './domains/financial/schemas.yaml#/DreReportDto'
+    MaterialCustodyDto:
+      $ref: './domains/financial/schemas.yaml#/MaterialCustodyDto'
+    MaterialTransferRequest:
+      $ref: './domains/financial/schemas.yaml#/MaterialTransferRequest'
+    MaterialTransferResponseDto:
+      $ref: './domains/financial/schemas.yaml#/MaterialTransferResponseDto'
+    NetworkProjectRequest:
+      $ref: './domains/financial/schemas.yaml#/NetworkProjectRequest'
+    NetworkProjectResponse:
+      $ref: './domains/financial/schemas.yaml#/NetworkProjectResponse'
+    NetworkProjectPaybackDto:
+      $ref: './domains/financial/schemas.yaml#/NetworkProjectPaybackDto'
+    ExpenseInstallmentDto:
+      $ref: './domains/financial/schemas.yaml#/ExpenseInstallmentDto'
+    PayableInvoiceRequest:
+      $ref: './domains/financial/schemas.yaml#/PayableInvoiceRequest'
+    PayableInvoiceDto:
+      $ref: './domains/financial/schemas.yaml#/PayableInvoiceDto'
+    SentinelAuditLogDto:
+      $ref: './domains/financial/schemas.yaml#/SentinelAuditLogDto'
+    WorkOrderFeeDto:
+      $ref: './domains/financial/schemas.yaml#/WorkOrderFeeDto'
+    WorkOrderFeeWaiverRequest:
+      $ref: './domains/financial/schemas.yaml#/WorkOrderFeeWaiverRequest'
+    WorkOrderFeeAuditRequest:
+      $ref: './domains/financial/schemas.yaml#/WorkOrderFeeAuditRequest'

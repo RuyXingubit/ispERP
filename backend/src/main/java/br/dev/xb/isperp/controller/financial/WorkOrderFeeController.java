@@ -1,61 +1,58 @@
 package br.dev.xb.isperp.controller.financial;
 
-import br.dev.xb.isperp.dto.financial.WorkOrderFeeAuditRequest;
-import br.dev.xb.isperp.dto.financial.WorkOrderFeeDto;
-import br.dev.xb.isperp.dto.financial.WorkOrderFeeWaiverRequest;
+import br.dev.xb.isperp.api.contract.WorkOrderFeesApi;
+import br.dev.xb.isperp.api.dto.WorkOrderFeeAuditRequest;
+import br.dev.xb.isperp.api.dto.WorkOrderFeeDto;
+import br.dev.xb.isperp.api.dto.WorkOrderFeeWaiverRequest;
+import br.dev.xb.isperp.mapper.FinancialDomainMapper;
 import br.dev.xb.isperp.service.financial.WorkOrderFeeService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/financial/work-orders")
+@RequestMapping({"", "/api"})
 @RequiredArgsConstructor
-@Tag(name = "Taxas de O.S. & Esteira de Isenção", description = "Endpoints para tarifação de serviços técnicos, solicitação de isenção e auditoria gerencial")
-public class WorkOrderFeeController {
+@CrossOrigin(origins = "*")
+public class WorkOrderFeeController implements WorkOrderFeesApi {
 
     private final WorkOrderFeeService workOrderFeeService;
+    private final FinancialDomainMapper financialDomainMapper;
 
-    @PostMapping("/{id}/assign-fee")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL', 'ATTENDANT')")
-    @Operation(summary = "Atribui taxa padrão da tabela de serviços à Ordem de Serviço")
-    public ResponseEntity<WorkOrderFeeDto> assignStandardFee(
-            @PathVariable UUID id,
-            @RequestParam BigDecimal amount) {
-        return ResponseEntity.ok(workOrderFeeService.assignStandardFee(id, amount));
+    public ResponseEntity<WorkOrderFeeDto> assignStandardWorkOrderFee(UUID id, Double amount) {
+        BigDecimal feeAmount = amount != null ? BigDecimal.valueOf(amount) : BigDecimal.ZERO;
+        var assigned = workOrderFeeService.assignStandardFee(id, feeAmount);
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiWorkOrderFee(assigned));
     }
 
-    @PostMapping("/waiver/request")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL', 'ATTENDANT')")
-    @Operation(summary = "Atendente solicita isenção da taxa de serviço com justificativa de retenção comercial")
-    public ResponseEntity<WorkOrderFeeDto> requestWaiver(
-            @RequestHeader("X-User-Id") UUID attendantUserId,
-            @Valid @RequestBody WorkOrderFeeWaiverRequest request) {
-        return ResponseEntity.ok(workOrderFeeService.requestWaiver(attendantUserId, request));
+    public ResponseEntity<WorkOrderFeeDto> requestWorkOrderFeeWaiver(UUID xUserId, WorkOrderFeeWaiverRequest request) {
+        var domainRequest = financialDomainMapper.toDomainWorkOrderFeeWaiverRequest(request);
+        var requested = workOrderFeeService.requestWaiver(xUserId, domainRequest);
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiWorkOrderFee(requested));
     }
 
-    @GetMapping("/waiver/pending")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-    @Operation(summary = "Lista solicitações de isenção de taxas pendentes de aprovação gerencial")
-    public ResponseEntity<List<WorkOrderFeeDto>> getPendingWaivers() {
-        return ResponseEntity.ok(workOrderFeeService.getPendingWaiverAudits());
+    public ResponseEntity<List<WorkOrderFeeDto>> getPendingWorkOrderFeeWaivers() {
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiWorkOrderFeeList(workOrderFeeService.getPendingWaiverAudits()));
     }
 
-    @PostMapping("/{id}/waiver/audit")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-    @Operation(summary = "Gestor/CFO aprova ou rejeita isenção de taxa (dispara mensagem oficial anti-fraude ao cliente)")
-    public ResponseEntity<WorkOrderFeeDto> auditWaiver(
-            @RequestHeader("X-User-Id") UUID managerUserId,
-            @PathVariable UUID id,
-            @Valid @RequestBody WorkOrderFeeAuditRequest request) {
-        return ResponseEntity.ok(workOrderFeeService.auditWaiver(managerUserId, id, request));
+    public ResponseEntity<WorkOrderFeeDto> auditWorkOrderFeeWaiver(UUID xUserId, UUID id, WorkOrderFeeAuditRequest request) {
+        var domainRequest = financialDomainMapper.toDomainWorkOrderFeeAuditRequest(request);
+        var audited = workOrderFeeService.auditWaiver(xUserId, id, domainRequest);
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiWorkOrderFee(audited));
     }
 }

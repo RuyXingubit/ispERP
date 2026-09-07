@@ -1,36 +1,39 @@
 package br.dev.xb.isperp.controller.financial;
 
-import br.dev.xb.isperp.dto.financial.DeleveragingProjectionDto;
-import br.dev.xb.isperp.dto.financial.SimulationRequest;
-import br.dev.xb.isperp.dto.financial.SimulationResponse;
+import br.dev.xb.isperp.api.contract.DeleveragingApi;
+import br.dev.xb.isperp.api.dto.DeleveragingProjectionDto;
+import br.dev.xb.isperp.api.dto.SimulationRequest;
+import br.dev.xb.isperp.api.dto.SimulationResponse;
+import br.dev.xb.isperp.mapper.FinancialDomainMapper;
 import br.dev.xb.isperp.service.financial.DeleveragingEngineService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/financial/deleveraging")
+@RequestMapping({"", "/api"})
 @RequiredArgsConstructor
-@Tag(name = "Motor de Desalavancagem e Curva de Saída do Vermelho", description = "Projeção contínua de caixa para 36 meses, ponto do fundo do poço e simulador E Se")
-public class DeleveragingController {
+@CrossOrigin(origins = "*")
+public class DeleveragingController implements DeleveragingApi {
 
     private final DeleveragingEngineService deleveragingEngineService;
+    private final FinancialDomainMapper financialDomainMapper;
 
-    @GetMapping("/projection")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-    @Operation(summary = "Calcula a curva contínua de caixa para os próximos 36 meses com os 3 números sagrados")
-    public ResponseEntity<DeleveragingProjectionDto> get36MonthsProjection() {
-        return ResponseEntity.ok(deleveragingEngineService.calculate36MonthsProjection());
+    public ResponseEntity<DeleveragingProjectionDto> get36MonthsDeleveragingProjection() {
+        var domainProjection = deleveragingEngineService.calculate36MonthsProjection();
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiDeleveragingProjection(domainProjection));
     }
 
-    @PostMapping("/simulate")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-    @Operation(summary = "Simula o impacto financeiro de um novo investimento parcelado no caixa e na data da alforria")
-    public ResponseEntity<SimulationResponse> simulateNewInvestment(@Valid @RequestBody SimulationRequest request) {
-        return ResponseEntity.ok(deleveragingEngineService.simulateNewInvestment(request));
+    public ResponseEntity<SimulationResponse> simulateNewInvestment(SimulationRequest request) {
+        var domainRequest = financialDomainMapper.toDomainSimulationRequest(request);
+        var domainResponse = deleveragingEngineService.simulateNewInvestment(domainRequest);
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiSimulationResponse(domainResponse));
     }
 }

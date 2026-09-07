@@ -1,47 +1,48 @@
 package br.dev.xb.isperp.controller.financial;
 
-import br.dev.xb.isperp.dto.financial.NetworkProjectPaybackDto;
-import br.dev.xb.isperp.dto.financial.NetworkProjectRequest;
-import br.dev.xb.isperp.entity.financial.NetworkProject;
+import br.dev.xb.isperp.api.contract.NetworkProjectsApi;
+import br.dev.xb.isperp.api.dto.NetworkProjectPaybackDto;
+import br.dev.xb.isperp.api.dto.NetworkProjectRequest;
+import br.dev.xb.isperp.api.dto.NetworkProjectResponse;
+import br.dev.xb.isperp.mapper.FinancialDomainMapper;
 import br.dev.xb.isperp.service.financial.NetworkProjectService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/financial/network-projects")
+@RequestMapping({"", "/api"})
 @RequiredArgsConstructor
-@Tag(name = "Payback de Projetos de Rede (Mapa de Guerra)", description = "Associação de CTOs a centros de custo de expansão, cálculo de payback por bairro e direcionador comercial")
-public class NetworkProjectController {
+@CrossOrigin(origins = "*")
+public class NetworkProjectController implements NetworkProjectsApi {
 
     private final NetworkProjectService projectService;
+    private final FinancialDomainMapper financialDomainMapper;
 
-    @GetMapping("/payback")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-    @Operation(summary = "Retorna todos os projetos de expansão com cálculo de payback acumulado e direcionador comercial de vendas")
     public ResponseEntity<List<NetworkProjectPaybackDto>> getAllProjectsWithPayback() {
-        return ResponseEntity.ok(projectService.getAllProjectsWithPayback());
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiNetworkProjectPaybackList(projectService.getAllProjectsWithPayback()));
     }
 
-    @PostMapping
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-    @Operation(summary = "Cadastra um novo projeto de expansão de rede para acompanhamento de CAPEX")
-    public ResponseEntity<NetworkProject> createProject(@Valid @RequestBody NetworkProjectRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(projectService.createProject(request));
+    public ResponseEntity<NetworkProjectResponse> createNetworkProject(NetworkProjectRequest request) {
+        var domainRequest = financialDomainMapper.toDomainNetworkProjectRequest(request);
+        var created = projectService.createProject(domainRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(financialDomainMapper.toOpenApiNetworkProjectResponse(created));
     }
 
-    @PostMapping("/{projectId}/assign-cto/{ctoId}")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-    @Operation(summary = "Vincula uma CTO instalada na rua ao projeto de rede correspondente")
-    public ResponseEntity<Void> assignCtoToProject(@PathVariable UUID projectId, @PathVariable UUID ctoId) {
+    public ResponseEntity<Void> assignCtoToProject(UUID projectId, UUID ctoId) {
         projectService.assignCtoToProject(ctoId, projectId);
         return ResponseEntity.noContent().build();
     }

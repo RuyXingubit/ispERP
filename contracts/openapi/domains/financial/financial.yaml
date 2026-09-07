@@ -1,0 +1,802 @@
+# Endpoints do Módulo Financeiro Avançado (ispERP)
+
+/financial/custody/cash/all:
+  get:
+    tags:
+      - CashCustody
+    summary: Lista todos os saldos sob custódia de colaboradores na empresa
+    operationId: getAllCashCustodies
+    responses:
+      '200':
+        description: Lista de custódias retornada
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/CashCustodyDto'
+
+/financial/custody/cash/user/{userId}:
+  get:
+    tags:
+      - CashCustody
+    summary: Consulta o saldo sob custódia de um colaborador específico
+    operationId: getCashCustodyByUserId
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Custódia do usuário retornada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CashCustodyDto'
+
+/financial/custody/cash/settle:
+  post:
+    tags:
+      - CashCustody
+    summary: Registra recebimento de fatura em dinheiro vivo e debita na custódia do CPF
+    operationId: recordCashSettlement
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CashSettlementRequest'
+    responses:
+      '201':
+        description: Recebimento liquidado e debitado na custódia
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CashCustodyDto'
+
+/financial/custody/cash/transfer/request:
+  post:
+    tags:
+      - CashCustody
+    summary: Solicita transferência de valores para outro colaborador (Passagem de Gaveta/Turno)
+    operationId: requestCashTransfer
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CashTransferRequest'
+    responses:
+      '201':
+        description: Solicitação de transferência criada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CashTransferResponseDto'
+
+/financial/custody/cash/transfer/{id}/respond:
+  post:
+    tags:
+      - CashCustody
+    summary: Aceita ou rejeita transferência de custódia recebida (Duplo Aceite)
+    operationId: respondCashTransfer
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: accept
+        in: query
+        required: true
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: Transferência respondida
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CashTransferResponseDto'
+
+/financial/custody/cash/transfer/pending:
+  get:
+    tags:
+      - CashCustody
+    summary: Lista transferências de dinheiro pendentes de aceite para o colaborador logado
+    operationId: getPendingCashTransfers
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Lista de transferências pendentes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/CashTransferResponseDto'
+
+/financial/custody/cash/deposit:
+  post:
+    tags:
+      - CashCustody
+    summary: Submete comprovante de depósito bancário para prestação de contas de dinheiro vivo
+    operationId: submitBankDeposit
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/BankDepositRequest'
+    responses:
+      '201':
+        description: Depósito submetido para conciliação
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/BankDepositResponseDto'
+
+/financial/custody/cash/deposit/pending:
+  get:
+    tags:
+      - CashCustody
+    summary: Lista depósitos bancários pendentes de conciliação pelo CFO/Auditor
+    operationId: getPendingBankDeposits
+    responses:
+      '200':
+        description: Lista de depósitos pendentes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/BankDepositResponseDto'
+
+/financial/custody/cash/deposit/{id}/audit:
+  post:
+    tags:
+      - CashCustody
+    summary: Audita e concilia depósito bancário pelo extrato real, liquidando a custódia
+    operationId: auditBankDeposit
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/BankDepositAuditRequest'
+    responses:
+      '200':
+        description: Depósito auditado e conciliado
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/BankDepositResponseDto'
+
+/financial/chart-of-accounts/tree:
+  get:
+    tags:
+      - ChartOfAccounts
+    summary: Retorna a árvore hierárquica completa do plano de contas de 5 níveis
+    operationId: getChartOfAccountsTree
+    responses:
+      '200':
+        description: Árvore hierárquica do plano de contas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ChartOfAccountDto'
+
+/financial/chart-of-accounts:
+  get:
+    tags:
+      - ChartOfAccounts
+    summary: Lista todas as contas contábeis de forma plana
+    operationId: getAllChartOfAccountsFlat
+    responses:
+      '200':
+        description: Lista plana de contas contábeis
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ChartOfAccountDto'
+  post:
+    tags:
+      - ChartOfAccounts
+    summary: Cadastra uma nova conta contábil analítica ou sintética
+    operationId: createChartOfAccount
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ChartOfAccountDto'
+    responses:
+      '201':
+        description: Conta criada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ChartOfAccountDto'
+
+/financial/chart-of-accounts/{id}:
+  put:
+    tags:
+      - ChartOfAccounts
+    summary: Atualiza uma conta contábil existente
+    operationId: updateChartOfAccount
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ChartOfAccountDto'
+    responses:
+      '200':
+        description: Conta atualizada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ChartOfAccountDto'
+
+/financial/deleveraging/projection:
+  get:
+    tags:
+      - Deleveraging
+    summary: Calcula a curva contínua de caixa para os próximos 36 meses com os 3 números sagrados
+    operationId: get36MonthsDeleveragingProjection
+    responses:
+      '200':
+        description: Projeção de desalavancagem calculada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/DeleveragingProjectionDto'
+
+/financial/deleveraging/simulate:
+  post:
+    tags:
+      - Deleveraging
+    summary: Simula o impacto financeiro de um novo investimento parcelado no caixa
+    operationId: simulateNewInvestment
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/SimulationRequest'
+    responses:
+      '200':
+        description: Simulação calculada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SimulationResponse'
+
+/financial/reports/dre:
+  get:
+    tags:
+      - DreReports
+    summary: Gera o DRE oficial consolidado para o período informado
+    operationId: getDreReport
+    parameters:
+      - name: startDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: endDate
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: method
+        in: query
+        required: false
+        schema:
+          $ref: './schemas.yaml#/AccountingMethod'
+          default: ACCRUAL
+    responses:
+      '200':
+        description: Relatório DRE consolidado
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/DreReportDto'
+
+/financial/custody/materials/user/{userId}:
+  get:
+    tags:
+      - MaterialCustody
+    summary: Lista equipamentos e ferramentas sob custódia de um técnico específico
+    operationId: getMaterialsByUserId
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Lista de materiais sob custódia
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/MaterialCustodyDto'
+
+/financial/custody/materials/user/{userId}/allocate:
+  post:
+    tags:
+      - MaterialCustody
+    summary: Almoxarifado aloca itens e seriais diretamente na carga do CPF do colaborador
+    operationId: allocateMaterialToUser
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/MaterialCustodyDto'
+    responses:
+      '201':
+        description: Material alocado na carga do colaborador
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/MaterialCustodyDto'
+
+/financial/custody/materials/transfer/request:
+  post:
+    tags:
+      - MaterialCustody
+    summary: Técnico solicita transferência de peças para outro técnico (Duplo Aceite na rua)
+    operationId: requestMaterialTransfer
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/MaterialTransferRequest'
+    responses:
+      '201':
+        description: Transferência solicitada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/MaterialTransferResponseDto'
+
+/financial/custody/materials/transfer/{id}/respond:
+  post:
+    tags:
+      - MaterialCustody
+    summary: Técnico recebedor aceita ou rejeita a carga de material recebida
+    operationId: respondMaterialTransfer
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: accept
+        in: query
+        required: true
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: Transferência respondida
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/MaterialTransferResponseDto'
+
+/financial/custody/materials/transfer/pending:
+  get:
+    tags:
+      - MaterialCustody
+    summary: Lista transferências de equipamentos pendentes de aceite para o técnico logado
+    operationId: getPendingMaterialTransfers
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Lista de transferências pendentes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/MaterialTransferResponseDto'
+
+/financial/network-projects/payback:
+  get:
+    tags:
+      - NetworkProjects
+    summary: Retorna todos os projetos de expansão com cálculo de payback acumulado
+    operationId: getAllProjectsWithPayback
+    responses:
+      '200':
+        description: Lista de projetos com payback
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/NetworkProjectPaybackDto'
+
+/financial/network-projects:
+  post:
+    tags:
+      - NetworkProjects
+    summary: Cadastra um novo projeto de expansão de rede para acompanhamento de CAPEX
+    operationId: createNetworkProject
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/NetworkProjectRequest'
+    responses:
+      '201':
+        description: Projeto criado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NetworkProjectResponse'
+
+/financial/network-projects/{projectId}/assign-cto/{ctoId}:
+  post:
+    tags:
+      - NetworkProjects
+    summary: Vincula uma CTO instalada na rua ao projeto de rede correspondente
+    operationId: assignCtoToProject
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: ctoId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: CTO vinculada ao projeto com sucesso
+
+/financial/payables:
+  get:
+    tags:
+      - PayableInvoices
+    summary: Lista todas as contas a pagar da empresa
+    operationId: getAllPayableInvoices
+    responses:
+      '200':
+        description: Lista de contas a pagar
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/PayableInvoiceDto'
+  post:
+    tags:
+      - PayableInvoices
+    summary: Cadastra uma nova conta a pagar com geração automática de parcelas
+    operationId: createPayableInvoice
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/PayableInvoiceRequest'
+    responses:
+      '201':
+        description: Conta a pagar criada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PayableInvoiceDto'
+
+/financial/payables/installments/pending:
+  get:
+    tags:
+      - PayableInvoices
+    summary: Lista todas as parcelas de despesas e compras pendentes de pagamento
+    operationId: getPendingExpenseInstallments
+    responses:
+      '200':
+        description: Lista de parcelas pendentes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ExpenseInstallmentDto'
+
+/financial/payables/installments/{id}/pay:
+  post:
+    tags:
+      - PayableInvoices
+    summary: Baixa o pagamento de uma parcela de despesa
+    operationId: payExpenseInstallment
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: paidAmount
+        in: query
+        required: false
+        schema:
+          type: number
+          format: double
+      - name: paymentMethod
+        in: query
+        required: false
+        schema:
+          type: string
+          default: TRANSFERENCIA_BANCARIA
+      - name: receiptUrl
+        in: query
+        required: false
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Parcela baixada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ExpenseInstallmentDto'
+
+/financial/sentinel/alerts:
+  get:
+    tags:
+      - SentinelAudit
+    summary: Lista todos os alertas de auditoria pericial pendentes de resolução
+    operationId: getActiveSentinelAlerts
+    responses:
+      '200':
+        description: Lista de alertas ativos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/SentinelAuditLogDto'
+
+/financial/sentinel/sweep:
+  post:
+    tags:
+      - SentinelAudit
+    summary: Dispara varredura pericial manual no sistema
+    operationId: triggerSentinelSweep
+    responses:
+      '200':
+        description: Lista de alertas encontrados durante a varredura
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/SentinelAuditLogDto'
+
+/financial/sentinel/alerts/{id}/resolve:
+  post:
+    tags:
+      - SentinelAudit
+    summary: Marca um alerta pericial como auditado e resolvido pela diretoria
+    operationId: resolveSentinelAlert
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Alerta resolvido
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SentinelAuditLogDto'
+
+/financial/work-orders/{id}/assign-fee:
+  post:
+    tags:
+      - WorkOrderFees
+    summary: Atribui taxa padrão da tabela de serviços à Ordem de Serviço
+    operationId: assignStandardWorkOrderFee
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: amount
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+    responses:
+      '200':
+        description: Taxa atribuída à O.S.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WorkOrderFeeDto'
+
+/financial/work-orders/waiver/request:
+  post:
+    tags:
+      - WorkOrderFees
+    summary: Atendente solicita isenção da taxa de serviço com justificativa
+    operationId: requestWorkOrderFeeWaiver
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/WorkOrderFeeWaiverRequest'
+    responses:
+      '200':
+        description: Solicitação de isenção criada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WorkOrderFeeDto'
+
+/financial/work-orders/waiver/pending:
+  get:
+    tags:
+      - WorkOrderFees
+    summary: Lista solicitações de isenção de taxas pendentes de aprovação gerencial
+    operationId: getPendingWorkOrderFeeWaivers
+    responses:
+      '200':
+        description: Lista de isenções pendentes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/WorkOrderFeeDto'
+
+/financial/work-orders/{id}/waiver/audit:
+  post:
+    tags:
+      - WorkOrderFees
+    summary: Gestor/CFO aprova ou rejeita isenção de taxa
+    operationId: auditWorkOrderFeeWaiver
+    parameters:
+      - name: X-User-Id
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/WorkOrderFeeAuditRequest'
+    responses:
+      '200':
+        description: Isenção auditada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WorkOrderFeeDto'

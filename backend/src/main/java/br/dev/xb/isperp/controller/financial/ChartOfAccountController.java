@@ -1,50 +1,52 @@
 package br.dev.xb.isperp.controller.financial;
 
-import br.dev.xb.isperp.dto.financial.ChartOfAccountDto;
+import br.dev.xb.isperp.api.contract.ChartOfAccountsApi;
+import br.dev.xb.isperp.api.dto.ChartOfAccountDto;
+import br.dev.xb.isperp.mapper.FinancialDomainMapper;
 import br.dev.xb.isperp.service.financial.ChartOfAccountService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/financial/chart-of-accounts")
+@RequestMapping({"", "/api"})
 @RequiredArgsConstructor
-@Tag(name = "Plano de Contas Dinâmico", description = "Endpoints para manutenção da árvore hierárquica contábil de telecomunicações")
-public class ChartOfAccountController {
+@CrossOrigin(origins = "*")
+public class ChartOfAccountController implements ChartOfAccountsApi {
 
     private final ChartOfAccountService chartOfAccountService;
+    private final FinancialDomainMapper financialDomainMapper;
 
-    @GetMapping("/tree")
-    @Operation(summary = "Retorna a árvore hierárquica completa do plano de contas de 5 níveis")
-    public ResponseEntity<List<ChartOfAccountDto>> getTree() {
-        return ResponseEntity.ok(chartOfAccountService.getTree());
+    @Override
+    public ResponseEntity<List<ChartOfAccountDto>> getChartOfAccountsTree() {
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiChartOfAccountList(chartOfAccountService.getTree()));
     }
 
-    @GetMapping
-    @Operation(summary = "Lista todas as contas contábeis de forma plana")
-    public ResponseEntity<List<ChartOfAccountDto>> getAllFlat() {
-        return ResponseEntity.ok(chartOfAccountService.getAllFlat());
+    @Override
+    public ResponseEntity<List<ChartOfAccountDto>> getAllChartOfAccountsFlat() {
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiChartOfAccountList(chartOfAccountService.getAllFlat()));
     }
 
-    @PostMapping
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-    @Operation(summary = "Cadastra uma nova conta contábil analítica ou sintética")
-    public ResponseEntity<ChartOfAccountDto> createAccount(@Valid @RequestBody ChartOfAccountDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(chartOfAccountService.createAccount(dto));
+    public ResponseEntity<ChartOfAccountDto> createChartOfAccount(ChartOfAccountDto dto) {
+        var domainDto = financialDomainMapper.toDomainChartOfAccount(dto);
+        var created = chartOfAccountService.createAccount(domainDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(financialDomainMapper.toOpenApiChartOfAccount(created));
     }
 
-    @PutMapping("/{id}")
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-    @Operation(summary = "Atualiza uma conta contábil existente")
-    public ResponseEntity<ChartOfAccountDto> updateAccount(@PathVariable UUID id, @Valid @RequestBody ChartOfAccountDto dto) {
-        return ResponseEntity.ok(chartOfAccountService.updateAccount(id, dto));
+    public ResponseEntity<ChartOfAccountDto> updateChartOfAccount(UUID id, ChartOfAccountDto dto) {
+        var domainDto = financialDomainMapper.toDomainChartOfAccount(dto);
+        var updated = chartOfAccountService.updateAccount(id, domainDto);
+        return ResponseEntity.ok(financialDomainMapper.toOpenApiChartOfAccount(updated));
     }
 }
