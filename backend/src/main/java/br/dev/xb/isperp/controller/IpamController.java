@@ -1,28 +1,22 @@
 package br.dev.xb.isperp.controller;
 
-import br.dev.xb.isperp.dto.*;
-import br.dev.xb.isperp.ipam.SubnetCalculationResult;
+import br.dev.xb.isperp.api.contract.IpamApi;
+import br.dev.xb.isperp.api.dto.*;
 import br.dev.xb.isperp.service.IpamService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping({"/ipam", "/api/ipam"})
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
-@Tag(name = "IPAM (IP Address Management)", description = "Gestão corporativa de recursos de numeração, ASNs, VRFs, Subnets IPv4/IPv6, Split e Inventário de IPs")
-@SecurityRequirement(name = "bearerAuth")
-public class IpamController {
+@SuppressWarnings("null")
+public class IpamController implements IpamApi {
 
     private final IpamService ipamService;
 
@@ -30,33 +24,49 @@ public class IpamController {
     // ASNs
     // =========================================================================
 
-    @GetMapping("/asns")
-    @Operation(summary = "Lista todos os ASNs cadastrados")
-    public ResponseEntity<List<IpamAsnResponse>> getAllAsns() {
-        return ResponseEntity.ok(ipamService.getAllAsns());
+    @Override
+    @GetMapping({"/ipam/asns", "/api/ipam/asns"})
+    public ResponseEntity<List<IpamAsnResponse>> listIpamAsns() {
+        return ResponseEntity.ok(ipamService.getAllAsns().stream()
+                .map(this::toApiResponse)
+                .collect(Collectors.toList()));
     }
 
-    @GetMapping("/asns/{id}")
-    @Operation(summary = "Obtém detalhes de um ASN por ID")
-    public ResponseEntity<IpamAsnResponse> getAsnById(@PathVariable UUID id) {
-        return ResponseEntity.ok(ipamService.getAsnById(id));
+    @Override
+    @GetMapping({"/ipam/asns/{id}", "/api/ipam/asns/{id}"})
+    public ResponseEntity<IpamAsnResponse> getIpamAsnById(@PathVariable UUID id) {
+        return ResponseEntity.ok(toApiResponse(ipamService.getAsnById(id)));
     }
 
-    @PostMapping("/asns")
-    @Operation(summary = "Cadastra um novo ASN")
-    public ResponseEntity<IpamAsnResponse> createAsn(@Valid @RequestBody IpamAsnRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ipamService.createAsn(request));
+    @Override
+    @PostMapping({"/ipam/asns", "/api/ipam/asns"})
+    public ResponseEntity<IpamAsnResponse> createIpamAsn(@RequestBody IpamAsnRequest request) {
+        br.dev.xb.isperp.dto.IpamAsnRequest internalReq = br.dev.xb.isperp.dto.IpamAsnRequest.builder()
+                .companyId(request.getCompanyId())
+                .asn(request.getAsn())
+                .name(request.getName())
+                .rir(request.getRir() != null ? br.dev.xb.isperp.ipam.IpamRir.valueOf(request.getRir().name()) : br.dev.xb.isperp.ipam.IpamRir.REGISTRO_BR)
+                .description(request.getDescription())
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(toApiResponse(ipamService.createAsn(internalReq)));
     }
 
-    @PutMapping("/asns/{id}")
-    @Operation(summary = "Atualiza dados de um ASN")
-    public ResponseEntity<IpamAsnResponse> updateAsn(@PathVariable UUID id, @Valid @RequestBody IpamAsnRequest request) {
-        return ResponseEntity.ok(ipamService.updateAsn(id, request));
+    @Override
+    @PutMapping({"/ipam/asns/{id}", "/api/ipam/asns/{id}"})
+    public ResponseEntity<IpamAsnResponse> updateIpamAsn(@PathVariable UUID id, @RequestBody IpamAsnRequest request) {
+        br.dev.xb.isperp.dto.IpamAsnRequest internalReq = br.dev.xb.isperp.dto.IpamAsnRequest.builder()
+                .companyId(request.getCompanyId())
+                .asn(request.getAsn())
+                .name(request.getName())
+                .rir(request.getRir() != null ? br.dev.xb.isperp.ipam.IpamRir.valueOf(request.getRir().name()) : br.dev.xb.isperp.ipam.IpamRir.REGISTRO_BR)
+                .description(request.getDescription())
+                .build();
+        return ResponseEntity.ok(toApiResponse(ipamService.updateAsn(id, internalReq)));
     }
 
-    @DeleteMapping("/asns/{id}")
-    @Operation(summary = "Remove um ASN")
-    public ResponseEntity<Void> deleteAsn(@PathVariable UUID id) {
+    @Override
+    @DeleteMapping({"/ipam/asns/{id}", "/api/ipam/asns/{id}"})
+    public ResponseEntity<Void> deleteIpamAsn(@PathVariable UUID id) {
         ipamService.deleteAsn(id);
         return ResponseEntity.noContent().build();
     }
@@ -65,33 +75,49 @@ public class IpamController {
     // VRFs
     // =========================================================================
 
-    @GetMapping("/vrfs")
-    @Operation(summary = "Lista todas as VRFs")
-    public ResponseEntity<List<IpamVrfResponse>> getAllVrfs() {
-        return ResponseEntity.ok(ipamService.getAllVrfs());
+    @Override
+    @GetMapping({"/ipam/vrfs", "/api/ipam/vrfs"})
+    public ResponseEntity<List<IpamVrfResponse>> listIpamVrfs() {
+        return ResponseEntity.ok(ipamService.getAllVrfs().stream()
+                .map(this::toApiResponse)
+                .collect(Collectors.toList()));
     }
 
-    @GetMapping("/vrfs/{id}")
-    @Operation(summary = "Obtém detalhes de uma VRF por ID")
-    public ResponseEntity<IpamVrfResponse> getVrfById(@PathVariable UUID id) {
-        return ResponseEntity.ok(ipamService.getVrfById(id));
+    @Override
+    @GetMapping({"/ipam/vrfs/{id}", "/api/ipam/vrfs/{id}"})
+    public ResponseEntity<IpamVrfResponse> getIpamVrfById(@PathVariable UUID id) {
+        return ResponseEntity.ok(toApiResponse(ipamService.getVrfById(id)));
     }
 
-    @PostMapping("/vrfs")
-    @Operation(summary = "Cria uma nova VRF")
-    public ResponseEntity<IpamVrfResponse> createVrf(@Valid @RequestBody IpamVrfRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ipamService.createVrf(request));
+    @Override
+    @PostMapping({"/ipam/vrfs", "/api/ipam/vrfs"})
+    public ResponseEntity<IpamVrfResponse> createIpamVrf(@RequestBody IpamVrfRequest request) {
+        br.dev.xb.isperp.dto.IpamVrfRequest internalReq = br.dev.xb.isperp.dto.IpamVrfRequest.builder()
+                .companyId(request.getCompanyId())
+                .name(request.getName())
+                .rd(request.getRd())
+                .description(request.getDescription())
+                .isDefault(Boolean.TRUE.equals(request.getIsDefault()))
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(toApiResponse(ipamService.createVrf(internalReq)));
     }
 
-    @PutMapping("/vrfs/{id}")
-    @Operation(summary = "Atualiza dados de uma VRF")
-    public ResponseEntity<IpamVrfResponse> updateVrf(@PathVariable UUID id, @Valid @RequestBody IpamVrfRequest request) {
-        return ResponseEntity.ok(ipamService.updateVrf(id, request));
+    @Override
+    @PutMapping({"/ipam/vrfs/{id}", "/api/ipam/vrfs/{id}"})
+    public ResponseEntity<IpamVrfResponse> updateIpamVrf(@PathVariable UUID id, @RequestBody IpamVrfRequest request) {
+        br.dev.xb.isperp.dto.IpamVrfRequest internalReq = br.dev.xb.isperp.dto.IpamVrfRequest.builder()
+                .companyId(request.getCompanyId())
+                .name(request.getName())
+                .rd(request.getRd())
+                .description(request.getDescription())
+                .isDefault(Boolean.TRUE.equals(request.getIsDefault()))
+                .build();
+        return ResponseEntity.ok(toApiResponse(ipamService.updateVrf(id, internalReq)));
     }
 
-    @DeleteMapping("/vrfs/{id}")
-    @Operation(summary = "Remove uma VRF")
-    public ResponseEntity<Void> deleteVrf(@PathVariable UUID id) {
+    @Override
+    @DeleteMapping({"/ipam/vrfs/{id}", "/api/ipam/vrfs/{id}"})
+    public ResponseEntity<Void> deleteIpamVrf(@PathVariable UUID id) {
         ipamService.deleteVrf(id);
         return ResponseEntity.noContent().build();
     }
@@ -100,86 +126,268 @@ public class IpamController {
     // Subnets
     // =========================================================================
 
-    @GetMapping("/subnets")
-    @Operation(summary = "Lista todas as sub-redes com métricas de utilização")
-    public ResponseEntity<List<IpamSubnetResponse>> getAllSubnets() {
-        return ResponseEntity.ok(ipamService.getAllSubnets());
+    @Override
+    @GetMapping({"/ipam/subnets", "/api/ipam/subnets"})
+    public ResponseEntity<List<IpamSubnetResponse>> listIpamSubnets() {
+        return ResponseEntity.ok(ipamService.getAllSubnets().stream()
+                .map(this::toApiResponse)
+                .collect(Collectors.toList()));
     }
 
-    @GetMapping("/subnets/{id}")
-    @Operation(summary = "Obtém detalhes de uma sub-rede por ID")
-    public ResponseEntity<IpamSubnetResponse> getSubnetById(@PathVariable UUID id) {
-        return ResponseEntity.ok(ipamService.getSubnetById(id));
+    @Override
+    @GetMapping({"/ipam/subnets/{id}", "/api/ipam/subnets/{id}"})
+    public ResponseEntity<IpamSubnetResponse> getIpamSubnetById(@PathVariable UUID id) {
+        return ResponseEntity.ok(toApiResponse(ipamService.getSubnetById(id)));
     }
 
-    @PostMapping("/subnets")
-    @Operation(summary = "Cadastra uma nova sub-rede IPv4 ou IPv6")
-    public ResponseEntity<IpamSubnetResponse> createSubnet(@Valid @RequestBody IpamSubnetRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ipamService.createSubnet(request));
+    @Override
+    @PostMapping({"/ipam/subnets", "/api/ipam/subnets"})
+    public ResponseEntity<IpamSubnetResponse> createIpamSubnet(@RequestBody IpamSubnetRequest request) {
+        br.dev.xb.isperp.dto.IpamSubnetRequest internalReq = br.dev.xb.isperp.dto.IpamSubnetRequest.builder()
+                .parentId(request.getParentId())
+                .vrfId(request.getVrfId())
+                .asnId(request.getAsnId())
+                .companyId(request.getCompanyId())
+                .cidr(request.getCidr())
+                .isPool(Boolean.TRUE.equals(request.getIsPool()))
+                .poolName(request.getPoolName())
+                .status(request.getStatus() != null ? br.dev.xb.isperp.ipam.IpamSubnetStatus.valueOf(request.getStatus().name()) : br.dev.xb.isperp.ipam.IpamSubnetStatus.ACTIVE)
+                .category(request.getCategory() != null ? br.dev.xb.isperp.ipam.IpamSubnetCategory.valueOf(request.getCategory().name()) : br.dev.xb.isperp.ipam.IpamSubnetCategory.CUSTOMER_ACCESS)
+                .description(request.getDescription())
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(toApiResponse(ipamService.createSubnet(internalReq)));
     }
 
-    @PutMapping("/subnets/{id}")
-    @Operation(summary = "Atualiza dados e status de uma sub-rede")
-    public ResponseEntity<IpamSubnetResponse> updateSubnet(@PathVariable UUID id, @Valid @RequestBody IpamSubnetRequest request) {
-        return ResponseEntity.ok(ipamService.updateSubnet(id, request));
+    @Override
+    @PutMapping({"/ipam/subnets/{id}", "/api/ipam/subnets/{id}"})
+    public ResponseEntity<IpamSubnetResponse> updateIpamSubnet(@PathVariable UUID id, @RequestBody IpamSubnetRequest request) {
+        br.dev.xb.isperp.dto.IpamSubnetRequest internalReq = br.dev.xb.isperp.dto.IpamSubnetRequest.builder()
+                .parentId(request.getParentId())
+                .vrfId(request.getVrfId())
+                .asnId(request.getAsnId())
+                .companyId(request.getCompanyId())
+                .cidr(request.getCidr())
+                .isPool(Boolean.TRUE.equals(request.getIsPool()))
+                .poolName(request.getPoolName())
+                .status(request.getStatus() != null ? br.dev.xb.isperp.ipam.IpamSubnetStatus.valueOf(request.getStatus().name()) : br.dev.xb.isperp.ipam.IpamSubnetStatus.ACTIVE)
+                .category(request.getCategory() != null ? br.dev.xb.isperp.ipam.IpamSubnetCategory.valueOf(request.getCategory().name()) : br.dev.xb.isperp.ipam.IpamSubnetCategory.CUSTOMER_ACCESS)
+                .description(request.getDescription())
+                .build();
+        return ResponseEntity.ok(toApiResponse(ipamService.updateSubnet(id, internalReq)));
     }
 
-    @DeleteMapping("/subnets/{id}")
-    @Operation(summary = "Remove uma sub-rede")
-    public ResponseEntity<Void> deleteSubnet(@PathVariable UUID id) {
+    @Override
+    @DeleteMapping({"/ipam/subnets/{id}", "/api/ipam/subnets/{id}"})
+    public ResponseEntity<Void> deleteIpamSubnet(@PathVariable UUID id) {
         ipamService.deleteSubnet(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/subnets/split")
-    @Operation(summary = "Divide uma sub-rede em blocos menores (Split / VLSM)")
-    public ResponseEntity<IpamSplitResponse> splitSubnet(@Valid @RequestBody IpamSplitRequest request) {
-        return ResponseEntity.ok(ipamService.splitSubnet(request));
+    @Override
+    @PostMapping({"/ipam/subnets/split", "/api/ipam/subnets/split"})
+    public ResponseEntity<IpamSplitResponse> splitIpamSubnet(@RequestBody IpamSplitRequest request) {
+        br.dev.xb.isperp.dto.IpamSplitRequest internalReq = br.dev.xb.isperp.dto.IpamSplitRequest.builder()
+                .subnetId(request.getSubnetId())
+                .targetPrefixLength(request.getTargetPrefixLength())
+                .createSubnets(Boolean.TRUE.equals(request.getCreateSubnets()))
+                .build();
+        return ResponseEntity.ok(toApiResponse(ipamService.splitSubnet(internalReq)));
     }
 
     // =========================================================================
     // IP Addresses
     // =========================================================================
 
-    @GetMapping("/subnets/{subnetId}/ips")
-    @Operation(summary = "Lista todos os IPs alocados/reservados de uma sub-rede")
-    public ResponseEntity<List<IpamIpAddressResponse>> getIpsBySubnet(@PathVariable UUID subnetId) {
-        return ResponseEntity.ok(ipamService.getIpsBySubnet(subnetId));
+    @Override
+    @GetMapping({"/ipam/subnets/{subnetId}/ips", "/api/ipam/subnets/{subnetId}/ips"})
+    public ResponseEntity<List<IpamIpAddressResponse>> listIpamIpsBySubnet(@PathVariable UUID subnetId) {
+        return ResponseEntity.ok(ipamService.getIpsBySubnet(subnetId).stream()
+                .map(this::toApiResponse)
+                .collect(Collectors.toList()));
     }
 
-    @PostMapping("/ips")
-    @Operation(summary = "Registra um IP individual no inventário do IPAM")
-    public ResponseEntity<IpamIpAddressResponse> createIpAddress(@Valid @RequestBody IpamIpAddressRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ipamService.createIpAddress(request));
+    @Override
+    @PostMapping({"/ipam/ips", "/api/ipam/ips"})
+    public ResponseEntity<IpamIpAddressResponse> createIpamIp(@RequestBody IpamIpAddressRequest request) {
+        br.dev.xb.isperp.dto.IpamIpAddressRequest internalReq = br.dev.xb.isperp.dto.IpamIpAddressRequest.builder()
+                .subnetId(request.getSubnetId())
+                .ipAddress(request.getIpAddress())
+                .status(request.getStatus() != null ? br.dev.xb.isperp.ipam.IpamAddressStatus.valueOf(request.getStatus().name()) : br.dev.xb.isperp.ipam.IpamAddressStatus.AVAILABLE)
+                .assignedToType(request.getAssignedToType() != null ? br.dev.xb.isperp.ipam.IpamAssignedToType.valueOf(request.getAssignedToType().name()) : null)
+                .assignedToId(request.getAssignedToId())
+                .dnsName(request.getDnsName())
+                .description(request.getDescription())
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(toApiResponse(ipamService.createIpAddress(internalReq)));
     }
 
-    @PutMapping("/ips/{id}")
-    @Operation(summary = "Atualiza status e vinculação de um IP")
-    public ResponseEntity<IpamIpAddressResponse> updateIpAddress(@PathVariable UUID id, @Valid @RequestBody IpamIpAddressRequest request) {
-        return ResponseEntity.ok(ipamService.updateIpAddress(id, request));
+    @Override
+    @PutMapping({"/ipam/ips/{id}", "/api/ipam/ips/{id}"})
+    public ResponseEntity<IpamIpAddressResponse> updateIpamIp(@PathVariable UUID id, @RequestBody IpamIpAddressRequest request) {
+        br.dev.xb.isperp.dto.IpamIpAddressRequest internalReq = br.dev.xb.isperp.dto.IpamIpAddressRequest.builder()
+                .subnetId(request.getSubnetId())
+                .ipAddress(request.getIpAddress())
+                .status(request.getStatus() != null ? br.dev.xb.isperp.ipam.IpamAddressStatus.valueOf(request.getStatus().name()) : br.dev.xb.isperp.ipam.IpamAddressStatus.AVAILABLE)
+                .assignedToType(request.getAssignedToType() != null ? br.dev.xb.isperp.ipam.IpamAssignedToType.valueOf(request.getAssignedToType().name()) : null)
+                .assignedToId(request.getAssignedToId())
+                .dnsName(request.getDnsName())
+                .description(request.getDescription())
+                .build();
+        return ResponseEntity.ok(toApiResponse(ipamService.updateIpAddress(id, internalReq)));
     }
 
-    @DeleteMapping("/ips/{id}")
-    @Operation(summary = "Remove um registro de IP")
-    public ResponseEntity<Void> deleteIpAddress(@PathVariable UUID id) {
+    @Override
+    @DeleteMapping({"/ipam/ips/{id}", "/api/ipam/ips/{id}"})
+    public ResponseEntity<Void> deleteIpamIp(@PathVariable UUID id) {
         ipamService.deleteIpAddress(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/subnets/{subnetId}/next-available")
-    @Operation(summary = "Localiza o próximo IP livre de uma sub-rede")
-    public ResponseEntity<Map<String, String>> getNextAvailableIp(@PathVariable UUID subnetId) {
+    @Override
+    @GetMapping({"/ipam/subnets/{subnetId}/next-available", "/api/ipam/subnets/{subnetId}/next-available"})
+    public ResponseEntity<IpamNextAvailableResponse> getNextAvailableIpamIp(@PathVariable UUID subnetId) {
         String nextIp = ipamService.findNextAvailableIp(subnetId);
-        return ResponseEntity.ok(Map.of("nextAvailableIp", nextIp != null ? nextIp : ""));
+        IpamNextAvailableResponse response = new IpamNextAvailableResponse();
+        response.setNextAvailableIp(nextIp != null ? nextIp : "");
+        return ResponseEntity.ok(response);
     }
 
     // =========================================================================
     // Calculator & Subnetting Engine
     // =========================================================================
 
-    @GetMapping("/calculate")
-    @Operation(summary = "Calcula métricas matemáticas de qualquer CIDR (IPv4/IPv6)")
-    public ResponseEntity<SubnetCalculationResult> calculateCidr(@RequestParam String cidr) {
-        return ResponseEntity.ok(ipamService.calculate(cidr));
+    @Override
+    @GetMapping({"/ipam/calculate", "/api/ipam/calculate"})
+    public ResponseEntity<SubnetCalculationResult> calculateIpamCidr(@RequestParam String cidr) {
+        return ResponseEntity.ok(toApiResponse(ipamService.calculate(cidr)));
+    }
+
+    // =========================================================================
+    // Private Converters
+    // =========================================================================
+
+    private IpamAsnResponse toApiResponse(br.dev.xb.isperp.dto.IpamAsnResponse internal) {
+        if (internal == null) return null;
+        IpamAsnResponse res = new IpamAsnResponse();
+        res.setId(internal.getId());
+        res.setCompanyId(internal.getCompanyId());
+        res.setAsn(internal.getAsn());
+        res.setName(internal.getName());
+        if (internal.getRir() != null) {
+            res.setRir(IpamRir.fromValue(internal.getRir().name()));
+        }
+        res.setDescription(internal.getDescription());
+        res.setCreatedAt(internal.getCreatedAt());
+        res.setUpdatedAt(internal.getUpdatedAt());
+        return res;
+    }
+
+    private IpamVrfResponse toApiResponse(br.dev.xb.isperp.dto.IpamVrfResponse internal) {
+        if (internal == null) return null;
+        IpamVrfResponse res = new IpamVrfResponse();
+        res.setId(internal.getId());
+        res.setCompanyId(internal.getCompanyId());
+        res.setName(internal.getName());
+        res.setRd(internal.getRd());
+        res.setDescription(internal.getDescription());
+        res.setIsDefault(internal.isDefault());
+        res.setCreatedAt(internal.getCreatedAt());
+        res.setUpdatedAt(internal.getUpdatedAt());
+        return res;
+    }
+
+    private IpamSubnetResponse toApiResponse(br.dev.xb.isperp.dto.IpamSubnetResponse internal) {
+        if (internal == null) return null;
+        IpamSubnetResponse res = new IpamSubnetResponse();
+        res.setId(internal.getId());
+        res.setParentId(internal.getParentId());
+        res.setVrfId(internal.getVrfId());
+        res.setVrfName(internal.getVrfName());
+        res.setAsnId(internal.getAsnId());
+        res.setAsnNumber(internal.getAsnNumber());
+        res.setCompanyId(internal.getCompanyId());
+        res.setCidr(internal.getCidr());
+        if (internal.getIpVersion() != null) {
+            res.setIpVersion(IpamIpVersion.fromValue(internal.getIpVersion().name()));
+        }
+        res.setNetworkAddress(internal.getNetworkAddress());
+        res.setBroadcastAddress(internal.getBroadcastAddress());
+        res.setPrefixLength(internal.getPrefixLength());
+        res.setTotalHosts(internal.getTotalHosts());
+        res.setAllocatedHosts(internal.getAllocatedHosts());
+        res.setUtilizationPercentage(internal.getUtilizationPercentage());
+        res.setIsPool(internal.isPool());
+        res.setPoolName(internal.getPoolName());
+        if (internal.getStatus() != null) {
+            res.setStatus(IpamSubnetStatus.fromValue(internal.getStatus().name()));
+        }
+        if (internal.getCategory() != null) {
+            res.setCategory(IpamSubnetCategory.fromValue(internal.getCategory().name()));
+        }
+        res.setDescription(internal.getDescription());
+        res.setCreatedAt(internal.getCreatedAt());
+        res.setUpdatedAt(internal.getUpdatedAt());
+        return res;
+    }
+
+    private SubnetCalculationResult toApiResponse(br.dev.xb.isperp.ipam.SubnetCalculationResult internal) {
+        if (internal == null) return null;
+        SubnetCalculationResult res = new SubnetCalculationResult();
+        res.setCidr(internal.getCidr());
+        if (internal.getIpVersion() != null) {
+            res.setIpVersion(IpamIpVersion.fromValue(internal.getIpVersion().name()));
+        }
+        res.setNetworkAddress(internal.getNetworkAddress());
+        res.setBroadcastAddress(internal.getBroadcastAddress());
+        res.setNetmask(internal.getNetmask());
+        res.setWildcardMask(internal.getWildcardMask());
+        res.setFirstUsableIp(internal.getFirstUsableIp());
+        res.setLastUsableIp(internal.getLastUsableIp());
+        res.setPrefixLength(internal.getPrefixLength());
+        res.setTotalHosts(internal.getTotalHosts());
+        res.setUsableHosts(internal.getUsableHosts());
+        return res;
+    }
+
+    private IpamSplitResponse toApiResponse(br.dev.xb.isperp.dto.IpamSplitResponse internal) {
+        if (internal == null) return null;
+        IpamSplitResponse res = new IpamSplitResponse();
+        res.setParentSubnetId(internal.getParentSubnetId());
+        res.setParentCidr(internal.getParentCidr());
+        res.setTargetPrefixLength(internal.getTargetPrefixLength());
+        res.setTotalSubnetsGenerated(internal.getTotalSubnetsGenerated());
+        if (internal.getGeneratedSubnets() != null) {
+            res.setGeneratedSubnets(internal.getGeneratedSubnets().stream()
+                    .map(this::toApiResponse)
+                    .collect(Collectors.toList()));
+        }
+        if (internal.getPersistedSubnets() != null) {
+            res.setPersistedSubnets(internal.getPersistedSubnets().stream()
+                    .map(this::toApiResponse)
+                    .collect(Collectors.toList()));
+        }
+        return res;
+    }
+
+    private IpamIpAddressResponse toApiResponse(br.dev.xb.isperp.dto.IpamIpAddressResponse internal) {
+        if (internal == null) return null;
+        IpamIpAddressResponse res = new IpamIpAddressResponse();
+        res.setId(internal.getId());
+        res.setSubnetId(internal.getSubnetId());
+        res.setSubnetCidr(internal.getSubnetCidr());
+        res.setIpAddress(internal.getIpAddress());
+        if (internal.getStatus() != null) {
+            res.setStatus(IpamAddressStatus.fromValue(internal.getStatus().name()));
+        }
+        if (internal.getAssignedToType() != null) {
+            res.setAssignedToType(IpamAssignedToType.fromValue(internal.getAssignedToType().name()));
+        }
+        res.setAssignedToId(internal.getAssignedToId());
+        res.setAssignedToLabel(internal.getAssignedToLabel());
+        res.setDnsName(internal.getDnsName());
+        res.setDescription(internal.getDescription());
+        res.setCreatedAt(internal.getCreatedAt());
+        res.setUpdatedAt(internal.getUpdatedAt());
+        return res;
     }
 }

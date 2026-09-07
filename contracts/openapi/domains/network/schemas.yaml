@@ -207,3 +207,767 @@ OnuStatusResponse:
       type: string
       nullable: true
       example: "Sinal óptico dentro dos padrões de conformidade (-15 a -25 dBm)"
+
+# ==========================================
+# CGNAT Schemas
+# ==========================================
+
+CgnatMappingRequest:
+  type: object
+  required:
+    - publicIp
+    - portStart
+    - portEnd
+    - privateIpStart
+    - privateIpEnd
+  properties:
+    nasId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    vendorType:
+      $ref: '../radius/schemas.yaml#/NasVendorType'
+    publicIp:
+      type: string
+      example: "200.20.10.1"
+    portStart:
+      type: integer
+      example: 1024
+    portEnd:
+      type: integer
+      example: 2047
+    privateIpStart:
+      type: string
+      example: "100.64.0.2"
+    privateIpEnd:
+      type: string
+      example: "100.64.0.33"
+    protocol:
+      type: string
+      default: "BOTH"
+      example: "BOTH"
+    notes:
+      type: string
+      nullable: true
+
+CgnatMappingResponse:
+  type: object
+  required:
+    - id
+    - vendorType
+    - publicIp
+    - portStart
+    - portEnd
+    - privateIpStart
+    - privateIpEnd
+    - protocol
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    nasId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    nasName:
+      type: string
+      nullable: true
+    vendorType:
+      $ref: '../radius/schemas.yaml#/NasVendorType'
+    publicIp:
+      type: string
+    portStart:
+      type: integer
+    portEnd:
+      type: integer
+    privateIpStart:
+      type: string
+    privateIpEnd:
+      type: string
+    protocol:
+      type: string
+    notes:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+CgnatScriptImportRequest:
+  type: object
+  required:
+    - scriptContent
+  properties:
+    nasId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    vendorType:
+      $ref: '../radius/schemas.yaml#/NasVendorType'
+    scriptContent:
+      type: string
+    replaceExisting:
+      type: boolean
+      default: false
+
+CgnatScriptImportResponse:
+  type: object
+  required:
+    - totalParsed
+    - totalSaved
+    - importedMappings
+    - warnings
+  properties:
+    totalParsed:
+      type: integer
+    totalSaved:
+      type: integer
+    importedMappings:
+      type: array
+      items:
+        $ref: '#/CgnatMappingResponse'
+    warnings:
+      type: array
+      items:
+        type: string
+
+# ==========================================
+# Marco Civil da Internet (Lei 12.965/2014)
+# ==========================================
+
+MarcoCivilSearchRequest:
+  type: object
+  required:
+    - ip
+    - timestamp
+  properties:
+    ip:
+      type: string
+      example: "200.20.10.1"
+    port:
+      type: integer
+      nullable: true
+      example: 1055
+    timestamp:
+      type: string
+      format: date-time
+
+MarcoCivilSearchResult:
+  type: object
+  required:
+    - matched
+    - queriedIp
+    - queriedTimestamp
+    - usedCgnat
+  properties:
+    matched:
+      type: boolean
+    queriedIp:
+      type: string
+    queriedPort:
+      type: integer
+      nullable: true
+    queriedTimestamp:
+      type: string
+      format: date-time
+    usedCgnat:
+      type: boolean
+    resolvedPrivateIp:
+      type: string
+      nullable: true
+    cgnatRuleSummary:
+      type: string
+      nullable: true
+    radacctId:
+      type: integer
+      format: int64
+      nullable: true
+    username:
+      type: string
+      nullable: true
+    callingStationId:
+      type: string
+      nullable: true
+    nasIpAddress:
+      type: string
+      nullable: true
+    sessionStartTime:
+      type: string
+      format: date-time
+      nullable: true
+    sessionStopTime:
+      type: string
+      format: date-time
+      nullable: true
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractNumber:
+      type: string
+      nullable: true
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    customerName:
+      type: string
+      nullable: true
+    customerCpfCnpj:
+      type: string
+      nullable: true
+    customerPhone:
+      type: string
+      nullable: true
+    customerEmail:
+      type: string
+      nullable: true
+    installationAddress:
+      type: string
+      nullable: true
+    planName:
+      type: string
+      nullable: true
+
+MarcoCivilReportRequest:
+  type: object
+  required:
+    - queriedIp
+    - queriedTimestamp
+  properties:
+    courtOrderNumber:
+      type: string
+      nullable: true
+    requesterAuthority:
+      type: string
+      nullable: true
+    queriedIp:
+      type: string
+    queriedPort:
+      type: integer
+      nullable: true
+    queriedTimestamp:
+      type: string
+      format: date-time
+    matchedContractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    notes:
+      type: string
+      nullable: true
+
+MarcoCivilReportResponse:
+  type: object
+  required:
+    - id
+    - validationToken
+    - sha256Hash
+    - publicValidationUrl
+    - qrCodePayload
+    - queriedIp
+    - queriedTimestamp
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    validationToken:
+      type: string
+    sha256Hash:
+      type: string
+    publicValidationUrl:
+      type: string
+    qrCodePayload:
+      type: string
+    courtOrderNumber:
+      type: string
+      nullable: true
+    requesterAuthority:
+      type: string
+      nullable: true
+    queriedIp:
+      type: string
+    queriedPort:
+      type: integer
+      nullable: true
+    queriedTimestamp:
+      type: string
+      format: date-time
+    matchedContractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    matchedCustomerName:
+      type: string
+      nullable: true
+    matchedCpfCnpj:
+      type: string
+      nullable: true
+    matchedCallingStationId:
+      type: string
+      nullable: true
+    matchedSessionStart:
+      type: string
+      format: date-time
+      nullable: true
+    matchedSessionStop:
+      type: string
+      format: date-time
+      nullable: true
+    reportPdfUrl:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+
+PublicValidationResponse:
+  type: object
+  required:
+    - valid
+    - validationToken
+    - sha256Hash
+    - queriedIp
+    - queriedTimestamp
+    - reportIssuedAt
+    - statusMessage
+  properties:
+    valid:
+      type: boolean
+    validationToken:
+      type: string
+    sha256Hash:
+      type: string
+    courtOrderNumber:
+      type: string
+      nullable: true
+    requesterAuthority:
+      type: string
+      nullable: true
+    queriedIp:
+      type: string
+    queriedPort:
+      type: integer
+      nullable: true
+    queriedTimestamp:
+      type: string
+      format: date-time
+    customerNameMasked:
+      type: string
+      nullable: true
+    customerCpfCnpjMasked:
+      type: string
+      nullable: true
+    callingStationId:
+      type: string
+      nullable: true
+    reportIssuedAt:
+      type: string
+      format: date-time
+    statusMessage:
+      type: string
+
+# ==========================================
+# IPAM (IP Address Management)
+# ==========================================
+
+IpamRir:
+  type: string
+  enum:
+    - REGISTRO_BR
+    - LACNIC
+    - ARIN
+    - RIPE
+    - APNIC
+    - AFRINIC
+
+IpamIpVersion:
+  type: string
+  enum:
+    - IPV4
+    - IPV6
+
+IpamSubnetStatus:
+  type: string
+  enum:
+    - ACTIVE
+    - RESERVED
+    - DEPRECATED
+
+IpamSubnetCategory:
+  type: string
+  enum:
+    - CUSTOMER_ACCESS
+    - CGNAT
+    - MANAGEMENT
+    - INFRASTRUCTURE
+    - PTP
+    - LOOPBACK
+
+IpamAddressStatus:
+  type: string
+  enum:
+    - AVAILABLE
+    - ALLOCATED
+    - RESERVED
+    - DHCP_POOL
+
+IpamAssignedToType:
+  type: string
+  enum:
+    - CONTRACT
+    - NETWORK_DEVICE
+    - INFRASTRUCTURE
+    - CGNAT_POOL
+    - ROUTED_SUBNET
+
+IpamAsnRequest:
+  type: object
+  required:
+    - asn
+    - name
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    asn:
+      type: integer
+      format: int64
+      example: 265000
+    name:
+      type: string
+      example: "NEXUS FIBRA TELECOMUNICACOES LTDA"
+    rir:
+      $ref: '#/IpamRir'
+    description:
+      type: string
+      nullable: true
+
+IpamAsnResponse:
+  type: object
+  required:
+    - id
+    - asn
+    - name
+    - rir
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    asn:
+      type: integer
+      format: int64
+    name:
+      type: string
+    rir:
+      $ref: '#/IpamRir'
+    description:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+IpamVrfRequest:
+  type: object
+  required:
+    - name
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "VRF-CLIENTES-B2C"
+    rd:
+      type: string
+      nullable: true
+      example: "265000:100"
+    description:
+      type: string
+      nullable: true
+    isDefault:
+      type: boolean
+      default: false
+
+IpamVrfResponse:
+  type: object
+  required:
+    - id
+    - name
+    - isDefault
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+    rd:
+      type: string
+      nullable: true
+    description:
+      type: string
+      nullable: true
+    isDefault:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+IpamSubnetRequest:
+  type: object
+  required:
+    - cidr
+  properties:
+    parentId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    vrfId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    asnId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    cidr:
+      type: string
+      example: "200.150.10.0/24"
+    isPool:
+      type: boolean
+      default: false
+    poolName:
+      type: string
+      nullable: true
+    status:
+      $ref: '#/IpamSubnetStatus'
+    category:
+      $ref: '#/IpamSubnetCategory'
+    description:
+      type: string
+      nullable: true
+
+IpamSubnetResponse:
+  type: object
+  required:
+    - id
+    - cidr
+    - ipVersion
+    - networkAddress
+    - prefixLength
+    - totalHosts
+    - allocatedHosts
+    - isPool
+    - status
+    - category
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    parentId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    vrfId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    vrfName:
+      type: string
+      nullable: true
+    asnId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    asnNumber:
+      type: integer
+      format: int64
+      nullable: true
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    cidr:
+      type: string
+    ipVersion:
+      $ref: '#/IpamIpVersion'
+    networkAddress:
+      type: string
+    broadcastAddress:
+      type: string
+      nullable: true
+    prefixLength:
+      type: integer
+    totalHosts:
+      type: integer
+      format: int64
+    allocatedHosts:
+      type: integer
+      format: int64
+    utilizationPercentage:
+      type: number
+      format: double
+      nullable: true
+    isPool:
+      type: boolean
+    poolName:
+      type: string
+      nullable: true
+    status:
+      $ref: '#/IpamSubnetStatus'
+    category:
+      $ref: '#/IpamSubnetCategory'
+    description:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+SubnetCalculationResult:
+  type: object
+  required:
+    - cidr
+    - ipVersion
+    - networkAddress
+    - netmask
+    - firstUsableIp
+    - lastUsableIp
+    - prefixLength
+    - totalHosts
+    - usableHosts
+  properties:
+    cidr:
+      type: string
+    ipVersion:
+      $ref: '#/IpamIpVersion'
+    networkAddress:
+      type: string
+    broadcastAddress:
+      type: string
+      nullable: true
+    netmask:
+      type: string
+    wildcardMask:
+      type: string
+      nullable: true
+    firstUsableIp:
+      type: string
+    lastUsableIp:
+      type: string
+    prefixLength:
+      type: integer
+    totalHosts:
+      type: integer
+      format: int64
+    usableHosts:
+      type: integer
+      format: int64
+
+IpamSplitRequest:
+  type: object
+  required:
+    - subnetId
+    - targetPrefixLength
+  properties:
+    subnetId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    targetPrefixLength:
+      type: integer
+      example: 28
+    createSubnets:
+      type: boolean
+      default: false
+
+IpamSplitResponse:
+  type: object
+  required:
+    - parentSubnetId
+    - parentCidr
+    - targetPrefixLength
+    - totalSubnetsGenerated
+    - generatedSubnets
+  properties:
+    parentSubnetId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    parentCidr:
+      type: string
+    targetPrefixLength:
+      type: integer
+    totalSubnetsGenerated:
+      type: integer
+    generatedSubnets:
+      type: array
+      items:
+        $ref: '#/SubnetCalculationResult'
+    persistedSubnets:
+      type: array
+      items:
+        $ref: '#/IpamSubnetResponse'
+
+IpamIpAddressRequest:
+  type: object
+  required:
+    - subnetId
+    - ipAddress
+  properties:
+    subnetId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    ipAddress:
+      type: string
+      example: "200.150.10.5"
+    status:
+      $ref: '#/IpamAddressStatus'
+    assignedToType:
+      $ref: '#/IpamAssignedToType'
+    assignedToId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    dnsName:
+      type: string
+      nullable: true
+    description:
+      type: string
+      nullable: true
+
+IpamIpAddressResponse:
+  type: object
+  required:
+    - id
+    - subnetId
+    - subnetCidr
+    - ipAddress
+    - status
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    subnetId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    subnetCidr:
+      type: string
+    ipAddress:
+      type: string
+    status:
+      $ref: '#/IpamAddressStatus'
+    assignedToType:
+      $ref: '#/IpamAssignedToType'
+    assignedToId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    assignedToLabel:
+      type: string
+      nullable: true
+    dnsName:
+      type: string
+      nullable: true
+    description:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+IpamNextAvailableResponse:
+  type: object
+  properties:
+    nextAvailableIp:
+      type: string

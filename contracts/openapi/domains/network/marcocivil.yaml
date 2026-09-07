@@ -1,0 +1,81 @@
+# Endpoints de Investigação Forense e Marco Civil da Internet (Lei 12.965/2014)
+
+/marco-civil/search:
+  post:
+    tags:
+      - MarcoCivil
+    summary: Busca forense reversa para identificar assinante por IP, Porta e Data/Hora
+    operationId: searchMarcoCivilSubscriber
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/MarcoCivilSearchRequest'
+    responses:
+      '200':
+        description: Resultado da correlação forense CGNAT + RADIUS.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/MarcoCivilSearchResult'
+      '400':
+        description: Parâmetros de pesquisa inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/marco-civil/reports:
+  post:
+    tags:
+      - MarcoCivil
+    summary: Emite laudo pericial oficial com token de validação pública e assinatura SHA-256
+    operationId: generateMarcoCivilReport
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/MarcoCivilReportRequest'
+    responses:
+      '201':
+        description: Laudo pericial oficial emitido e assinado digitalmente.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/MarcoCivilReportResponse'
+      '400':
+        description: Dados da requisição inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/public/marco-civil/validate/{token}:
+  get:
+    tags:
+      - PublicVerification
+    summary: Valida a autenticidade de um laudo pericial a partir do token ou QR Code
+    operationId: validateMarcoCivilReport
+    security: []
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Token alfanumérico público de autenticação do laudo.
+    responses:
+      '200':
+        description: Resultado da validação pública do documento pericial.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PublicValidationResponse'
+      '404':
+        description: Laudo não localizado ou token inexistente.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

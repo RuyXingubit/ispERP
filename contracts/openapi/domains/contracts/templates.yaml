@@ -1,0 +1,177 @@
+# Endpoints de Gestão de Minutas e Templates Contratuais
+
+/contracts/templates:
+  get:
+    tags:
+      - ContractTemplates
+    summary: Listar templates de contrato cadastrados
+    operationId: listContractTemplates
+    parameters:
+      - name: companyId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: Filtrar por empresa/filial.
+    responses:
+      '200':
+        description: Lista de templates retornada com sucesso.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ContractTemplateResponse'
+
+  post:
+    tags:
+      - ContractTemplates
+    summary: Criar novo template de contrato
+    operationId: createContractTemplate
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ContractTemplateRequest'
+    responses:
+      '201':
+        description: Template criado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractTemplateResponse'
+
+/contracts/templates/variables:
+  get:
+    tags:
+      - ContractTemplates
+    summary: Listar variáveis disponíveis para interpolação nas minutas contratuais
+    operationId: getContractTemplateVariables
+    responses:
+      '200':
+        description: Lista de tags e variáveis dinâmicas disponíveis.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ContractTemplateVariableInfo'
+
+/contracts/templates/{id}:
+  get:
+    tags:
+      - ContractTemplates
+    summary: Obter detalhes do template de contrato por ID
+    operationId: getContractTemplateById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Template localizado.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractTemplateResponse'
+      '404':
+        description: Template não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  put:
+    tags:
+      - ContractTemplates
+    summary: Atualizar template de contrato existente
+    operationId: updateContractTemplate
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ContractTemplateRequest'
+    responses:
+      '200':
+        description: Template atualizado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractTemplateResponse'
+      '404':
+        description: Template não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  delete:
+    tags:
+      - ContractTemplates
+    summary: Remover template de contrato
+    operationId: deleteContractTemplate
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '204':
+        description: Template removido com sucesso.
+      '404':
+        description: Template não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/contracts/templates/{id}/clone:
+  post:
+    tags:
+      - ContractTemplates
+    summary: Clonar template existente como uma nova versão ou modelo
+    operationId: cloneContractTemplate
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '201':
+        description: Clone gerado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractTemplateResponse'
+
+/contracts/templates/preview:
+  post:
+    tags:
+      - ContractTemplates
+    summary: Pré-visualizar renderização de variáveis em tempo real
+    operationId: previewContractTemplate
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/TemplatePreviewRequest'
+    responses:
+      '200':
+        description: Markdown renderizado retornado.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/TemplatePreviewResponse'

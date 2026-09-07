@@ -1,0 +1,114 @@
+# Endpoints de CGNAT e Importação Multi-Vendor
+
+/cgnat/mappings:
+  get:
+    tags:
+      - Cgnat
+    summary: Lista todos os blocos e mapeamentos de CGNAT cadastrados
+    operationId: listCgnatMappings
+    responses:
+      '200':
+        description: Lista de mapeamentos CGNAT cadastrados.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/CgnatMappingResponse'
+
+  post:
+    tags:
+      - Cgnat
+    summary: Cadastra manualmente um mapeamento CGNAT
+    operationId: createCgnatMapping
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CgnatMappingRequest'
+    responses:
+      '201':
+        description: Mapeamento CGNAT criado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CgnatMappingResponse'
+      '400':
+        description: Dados inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/cgnat/mappings/nas/{nasId}:
+  get:
+    tags:
+      - Cgnat
+    summary: Lista mapeamentos CGNAT associados a um NAS específico
+    operationId: listCgnatMappingsByNas
+    parameters:
+      - name: nasId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: Identificador único do NAS / BNG.
+    responses:
+      '200':
+        description: Lista de mapeamentos do NAS especificado.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/CgnatMappingResponse'
+
+/cgnat/mappings/{id}:
+  delete:
+    tags:
+      - Cgnat
+    summary: Remove um mapeamento CGNAT
+    operationId: deleteCgnatMapping
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: ID do mapeamento CGNAT.
+    responses:
+      '204':
+        description: Mapeamento removido com sucesso.
+      '404':
+        description: Mapeamento não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/cgnat/import-script:
+  post:
+    tags:
+      - Cgnat
+    summary: Importa e faz o parse de scripts de firewall (MikroTik, Huawei, A10, Cisco) ou CSV
+    operationId: importCgnatScript
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CgnatScriptImportRequest'
+    responses:
+      '200':
+        description: Resultado do processamento e importação das regras.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CgnatScriptImportResponse'
+      '400':
+        description: Script ou regras inválidas.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

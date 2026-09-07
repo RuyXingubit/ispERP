@@ -71,6 +71,20 @@ tags:
     description: Configurações Institucionais e Visuais do Provedor (Site Vitrine e Central do Assinante)
   - name: AuditLogs
     description: Trilha Imutável de Auditoria Administrativa e Governança
+  - name: Signatures
+    description: Assinatura Eletrônica e Sessões de Contrato
+  - name: SignatureWebhooks
+    description: Webhooks de Notificação Pix para Assinatura Eletrônica
+  - name: ContractTemplates
+    description: Gestão de Minutas e Templates Contratuais
+  - name: Cgnat
+    description: CGNAT e Mapeamento Forense Multi-Vendor
+  - name: MarcoCivil
+    description: Investigação Forense e Marco Civil da Internet (Lei 12.965/2014)
+  - name: PublicVerification
+    description: Validação Pública de Autenticidade de Laudos Periciais
+  - name: Ipam
+    description: Gestão de Endereçamento IP (IPAM), Sub-redes, ASNs e VRFs
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -132,6 +146,31 @@ paths:
     $ref: './domains/contracts/contracts.yaml#/~1contracts~1status~1{status}'
   /contracts/{id}/status:
     $ref: './domains/contracts/contracts.yaml#/~1contracts~1{id}~1status'
+  /contracts/signatures:
+    $ref: './domains/contracts/signatures.yaml#/~1contracts~1signatures'
+  /contracts/{contractId}/signatures:
+    $ref: './domains/contracts/signatures.yaml#/~1contracts~1{contractId}~1signatures'
+  /public/signatures/{token}:
+    $ref: './domains/contracts/signatures.yaml#/~1public~1signatures~1{token}'
+  /public/signatures/{token}/status:
+    $ref: './domains/contracts/signatures.yaml#/~1public~1signatures~1{token}~1status'
+  /public/signatures/{token}/fallback:
+    $ref: './domains/contracts/signatures.yaml#/~1public~1signatures~1{token}~1fallback'
+  /public/signatures/{token}/pdf:
+    $ref: './domains/contracts/signatures.yaml#/~1public~1signatures~1{token}~1pdf'
+  /webhooks/signatures/pix:
+    $ref: './domains/contracts/signatures.yaml#/~1webhooks~1signatures~1pix'
+  /contracts/templates:
+    $ref: './domains/contracts/templates.yaml#/~1contracts~1templates'
+  /contracts/templates/variables:
+    $ref: './domains/contracts/templates.yaml#/~1contracts~1templates~1variables'
+  /contracts/templates/{id}:
+    $ref: './domains/contracts/templates.yaml#/~1contracts~1templates~1{id}'
+  /contracts/templates/{id}/clone:
+    $ref: './domains/contracts/templates.yaml#/~1contracts~1templates~1{id}~1clone'
+  /contracts/templates/preview:
+    $ref: './domains/contracts/templates.yaml#/~1contracts~1templates~1preview'
+
 
   # Clientes
   /customers:
@@ -208,6 +247,51 @@ paths:
     $ref: './domains/network/onus.yaml#/~1onus~1contract~1{contractId}~1unblock'
   /onus/{id}/diagnose:
     $ref: './domains/network/onus.yaml#/~1onus~1{id}~1diagnose'
+
+  # CGNAT & Mapeamento Forense Multi-Vendor
+  /cgnat/mappings:
+    $ref: './domains/network/cgnat.yaml#/~1cgnat~1mappings'
+  /cgnat/mappings/nas/{nasId}:
+    $ref: './domains/network/cgnat.yaml#/~1cgnat~1mappings~1nas~1{nasId}'
+  /cgnat/mappings/{id}:
+    $ref: './domains/network/cgnat.yaml#/~1cgnat~1mappings~1{id}'
+  /cgnat/import-script:
+    $ref: './domains/network/cgnat.yaml#/~1cgnat~1import-script'
+
+  # Marco Civil da Internet (Lei 12.965/2014) & Laudos Periciais
+  /marco-civil/search:
+    $ref: './domains/network/marcocivil.yaml#/~1marco-civil~1search'
+  /marco-civil/reports:
+    $ref: './domains/network/marcocivil.yaml#/~1marco-civil~1reports'
+  /public/marco-civil/validate/{token}:
+    $ref: './domains/network/marcocivil.yaml#/~1public~1marco-civil~1validate~1{token}'
+
+  # IPAM (Gestão de ASNs, VRFs, Sub-redes, IPs e Calculadora)
+  /ipam/asns:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1asns'
+  /ipam/asns/{id}:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1asns~1{id}'
+  /ipam/vrfs:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1vrfs'
+  /ipam/vrfs/{id}:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1vrfs~1{id}'
+  /ipam/subnets:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1subnets'
+  /ipam/subnets/{id}:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1subnets~1{id}'
+  /ipam/subnets/split:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1subnets~1split'
+  /ipam/subnets/{subnetId}/ips:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1subnets~1{subnetId}~1ips'
+  /ipam/ips:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1ips'
+  /ipam/ips/{id}:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1ips~1{id}'
+  /ipam/subnets/{subnetId}/next-available:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1subnets~1{subnetId}~1next-available'
+  /ipam/calculate:
+    $ref: './domains/network/ipam.yaml#/~1ipam~1calculate'
+
 
   # RADIUS (NAS, Sessões e Auto-Corte Lifecycle)
   /radius/nas:
@@ -378,6 +462,33 @@ components:
       $ref: './domains/contracts/schemas.yaml#/ContractResponse'
     UpdateContractStatusRequest:
       $ref: './domains/contracts/schemas.yaml#/UpdateContractStatusRequest'
+    SignatureStatus:
+      $ref: './domains/contracts/schemas.yaml#/SignatureStatus'
+    FallbackMethod:
+      $ref: './domains/contracts/schemas.yaml#/FallbackMethod'
+    DocumentType:
+      $ref: './domains/contracts/schemas.yaml#/DocumentType'
+    CreateSignatureSessionRequest:
+      $ref: './domains/contracts/schemas.yaml#/CreateSignatureSessionRequest'
+    SignatureSessionResponse:
+      $ref: './domains/contracts/schemas.yaml#/SignatureSessionResponse'
+    SignaturePublicViewResponse:
+      $ref: './domains/contracts/schemas.yaml#/SignaturePublicViewResponse'
+    FallbackSelectionRequest:
+      $ref: './domains/contracts/schemas.yaml#/FallbackSelectionRequest'
+    PixSignatureWebhookRequest:
+      $ref: './domains/contracts/schemas.yaml#/PixSignatureWebhookRequest'
+    ContractTemplateRequest:
+      $ref: './domains/contracts/schemas.yaml#/ContractTemplateRequest'
+    ContractTemplateResponse:
+      $ref: './domains/contracts/schemas.yaml#/ContractTemplateResponse'
+    ContractTemplateVariableInfo:
+      $ref: './domains/contracts/schemas.yaml#/ContractTemplateVariableInfo'
+    TemplatePreviewRequest:
+      $ref: './domains/contracts/schemas.yaml#/TemplatePreviewRequest'
+    TemplatePreviewResponse:
+      $ref: './domains/contracts/schemas.yaml#/TemplatePreviewResponse'
+
 
     # Customers
     CustomerResponse:
@@ -420,6 +531,61 @@ components:
       $ref: './domains/network/schemas.yaml#/OnuResponse'
     OnuStatusResponse:
       $ref: './domains/network/schemas.yaml#/OnuStatusResponse'
+    CgnatMappingRequest:
+      $ref: './domains/network/schemas.yaml#/CgnatMappingRequest'
+    CgnatMappingResponse:
+      $ref: './domains/network/schemas.yaml#/CgnatMappingResponse'
+    CgnatScriptImportRequest:
+      $ref: './domains/network/schemas.yaml#/CgnatScriptImportRequest'
+    CgnatScriptImportResponse:
+      $ref: './domains/network/schemas.yaml#/CgnatScriptImportResponse'
+    MarcoCivilSearchRequest:
+      $ref: './domains/network/schemas.yaml#/MarcoCivilSearchRequest'
+    MarcoCivilSearchResult:
+      $ref: './domains/network/schemas.yaml#/MarcoCivilSearchResult'
+    MarcoCivilReportRequest:
+      $ref: './domains/network/schemas.yaml#/MarcoCivilReportRequest'
+    MarcoCivilReportResponse:
+      $ref: './domains/network/schemas.yaml#/MarcoCivilReportResponse'
+    PublicValidationResponse:
+      $ref: './domains/network/schemas.yaml#/PublicValidationResponse'
+    IpamRir:
+      $ref: './domains/network/schemas.yaml#/IpamRir'
+    IpamIpVersion:
+      $ref: './domains/network/schemas.yaml#/IpamIpVersion'
+    IpamSubnetStatus:
+      $ref: './domains/network/schemas.yaml#/IpamSubnetStatus'
+    IpamSubnetCategory:
+      $ref: './domains/network/schemas.yaml#/IpamSubnetCategory'
+    IpamAddressStatus:
+      $ref: './domains/network/schemas.yaml#/IpamAddressStatus'
+    IpamAssignedToType:
+      $ref: './domains/network/schemas.yaml#/IpamAssignedToType'
+    IpamAsnRequest:
+      $ref: './domains/network/schemas.yaml#/IpamAsnRequest'
+    IpamAsnResponse:
+      $ref: './domains/network/schemas.yaml#/IpamAsnResponse'
+    IpamVrfRequest:
+      $ref: './domains/network/schemas.yaml#/IpamVrfRequest'
+    IpamVrfResponse:
+      $ref: './domains/network/schemas.yaml#/IpamVrfResponse'
+    IpamSubnetRequest:
+      $ref: './domains/network/schemas.yaml#/IpamSubnetRequest'
+    IpamSubnetResponse:
+      $ref: './domains/network/schemas.yaml#/IpamSubnetResponse'
+    SubnetCalculationResult:
+      $ref: './domains/network/schemas.yaml#/SubnetCalculationResult'
+    IpamSplitRequest:
+      $ref: './domains/network/schemas.yaml#/IpamSplitRequest'
+    IpamSplitResponse:
+      $ref: './domains/network/schemas.yaml#/IpamSplitResponse'
+    IpamIpAddressRequest:
+      $ref: './domains/network/schemas.yaml#/IpamIpAddressRequest'
+    IpamIpAddressResponse:
+      $ref: './domains/network/schemas.yaml#/IpamIpAddressResponse'
+    IpamNextAvailableResponse:
+      $ref: './domains/network/schemas.yaml#/IpamNextAvailableResponse'
+
 
     # RADIUS
     NasVendorType:

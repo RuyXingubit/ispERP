@@ -196,3 +196,330 @@ UpdateContractStatusRequest:
       nullable: true
       description: "Justificativa para a alteração de status (ex: inadimplência, pedido do assinante)."
       example: "Solicitação expressa do cliente via central de atendimento."
+
+SignatureStatus:
+  type: string
+  enum:
+    - PENDING
+    - SIGNED
+    - REJECTED_DIVERGENT_DOCUMENT
+    - EXPIRED
+    - CANCELED
+  description: Estado da sessão de assinatura eletrônica.
+
+FallbackMethod:
+  type: string
+  enum:
+    - PIX
+    - EMAIL_OTP
+    - GOV_BR
+    - PHYSICAL_NOTARY
+  description: Método de assinatura eletrônica alternativo ou principal.
+
+DocumentType:
+  type: string
+  enum:
+    - SERVICE_AGREEMENT
+    - LOYALTY_TERM
+    - EQUIPMENT_COMODATO
+    - CUSTOM_TERM
+  description: Tipo documental da minuta ou template contratual.
+
+CreateSignatureSessionRequest:
+  type: object
+  required:
+    - contractId
+  properties:
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    templateId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    symbolicAmount:
+      type: number
+      format: double
+      nullable: true
+      example: 0.01
+
+SignatureSessionResponse:
+  type: object
+  required:
+    - id
+    - contractId
+    - token
+    - signatureUrl
+    - status
+    - symbolicAmount
+    - expiresAt
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    templateId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    token:
+      type: string
+      example: "sig_019448839b487b89"
+    signatureUrl:
+      type: string
+      example: "https://isp.exemplo.com.br/assinatura/sig_019448839b487b89"
+    status:
+      $ref: '#/SignatureStatus'
+    symbolicAmount:
+      type: number
+      format: double
+      example: 0.01
+    pixTxid:
+      type: string
+      nullable: true
+    pixCopyPaste:
+      type: string
+      nullable: true
+    pixQrCodeBase64:
+      type: string
+      nullable: true
+    pixEndToEndId:
+      type: string
+      nullable: true
+    documentSha256Hash:
+      type: string
+      nullable: true
+    payerName:
+      type: string
+      nullable: true
+    payerCpfCnpj:
+      type: string
+      nullable: true
+    payerBankName:
+      type: string
+      nullable: true
+    rejectionReason:
+      type: string
+      nullable: true
+    signedPdfUrl:
+      type: string
+      nullable: true
+    fallbackMethod:
+      $ref: '#/FallbackMethod'
+    onboardingCreditAmount:
+      type: number
+      format: double
+      nullable: true
+    discountAppliedInvoiceId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    forensicCertificatePdfUrl:
+      type: string
+      nullable: true
+    expiresAt:
+      type: string
+      format: date-time
+    signedAt:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+
+SignaturePublicViewResponse:
+  type: object
+  required:
+    - token
+    - contractName
+    - customerName
+    - customerDocumentMasked
+    - companyName
+    - renderedContent
+    - consentClause
+    - status
+    - symbolicAmount
+    - expiresAt
+  properties:
+    token:
+      type: string
+    contractName:
+      type: string
+    customerName:
+      type: string
+    customerDocumentMasked:
+      type: string
+    companyName:
+      type: string
+    renderedContent:
+      type: string
+    consentClause:
+      type: string
+    status:
+      $ref: '#/SignatureStatus'
+    symbolicAmount:
+      type: number
+      format: double
+    pixCopyPaste:
+      type: string
+      nullable: true
+    pixQrCodeBase64:
+      type: string
+      nullable: true
+    payerName:
+      type: string
+      nullable: true
+    payerBankName:
+      type: string
+      nullable: true
+    rejectionReason:
+      type: string
+      nullable: true
+    signedPdfUrl:
+      type: string
+      nullable: true
+    documentSha256Hash:
+      type: string
+      nullable: true
+    fallbackMethod:
+      $ref: '#/FallbackMethod'
+    onboardingCreditAmount:
+      type: number
+      format: double
+      nullable: true
+    forensicCertificatePdfUrl:
+      type: string
+      nullable: true
+    expiresAt:
+      type: string
+      format: date-time
+    signedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+FallbackSelectionRequest:
+  type: object
+  required:
+    - fallbackMethod
+  properties:
+    fallbackMethod:
+      $ref: '#/FallbackMethod'
+    justification:
+      type: string
+      nullable: true
+
+PixSignatureWebhookRequest:
+  type: object
+  required:
+    - txid
+    - endToEndId
+    - amount
+    - payerName
+    - payerCpfCnpj
+  properties:
+    txid:
+      type: string
+    endToEndId:
+      type: string
+    amount:
+      type: number
+      format: double
+    payerName:
+      type: string
+    payerCpfCnpj:
+      type: string
+    bankName:
+      type: string
+      nullable: true
+    ispb:
+      type: string
+      nullable: true
+
+ContractTemplateRequest:
+  type: object
+  required:
+    - name
+    - documentType
+    - contentMarkdown
+    - consentClause
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+    documentType:
+      $ref: '#/DocumentType'
+    version:
+      type: integer
+      nullable: true
+    isActive:
+      type: boolean
+      nullable: true
+    contentMarkdown:
+      type: string
+    consentClause:
+      type: string
+
+ContractTemplateResponse:
+  type: object
+  required:
+    - id
+    - name
+    - documentType
+    - contentMarkdown
+    - consentClause
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+    documentType:
+      $ref: '#/DocumentType'
+    version:
+      type: integer
+      nullable: true
+    isActive:
+      type: boolean
+      nullable: true
+    contentMarkdown:
+      type: string
+    consentClause:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+ContractTemplateVariableInfo:
+  type: object
+  required:
+    - tag
+    - label
+    - category
+  properties:
+    tag:
+      type: string
+    label:
+      type: string
+    category:
+      type: string
+    example:
+      type: string
+      nullable: true
+    description:
+      type: string
+      nullable: true
+
+TemplatePreviewRequest:
+  type: object
+  properties:
+    content:
+      type: string
+
+TemplatePreviewResponse:
+  type: object
+  properties:
+    rendered:
+      type: string

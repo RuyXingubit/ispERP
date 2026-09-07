@@ -128,6 +128,34 @@
     {
       "name": "AuditLogs",
       "description": "Trilha Imutável de Auditoria Administrativa e Governança"
+    },
+    {
+      "name": "Signatures",
+      "description": "Assinatura Eletrônica e Sessões de Contrato"
+    },
+    {
+      "name": "SignatureWebhooks",
+      "description": "Webhooks de Notificação Pix para Assinatura Eletrônica"
+    },
+    {
+      "name": "ContractTemplates",
+      "description": "Gestão de Minutas e Templates Contratuais"
+    },
+    {
+      "name": "Cgnat",
+      "description": "CGNAT e Mapeamento Forense Multi-Vendor"
+    },
+    {
+      "name": "MarcoCivil",
+      "description": "Investigação Forense e Marco Civil da Internet (Lei 12.965/2014)"
+    },
+    {
+      "name": "PublicVerification",
+      "description": "Validação Pública de Autenticidade de Laudos Periciais"
+    },
+    {
+      "name": "Ipam",
+      "description": "Gestão de Endereçamento IP (IPAM), Sub-redes, ASNs e VRFs"
     }
   ],
   "paths": {
@@ -1505,6 +1533,566 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/signatures": {
+      "post": {
+        "tags": [
+          "Signatures"
+        ],
+        "summary": "Criar nova sessão de assinatura eletrônica de contrato",
+        "operationId": "createSignatureSession",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSignatureSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sessão de assinatura criada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignatureSessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contrato não localizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/{contractId}/signatures": {
+      "get": {
+        "tags": [
+          "Signatures"
+        ],
+        "summary": "Listar todas as sessões de assinatura de um contrato",
+        "operationId": "listSignaturesByContract",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            },
+            "description": "ID do contrato."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de sessões de assinatura.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SignatureSessionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/signatures/{token}": {
+      "get": {
+        "tags": [
+          "Signatures"
+        ],
+        "summary": "Visualização pública da minuta de assinatura para o cliente",
+        "operationId": "getPublicSignatureView",
+        "security": [],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token público da sessão de assinatura."
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "description": "Latitude da geolocalização do dispositivo."
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "description": "Longitude da geolocalização do dispositivo."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados da minuta e opções de assinatura retornados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignaturePublicViewResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sessão de assinatura inválida ou expirada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/signatures/{token}/status": {
+      "get": {
+        "tags": [
+          "Signatures"
+        ],
+        "summary": "Consultar status da assinatura (polling pelo frontend)",
+        "operationId": "getSignatureStatus",
+        "security": [],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status da assinatura.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignatureSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/signatures/{token}/fallback": {
+      "post": {
+        "tags": [
+          "Signatures"
+        ],
+        "summary": "Selecionar método alternativo de assinatura caso o Pix não esteja disponível",
+        "operationId": "selectFallbackMethod",
+        "security": [],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FallbackSelectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Método alternativo selecionado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignatureSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/signatures/{token}/pdf": {
+      "get": {
+        "tags": [
+          "Signatures"
+        ],
+        "summary": "Download do documento do contrato assinado",
+        "operationId": "getSignedPdf",
+        "security": [],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documento retornado.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/signatures/pix": {
+      "post": {
+        "tags": [
+          "SignatureWebhooks"
+        ],
+        "summary": "Webhook para recepção de confirmação de Pix de assinatura simbólica",
+        "operationId": "handlePixSignatureWebhook",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PixSignatureWebhookRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Confirmação processada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignatureSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/templates": {
+      "get": {
+        "tags": [
+          "ContractTemplates"
+        ],
+        "summary": "Listar templates de contrato cadastrados",
+        "operationId": "listContractTemplates",
+        "parameters": [
+          {
+            "name": "companyId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            },
+            "description": "Filtrar por empresa/filial."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de templates retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractTemplateResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ContractTemplates"
+        ],
+        "summary": "Criar novo template de contrato",
+        "operationId": "createContractTemplate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractTemplateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Template criado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractTemplateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/templates/variables": {
+      "get": {
+        "tags": [
+          "ContractTemplates"
+        ],
+        "summary": "Listar variáveis disponíveis para interpolação nas minutas contratuais",
+        "operationId": "getContractTemplateVariables",
+        "responses": {
+          "200": {
+            "description": "Lista de tags e variáveis dinâmicas disponíveis.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractTemplateVariableInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/templates/{id}": {
+      "get": {
+        "tags": [
+          "ContractTemplates"
+        ],
+        "summary": "Obter detalhes do template de contrato por ID",
+        "operationId": "getContractTemplateById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template localizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractTemplateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ContractTemplates"
+        ],
+        "summary": "Atualizar template de contrato existente",
+        "operationId": "updateContractTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractTemplateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractTemplateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ContractTemplates"
+        ],
+        "summary": "Remover template de contrato",
+        "operationId": "deleteContractTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Template removido com sucesso."
+          },
+          "404": {
+            "description": "Template não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/templates/{id}/clone": {
+      "post": {
+        "tags": [
+          "ContractTemplates"
+        ],
+        "summary": "Clonar template existente como uma nova versão ou modelo",
+        "operationId": "cloneContractTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Clone gerado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractTemplateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/templates/preview": {
+      "post": {
+        "tags": [
+          "ContractTemplates"
+        ],
+        "summary": "Pré-visualizar renderização de variáveis em tempo real",
+        "operationId": "previewContractTemplate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplatePreviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Markdown renderizado retornado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplatePreviewResponse"
                 }
               }
             }
@@ -3354,6 +3942,1122 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cgnat/mappings": {
+      "get": {
+        "tags": [
+          "Cgnat"
+        ],
+        "summary": "Lista todos os blocos e mapeamentos de CGNAT cadastrados",
+        "operationId": "listCgnatMappings",
+        "responses": {
+          "200": {
+            "description": "Lista de mapeamentos CGNAT cadastrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CgnatMappingResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Cgnat"
+        ],
+        "summary": "Cadastra manualmente um mapeamento CGNAT",
+        "operationId": "createCgnatMapping",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CgnatMappingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Mapeamento CGNAT criado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CgnatMappingResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cgnat/mappings/nas/{nasId}": {
+      "get": {
+        "tags": [
+          "Cgnat"
+        ],
+        "summary": "Lista mapeamentos CGNAT associados a um NAS específico",
+        "operationId": "listCgnatMappingsByNas",
+        "parameters": [
+          {
+            "name": "nasId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            },
+            "description": "Identificador único do NAS / BNG."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de mapeamentos do NAS especificado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CgnatMappingResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cgnat/mappings/{id}": {
+      "delete": {
+        "tags": [
+          "Cgnat"
+        ],
+        "summary": "Remove um mapeamento CGNAT",
+        "operationId": "deleteCgnatMapping",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            },
+            "description": "ID do mapeamento CGNAT."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Mapeamento removido com sucesso."
+          },
+          "404": {
+            "description": "Mapeamento não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cgnat/import-script": {
+      "post": {
+        "tags": [
+          "Cgnat"
+        ],
+        "summary": "Importa e faz o parse de scripts de firewall (MikroTik, Huawei, A10, Cisco) ou CSV",
+        "operationId": "importCgnatScript",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CgnatScriptImportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado do processamento e importação das regras.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CgnatScriptImportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Script ou regras inválidas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/marco-civil/search": {
+      "post": {
+        "tags": [
+          "MarcoCivil"
+        ],
+        "summary": "Busca forense reversa para identificar assinante por IP, Porta e Data/Hora",
+        "operationId": "searchMarcoCivilSubscriber",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcoCivilSearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado da correlação forense CGNAT + RADIUS.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarcoCivilSearchResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros de pesquisa inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/marco-civil/reports": {
+      "post": {
+        "tags": [
+          "MarcoCivil"
+        ],
+        "summary": "Emite laudo pericial oficial com token de validação pública e assinatura SHA-256",
+        "operationId": "generateMarcoCivilReport",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcoCivilReportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Laudo pericial oficial emitido e assinado digitalmente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarcoCivilReportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados da requisição inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/marco-civil/validate/{token}": {
+      "get": {
+        "tags": [
+          "PublicVerification"
+        ],
+        "summary": "Valida a autenticidade de um laudo pericial a partir do token ou QR Code",
+        "operationId": "validateMarcoCivilReport",
+        "security": [],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token alfanumérico público de autenticação do laudo."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado da validação pública do documento pericial.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicValidationResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Laudo não localizado ou token inexistente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/asns": {
+      "get": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Lista todos os ASNs cadastrados",
+        "operationId": "listIpamAsns",
+        "responses": {
+          "200": {
+            "description": "Lista de ASNs cadastrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IpamAsnResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Cadastra um novo ASN",
+        "operationId": "createIpamAsn",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpamAsnRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "ASN cadastrado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamAsnResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/asns/{id}": {
+      "get": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Obtém detalhes de um ASN por ID",
+        "operationId": "getIpamAsnById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ASN localizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamAsnResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ASN não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Atualiza dados de um ASN",
+        "operationId": "updateIpamAsn",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpamAsnRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ASN atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamAsnResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ASN não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Remove um ASN",
+        "operationId": "deleteIpamAsn",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "ASN removido com sucesso."
+          },
+          "404": {
+            "description": "ASN não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/vrfs": {
+      "get": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Lista todas as VRFs",
+        "operationId": "listIpamVrfs",
+        "responses": {
+          "200": {
+            "description": "Lista de VRFs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IpamVrfResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Cria uma nova VRF",
+        "operationId": "createIpamVrf",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpamVrfRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "VRF criada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamVrfResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/vrfs/{id}": {
+      "get": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Obtém detalhes de uma VRF por ID",
+        "operationId": "getIpamVrfById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "VRF localizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamVrfResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VRF não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Atualiza dados de uma VRF",
+        "operationId": "updateIpamVrf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpamVrfRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "VRF atualizada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamVrfResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "VRF não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Remove uma VRF",
+        "operationId": "deleteIpamVrf",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "VRF removida com sucesso."
+          },
+          "404": {
+            "description": "VRF não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/subnets": {
+      "get": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Lista todas as sub-redes com métricas de utilização",
+        "operationId": "listIpamSubnets",
+        "responses": {
+          "200": {
+            "description": "Lista de sub-redes retornada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IpamSubnetResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Cadastra uma nova sub-rede IPv4 ou IPv6",
+        "operationId": "createIpamSubnet",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpamSubnetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sub-rede cadastrada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamSubnetResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "CIDR ou parâmetros inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/subnets/{id}": {
+      "get": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Obtém detalhes de uma sub-rede por ID",
+        "operationId": "getIpamSubnetById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sub-rede localizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamSubnetResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sub-rede não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Atualiza dados e status de uma sub-rede",
+        "operationId": "updateIpamSubnet",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpamSubnetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sub-rede atualizada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamSubnetResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sub-rede não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Remove uma sub-rede",
+        "operationId": "deleteIpamSubnet",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sub-rede removida com sucesso."
+          },
+          "404": {
+            "description": "Sub-rede não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/subnets/split": {
+      "post": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Divide uma sub-rede em blocos menores (Split / VLSM)",
+        "operationId": "splitIpamSubnet",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpamSplitRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sub-redes geradas calculadas ou persistidas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamSplitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros de split incompatíveis.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/subnets/{subnetId}/ips": {
+      "get": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Lista todos os IPs alocados/reservados de uma sub-rede",
+        "operationId": "listIpamIpsBySubnet",
+        "parameters": [
+          {
+            "name": "subnetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de IPs da sub-rede.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IpamIpAddressResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/ips": {
+      "post": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Registra um IP individual no inventário do IPAM",
+        "operationId": "createIpamIp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpamIpAddressRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "IP registrado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamIpAddressResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/ips/{id}": {
+      "put": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Atualiza status e vinculação de um IP",
+        "operationId": "updateIpamIp",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpamIpAddressRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "IP atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamIpAddressResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Registro de IP não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Remove um registro de IP",
+        "operationId": "deleteIpamIp",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Registro de IP removido."
+          },
+          "404": {
+            "description": "Registro não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/subnets/{subnetId}/next-available": {
+      "get": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Localiza o próximo IP livre de uma sub-rede",
+        "operationId": "getNextAvailableIpamIp",
+        "parameters": [
+          {
+            "name": "subnetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Próximo IP disponível retornado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpamNextAvailableResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ipam/calculate": {
+      "get": {
+        "tags": [
+          "Ipam"
+        ],
+        "summary": "Calcula métricas matemáticas de qualquer CIDR (IPv4/IPv6)",
+        "operationId": "calculateIpamCidr",
+        "parameters": [
+          {
+            "name": "cidr",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "200.150.10.0/24"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Métricas calculadas da sub-rede.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubnetCalculationResult"
                 }
               }
             }
@@ -6942,6 +8646,435 @@
           }
         }
       },
+      "SignatureStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "SIGNED",
+          "REJECTED_DIVERGENT_DOCUMENT",
+          "EXPIRED",
+          "CANCELED"
+        ],
+        "description": "Estado da sessão de assinatura eletrônica."
+      },
+      "FallbackMethod": {
+        "type": "string",
+        "enum": [
+          "PIX",
+          "EMAIL_OTP",
+          "GOV_BR",
+          "PHYSICAL_NOTARY"
+        ],
+        "description": "Método de assinatura eletrônica alternativo ou principal."
+      },
+      "DocumentType": {
+        "type": "string",
+        "enum": [
+          "SERVICE_AGREEMENT",
+          "LOYALTY_TERM",
+          "EQUIPMENT_COMODATO",
+          "CUSTOM_TERM"
+        ],
+        "description": "Tipo documental da minuta ou template contratual."
+      },
+      "CreateSignatureSessionRequest": {
+        "type": "object",
+        "required": [
+          "contractId"
+        ],
+        "properties": {
+          "contractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "templateId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "symbolicAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 0.01
+          }
+        }
+      },
+      "SignatureSessionResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "contractId",
+          "token",
+          "signatureUrl",
+          "status",
+          "symbolicAmount",
+          "expiresAt",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "templateId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "token": {
+            "type": "string",
+            "example": "sig_019448839b487b89"
+          },
+          "signatureUrl": {
+            "type": "string",
+            "example": "https://isp.exemplo.com.br/assinatura/sig_019448839b487b89"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SignatureStatus"
+          },
+          "symbolicAmount": {
+            "type": "number",
+            "format": "double",
+            "example": 0.01
+          },
+          "pixTxid": {
+            "type": "string",
+            "nullable": true
+          },
+          "pixCopyPaste": {
+            "type": "string",
+            "nullable": true
+          },
+          "pixQrCodeBase64": {
+            "type": "string",
+            "nullable": true
+          },
+          "pixEndToEndId": {
+            "type": "string",
+            "nullable": true
+          },
+          "documentSha256Hash": {
+            "type": "string",
+            "nullable": true
+          },
+          "payerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "payerCpfCnpj": {
+            "type": "string",
+            "nullable": true
+          },
+          "payerBankName": {
+            "type": "string",
+            "nullable": true
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "signedPdfUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "fallbackMethod": {
+            "$ref": "#/components/schemas/FallbackMethod"
+          },
+          "onboardingCreditAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "discountAppliedInvoiceId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "forensicCertificatePdfUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SignaturePublicViewResponse": {
+        "type": "object",
+        "required": [
+          "token",
+          "contractName",
+          "customerName",
+          "customerDocumentMasked",
+          "companyName",
+          "renderedContent",
+          "consentClause",
+          "status",
+          "symbolicAmount",
+          "expiresAt"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "contractName": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "customerDocumentMasked": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "renderedContent": {
+            "type": "string"
+          },
+          "consentClause": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SignatureStatus"
+          },
+          "symbolicAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "pixCopyPaste": {
+            "type": "string",
+            "nullable": true
+          },
+          "pixQrCodeBase64": {
+            "type": "string",
+            "nullable": true
+          },
+          "payerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "payerBankName": {
+            "type": "string",
+            "nullable": true
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "signedPdfUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "documentSha256Hash": {
+            "type": "string",
+            "nullable": true
+          },
+          "fallbackMethod": {
+            "$ref": "#/components/schemas/FallbackMethod"
+          },
+          "onboardingCreditAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "forensicCertificatePdfUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "FallbackSelectionRequest": {
+        "type": "object",
+        "required": [
+          "fallbackMethod"
+        ],
+        "properties": {
+          "fallbackMethod": {
+            "$ref": "#/components/schemas/FallbackMethod"
+          },
+          "justification": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PixSignatureWebhookRequest": {
+        "type": "object",
+        "required": [
+          "txid",
+          "endToEndId",
+          "amount",
+          "payerName",
+          "payerCpfCnpj"
+        ],
+        "properties": {
+          "txid": {
+            "type": "string"
+          },
+          "endToEndId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "payerName": {
+            "type": "string"
+          },
+          "payerCpfCnpj": {
+            "type": "string"
+          },
+          "bankName": {
+            "type": "string",
+            "nullable": true
+          },
+          "ispb": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ContractTemplateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "documentType",
+          "contentMarkdown",
+          "consentClause"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string"
+          },
+          "documentType": {
+            "$ref": "#/components/schemas/DocumentType"
+          },
+          "version": {
+            "type": "integer",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "contentMarkdown": {
+            "type": "string"
+          },
+          "consentClause": {
+            "type": "string"
+          }
+        }
+      },
+      "ContractTemplateResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "documentType",
+          "contentMarkdown",
+          "consentClause",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string"
+          },
+          "documentType": {
+            "$ref": "#/components/schemas/DocumentType"
+          },
+          "version": {
+            "type": "integer",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "contentMarkdown": {
+            "type": "string"
+          },
+          "consentClause": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ContractTemplateVariableInfo": {
+        "type": "object",
+        "required": [
+          "tag",
+          "label",
+          "category"
+        ],
+        "properties": {
+          "tag": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "example": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TemplatePreviewRequest": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "TemplatePreviewResponse": {
+        "type": "object",
+        "properties": {
+          "rendered": {
+            "type": "string"
+          }
+        }
+      },
       "CustomerResponse": {
         "type": "object",
         "required": [
@@ -7617,6 +9750,1001 @@
             "type": "string",
             "nullable": true,
             "example": "Sinal óptico dentro dos padrões de conformidade (-15 a -25 dBm)"
+          }
+        }
+      },
+      "CgnatMappingRequest": {
+        "type": "object",
+        "required": [
+          "publicIp",
+          "portStart",
+          "portEnd",
+          "privateIpStart",
+          "privateIpEnd"
+        ],
+        "properties": {
+          "nasId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "vendorType": {
+            "$ref": "#/components/schemas/NasVendorType"
+          },
+          "publicIp": {
+            "type": "string",
+            "example": "200.20.10.1"
+          },
+          "portStart": {
+            "type": "integer",
+            "example": 1024
+          },
+          "portEnd": {
+            "type": "integer",
+            "example": 2047
+          },
+          "privateIpStart": {
+            "type": "string",
+            "example": "100.64.0.2"
+          },
+          "privateIpEnd": {
+            "type": "string",
+            "example": "100.64.0.33"
+          },
+          "protocol": {
+            "type": "string",
+            "default": "BOTH",
+            "example": "BOTH"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CgnatMappingResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "vendorType",
+          "publicIp",
+          "portStart",
+          "portEnd",
+          "privateIpStart",
+          "privateIpEnd",
+          "protocol",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "nasId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "nasName": {
+            "type": "string",
+            "nullable": true
+          },
+          "vendorType": {
+            "$ref": "#/components/schemas/NasVendorType"
+          },
+          "publicIp": {
+            "type": "string"
+          },
+          "portStart": {
+            "type": "integer"
+          },
+          "portEnd": {
+            "type": "integer"
+          },
+          "privateIpStart": {
+            "type": "string"
+          },
+          "privateIpEnd": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CgnatScriptImportRequest": {
+        "type": "object",
+        "required": [
+          "scriptContent"
+        ],
+        "properties": {
+          "nasId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "vendorType": {
+            "$ref": "#/components/schemas/NasVendorType"
+          },
+          "scriptContent": {
+            "type": "string"
+          },
+          "replaceExisting": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "CgnatScriptImportResponse": {
+        "type": "object",
+        "required": [
+          "totalParsed",
+          "totalSaved",
+          "importedMappings",
+          "warnings"
+        ],
+        "properties": {
+          "totalParsed": {
+            "type": "integer"
+          },
+          "totalSaved": {
+            "type": "integer"
+          },
+          "importedMappings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CgnatMappingResponse"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MarcoCivilSearchRequest": {
+        "type": "object",
+        "required": [
+          "ip",
+          "timestamp"
+        ],
+        "properties": {
+          "ip": {
+            "type": "string",
+            "example": "200.20.10.1"
+          },
+          "port": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1055
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MarcoCivilSearchResult": {
+        "type": "object",
+        "required": [
+          "matched",
+          "queriedIp",
+          "queriedTimestamp",
+          "usedCgnat"
+        ],
+        "properties": {
+          "matched": {
+            "type": "boolean"
+          },
+          "queriedIp": {
+            "type": "string"
+          },
+          "queriedPort": {
+            "type": "integer",
+            "nullable": true
+          },
+          "queriedTimestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "usedCgnat": {
+            "type": "boolean"
+          },
+          "resolvedPrivateIp": {
+            "type": "string",
+            "nullable": true
+          },
+          "cgnatRuleSummary": {
+            "type": "string",
+            "nullable": true
+          },
+          "radacctId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "callingStationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "nasIpAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "sessionStartTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "sessionStopTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "contractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "customerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerCpfCnpj": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "installationAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "planName": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "MarcoCivilReportRequest": {
+        "type": "object",
+        "required": [
+          "queriedIp",
+          "queriedTimestamp"
+        ],
+        "properties": {
+          "courtOrderNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "requesterAuthority": {
+            "type": "string",
+            "nullable": true
+          },
+          "queriedIp": {
+            "type": "string"
+          },
+          "queriedPort": {
+            "type": "integer",
+            "nullable": true
+          },
+          "queriedTimestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "matchedContractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "MarcoCivilReportResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "validationToken",
+          "sha256Hash",
+          "publicValidationUrl",
+          "qrCodePayload",
+          "queriedIp",
+          "queriedTimestamp",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "validationToken": {
+            "type": "string"
+          },
+          "sha256Hash": {
+            "type": "string"
+          },
+          "publicValidationUrl": {
+            "type": "string"
+          },
+          "qrCodePayload": {
+            "type": "string"
+          },
+          "courtOrderNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "requesterAuthority": {
+            "type": "string",
+            "nullable": true
+          },
+          "queriedIp": {
+            "type": "string"
+          },
+          "queriedPort": {
+            "type": "integer",
+            "nullable": true
+          },
+          "queriedTimestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "matchedContractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "matchedCustomerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "matchedCpfCnpj": {
+            "type": "string",
+            "nullable": true
+          },
+          "matchedCallingStationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "matchedSessionStart": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "matchedSessionStop": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "reportPdfUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PublicValidationResponse": {
+        "type": "object",
+        "required": [
+          "valid",
+          "validationToken",
+          "sha256Hash",
+          "queriedIp",
+          "queriedTimestamp",
+          "reportIssuedAt",
+          "statusMessage"
+        ],
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "validationToken": {
+            "type": "string"
+          },
+          "sha256Hash": {
+            "type": "string"
+          },
+          "courtOrderNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "requesterAuthority": {
+            "type": "string",
+            "nullable": true
+          },
+          "queriedIp": {
+            "type": "string"
+          },
+          "queriedPort": {
+            "type": "integer",
+            "nullable": true
+          },
+          "queriedTimestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "customerNameMasked": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerCpfCnpjMasked": {
+            "type": "string",
+            "nullable": true
+          },
+          "callingStationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "reportIssuedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statusMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "IpamRir": {
+        "type": "string",
+        "enum": [
+          "REGISTRO_BR",
+          "LACNIC",
+          "ARIN",
+          "RIPE",
+          "APNIC",
+          "AFRINIC"
+        ]
+      },
+      "IpamIpVersion": {
+        "type": "string",
+        "enum": [
+          "IPV4",
+          "IPV6"
+        ]
+      },
+      "IpamSubnetStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "RESERVED",
+          "DEPRECATED"
+        ]
+      },
+      "IpamSubnetCategory": {
+        "type": "string",
+        "enum": [
+          "CUSTOMER_ACCESS",
+          "CGNAT",
+          "MANAGEMENT",
+          "INFRASTRUCTURE",
+          "PTP",
+          "LOOPBACK"
+        ]
+      },
+      "IpamAddressStatus": {
+        "type": "string",
+        "enum": [
+          "AVAILABLE",
+          "ALLOCATED",
+          "RESERVED",
+          "DHCP_POOL"
+        ]
+      },
+      "IpamAssignedToType": {
+        "type": "string",
+        "enum": [
+          "CONTRACT",
+          "NETWORK_DEVICE",
+          "INFRASTRUCTURE",
+          "CGNAT_POOL",
+          "ROUTED_SUBNET"
+        ]
+      },
+      "IpamAsnRequest": {
+        "type": "object",
+        "required": [
+          "asn",
+          "name"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "asn": {
+            "type": "integer",
+            "format": "int64",
+            "example": 265000
+          },
+          "name": {
+            "type": "string",
+            "example": "NEXUS FIBRA TELECOMUNICACOES LTDA"
+          },
+          "rir": {
+            "$ref": "#/components/schemas/IpamRir"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "IpamAsnResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "asn",
+          "name",
+          "rir",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "asn": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "rir": {
+            "$ref": "#/components/schemas/IpamRir"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "IpamVrfRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "VRF-CLIENTES-B2C"
+          },
+          "rd": {
+            "type": "string",
+            "nullable": true,
+            "example": "265000:100"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "isDefault": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "IpamVrfResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "isDefault",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string"
+          },
+          "rd": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "IpamSubnetRequest": {
+        "type": "object",
+        "required": [
+          "cidr"
+        ],
+        "properties": {
+          "parentId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "vrfId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "asnId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "cidr": {
+            "type": "string",
+            "example": "200.150.10.0/24"
+          },
+          "isPool": {
+            "type": "boolean",
+            "default": false
+          },
+          "poolName": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/IpamSubnetStatus"
+          },
+          "category": {
+            "$ref": "#/components/schemas/IpamSubnetCategory"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "IpamSubnetResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "cidr",
+          "ipVersion",
+          "networkAddress",
+          "prefixLength",
+          "totalHosts",
+          "allocatedHosts",
+          "isPool",
+          "status",
+          "category",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "parentId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "vrfId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "vrfName": {
+            "type": "string",
+            "nullable": true
+          },
+          "asnId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "asnNumber": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "cidr": {
+            "type": "string"
+          },
+          "ipVersion": {
+            "$ref": "#/components/schemas/IpamIpVersion"
+          },
+          "networkAddress": {
+            "type": "string"
+          },
+          "broadcastAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "prefixLength": {
+            "type": "integer"
+          },
+          "totalHosts": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "allocatedHosts": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "utilizationPercentage": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "isPool": {
+            "type": "boolean"
+          },
+          "poolName": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/IpamSubnetStatus"
+          },
+          "category": {
+            "$ref": "#/components/schemas/IpamSubnetCategory"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SubnetCalculationResult": {
+        "type": "object",
+        "required": [
+          "cidr",
+          "ipVersion",
+          "networkAddress",
+          "netmask",
+          "firstUsableIp",
+          "lastUsableIp",
+          "prefixLength",
+          "totalHosts",
+          "usableHosts"
+        ],
+        "properties": {
+          "cidr": {
+            "type": "string"
+          },
+          "ipVersion": {
+            "$ref": "#/components/schemas/IpamIpVersion"
+          },
+          "networkAddress": {
+            "type": "string"
+          },
+          "broadcastAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "netmask": {
+            "type": "string"
+          },
+          "wildcardMask": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstUsableIp": {
+            "type": "string"
+          },
+          "lastUsableIp": {
+            "type": "string"
+          },
+          "prefixLength": {
+            "type": "integer"
+          },
+          "totalHosts": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usableHosts": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "IpamSplitRequest": {
+        "type": "object",
+        "required": [
+          "subnetId",
+          "targetPrefixLength"
+        ],
+        "properties": {
+          "subnetId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "targetPrefixLength": {
+            "type": "integer",
+            "example": 28
+          },
+          "createSubnets": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "IpamSplitResponse": {
+        "type": "object",
+        "required": [
+          "parentSubnetId",
+          "parentCidr",
+          "targetPrefixLength",
+          "totalSubnetsGenerated",
+          "generatedSubnets"
+        ],
+        "properties": {
+          "parentSubnetId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "parentCidr": {
+            "type": "string"
+          },
+          "targetPrefixLength": {
+            "type": "integer"
+          },
+          "totalSubnetsGenerated": {
+            "type": "integer"
+          },
+          "generatedSubnets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubnetCalculationResult"
+            }
+          },
+          "persistedSubnets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IpamSubnetResponse"
+            }
+          }
+        }
+      },
+      "IpamIpAddressRequest": {
+        "type": "object",
+        "required": [
+          "subnetId",
+          "ipAddress"
+        ],
+        "properties": {
+          "subnetId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "ipAddress": {
+            "type": "string",
+            "example": "200.150.10.5"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IpamAddressStatus"
+          },
+          "assignedToType": {
+            "$ref": "#/components/schemas/IpamAssignedToType"
+          },
+          "assignedToId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "dnsName": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "IpamIpAddressResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "subnetId",
+          "subnetCidr",
+          "ipAddress",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "subnetId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "subnetCidr": {
+            "type": "string"
+          },
+          "ipAddress": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IpamAddressStatus"
+          },
+          "assignedToType": {
+            "$ref": "#/components/schemas/IpamAssignedToType"
+          },
+          "assignedToId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "assignedToLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "dnsName": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "IpamNextAvailableResponse": {
+        "type": "object",
+        "properties": {
+          "nextAvailableIp": {
+            "type": "string"
           }
         }
       },

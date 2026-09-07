@@ -1,0 +1,189 @@
+# Endpoints de Assinatura Eletrônica e Webhooks Pix
+
+/contracts/signatures:
+  post:
+    tags:
+      - Signatures
+    summary: Criar nova sessão de assinatura eletrônica de contrato
+    operationId: createSignatureSession
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CreateSignatureSessionRequest'
+    responses:
+      '201':
+        description: Sessão de assinatura criada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SignatureSessionResponse'
+      '400':
+        description: Dados inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Contrato não localizado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/contracts/{contractId}/signatures:
+  get:
+    tags:
+      - Signatures
+    summary: Listar todas as sessões de assinatura de um contrato
+    operationId: listSignaturesByContract
+    parameters:
+      - name: contractId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: ID do contrato.
+    responses:
+      '200':
+        description: Lista de sessões de assinatura.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/SignatureSessionResponse'
+
+/public/signatures/{token}:
+  get:
+    tags:
+      - Signatures
+    summary: Visualização pública da minuta de assinatura para o cliente
+    operationId: getPublicSignatureView
+    security: []
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Token público da sessão de assinatura.
+      - name: lat
+        in: query
+        required: false
+        schema:
+          type: number
+          format: double
+        description: Latitude da geolocalização do dispositivo.
+      - name: lon
+        in: query
+        required: false
+        schema:
+          type: number
+          format: double
+        description: Longitude da geolocalização do dispositivo.
+    responses:
+      '200':
+        description: Dados da minuta e opções de assinatura retornados.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SignaturePublicViewResponse'
+      '404':
+        description: Sessão de assinatura inválida ou expirada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/public/signatures/{token}/status:
+  get:
+    tags:
+      - Signatures
+    summary: Consultar status da assinatura (polling pelo frontend)
+    operationId: getSignatureStatus
+    security: []
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Status da assinatura.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SignatureSessionResponse'
+
+/public/signatures/{token}/fallback:
+  post:
+    tags:
+      - Signatures
+    summary: Selecionar método alternativo de assinatura caso o Pix não esteja disponível
+    operationId: selectFallbackMethod
+    security: []
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FallbackSelectionRequest'
+    responses:
+      '200':
+        description: Método alternativo selecionado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SignatureSessionResponse'
+
+/public/signatures/{token}/pdf:
+  get:
+    tags:
+      - Signatures
+    summary: Download do documento do contrato assinado
+    operationId: getSignedPdf
+    security: []
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Documento retornado.
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+
+/webhooks/signatures/pix:
+  post:
+    tags:
+      - SignatureWebhooks
+    summary: Webhook para recepção de confirmação de Pix de assinatura simbólica
+    operationId: handlePixSignatureWebhook
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/PixSignatureWebhookRequest'
+    responses:
+      '200':
+        description: Confirmação processada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SignatureSessionResponse'

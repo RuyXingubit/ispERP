@@ -1,0 +1,526 @@
+# Endpoints de Gestão de Endereçamento IP (IPAM), Sub-redes, ASNs, VRFs e Inventário
+
+/ipam/asns:
+  get:
+    tags:
+      - Ipam
+    summary: Lista todos os ASNs cadastrados
+    operationId: listIpamAsns
+    responses:
+      '200':
+        description: Lista de ASNs cadastrados.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/IpamAsnResponse'
+
+  post:
+    tags:
+      - Ipam
+    summary: Cadastra um novo ASN
+    operationId: createIpamAsn
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/IpamAsnRequest'
+    responses:
+      '201':
+        description: ASN cadastrado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamAsnResponse'
+      '400':
+        description: Dados inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/ipam/asns/{id}:
+  get:
+    tags:
+      - Ipam
+    summary: Obtém detalhes de um ASN por ID
+    operationId: getIpamAsnById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: ASN localizado.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamAsnResponse'
+      '404':
+        description: ASN não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  put:
+    tags:
+      - Ipam
+    summary: Atualiza dados de um ASN
+    operationId: updateIpamAsn
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/IpamAsnRequest'
+    responses:
+      '200':
+        description: ASN atualizado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamAsnResponse'
+      '404':
+        description: ASN não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  delete:
+    tags:
+      - Ipam
+    summary: Remove um ASN
+    operationId: deleteIpamAsn
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '204':
+        description: ASN removido com sucesso.
+      '404':
+        description: ASN não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/ipam/vrfs:
+  get:
+    tags:
+      - Ipam
+    summary: Lista todas as VRFs
+    operationId: listIpamVrfs
+    responses:
+      '200':
+        description: Lista de VRFs.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/IpamVrfResponse'
+
+  post:
+    tags:
+      - Ipam
+    summary: Cria uma nova VRF
+    operationId: createIpamVrf
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/IpamVrfRequest'
+    responses:
+      '201':
+        description: VRF criada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamVrfResponse'
+      '400':
+        description: Dados inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/ipam/vrfs/{id}:
+  get:
+    tags:
+      - Ipam
+    summary: Obtém detalhes de uma VRF por ID
+    operationId: getIpamVrfById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: VRF localizada.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamVrfResponse'
+      '404':
+        description: VRF não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  put:
+    tags:
+      - Ipam
+    summary: Atualiza dados de uma VRF
+    operationId: updateIpamVrf
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/IpamVrfRequest'
+    responses:
+      '200':
+        description: VRF atualizada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamVrfResponse'
+      '404':
+        description: VRF não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  delete:
+    tags:
+      - Ipam
+    summary: Remove uma VRF
+    operationId: deleteIpamVrf
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '204':
+        description: VRF removida com sucesso.
+      '404':
+        description: VRF não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/ipam/subnets:
+  get:
+    tags:
+      - Ipam
+    summary: Lista todas as sub-redes com métricas de utilização
+    operationId: listIpamSubnets
+    responses:
+      '200':
+        description: Lista de sub-redes retornada.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/IpamSubnetResponse'
+
+  post:
+    tags:
+      - Ipam
+    summary: Cadastra uma nova sub-rede IPv4 ou IPv6
+    operationId: createIpamSubnet
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/IpamSubnetRequest'
+    responses:
+      '201':
+        description: Sub-rede cadastrada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamSubnetResponse'
+      '400':
+        description: CIDR ou parâmetros inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/ipam/subnets/{id}:
+  get:
+    tags:
+      - Ipam
+    summary: Obtém detalhes de uma sub-rede por ID
+    operationId: getIpamSubnetById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Sub-rede localizada.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamSubnetResponse'
+      '404':
+        description: Sub-rede não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  put:
+    tags:
+      - Ipam
+    summary: Atualiza dados e status de uma sub-rede
+    operationId: updateIpamSubnet
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/IpamSubnetRequest'
+    responses:
+      '200':
+        description: Sub-rede atualizada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamSubnetResponse'
+      '404':
+        description: Sub-rede não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  delete:
+    tags:
+      - Ipam
+    summary: Remove uma sub-rede
+    operationId: deleteIpamSubnet
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '204':
+        description: Sub-rede removida com sucesso.
+      '404':
+        description: Sub-rede não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/ipam/subnets/split:
+  post:
+    tags:
+      - Ipam
+    summary: Divide uma sub-rede em blocos menores (Split / VLSM)
+    operationId: splitIpamSubnet
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/IpamSplitRequest'
+    responses:
+      '200':
+        description: Sub-redes geradas calculadas ou persistidas.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamSplitResponse'
+      '400':
+        description: Parâmetros de split incompatíveis.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/ipam/subnets/{subnetId}/ips:
+  get:
+    tags:
+      - Ipam
+    summary: Lista todos os IPs alocados/reservados de uma sub-rede
+    operationId: listIpamIpsBySubnet
+    parameters:
+      - name: subnetId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Lista de IPs da sub-rede.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/IpamIpAddressResponse'
+
+/ipam/ips:
+  post:
+    tags:
+      - Ipam
+    summary: Registra um IP individual no inventário do IPAM
+    operationId: createIpamIp
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/IpamIpAddressRequest'
+    responses:
+      '201':
+        description: IP registrado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamIpAddressResponse'
+      '400':
+        description: Dados inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/ipam/ips/{id}:
+  put:
+    tags:
+      - Ipam
+    summary: Atualiza status e vinculação de um IP
+    operationId: updateIpamIp
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/IpamIpAddressRequest'
+    responses:
+      '200':
+        description: IP atualizado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamIpAddressResponse'
+      '404':
+        description: Registro de IP não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  delete:
+    tags:
+      - Ipam
+    summary: Remove um registro de IP
+    operationId: deleteIpamIp
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '204':
+        description: Registro de IP removido.
+      '404':
+        description: Registro não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/ipam/subnets/{subnetId}/next-available:
+  get:
+    tags:
+      - Ipam
+    summary: Localiza o próximo IP livre de uma sub-rede
+    operationId: getNextAvailableIpamIp
+    parameters:
+      - name: subnetId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Próximo IP disponível retornado.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/IpamNextAvailableResponse'
+
+/ipam/calculate:
+  get:
+    tags:
+      - Ipam
+    summary: Calcula métricas matemáticas de qualquer CIDR (IPv4/IPv6)
+    operationId: calculateIpamCidr
+    parameters:
+      - name: cidr
+        in: query
+        required: true
+        schema:
+          type: string
+        example: "200.150.10.0/24"
+    responses:
+      '200':
+        description: Métricas calculadas da sub-rede.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SubnetCalculationResult'
