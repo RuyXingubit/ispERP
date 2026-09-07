@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { config } from './config';
 import { getSiteSettings, getPrimaryCompany, type SiteSettings, type Company } from './services/siteService';
 import { getActivePlans, type PlanItem } from './services/planService';

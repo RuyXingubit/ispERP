@@ -49,3 +49,9 @@ Para desenvolvedores web, agências de marketing ou assistentes de Inteligência
    * Sem React, sem Next.js e sem dependências pesadas na vitrine pública.
 3. **Consumo 100% Dinâmico do Backend**:
    * O site não contém planos hardcoded. Ele consome o catálogo oficial de planos ativos, os dados cadastrais da empresa e a paleta de cores configurada no ERP em tempo real.
+
+---
+
+## 📄 Licença
+
+Este componente (`frontend-site`) é distribuído sob a licença permissiva **[MIT](LICENSE)**, garantindo total liberdade para o provedor, designers e agências de marketing personalizarem layout, marca, estilos e componentes sem restrições de copyleft.

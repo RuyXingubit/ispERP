@@ -3,9 +3,11 @@
 [![Java 25](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/projects/jdk/25/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17+-blue.svg)](https://www.postgresql.org/)
-[![React 19](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
-[![Vite 8](https://img.shields.io/badge/Vite-8.2%20(Rolldown)-purple.svg)](https://vite.dev/)
+[![Flutter 3](https://img.shields.io/badge/Flutter-3.x-02569B.svg)](https://flutter.dev/)
+[![Vite 6](https://img.shields.io/badge/Vite-6.x-purple.svg)](https://vite.dev/)
 [![UUIDv7](https://img.shields.io/badge/UUIDv7-RFC%209562-success.svg)](https://www.rfc-editor.org/rfc/rfc9562)
+[![License: AGPLv3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](frontend-site/LICENSE)
 
 Sistema ERP moderno de alto desempenho, desenvolvido especialmente para **Provedores de Internet (ISPs)** de fibra óptica e wireless, baseado em arquitetura orientada a eventos, isolamento patrimonial, engenharia de telecomunicações e conformidade regulatória plena (ANATEL, Marco Civil e Banco Central).
 
@@ -248,8 +250,11 @@ Se a sua contribuição envolver criação, alteração ou exclusão de rotas, e
    # Backend (Testes unitários e de integração)
    cd backend && ./gradlew test
    
-   # Frontend (Typecheck e build de produção)
-   cd frontend && npm run typecheck && npm run build
+   # Frontend ERP (Testes unitários e widgets Flutter)
+   cd frontend-flutter && flutter test
+
+   # Frontend Institucional (Testes de integração e build)
+   cd frontend-site && npm test && npm run typecheck && npm run build
    ```
 4. Faça commit seguindo as diretrizes de [Conventional Commits](https://www.conventionalcommits.org/):
    * `feat:` Novas funcionalidades ou endpoints
@@ -261,5 +266,15 @@ Se a sua contribuição envolver criação, alteração ou exclusão de rotas, e
 
 ---
 
-## 📄 Licença
-Distribuído sob a licença de Código Aberto. Consulte o arquivo [LICENSE](LICENSE) para obter mais informações.
+## 📄 Estrutura de Licenciamento (Multi-License)
+
+O **ispERP** adota uma política de multi-licenciamento equilibrada para blindar o motor de engenharia contra concorrência desleal na nuvem, garantindo simultaneamente máxima liberdade para a identidade visual e os aplicativos do provedor:
+
+| Componente | Diretório | Licença | Finalidade |
+| :--- | :--- | :--- | :--- |
+| **Backend Core** | [`backend/`](backend/) | **GNU AGPLv3** | Regras de negócio, telecom, faturamento hierárquico, NOC e APIs |
+| **ERP Operacional** | [`frontend-flutter/`](frontend-flutter/) | **GNU AGPLv3** | Sistema operacional corporativo multiperfil |
+| **Site Institucional (WWW)** | [`frontend-site/`](frontend-site/) | **MIT** | Vitrine pública, páginas comerciais e branding do provedor |
+| **Central do Assinante** | [`frontend-customer/`](frontend-customer/) | **MIT** | Autoatendimento do assinante e publicação de apps nas lojas |
+
+Para o texto legal completo, consulte o arquivo [LICENSE](LICENSE) na raiz do projeto e [frontend-site/LICENSE](frontend-site/LICENSE).
