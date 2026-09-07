@@ -21,8 +21,15 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import br.dev.xb.isperp.mapper.ContractMapperImpl;
+import br.dev.xb.isperp.mapper.CustomerMapperImpl;
+import br.dev.xb.isperp.mapper.InvoiceMapperImpl;
+import br.dev.xb.isperp.mapper.PlanMapperImpl;
+import org.springframework.context.annotation.Import;
+
 @WebMvcTest(controllers = ClientPortalController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import({CustomerMapperImpl.class, ContractMapperImpl.class, PlanMapperImpl.class, InvoiceMapperImpl.class})
 @SuppressWarnings("null")
 class ClientPortalControllerTest {
 
