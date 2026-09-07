@@ -12,6 +12,27 @@ class OverdueInvoiceItem {
     required this.dueDate,
   });
 
+  int get daysOverdue {
+    try {
+      final due = DateTime.parse(dueDate);
+      final today = DateTime.now();
+      final diff = today.difference(due).inDays;
+      return diff > 0 ? diff : 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  String get dunningStageLabel {
+    final days = daysOverdue;
+    if (days <= 0) return 'No Prazo';
+    if (days <= 5) return 'Tolerância (D0 a D+5)';
+    if (days <= 14) return 'Notificação Formal (D+10)';
+    if (days <= 29) return 'Redução de Velocidade (D+15)';
+    if (days <= 59) return 'Bloqueio Total (D+30)';
+    return 'Desconexão / Serasa (D+60)';
+  }
+
   factory OverdueInvoiceItem.fromJson(Map<String, dynamic> json) {
     return OverdueInvoiceItem(
       id: json['id']?.toString() ?? '',

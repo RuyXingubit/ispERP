@@ -58,5 +58,58 @@ void main() {
       expect(model.totalCustomers, equals(0));
       expect(model.recentOverdueInvoices, isEmpty);
     });
+
+    test('OverdueInvoiceItem deve calcular dias de atraso e estágio da régua de cobrança', () {
+      final now = DateTime.now();
+      String formatDate(DateTime dt) =>
+          "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}";
+
+      // Tolerância: vencido há 3 dias
+      final itemTolerance = OverdueInvoiceItem(
+        id: 'inv-01',
+        contractId: 'ctr-01',
+        amount: 89.90,
+        dueDate: formatDate(now.subtract(const Duration(days: 3))),
+      );
+      expect(itemTolerance.daysOverdue, greaterThanOrEqualTo(2));
+      expect(itemTolerance.daysOverdue, lessThanOrEqualTo(4));
+      expect(itemTolerance.dunningStageLabel, contains('Tolerância'));
+
+      // Notificação: vencido há 10 dias
+      final itemNotice = OverdueInvoiceItem(
+        id: 'inv-02',
+        contractId: 'ctr-02',
+        amount: 99.90,
+        dueDate: formatDate(now.subtract(const Duration(days: 10))),
+      );
+      expect(itemNotice.dunningStageLabel, contains('Notificação Formal'));
+
+      // Redução QoS: vencido há 20 dias
+      final itemReduction = OverdueInvoiceItem(
+        id: 'inv-03',
+        contractId: 'ctr-03',
+        amount: 120.00,
+        dueDate: formatDate(now.subtract(const Duration(days: 20))),
+      );
+      expect(itemReduction.dunningStageLabel, contains('Redução de Velocidade'));
+
+      // Bloqueio Total: vencido há 45 dias
+      final itemBlock = OverdueInvoiceItem(
+        id: 'inv-04',
+        contractId: 'ctr-04',
+        amount: 150.00,
+        dueDate: formatDate(now.subtract(const Duration(days: 45))),
+      );
+      expect(itemBlock.dunningStageLabel, contains('Bloqueio Total'));
+
+      // Rescisão: vencido há 65 dias
+      final itemChurn = OverdueInvoiceItem(
+        id: 'inv-05',
+        contractId: 'ctr-05',
+        amount: 200.00,
+        dueDate: formatDate(now.subtract(const Duration(days: 65))),
+      );
+      expect(itemChurn.dunningStageLabel, contains('Desconexão / Serasa'));
+    });
   });
 }
