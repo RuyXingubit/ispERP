@@ -15,8 +15,9 @@ Sistema ERP moderno de alto desempenho, desenvolvido especialmente para **Proved
 
 * **Backend Core:** Java 25 (Virtual Threads) + Spring Boot 4.1.1
 * **Arquitetura:** Monólito Modular Orientado a Eventos (EDA) com *Transactional Outbox* e Idempotência
-* **Frontend SPA:** React 19 + TypeScript + Vite 8.2 (Motor Rust Rolldown) com *Code-Splitting* e *Lazy Loading* por rota
-* **Interface:** Material-UI (MUI v6) com paleta corporativa de alta densidade
+* **Frontend ERP (Multiplataforma):** Flutter 3.x (Web, Desktop, Android, iOS) multiperfil com navegação adaptativa
+* **Frontend Institucional (WWW):** Vite + TypeScript + HTML5/CSS3 puro (< 25 kB, ultra-leve e customizável)
+* **Frontend Portal do Cliente:** Central do Assinante desacoplada (faturas Pix e auto-desbloqueio)
 * **Banco de Dados:** PostgreSQL 17+ com tipos nativos `UUID DEFAULT uuidv7()` e `JSONB`
 * **Migrações:** Flyway (V1 a V31 com histórico linear e verificações integradas)
 * **Segurança & Criptografia:** JWT (JJWT 0.13), AES-256 com PBKDF2 e assinaturas SHA-256
@@ -178,9 +179,16 @@ cd backend
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
-#### Frontend (React 19 + Vite 8):
+#### Frontend ERP (Flutter Multiplataforma):
 ```bash
-cd frontend
+cd frontend-flutter
+flutter pub get
+flutter run -d chrome  # ou -d macos / -d linux
+```
+
+#### Frontend Institucional (Site WWW):
+```bash
+cd frontend-site
 npm install
 npm run dev
 ```
@@ -189,12 +197,17 @@ npm run dev
 
 ### 3. Testes Automatizados e Integridade (TDD)
 ```bash
-# Backend (Suíte completa de 272 testes com banco real)
+# Backend (Suíte completa de testes com banco real)
 cd backend
 ./gradlew test
 
-# Frontend (Typecheck TypeScript e Build de Produção com Rolldown)
-cd frontend
+# Frontend ERP (Testes unitários e de widgets Flutter)
+cd frontend-flutter
+flutter test
+
+# Frontend Institucional (Testes de integração e tipagem)
+cd frontend-site
+npm test
 npm run typecheck
 npm run build
 ```

@@ -151,7 +151,7 @@ class AuditLogServiceTest {
                 .build();
 
         Page<AuditLog> page = new PageImpl<>(List.of(log1), PageRequest.of(0, 10), 1);
-        when(auditLogRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+        when(auditLogRepository.findAll(org.mockito.ArgumentMatchers.<Specification<AuditLog>>any(), any(Pageable.class))).thenReturn(page);
 
         Page<AuditLogResponseDto> result = auditLogService.searchLogs(
                 operatorId,

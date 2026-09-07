@@ -101,7 +101,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Cabeçalho e Título
-    expect(find.text('Trilha de Auditoria Forense'), findsOneWidget);
+    expect(find.text('Trilha de Auditoria'), findsOneWidget);
+    expect(find.text('Trilha de Auditoria Forense'), findsNothing);
     expect(find.text('Atualizar'), findsOneWidget);
 
     // Filtros
@@ -146,7 +147,8 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Trilha de Auditoria Forense'), findsOneWidget);
+    expect(find.text('Trilha de Auditoria'), findsOneWidget);
+    expect(find.text('Trilha de Auditoria Forense'), findsNothing);
     expect(find.text('Mariana Financeiro'), findsOneWidget);
   });
 
@@ -173,5 +175,53 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Nenhum registro de auditoria encontrado'), findsOneWidget);
+  });
+
+  testWidgets('AuditTrailScreen - Abre modal com título Detalhes do Evento ao clicar no botão de detalhes', (tester) async {
+    tester.view.physicalSize = const Size(1920, 1080);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final page = AuditLogPage(
+      items: sampleLogs,
+      totalElements: 2,
+      totalPages: 1,
+      currentPage: 0,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          auditLogNotifierProvider.overrideWith((ref) => FakeAuditNotifier(page)),
+          usersProvider.overrideWith((ref) => FakeUsersNotifier(sampleUsers)),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.darkTheme,
+          home: const AuditTrailScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Valida coluna Detalhes
+    expect(find.text('Detalhes'), findsOneWidget);
+
+    // Clica no primeiro botão de detalhes (ícone code)
+    final detailButtons = find.byIcon(Icons.code);
+    expect(detailButtons, findsNWidgets(2));
+    await tester.ensureVisible(detailButtons.first);
+    await tester.tap(detailButtons.first);
+    await tester.pumpAndSettle();
+
+    // Valida título sóbrio do modal
+    expect(find.text('Detalhes do Evento'), findsOneWidget);
+    expect(find.text('Dossiê de Auditoria Forense'), findsNothing);
+    expect(find.text('Fechar'), findsOneWidget);
+
+    // Fecha o modal
+    await tester.tap(find.text('Fechar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Detalhes do Evento'), findsNothing);
   });
 }

@@ -6,7 +6,7 @@ import '../data/audit_log_model.dart';
 import '../data/audit_log_notifier.dart';
 import '../data/users_notifier.dart';
 
-/// Tela de Trilha de Auditoria Forense do Administrador.
+/// Tela de Trilha de Auditoria do Administrador.
 /// Permite rastrear todas as ações de colaboradores no sistema com filtros
 /// temporais, por colaborador e por módulo (Financeiro, Faturamento, Usuários, etc.).
 class AuditTrailScreen extends ConsumerStatefulWidget {
@@ -41,7 +41,7 @@ class _AuditTrailScreenState extends ConsumerState<AuditTrailScreen> {
             _buildHeader(context, auditNotifier),
             const SizedBox(height: 20),
 
-            // Painel de Filtros Forenses
+            // Painel de Filtros
             _buildFilterPanel(context, auditState, auditNotifier, usersState),
             const SizedBox(height: 20),
 
@@ -103,7 +103,7 @@ class _AuditTrailScreenState extends ConsumerState<AuditTrailScreen> {
                       const SizedBox(width: 12),
                       const Expanded(
                         child: Text(
-                          'Trilha de Auditoria Forense',
+                          'Trilha de Auditoria',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -511,7 +511,7 @@ class _AuditTrailScreenState extends ConsumerState<AuditTrailScreen> {
                       ),
                       DataColumn(
                         label: Text(
-                          'Dossiê Forense',
+                          'Detalhes',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -652,11 +652,11 @@ class _AuditTrailScreenState extends ConsumerState<AuditTrailScreen> {
           ),
         ),
 
-        // Botão Dossiê Forense
+        // Botão Detalhes do Evento
         DataCell(
           IconButton(
             icon: const Icon(Icons.code, size: 18),
-            tooltip: 'Inspecionar Dossiê e Parâmetros',
+            tooltip: 'Detalhes do Evento',
             color: AppTheme.primaryBlue,
             onPressed: () => _showAuditDetailsDialog(context, log),
           ),
@@ -715,7 +715,7 @@ class _AuditTrailScreenState extends ConsumerState<AuditTrailScreen> {
     );
   }
 
-  /// Modal de Drill-Down do Dossiê Forense
+  /// Modal de Detalhes do Evento
   void _showAuditDetailsDialog(BuildContext context, AuditLogModel log) {
     String prettyDetails = 'Nenhum detalhe adicional informado.';
     if (log.details != null && log.details!.isNotEmpty) {
@@ -744,7 +744,7 @@ class _AuditTrailScreenState extends ConsumerState<AuditTrailScreen> {
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  'Dossiê de Auditoria Forense',
+                  'Detalhes do Evento',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>Provedor de Internet Fibra Óptica</title>
+  <meta name="description" content="Conexão ultraveloz e estável com 100% fibra óptica. Conheça nossos planos residenciais e corporativos.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles/main.css">
+  <link rel="stylesheet" href="/src/styles/components.css">
+</head>
+<body>
+  <!-- Header & Barra de Navegação -->
+  <header class="header">
+    <div class="container header-container">
+      <a href="#" class="logo-wrapper" id="brand-logo-link">
+        <div class="logo-icon" id="brand-logo-icon">⚡</div>
+        <span class="logo-text" id="brand-name">Nexus Fibra</span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#planos" class="nav-link">Planos</a></li>
+          <li><a href="#vantagens" class="nav-link">Vantagens</a></li>
+          <li><a href="#contato" class="nav-link">Contato</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <!-- Botão Área do Cliente (Direciona para frontend-customer) -->
+        <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-client-area" id="btn-client-area-header">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Área do Cliente
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Seção Hero -->
+    <section class="hero-section">
+      <div class="hero-glow"></div>
+      <div class="container hero-content">
+        <h1 class="hero-title" id="hero-headline">
+          A melhor conexão para quem <span>não pode parar</span>
+        </h1>
+
+        <p class="hero-subtitle" id="hero-description">
+          Ultravelocidade com estabilidade máxima para trabalho, streaming em 4K e jogos online sem travamentos.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#planos" class="btn btn-primary">
+            Ver Planos Disponíveis
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" id="btn-whatsapp-hero">
+            Falar no WhatsApp
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Planos (Renderizada Dinamicamente da API) -->
+    <section class="section" id="planos">
+      <div class="container">
+        <div class="section-title-wrapper">
+          <h2 class="section-title">Escolha o plano ideal para você</h2>
+          <p class="section-subtitle">
+            Planos de internet com instalação facilitada, sem fidelidade abusiva e suporte humanizado.
+          </p>
+        </div>
+
+        <!-- Grid de Planos Dinâmicos -->
+        <div class="plans-grid" id="plans-grid">
+          <!-- Carregado via TypeScript / API -->
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Consultando planos ativos e ofertas do provedor...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção Vantagens -->
+    <section class="section" id="vantagens" style="background-color: var(--surface-color);">
+      <div class="container">
+        <div class="section-title-wrapper">
+          <h2 class="section-title">Por que escolher nossa conexão?</h2>
+          <p class="section-subtitle">
+            Infraestrutura de última geração projetada para oferecer a melhor experiência.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-box">
+            <div class="feature-icon-wrapper">🚀</div>
+            <h3 class="feature-title">Velocidade Simétrica</h3>
+            <p class="feature-desc">Download e upload de alta velocidade para envio rápido de arquivos pesados e chamadas de vídeo.</p>
+          </div>
+
+          <div class="feature-box">
+            <div class="feature-icon-wrapper">📶</div>
+            <h3 class="feature-title">Wi-Fi de Alta Performance</h3>
+            <p class="feature-desc">Equipamentos modernos em comodato para garantir cobertura uniforme em todos os cômodos.</p>
+          </div>
+
+          <div class="feature-box">
+            <div class="feature-icon-wrapper">⚡</div>
+            <h3 class="feature-title">Baixa Latência</h3>
+            <p class="feature-desc">Rotas otimizadas com ping estável para jogos online competitivos e transmissões ao vivo.</p>
+          </div>
+
+          <div class="feature-box">
+            <div class="feature-icon-wrapper">🛠️</div>
+            <h3 class="feature-title">Suporte Próprio e Rápido</h3>
+            <p class="feature-desc">Equipe técnica local dedicada a resolver sua demanda de forma humanizada e ágil.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção Contato / Cobertura -->
+    <section class="section" id="contato">
+      <div class="container">
+        <div class="section-title-wrapper">
+          <h2 class="section-title">Estamos prontos para atender você</h2>
+          <p class="section-subtitle" id="contact-subtitle">
+            Fale diretamente com nosso time comercial ou visite nossa loja física.
+          </p>
+        </div>
+
+        <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+          <div class="feature-box" style="text-align: center;">
+            <div class="feature-icon-wrapper" style="margin: 0 auto 16px auto;">💬</div>
+            <h3 class="feature-title">WhatsApp Comercial</h3>
+            <p class="feature-desc" id="contact-whatsapp-text">Atendimento rápido para novas contratações</p>
+            <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary" id="btn-whatsapp-contact" style="margin-top: 16px;">
+              Iniciar Conversa
+            </a>
+          </div>
+
+          <div class="feature-box" style="text-align: center;">
+            <div class="feature-icon-wrapper" style="margin: 0 auto 16px auto;">📞</div>
+            <h3 class="feature-title">Central Telefônica / SAC</h3>
+            <p class="feature-desc" id="contact-phone-text">Suporte ao assinante</p>
+            <a href="#" class="btn btn-secondary" id="btn-phone-contact" style="margin-top: 16px;">
+              Ligar Agora
+            </a>
+          </div>
+
+          <div class="feature-box" style="text-align: center;">
+            <div class="feature-icon-wrapper" style="margin: 0 auto 16px auto;">📍</div>
+            <h3 class="feature-title">Endereço da Sede</h3>
+            <p class="feature-desc" id="contact-address-text">Venha tomar um café conosco</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Rodapé Corporativo -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo-wrapper">
+            <div class="logo-icon">⚡</div>
+            <span class="logo-text" id="footer-brand-name">Nexus Fibra</span>
+          </div>
+          <p id="footer-description">
+            Provedor de serviços de internet de alta velocidade, comprometido com a qualidade e estabilidade.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Navegação</h4>
+          <ul class="footer-links">
+            <li><a href="#planos" class="footer-link">Nossos Planos</a></li>
+            <li><a href="#vantagens" class="footer-link">Diferenciais</a></li>
+            <li><a href="#contato" class="footer-link">Contato</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Autoatendimento</h4>
+          <ul class="footer-links">
+            <li>
+              <!-- Link Direto para a Área do Cliente -->
+              <a href="#" target="_blank" rel="noopener noreferrer" class="footer-link" id="footer-client-area-link" style="color: var(--primary-color); font-weight: 700;">
+                ➔ Acessar Área do Cliente
+              </a>
+            </li>
+            <li><span class="footer-link" id="footer-sac">SAC: (00) 0000-0000</span></li>
+            <li><span class="footer-link" id="footer-email">Email: contato@provedor.com.br</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          <span id="footer-company-legal">Razão Social do Provedor • CNPJ: 00.000.000/0001-00</span>
+        </div>
+        <div>
+          <span>ispERP • Portal Institucional</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

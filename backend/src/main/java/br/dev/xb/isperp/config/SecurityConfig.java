@@ -79,6 +79,12 @@ public class SecurityConfig {
                     "/geocep/**",
                     "/api/geocep/**"
                 ).permitAll()
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/plans/active",
+                    "/site-settings",
+                    "/companies/primary"
+                ).permitAll()
                 .anyRequest().authenticated()
             );
 

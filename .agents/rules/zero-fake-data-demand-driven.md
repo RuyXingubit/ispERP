@@ -25,3 +25,8 @@ Garantir que todo o desenvolvimento de software seja 100% fiel às instruções 
 ### 3. Tolerância Zero a Overflows e Quebras de Layout
 - Em desenvolvimento frontend (Flutter, Web, Mobile), todas as UIs devem ser construídas defensivamente com constraints adequadas (`Expanded`, `Flexible`, `SingleChildScrollView`, `Wrap`, `TextOverflow.ellipsis`).
 - Erros de `RenderFlex overflowed by N pixels` são falhas de entrega e devem ser prevenidos no código.
+
+### 4. Proibição de Exageros e Jargões Melodramáticos ("Sem Encher Linguiça Verbal")
+- **NUNCA use vocabulário pomposo, bélico ou melodramático** para rotinas operacionais ou administrativas normais (ex: "Dossiê Forense", "Guerra Comercial", "Blindagem Patrimonial", "Varredura Pericial").
+- Todo nome de tela, modal, botão, menu ou log deve ser estritamente sóbrio, objetivo e padrão da indústria ERP/Telecom (ex: "Detalhes do Evento", "Logs de Auditoria", "Payback & Expansão", "Custódia de Caixa"). Consulte `.agents/rules/sobriedade-terminologica-e-zero-exageros.md`.
+

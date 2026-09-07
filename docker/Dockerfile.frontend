@@ -4,13 +4,13 @@ FROM node:24-alpine AS build
 WORKDIR /app
 
 # Copy package files
-COPY frontend/package*.json ./
+COPY frontend-site/package*.json ./
 
 # Install all dependencies (including Vite)
 RUN npm install
 
 # Copy source code and configuration
-COPY frontend/ ./
+COPY frontend-site/ ./
 
 # Build the application using Vite (outputs to dist/)
 RUN npm run build
