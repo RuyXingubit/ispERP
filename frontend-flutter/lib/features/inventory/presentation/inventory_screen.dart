@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/process_lifecycle_stepper.dart';
 import '../../dispatch/data/dispatch_models.dart';
 import '../data/inventory_models.dart';
 import '../data/inventory_notifier.dart';
 
-class InventoryScreen extends ConsumerWidget {
+class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InventoryScreen> createState() => _InventoryScreenState();
+}
+
+class _InventoryScreenState extends ConsumerState<InventoryScreen> {
+  String? _selectedRemovalDemandId;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(inventoryProvider);
     final notifier = ref.read(inventoryProvider.notifier);
+    final authState = ref.watch(authProvider);
+    final currentUserRole = authState.role?.name.toUpperCase();
 
     ref.listen<InventoryState>(inventoryProvider, (_, next) {
       if (next.successMessage != null) {
@@ -52,6 +63,7 @@ class InventoryScreen extends ConsumerWidget {
                       _buildBalancesTab(context, state, notifier),
                       _buildTransfersTab(context, state, notifier),
                       _buildAuditingTab(context, state, notifier),
+                      _buildReverseLogisticsTab(context, state, notifier, currentUserRole),
                     ],
                   ),
                 ),
@@ -175,6 +187,13 @@ class InventoryScreen extends ConsumerWidget {
                   icon: Icons.local_shipping_outlined,
                   color: AppTheme.primaryBlue,
                 ),
+                const SizedBox(width: 12),
+                _buildMetricChip(
+                  label: 'Logística Reversa',
+                  value: '${state.reverseLogisticsCount}',
+                  icon: Icons.assignment_return_outlined,
+                  color: Colors.purpleAccent,
+                ),
               ],
             ),
           ),
@@ -221,13 +240,17 @@ class InventoryScreen extends ConsumerWidget {
         color: AppTheme.darkSurface,
         border: Border(bottom: BorderSide(color: AppTheme.darkBorder)),
       ),
-      child: Row(
-        children: [
-          _buildTabButton(0, 'Triagem & Saídas por O.S.', Icons.assignment_outlined, state.selectedTab == 0, notifier),
-          _buildTabButton(1, 'Saldos & Entradas', Icons.inventory_outlined, state.selectedTab == 1, notifier),
-          _buildTabButton(2, 'Transferências & Trânsito', Icons.sync_alt, state.selectedTab == 2, notifier),
-          _buildTabButton(3, 'Auditoria de Divergências', Icons.fact_check_outlined, state.selectedTab == 3, notifier),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildTabButton(0, 'Triagem & Saídas por O.S.', Icons.assignment_outlined, state.selectedTab == 0, notifier),
+            _buildTabButton(1, 'Saldos & Entradas', Icons.inventory_outlined, state.selectedTab == 1, notifier),
+            _buildTabButton(2, 'Transferências & Trânsito', Icons.sync_alt, state.selectedTab == 2, notifier),
+            _buildTabButton(3, 'Auditoria de Divergências', Icons.fact_check_outlined, state.selectedTab == 3, notifier),
+            _buildTabButton(4, 'Logística Reversa (Comodato)', Icons.assignment_return_outlined, state.selectedTab == 4, notifier),
+          ],
+        ),
       ),
     );
   }
@@ -279,20 +302,23 @@ class InventoryScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Fila de Triagem de Materiais para O.S. de Instalação',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Confirme a separação no Depósito Central para liberar o agendamento pelo Supervisor Técnico.',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Fila de Triagem de Materiais para O.S. de Instalação',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Confirme a separação no Depósito Central para liberar o agendamento pelo Supervisor Técnico.',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 16),
               Wrap(
                 spacing: 8,
                 children: [
@@ -473,20 +499,23 @@ class InventoryScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Saldos Físicos no Almoxarifado',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Controle dinâmico de insumos a granel, bobinas de fibra e equipamentos serializados.',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Saldos Físicos no Almoxarifado',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Controle dinâmico de insumos a granel, bobinas de fibra e equipamentos serializados.',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 16),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryBlue,
@@ -2042,5 +2071,428 @@ class InventoryScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // ABA 4: LOGÍSTICA REVERSA & OFFBOARDING DE COMODATO (ESTEIRA DE 6 ETAPAS)
+  // ---------------------------------------------------------------------------
+  Widget _buildReverseLogisticsTab(
+    BuildContext context,
+    InventoryState state,
+    InventoryNotifier notifier,
+    String? currentUserRole,
+  ) {
+    final removalDemands = state.reverseLogisticsDemands;
+
+    if (_selectedRemovalDemandId == null && removalDemands.isNotEmpty) {
+      _selectedRemovalDemandId = removalDemands.first.id;
+    }
+
+    final selectedDemand = removalDemands.where((d) => d.id == _selectedRemovalDemandId).firstOrNull ??
+        (removalDemands.isNotEmpty ? removalDemands.first : null);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header da Aba
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Logística Reversa & Offboarding de Comodato',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Esteira de desinstalação, entrada em quarentena no almoxarifado, reteste óptico de bancada e reclassificação de ativos.',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              OutlinedButton.icon(
+                onPressed: () => notifier.loadAll(),
+                icon: const Icon(Icons.refresh, size: 16),
+                label: const Text('Atualizar Coletas'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primaryBlue,
+                  side: const BorderSide(color: AppTheme.primaryBlue),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          if (removalDemands.isEmpty)
+            _buildEmptyState(
+              'Nenhuma ordem de recolhimento de comodato pendente no momento.',
+              Icons.assignment_turned_in_outlined,
+            )
+          else ...[
+            // Painel da Esteira Operacional para a Coleta Selecionada
+            if (selectedDemand != null) ...[
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.darkSurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.darkBorder),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              const Icon(Icons.inventory_2_rounded, color: Colors.purpleAccent, size: 22),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Auditoria de Custódia: O.S. ${selectedDemand.workOrderId.length > 8 ? selectedDemand.workOrderId.substring(0, 8) : selectedDemand.workOrderId} • ${selectedDemand.customerName}',
+                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Equipamentos: ${selectedDemand.onuModelRequired} + Roteador Wi-Fi • Endereço: ${selectedDemand.customerAddress}',
+                                      style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.purpleAccent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.4)),
+                          ),
+                          child: Text(
+                            selectedDemand.status.label,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.purpleAccent,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Componente ProcessLifecycleStepper Reutilizável com POPs
+                    ProcessLifecycleStepper(
+                      processTitle: 'Esteira de Logística Reversa & Offboarding de Comodato',
+                      steps: _buildReverseLogisticsSteps(selectedDemand),
+                      currentUserRole: currentUserRole,
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Ações de Governança e Transição de Custódia
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.end,
+                      children: [
+                        if (currentUserRole == 'ADMIN' || currentUserRole == 'STOCKIST') ...[
+                          ElevatedButton.icon(
+                            onPressed: state.isSubmitting
+                                ? null
+                                : () => notifier.processReverseLogisticsCheckin(selectedDemand.workOrderId),
+                            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
+                            icon: const Icon(Icons.move_to_inbox_rounded, size: 16, color: Colors.white),
+                            label: const Text('Receber na Quarentena (Almoxarifado)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                        if (currentUserRole == 'ADMIN' || currentUserRole == 'SUPPORT_N2' || currentUserRole == 'STOCKIST') ...[
+                          ElevatedButton.icon(
+                            onPressed: state.isSubmitting
+                                ? null
+                                : () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        backgroundColor: AppTheme.accentGreen,
+                                        content: Text('Reteste óptico concluído com sucesso: Potência RX -19.4 dBm. Firmware restaurado aos padrões de fábrica!'),
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                  },
+                            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentGreen),
+                            icon: const Icon(Icons.check_circle_outline, size: 16, color: Color(0xFF0A0F1D)),
+                            label: const Text('Aprovar Teste de Bancada & Reteste Óptico', style: TextStyle(color: Color(0xFF0A0F1D), fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                        if (currentUserRole == 'ADMIN' || currentUserRole == 'STOCKIST') ...[
+                          OutlinedButton.icon(
+                            onPressed: state.isSubmitting
+                                ? null
+                                : () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        backgroundColor: AppTheme.primaryBlue,
+                                        content: Text('Ativo reintegrado com status DISPONÍVEL no estoque central para novas instalações!'),
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                  },
+                            icon: const Icon(Icons.assignment_return_rounded, size: 16),
+                            label: const Text('Reintegrar ao Saldo Ativo'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: state.isSubmitting
+                                ? null
+                                : () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        backgroundColor: AppTheme.accentError,
+                                        content: Text('Laudo de avaria emitido. Equipamento baixado para descarte ecológico/sucata.'),
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                  },
+                            style: OutlinedButton.styleFrom(foregroundColor: AppTheme.accentError),
+                            icon: const Icon(Icons.delete_outline, size: 16, color: AppTheme.accentError),
+                            label: const Text('Baixa como Sucata / Descarte', style: TextStyle(color: AppTheme.accentError)),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // Lista de Ordens de Retirada
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Ordens de Serviço de Recolhimento de Comodato',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Total: ${removalDemands.length} ordens de comodato registradas',
+                              style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: removalDemands.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final d = removalDemands[index];
+                        final isSelected = d.id == _selectedRemovalDemandId;
+
+                        return InkWell(
+                          onTap: () {
+                            setState(() {
+                              _selectedRemovalDemandId = d.id;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppTheme.primaryBlue.withValues(alpha: 0.12) : AppTheme.darkSurface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSelected ? AppTheme.primaryBlue : AppTheme.darkBorder,
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.assignment_return_outlined,
+                                  color: isSelected ? AppTheme.primaryBlue : AppTheme.textSecondary,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        d.customerName,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.textPrimary),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'O.S.: ${d.workOrderId.length > 8 ? d.workOrderId.substring(0, 8) : d.workOrderId} • Endereço: ${d.customerAddress}',
+                                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Equipamentos: ${d.onuModelRequired} + Roteador Wi-Fi (Técnico: ${d.allocatedTechnicianName ?? "Aguardando Despacho"})',
+                                        style: const TextStyle(fontSize: 11, color: AppTheme.primaryBlue),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.darkBg,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: AppTheme.darkBorder),
+                                  ),
+                                  child: Text(
+                                    d.status.label,
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textSecondary),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  List<ProcessLifecycleStep> _buildReverseLogisticsSteps(InstallationDemandModel demand) {
+    final status = demand.status;
+
+    return [
+      const ProcessLifecycleStep(
+        id: 'step_rev_churn',
+        title: '1. Rescisão & Solicitação',
+        subtitle: 'Contrato Cancelado / D+60',
+        responsibleRoleName: 'Financeiro / Atendimento',
+        allowedRoles: ['FINANCIAL', 'SALES', 'ADMIN'],
+        isCompleted: true,
+        isActive: false,
+        icon: Icons.cancel_presentation_rounded,
+        popGuideTitle: 'POP-REV-01: Formalização do Cancelamento e Abertura de Recolhimento',
+        popGuideContent:
+            '1. Verificação Contratual: Registro de encerramento contratual por pedido amigável ou rescisão após 60 dias de inadimplência.\n\n'
+            '2. Inventário em Comodato: Identificação automática no ERP dos números de série da ONT/ONU e do Roteador Wi-Fi cedidos em comodato gratuito.\n\n'
+            '3. Emissão da O.S.: O sistema emite automaticamente a Ordem de Retirada/Recolhimento para a Torre de Controle.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_rev_dispatch',
+        title: '2. Despacho & Rota de Coleta',
+        subtitle: status == MaterialDemandStatus.pendingAllocation ? 'Aguardando Despacho' : 'Rota Atribuída',
+        responsibleRoleName: 'Torre de Controle',
+        allowedRoles: const ['SUPPORT_ANALYST', 'SUPPORT_N2', 'ADMIN'],
+        isCompleted: status != MaterialDemandStatus.pendingAllocation,
+        isActive: status == MaterialDemandStatus.pendingAllocation,
+        icon: Icons.route_rounded,
+        popGuideTitle: 'POP-REV-02: Roteirização e Alocação de Técnico de Coleta',
+        popGuideContent:
+            '1. Agrupamento Geográfico: A Torre de Controle agrupa as coletas em rotas conjuntas com atendimentos de reparo e instalação.\n\n'
+            '2. Alocação: Atribuição ao técnico de campo com veículo apropriado para transporte seguro de equipamentos frágeis.\n\n'
+            '3. SLA: Coleta executada em até 5 dias úteis após a rescisão.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_rev_field_collection',
+        title: '3. Coleta Domiciliar & Termo',
+        subtitle: status == MaterialDemandStatus.allocatedVehicle
+            ? 'Em Coleta com Técnico'
+            : (status == MaterialDemandStatus.pendingAllocation ? 'Aguardando Coleta' : 'Equipamento Coletado'),
+        responsibleRoleName: 'Técnico de Campo',
+        allowedRoles: const ['TECHNICIAN', 'ADMIN'],
+        isCompleted: status == MaterialDemandStatus.allocatedCentral || status == MaterialDemandStatus.consumedInField,
+        isActive: status == MaterialDemandStatus.allocatedVehicle,
+        icon: Icons.home_repair_service_rounded,
+        popGuideTitle: 'POP-REV-03: Procedimento de Coleta Domiciliar e Assinatura de Termo',
+        popGuideContent:
+            '1. Conferência Visual: Checagem da integridade da carcaça, antenas, portas RJ45 e fonte de alimentação.\n\n'
+            '2. Coleta dos Itens: ONU GPON, Roteador Wi-Fi, Fonte 12V e cabos de rede.\n\n'
+            '3. Termo Digital: Assinatura do termo de devolução pelo assinante no app móvel com registro fotográfico do número de série (S/N) e MAC.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_rev_quarantine',
+        title: '4. Entrada em Quarentena',
+        subtitle: status == MaterialDemandStatus.allocatedCentral
+            ? 'Em Quarentena no Almoxarifado'
+            : (status == MaterialDemandStatus.consumedInField ? 'Conferido no Almoxarifado' : 'Aguardando Chegada'),
+        responsibleRoleName: 'Almoxarife / Estoquista',
+        allowedRoles: const ['STOCKIST', 'ADMIN'],
+        isCompleted: status == MaterialDemandStatus.consumedInField,
+        isActive: status == MaterialDemandStatus.allocatedCentral,
+        icon: Icons.inventory_2_rounded,
+        popGuideTitle: 'POP-REV-04: Entrada em Quarentena e Conferência de MAC / Serial',
+        popGuideContent:
+            '1. Recebimento da Equipe de Campo: Conferência física dos itens entregues pelo técnico com a O.S.\n\n'
+            '2. Bipagem de Código de Barras / MAC: Leitura ótica do MAC Address no sistema para dar baixa da custódia do veículo e entrada no lote de Quarentena do Almoxarifado Central.\n\n'
+            '3. Encaminhamento para Laboratório: Alocação física na bancada de higienização e diagnóstico.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_rev_lab_test',
+        title: '5. Higienização & Reteste Óptico',
+        subtitle: status == MaterialDemandStatus.consumedInField ? 'Aprovado em Bancada' : 'Aguardando Laboratório',
+        responsibleRoleName: 'Laboratório / Suporte N2',
+        allowedRoles: const ['SUPPORT_N2', 'STOCKIST', 'ADMIN'],
+        isCompleted: status == MaterialDemandStatus.consumedInField,
+        isActive: false,
+        icon: Icons.cleaning_services_rounded,
+        popGuideTitle: 'POP-REV-05: Higienização, Reset de Fábrica e Medição de Potência Óptica',
+        popGuideContent:
+            '1. Higienização: Limpeza ultrassônica externa da carcaça e álcool isopropílico nos conectores ópticos.\n\n'
+            '2. Hard Reset: Restauração para os padrões de fábrica (Factory Default Firmware).\n\n'
+            '3. Teste Óptico na OLT de Bancada: Verificação de sensibilidade do receptor RX/TX (limite aceitável: -8 dBm a -27 dBm) e porta Gigabit LAN.\n\n'
+            '4. Reembalagem: Acondicionamento em caixa padrão ispERP com identificação de lote testado.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_rev_restock',
+        title: '6. Reintegração / Sucata',
+        subtitle: status == MaterialDemandStatus.consumedInField ? 'Saldo Ativo Reintegrado' : 'Aguardando Homologação',
+        responsibleRoleName: 'Almoxarife / Gerência',
+        allowedRoles: const ['STOCKIST', 'ADMIN'],
+        isCompleted: false,
+        isActive: status == MaterialDemandStatus.consumedInField,
+        icon: Icons.verified_rounded,
+        popGuideTitle: 'POP-REV-06: Homologação Final, Retorno ao Estoque ou Baixa Patrimonial',
+        popGuideContent:
+            '1. Equipamento Aprovado: Reintegração imediata com status DISPONÍVEL no Almoxarifado Central para ser reutilizado em novas instalações.\n\n'
+            '2. Equipamento Danificado / Inviável: Baixa definitiva com emissão de laudo de sucata/descarte ambiental conforme normas WEEE/Anatel.\n\n'
+            '3. Cobrança de Equipamento Avariado: Caso constatado mau uso pelo cliente, lançamento de débito indenizatório no Contas a Receber.',
+      ),
+    ];
   }
 }

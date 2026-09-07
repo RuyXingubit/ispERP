@@ -72,6 +72,12 @@ class InventoryState {
 
   /// Quantidade de itens em nível crítico.
   int get criticalItemsCount => items.where((i) => i.isCriticalStock).length;
+
+  /// Quantidade de ordens de logística reversa / recolhimento de comodato.
+  int get reverseLogisticsCount => demands.where((d) => d.isRemoval).length;
+
+  /// Lista de ordens de logística reversa / recolhimento de comodato.
+  List<InstallationDemandModel> get reverseLogisticsDemands => demands.where((d) => d.isRemoval).toList();
 }
 
 class InventoryNotifier extends StateNotifier<InventoryState> {
@@ -158,6 +164,36 @@ class InventoryNotifier extends StateNotifier<InventoryState> {
       state = state.copyWith(
         isSubmitting: false,
         errorMessage: 'Erro ao confirmar materiais: $e',
+      );
+      return false;
+    }
+  }
+
+  /// Registra o recebimento e entrada em quarentena de comodato no Almoxarifado.
+  Future<bool> processReverseLogisticsCheckin(String workOrderId, {String? notes}) async {
+    state = state.copyWith(isSubmitting: true, clearMessages: true);
+    try {
+      final success = await _repository.confirmStockAllocation(
+        workOrderId,
+        warehouseId: state.selectedWarehouse?.id,
+      );
+      if (success) {
+        state = state.copyWith(
+          isSubmitting: false,
+          successMessage: 'Equipamento de comodato recebido e transferido para Quarentena no Almoxarifado!',
+        );
+        await loadAll(clearMessages: false);
+        return true;
+      }
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: 'Não foi possível confirmar o recebimento do equipamento.',
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: 'Erro ao processar recebimento de comodato: $e',
       );
       return false;
     }
