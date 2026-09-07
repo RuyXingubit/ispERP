@@ -1,0 +1,132 @@
+# Endpoints de Régua de Cobrança e Inadimplência (Billing Dunning)
+
+/billing/dunning/process:
+  post:
+    tags:
+      - BillingDunning
+    summary: Processar régua diária de cobrança e suspensão de inadimplentes
+    operationId: processDailyDunning
+    responses:
+      '200':
+        description: Processamento executado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/DunningProcessResponse'
+      '401':
+        description: Não autenticado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '403':
+        description: Acesso negado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/billing/dunning/rebalance/cross-credit:
+  post:
+    tags:
+      - BillingDunning
+    summary: Compensação cruzada de faturas pagas futuras contra faturas vencidas em aberto
+    operationId: executeCrossCreditRebalance
+    parameters:
+      - name: futurePaidInvoiceId
+        in: query
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: ID da fatura paga adiantada.
+      - name: overdueUnpaidInvoiceId
+        in: query
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: ID da fatura vencida pendente.
+    responses:
+      '200':
+        description: Compensação realizada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CrossCreditRebalanceResponse'
+      '400':
+        description: Parâmetros inválidos ou faturas não elegíveis.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Fatura não localizada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/billing/dunning/trust-unblock/bot:
+  post:
+    tags:
+      - BillingDunning
+    summary: Solicitação de desbloqueio temporário em confiança automático via Bot de WhatsApp
+    operationId: requestBotTrustUnblock
+    parameters:
+      - name: contractId
+        in: query
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: ID do contrato a ser liberado temporariamente.
+    responses:
+      '200':
+        description: Avaliação de desbloqueio processada.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/UnblockEvaluationResultResponse'
+      '404':
+        description: Contrato não localizado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/billing/dunning/trust-unblock/attendant:
+  post:
+    tags:
+      - BillingDunning
+    summary: Solicitação de desbloqueio temporário em confiança manual concedido pelo atendente
+    operationId: requestAttendantTrustUnblock
+    parameters:
+      - name: contractId
+        in: query
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: ID do contrato.
+      - name: attendantUserId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: ID do colaborador atendente.
+      - name: reason
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Justificativa da liberação em confiança manual.
+    responses:
+      '200':
+        description: Desbloqueio manual avaliado e processado.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/UnblockEvaluationResultResponse'
+      '404':
+        description: Contrato não localizado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

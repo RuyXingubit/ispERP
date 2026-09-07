@@ -116,3 +116,54 @@ TriggerRecurringBillingResponse:
     message:
       type: string
       example: "Rotina de faturamento recorrente executada com sucesso"
+
+DunningProcessResponse:
+  type: object
+  required:
+    - success
+    - suspendedCount
+    - processedAt
+  properties:
+    success:
+      type: boolean
+      example: true
+    suspendedCount:
+      type: integer
+      example: 12
+    processedAt:
+      type: string
+      example: "2026-09-07T18:00:00"
+
+CrossCreditRebalanceResponse:
+  type: object
+  required:
+    - success
+    - message
+  properties:
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: "Compensação cruzada realizada com sucesso e avisos fixos registrados."
+
+UnblockEvaluationResultResponse:
+  type: object
+  required:
+    - granted
+    - message
+  properties:
+    granted:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: "Desbloqueio temporário de 48h concedido com sucesso."
+    unblockType:
+      type: string
+      nullable: true
+      example: "BOT_AUTO"
+    expiresAt:
+      type: string
+      format: date-time
+      nullable: true

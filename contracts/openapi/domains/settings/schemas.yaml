@@ -1,0 +1,54 @@
+# Schemas do Domínio de Configurações Institucionais e do Site Vitrine
+
+SiteSettingsResponse:
+  type: object
+  required:
+    - id
+    - siteTitle
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    siteTitle:
+      type: string
+      example: "Nexus Fibra Telecomunicações"
+    siteDescription:
+      type: string
+      nullable: true
+      example: "Provedor de Internet Ultra Veloz em Fibra Óptica"
+    primaryColor:
+      type: string
+      nullable: true
+      example: "#1976d2"
+    secondaryColor:
+      type: string
+      nullable: true
+      example: "#dc004e"
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+SiteSettingsUpdateRequest:
+  type: object
+  required:
+    - siteTitle
+  properties:
+    siteTitle:
+      type: string
+      example: "Nexus Fibra Telecomunicações"
+    siteDescription:
+      type: string
+      nullable: true
+      example: "Provedor de Internet Ultra Veloz em Fibra Óptica"
+    primaryColor:
+      type: string
+      nullable: true
+      example: "#1976d2"
+    secondaryColor:
+      type: string
+      nullable: true
+      example: "#dc004e"

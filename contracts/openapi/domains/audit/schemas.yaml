@@ -1,0 +1,67 @@
+# Schemas do Domínio de Auditoria e Conformidade
+
+AuditLogResponse:
+  type: object
+  required:
+    - id
+    - action
+    - entityName
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    userId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+      nullable: true
+    userName:
+      type: string
+      nullable: true
+      example: "Carlos Atendente"
+    userEmail:
+      type: string
+      nullable: true
+      example: "carlos@nexusfibra.com.br"
+    action:
+      type: string
+      example: "CUSTOMER_PIN_RESET"
+    entityName:
+      type: string
+      example: "CUSTOMER"
+    entityId:
+      type: string
+      nullable: true
+      example: "01944883-9b48-7b89-9a2c-15a4b7f83b2a"
+    details:
+      type: string
+      nullable: true
+      example: "{\"forceChange\":true}"
+    createdAt:
+      type: string
+      format: date-time
+
+AuditLogPageResponse:
+  type: object
+  required:
+    - content
+    - totalElements
+    - totalPages
+    - size
+    - number
+  properties:
+    content:
+      type: array
+      items:
+        $ref: '#/AuditLogResponse'
+    totalElements:
+      type: integer
+      format: int64
+      example: 154
+    totalPages:
+      type: integer
+      example: 8
+    size:
+      type: integer
+      example: 20
+    number:
+      type: integer
+      example: 0

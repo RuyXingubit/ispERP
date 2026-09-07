@@ -1,37 +1,59 @@
 package br.dev.xb.isperp.controller;
 
+import br.dev.xb.isperp.api.contract.SiteSettingsApi;
+import br.dev.xb.isperp.api.dto.SiteSettingsResponse;
+import br.dev.xb.isperp.api.dto.SiteSettingsUpdateRequest;
 import br.dev.xb.isperp.entity.SiteSettings;
 import br.dev.xb.isperp.service.SiteSettingsService;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
+import java.time.ZoneOffset;
 
 @RestController
-@RequestMapping("/site-settings")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 @SuppressWarnings("null")
-public class SiteSettingsController {
+public class SiteSettingsController implements SiteSettingsApi {
 
-    @Autowired
-    private SiteSettingsService siteSettingsService;
+    private final SiteSettingsService siteSettingsService;
 
-    @GetMapping
-    public ResponseEntity<SiteSettings> getSiteSettings() {
-        Optional<SiteSettings> settings = siteSettingsService.getSiteSettings();
-        return settings.map(ResponseEntity::ok)
+    @Override
+    public ResponseEntity<SiteSettingsResponse> getSiteSettings() {
+        return siteSettingsService.getSiteSettings()
+                .map(this::toResponse)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping
-    public ResponseEntity<SiteSettings> updateSiteSettings(@Valid @RequestBody SiteSettings siteSettings) {
-        try {
-            SiteSettings updated = siteSettingsService.updateSiteSettings(siteSettings);
-            return ResponseEntity.ok(updated);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+    @Override
+    public ResponseEntity<SiteSettingsResponse> updateSiteSettings(SiteSettingsUpdateRequest request) {
+        SiteSettings entity = SiteSettings.builder()
+                .siteTitle(request.getSiteTitle())
+                .siteDescription(request.getSiteDescription())
+                .primaryColor(request.getPrimaryColor())
+                .secondaryColor(request.getSecondaryColor())
+                .build();
+
+        SiteSettings saved = siteSettingsService.updateSiteSettings(entity);
+        return ResponseEntity.ok(toResponse(saved));
+    }
+
+    private SiteSettingsResponse toResponse(SiteSettings entity) {
+        SiteSettingsResponse response = new SiteSettingsResponse();
+        response.setId(entity.getId());
+        response.setSiteTitle(entity.getSiteTitle());
+        response.setSiteDescription(entity.getSiteDescription());
+        response.setPrimaryColor(entity.getPrimaryColor());
+        response.setSecondaryColor(entity.getSecondaryColor());
+        if (entity.getCreatedAt() != null) {
+            response.setCreatedAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC));
         }
+        if (entity.getUpdatedAt() != null) {
+            response.setUpdatedAt(entity.getUpdatedAt().atOffset(ZoneOffset.UTC));
+        }
+        return response;
     }
 }

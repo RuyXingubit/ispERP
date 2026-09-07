@@ -1,0 +1,59 @@
+# Endpoints do Domínio de Configurações Institucionais e do Site Vitrine
+
+/site-settings:
+  get:
+    tags:
+      - SiteSettings
+    summary: Obter configurações públicas e institucionais do site vitrine
+    operationId: getSiteSettings
+    security: []
+    responses:
+      '200':
+        description: Configurações obtidas com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SiteSettingsResponse'
+      '404':
+        description: Configurações não encontradas.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+  put:
+    tags:
+      - SiteSettings
+    summary: Atualizar configurações institucionais do site vitrine
+    operationId: updateSiteSettings
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/SiteSettingsUpdateRequest'
+    responses:
+      '200':
+        description: Configurações atualizadas com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/SiteSettingsResponse'
+      '400':
+        description: Dados inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autenticado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '403':
+        description: Acesso negado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

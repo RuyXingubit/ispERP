@@ -1,60 +1,77 @@
 package br.dev.xb.isperp.controller;
 
+import br.dev.xb.isperp.api.contract.BillingDunningApi;
+import br.dev.xb.isperp.api.dto.CrossCreditRebalanceResponse;
+import br.dev.xb.isperp.api.dto.DunningProcessResponse;
+import br.dev.xb.isperp.api.dto.UnblockEvaluationResultResponse;
 import br.dev.xb.isperp.service.HierarchicalBillingService;
 import br.dev.xb.isperp.service.InvoiceRebalanceService;
 import br.dev.xb.isperp.service.TrustUnblockPolicyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @RestController
-@RequestMapping({"/billing/dunning", "/api/billing/dunning"})
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
 @SuppressWarnings("null")
-public class BillingDunningController {
+public class BillingDunningController implements BillingDunningApi {
 
     private final HierarchicalBillingService hierarchicalBillingService;
     private final InvoiceRebalanceService invoiceRebalanceService;
     private final TrustUnblockPolicyService trustUnblockPolicyService;
 
-    @PostMapping("/process")
-    public ResponseEntity<Map<String, Object>> processDailyDunning() {
+    @Override
+    public ResponseEntity<DunningProcessResponse> processDailyDunning() {
         int suspended = hierarchicalBillingService.processDailyDunning(LocalDateTime.now());
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "suspendedCount", suspended,
-                "processedAt", LocalDateTime.now().toString()
-        ));
+        DunningProcessResponse response = new DunningProcessResponse();
+        response.setSuccess(true);
+        response.setSuspendedCount(suspended);
+        response.setProcessedAt(LocalDateTime.now().toString());
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/rebalance/cross-credit")
-    public ResponseEntity<Map<String, Object>> executeCrossCredit(
-            @RequestParam UUID futurePaidInvoiceId,
-            @RequestParam UUID overdueUnpaidInvoiceId) {
+    @Override
+    public ResponseEntity<CrossCreditRebalanceResponse> executeCrossCreditRebalance(
+            UUID futurePaidInvoiceId,
+            UUID overdueUnpaidInvoiceId) {
         invoiceRebalanceService.executeCrossCreditRebalance(futurePaidInvoiceId, overdueUnpaidInvoiceId);
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Compensação cruzada realizada com sucesso e avisos fixos registrados."
-        ));
+        CrossCreditRebalanceResponse response = new CrossCreditRebalanceResponse();
+        response.setSuccess(true);
+        response.setMessage("Compensação cruzada realizada com sucesso e avisos fixos registrados.");
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/trust-unblock/bot")
-    public ResponseEntity<TrustUnblockPolicyService.UnblockEvaluationResult> requestBotUnblock(@RequestParam UUID contractId) {
-        return ResponseEntity.ok(trustUnblockPolicyService.requestBotAutoUnblock(contractId));
+    @Override
+    public ResponseEntity<UnblockEvaluationResultResponse> requestBotTrustUnblock(UUID contractId) {
+        TrustUnblockPolicyService.UnblockEvaluationResult result = trustUnblockPolicyService.requestBotAutoUnblock(contractId);
+        return ResponseEntity.ok(toResponse(result));
     }
 
-    @PostMapping("/trust-unblock/attendant")
-    public ResponseEntity<TrustUnblockPolicyService.UnblockEvaluationResult> requestAttendantUnblock(
-            @RequestParam UUID contractId,
-            @RequestParam(required = false) UUID attendantUserId,
-            @RequestParam(required = false) String reason) {
-        return ResponseEntity.ok(trustUnblockPolicyService.requestAttendantManualUnblock(contractId, attendantUserId, reason));
+    @Override
+    public ResponseEntity<UnblockEvaluationResultResponse> requestAttendantTrustUnblock(
+            UUID contractId,
+            UUID attendantUserId,
+            String reason) {
+        TrustUnblockPolicyService.UnblockEvaluationResult result = trustUnblockPolicyService.requestAttendantManualUnblock(contractId, attendantUserId, reason);
+        return ResponseEntity.ok(toResponse(result));
+    }
+
+    private UnblockEvaluationResultResponse toResponse(TrustUnblockPolicyService.UnblockEvaluationResult result) {
+        UnblockEvaluationResultResponse response = new UnblockEvaluationResultResponse();
+        response.setGranted(result.isGranted());
+        response.setMessage(result.getMessage());
+        response.setUnblockType(result.getUnblockType());
+        if (result.getExpiresAt() != null) {
+            response.setExpiresAt(result.getExpiresAt().atOffset(ZoneOffset.UTC));
+        }
+        return response;
     }
 }

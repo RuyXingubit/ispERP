@@ -1,0 +1,74 @@
+# Endpoints do Domínio de Auditoria e Conformidade
+
+/admin/audit-logs:
+  get:
+    tags:
+      - AuditLogs
+    summary: Consultar trilha imutável de logs de auditoria
+    operationId: getAuditLogs
+    parameters:
+      - name: userId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: Filtrar por ID do usuário executor.
+      - name: entityName
+        in: query
+        required: false
+        schema:
+          type: string
+        description: "Filtrar por nome da entidade (ex: CUSTOMER, INVOICE, CONTRACT)."
+      - name: action
+        in: query
+        required: false
+        schema:
+          type: string
+        description: "Filtrar pela ação realizada (ex: CUSTOMER_PIN_RESET, CREATE, UPDATE)."
+      - name: startDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+        description: Data inicial do período.
+      - name: endDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+        description: Data final do período.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+        description: Número da página (0-indexed).
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 20
+        description: Quantidade de registros por página (máx 100).
+    responses:
+      '200':
+        description: Registros de auditoria retornados com paginação.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/AuditLogPageResponse'
+      '401':
+        description: Não autenticado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '403':
+        description: Acesso restrito a administradores.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

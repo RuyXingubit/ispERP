@@ -65,6 +65,12 @@ tags:
     description: Transição e Agendamento de Regimes Tributários (Simples Nacional, Lucro Presumido, Lucro Real)
   - name: ClientPortal
     description: Central do Assinante (Autenticação via PIN, consulta de faturas, desbloqueio em confiança e solicitação de upgrade)
+  - name: BillingDunning
+    description: Régua de Cobrança, Rebalanceamento de Créditos Cruzados e Políticas de Desbloqueio em Confiança
+  - name: SiteSettings
+    description: Configurações Institucionais e Visuais do Provedor (Site Vitrine e Central do Assinante)
+  - name: AuditLogs
+    description: Trilha Imutável de Auditoria Administrativa e Governança
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -106,6 +112,14 @@ paths:
     $ref: './domains/billing/invoices.yaml#/~1invoices~1{id}~1cancel'
   /invoices/trigger-recurring-billing:
     $ref: './domains/billing/invoices.yaml#/~1invoices~1trigger-recurring-billing'
+  /billing/dunning/process:
+    $ref: './domains/billing/dunning.yaml#/~1billing~1dunning~1process'
+  /billing/dunning/rebalance/cross-credit:
+    $ref: './domains/billing/dunning.yaml#/~1billing~1dunning~1rebalance~1cross-credit'
+  /billing/dunning/trust-unblock/bot:
+    $ref: './domains/billing/dunning.yaml#/~1billing~1dunning~1trust-unblock~1bot'
+  /billing/dunning/trust-unblock/attendant:
+    $ref: './domains/billing/dunning.yaml#/~1billing~1dunning~1trust-unblock~1attendant'
 
   # Contratos
   /contracts:
@@ -156,6 +170,14 @@ paths:
     $ref: './domains/portal/portal.yaml#/~1portal~1client~1upgrade-plan'
   /portal/client/trust-unblock:
     $ref: './domains/portal/portal.yaml#/~1portal~1client~1trust-unblock'
+
+  # Configurações Institucionais e do Site
+  /site-settings:
+    $ref: './domains/settings/settings.yaml#/~1site-settings'
+
+  # Auditoria Administrativa
+  /admin/audit-logs:
+    $ref: './domains/audit/audit.yaml#/~1admin~1audit-logs'
 
   # Autenticação
   /auth/login:
@@ -572,4 +594,24 @@ components:
       $ref: './domains/portal/schemas.yaml#/ClientPortalDashboardResponse'
     PortalMessageResponse:
       $ref: './domains/portal/schemas.yaml#/PortalMessageResponse'
+
+    # Billing Dunning
+    DunningProcessResponse:
+      $ref: './domains/billing/schemas.yaml#/DunningProcessResponse'
+    CrossCreditRebalanceResponse:
+      $ref: './domains/billing/schemas.yaml#/CrossCreditRebalanceResponse'
+    UnblockEvaluationResultResponse:
+      $ref: './domains/billing/schemas.yaml#/UnblockEvaluationResultResponse'
+
+    # Site Settings
+    SiteSettingsResponse:
+      $ref: './domains/settings/schemas.yaml#/SiteSettingsResponse'
+    SiteSettingsUpdateRequest:
+      $ref: './domains/settings/schemas.yaml#/SiteSettingsUpdateRequest'
+
+    # Audit Logs
+    AuditLogResponse:
+      $ref: './domains/audit/schemas.yaml#/AuditLogResponse'
+    AuditLogPageResponse:
+      $ref: './domains/audit/schemas.yaml#/AuditLogPageResponse'
 
