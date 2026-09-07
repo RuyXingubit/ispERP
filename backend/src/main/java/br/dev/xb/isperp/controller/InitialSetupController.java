@@ -1,47 +1,75 @@
 package br.dev.xb.isperp.controller;
 
-import br.dev.xb.isperp.dto.InitialSetupRequest;
+import br.dev.xb.isperp.api.contract.InitialSetupApi;
+import br.dev.xb.isperp.api.dto.InitialSetupRequest;
+import br.dev.xb.isperp.api.dto.InitialSetupResponse;
+import br.dev.xb.isperp.api.dto.InitialSetupStatusResponse;
 import br.dev.xb.isperp.service.InitialSetupService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.util.Map;
 
 @RestController
 @RequestMapping({"/initial-setup", "/setup"})
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 @SuppressWarnings("null")
-public class InitialSetupController {
+public class InitialSetupController implements InitialSetupApi {
 
-    @Autowired
-    private InitialSetupService initialSetupService;
+    private final InitialSetupService initialSetupService;
 
+    @Override
     @GetMapping({"/status", ""})
-    public ResponseEntity<Map<String, Object>> getSetupStatus() {
+    public ResponseEntity<InitialSetupStatusResponse> getSetupStatus() {
         boolean isCompleted = initialSetupService.isSetupCompleted();
-        return ResponseEntity.ok(Map.of("isSetupCompleted", isCompleted));
+        InitialSetupStatusResponse response = new InitialSetupStatusResponse();
+        response.setIsSetupCompleted(isCompleted);
+        return ResponseEntity.ok(response);
     }
 
+    @Override
     @PostMapping({"", "/complete"})
-    public ResponseEntity<Map<String, Object>> performInitialSetup(@Valid @RequestBody InitialSetupRequest request) {
+    public ResponseEntity<InitialSetupResponse> performInitialSetup(@Valid @RequestBody InitialSetupRequest request) {
         try {
             if (initialSetupService.isSetupCompleted()) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "Setup já foi realizado anteriormente"));
+                InitialSetupResponse response = new InitialSetupResponse();
+                response.setSuccess(false);
+                response.setIsSetupCompleted(true);
+                response.setMessage("Setup já foi realizado anteriormente");
+                return ResponseEntity.badRequest().body(response);
             }
 
-            initialSetupService.performSetup(request);
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true, 
-                "isSetupCompleted", true,
-                "message", "Setup realizado com sucesso!"
-            ));
+            br.dev.xb.isperp.dto.InitialSetupRequest internalReq = br.dev.xb.isperp.dto.InitialSetupRequest.builder()
+                    .adminName(request.getAdminName())
+                    .adminEmail(request.getAdminEmail())
+                    .adminPassword(request.getAdminPassword())
+                    .companyName(request.getCompanyName())
+                    .companyCnpj(request.getCompanyCnpj())
+                    .companyAddress(request.getCompanyAddress())
+                    .companyPhone(request.getCompanyPhone())
+                    .companyEmail(request.getCompanyEmail())
+                    .companyWebsite(request.getCompanyWebsite())
+                    .siteTitle(request.getSiteTitle())
+                    .siteDescription(request.getSiteDescription())
+                    .primaryColor(request.getPrimaryColor())
+                    .secondaryColor(request.getSecondaryColor())
+                    .build();
+
+            initialSetupService.performSetup(internalReq);
+
+            InitialSetupResponse response = new InitialSetupResponse();
+            response.setSuccess(true);
+            response.setIsSetupCompleted(true);
+            response.setMessage("Setup realizado com sucesso!");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", "Erro durante o setup: " + e.getMessage()));
+            InitialSetupResponse response = new InitialSetupResponse();
+            response.setSuccess(false);
+            response.setIsSetupCompleted(false);
+            response.setMessage("Erro durante o setup: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 }

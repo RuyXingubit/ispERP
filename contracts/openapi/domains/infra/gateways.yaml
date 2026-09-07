@@ -1,0 +1,96 @@
+# Endpoints de Gateways de Pagamento e Webhooks
+
+/payment-gateways:
+  get:
+    tags:
+      - PaymentGatewayConfig
+    summary: Listar todas as contas e integrações com gateways de pagamento
+    operationId: getAllPaymentGatewayConfigs
+    responses:
+      '200':
+        description: Lista de configurações de gateway
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/PaymentGatewayConfigResponse'
+  post:
+    tags:
+      - PaymentGatewayConfig
+    summary: Salvar ou atualizar conta de gateway de pagamento
+    operationId: savePaymentGatewayConfig
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/PaymentGatewayConfigSaveRequest'
+    responses:
+      '200':
+        description: Configuração de gateway salva com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PaymentGatewayConfigResponse'
+
+/payment-gateways/{id}:
+  get:
+    tags:
+      - PaymentGatewayConfig
+    summary: Obter detalhes da configuração de gateway por ID
+    operationId: getPaymentGatewayConfigById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Detalhes do gateway
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PaymentGatewayConfigResponse'
+      '404':
+        description: Configuração não encontrada
+
+/webhooks/payments/{gatewayType}:
+  post:
+    tags:
+      - PaymentWebhooks
+    summary: Receber notificação assíncrona de liquidação ou alteração de cobrança via Webhook
+    operationId: handlePaymentWebhook
+    parameters:
+      - name: gatewayType
+        in: path
+        required: true
+        schema:
+          type: string
+        example: "ASAAS"
+      - name: X-Webhook-Signature
+        in: header
+        required: false
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+    responses:
+      '200':
+        description: Webhook processado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PaymentWebhookResponse'
+      '400':
+        description: Falha no processamento ou assinatura inválida
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PaymentWebhookResponse'

@@ -1,0 +1,41 @@
+# Endpoints do Assistente de Configuração Inicial (Setup Wizard)
+
+/initial-setup/status:
+  get:
+    tags:
+      - InitialSetup
+    summary: Verificar se o sistema já foi inicializado com a empresa matriz e admin
+    operationId: getSetupStatus
+    responses:
+      '200':
+        description: Status de inicialização do sistema
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/InitialSetupStatusResponse'
+
+/initial-setup:
+  post:
+    tags:
+      - InitialSetup
+    summary: Executar configuração inicial (criação de empresa, usuário admin e personalização do site)
+    operationId: performInitialSetup
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/InitialSetupRequest'
+    responses:
+      '200':
+        description: Setup realizado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/InitialSetupResponse'
+      '400':
+        description: Setup já foi realizado anteriormente ou parâmetros inválidos
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/InitialSetupResponse'

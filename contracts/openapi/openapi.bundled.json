@@ -156,6 +156,46 @@
     {
       "name": "Ipam",
       "description": "Gestão de Endereçamento IP (IPAM), Sub-redes, ASNs e VRFs"
+    },
+    {
+      "name": "FtthTopology",
+      "description": "Topologia de Rede FTTH (POPs, Postes, Cabos, Caixas de Emenda, Fusões, CTOs e Rastreamento Óptico)"
+    },
+    {
+      "name": "FtthMonitoring",
+      "description": "Monitoramento Proativo NOC e Correlação de Incidentes PON"
+    },
+    {
+      "name": "InstallationDispatch",
+      "description": "Torre de Controle de Despacho Técnico e Triagem de Materiais FTTH"
+    },
+    {
+      "name": "GeoCep",
+      "description": "Geocodificação, Consulta de CEP e Otimização de Rotas de Atendimento"
+    },
+    {
+      "name": "InitialSetup",
+      "description": "Assistente de Configuração Inicial do Provedor"
+    },
+    {
+      "name": "StorageConfig",
+      "description": "Configuração de Armazenamento de Objetos S3 / SeaweedFS Local"
+    },
+    {
+      "name": "FileStorage",
+      "description": "Upload e Recuperação de Arquivos, Comprovantes e Mídias"
+    },
+    {
+      "name": "NotificationConfigs",
+      "description": "Configurações de Notificações e Provedores WhatsApp/SMS"
+    },
+    {
+      "name": "PaymentGatewayConfig",
+      "description": "Configuração de Gateways de Pagamento (PIX, Boleto, Cartão)"
+    },
+    {
+      "name": "PaymentWebhooks",
+      "description": "Webhooks de Notificação de Pagamentos Recebidos"
     }
   ],
   "paths": {
@@ -7912,6 +7952,1706 @@
           }
         }
       }
+    },
+    "/ftth/pops": {
+      "get": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Listar todos os POPs / Centrais Ópticas",
+        "operationId": "getAllPops",
+        "responses": {
+          "200": {
+            "description": "Lista de POPs cadastrados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FtthPopResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Cadastrar novo POP / Central Óptica",
+        "operationId": "createPop",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FtthPopRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "POP criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthPopResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/poles": {
+      "get": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Listar todos os postes georreferenciados",
+        "operationId": "getAllPoles",
+        "responses": {
+          "200": {
+            "description": "Lista de postes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FtthPoleResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Cadastrar novo poste",
+        "operationId": "createPole",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FtthPoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Poste cadastrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthPoleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/cables": {
+      "get": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Listar cabos ópticos da rede",
+        "operationId": "getAllCables",
+        "responses": {
+          "200": {
+            "description": "Lista de cabos ópticos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FtthCableResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Cadastrar novo cabo óptico",
+        "operationId": "createCable",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FtthCableRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cabo óptico cadastrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthCableResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/cables/{id}": {
+      "get": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Obter detalhes do cabo óptico por ID",
+        "operationId": "getCableById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados detalhados do cabo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthCableResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/closures": {
+      "get": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Listar caixas de emenda óptica (CEO)",
+        "operationId": "getAllClosures",
+        "responses": {
+          "200": {
+            "description": "Lista de caixas de emenda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FtthClosureResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Cadastrar nova caixa de emenda óptica (CEO)",
+        "operationId": "createClosure",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FtthClosureRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Caixa de emenda cadastrada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthClosureResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/closures/{id}": {
+      "get": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Obter detalhes da caixa de emenda óptica (CEO)",
+        "operationId": "getClosureById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados da caixa de emenda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthClosureResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/closures/{id}/diagram": {
+      "get": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Obter diagrama unifilar interno da caixa de emenda (bandejas, fusões, splitters e CTOs)",
+        "operationId": "getClosureDiagram",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Diagrama interno da caixa de emenda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthClosureDiagramResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/closures/{id}/splitters": {
+      "post": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Instalar splitter óptico dentro da caixa de emenda",
+        "operationId": "createSplitter",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FtthSplitterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Splitter instalado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthSplitterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/closures/{id}/fusions": {
+      "post": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Registrar fusão óptica entre fibras/splitters na caixa de emenda",
+        "operationId": "createFusion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FtthFusionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Fusão óptica registrada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthFusionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/fusions/{id}": {
+      "delete": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Desfazer fusão óptica",
+        "operationId": "deleteFusion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Fusão óptica removida com sucesso"
+          }
+        }
+      }
+    },
+    "/ftth/ctos": {
+      "get": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Listar Caixas de Atendimento ao Cliente (CTO)",
+        "operationId": "getAllCtos",
+        "responses": {
+          "200": {
+            "description": "Lista de CTOs cadastradas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FtthCtoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Cadastrar Caixa de Atendimento ao Cliente (CTO)",
+        "operationId": "createCto",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FtthCtoRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "CTO cadastrada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthCtoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/ctos/{id}": {
+      "get": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Obter detalhes da CTO com status de todas as portas",
+        "operationId": "getCtoById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados da CTO e suas portas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthCtoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/feasibility": {
+      "post": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Consulta de viabilidade técnica de vendas por coordenadas GPS",
+        "operationId": "checkFeasibility",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FtthFeasibilityRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado da análise de viabilidade com CTOs mais próximas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthFeasibilityResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/lightpath/{ctoPortId}": {
+      "get": {
+        "tags": [
+          "FtthTopology"
+        ],
+        "summary": "Rastrear trajeto óptico completo da porta da CTO até o POP/OLT",
+        "operationId": "traceLightPath",
+        "parameters": [
+          {
+            "name": "ctoPortId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Caminho óptico unifilar com atenuação acumulada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LightPathTraceResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/monitoring/summary": {
+      "get": {
+        "tags": [
+          "FtthMonitoring"
+        ],
+        "summary": "Obter resumo executivo de monitoramento do NOC (saúde OLTs, PONs e incidentes ativos)",
+        "operationId": "getMonitoringSummary",
+        "responses": {
+          "200": {
+            "description": "Resumo operacional do NOC",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NocMonitoringSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/monitoring/pons": {
+      "get": {
+        "tags": [
+          "FtthMonitoring"
+        ],
+        "summary": "Listar todas as portas PON monitoradas",
+        "operationId": "getAllPonPorts",
+        "responses": {
+          "200": {
+            "description": "Lista de portas PON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OltPonPortResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FtthMonitoring"
+        ],
+        "summary": "Cadastrar/Mapear nova porta PON em uma OLT",
+        "operationId": "createPonPort",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OltPonPortRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Porta PON mapeada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OltPonPortResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/monitoring/pons/device/{deviceId}": {
+      "get": {
+        "tags": [
+          "FtthMonitoring"
+        ],
+        "summary": "Listar portas PON de uma OLT específica",
+        "operationId": "getPonPortsByDevice",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Portas PON da OLT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OltPonPortResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/monitoring/incidents": {
+      "get": {
+        "tags": [
+          "FtthMonitoring"
+        ],
+        "summary": "Listar todos os incidentes de rede detectados pelo NOC",
+        "operationId": "getAllIncidents",
+        "responses": {
+          "200": {
+            "description": "Lista de incidentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FtthIncidentResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/monitoring/incidents/active": {
+      "get": {
+        "tags": [
+          "FtthMonitoring"
+        ],
+        "summary": "Listar incidentes não resolvidos (críticos e em averiguação)",
+        "operationId": "getActiveIncidents",
+        "responses": {
+          "200": {
+            "description": "Incidentes ativos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FtthIncidentResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/monitoring/incidents/{id}/dispatch": {
+      "post": {
+        "tags": [
+          "FtthMonitoring"
+        ],
+        "summary": "Despachar equipe técnica de campo para atendimento do incidente",
+        "operationId": "dispatchIncident",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FtthIncidentDispatchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Incidente despachado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthIncidentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/monitoring/incidents/{id}/resolve": {
+      "post": {
+        "tags": [
+          "FtthMonitoring"
+        ],
+        "summary": "Concluir e registrar solução e causa raiz do incidente",
+        "operationId": "resolveIncident",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FtthIncidentResolveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Incidente finalizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthIncidentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ftth/monitoring/poll-now": {
+      "post": {
+        "tags": [
+          "FtthMonitoring"
+        ],
+        "summary": "Forçar ciclo imediato de telemetria SNMP/SSH nas OLTs e rodar correlação",
+        "operationId": "forcePollCycle",
+        "responses": {
+          "200": {
+            "description": "Ciclo de varredura concluído",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NocMonitoringSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dispatch/installations/demands": {
+      "get": {
+        "tags": [
+          "InstallationDispatch"
+        ],
+        "summary": "Listar todas as demandas de instalação e dimensionamento FTTH",
+        "operationId": "listInstallationDemands",
+        "responses": {
+          "200": {
+            "description": "Lista de demandas de materiais pendentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InstallationMaterialDemandResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dispatch/installations/demands/{workOrderId}": {
+      "get": {
+        "tags": [
+          "InstallationDispatch"
+        ],
+        "summary": "Obter detalhes da demanda e kit FTTH de uma O.S.",
+        "operationId": "getInstallationDemand",
+        "parameters": [
+          {
+            "name": "workOrderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes da demanda de materiais",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationMaterialDemandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dispatch/installations/{workOrderId}/candidates": {
+      "get": {
+        "tags": [
+          "InstallationDispatch"
+        ],
+        "summary": "Listar técnicos candidatos ranqueados por estoque no veículo e proximidade GPS",
+        "operationId": "listDispatchCandidates",
+        "parameters": [
+          {
+            "name": "workOrderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Técnicos ranqueados por aptidão",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TechnicianDispatchCandidateResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dispatch/installations/{workOrderId}/dispatch": {
+      "post": {
+        "tags": [
+          "InstallationDispatch"
+        ],
+        "summary": "Despachar O.S. para um técnico com alocação automática de estoque do veículo",
+        "operationId": "dispatchInstallationWorkOrder",
+        "parameters": [
+          {
+            "name": "workOrderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          },
+          {
+            "name": "technicianId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "O.S. despachada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dispatch/installations/demands/{workOrderId}/confirm-stock": {
+      "post": {
+        "tags": [
+          "InstallationDispatch"
+        ],
+        "summary": "Confirmar e reservar materiais no almoxarifado para a O.S.",
+        "operationId": "confirmStockAllocation",
+        "parameters": [
+          {
+            "name": "workOrderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Demanda atualizada com materiais reservados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallationMaterialDemandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/geocep/cep/{cep}": {
+      "get": {
+        "tags": [
+          "GeoCep"
+        ],
+        "summary": "Consulta de endereço e coordenadas por CEP",
+        "operationId": "lookupCep",
+        "parameters": [
+          {
+            "name": "cep",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "01310100"
+          },
+          {
+            "name": "numero",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "1000"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Endereço georreferenciado retornado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CepLookupResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/geocep/search": {
+      "get": {
+        "tags": [
+          "GeoCep"
+        ],
+        "summary": "Busca textual de endereços e logradouros",
+        "operationId": "searchAddresses",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Avenida Paulista, Sao Paulo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de resultados de busca",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CepLookupResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/geocep/reverse": {
+      "get": {
+        "tags": [
+          "GeoCep"
+        ],
+        "summary": "Geocodificação reversa (Latitude/Longitude para Logradouro/Bairro/CEP)",
+        "operationId": "reverseGeocode",
+        "parameters": [
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "example": -23.561414
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "example": -46.655881
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Endereço inferido das coordenadas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CepLookupResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/geocep/routes/optimize": {
+      "post": {
+        "tags": [
+          "GeoCep"
+        ],
+        "summary": "Otimizar rota de atendimento técnico ordenando paradas pela menor distância",
+        "operationId": "createOptimizedRoute",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRouteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rota de serviço criada e sequenciada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRouteResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/geocep/routes": {
+      "get": {
+        "tags": [
+          "GeoCep"
+        ],
+        "summary": "Listar rotas de serviço por data",
+        "operationId": "getRoutesByDate",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-09-10"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de rotas do dia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceRouteResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/geocep/routes/{routeId}/stops": {
+      "get": {
+        "tags": [
+          "GeoCep"
+        ],
+        "summary": "Listar paradas ordenadas de uma rota específica",
+        "operationId": "getStopsByRouteId",
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de paradas sequenciadas da rota",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceRouteStopResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/geocep/contribute": {
+      "post": {
+        "tags": [
+          "GeoCep"
+        ],
+        "summary": "Contribuir coordenada GPS real coletada pelo aplicativo do técnico em campo",
+        "operationId": "contributeCoordinate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContributeCoordinateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Coordenada recebida com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContributeCoordinateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/initial-setup/status": {
+      "get": {
+        "tags": [
+          "InitialSetup"
+        ],
+        "summary": "Verificar se o sistema já foi inicializado com a empresa matriz e admin",
+        "operationId": "getSetupStatus",
+        "responses": {
+          "200": {
+            "description": "Status de inicialização do sistema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InitialSetupStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/initial-setup": {
+      "post": {
+        "tags": [
+          "InitialSetup"
+        ],
+        "summary": "Executar configuração inicial (criação de empresa, usuário admin e personalização do site)",
+        "operationId": "performInitialSetup",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InitialSetupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Setup realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InitialSetupResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Setup já foi realizado anteriormente ou parâmetros inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InitialSetupResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/config": {
+      "get": {
+        "tags": [
+          "StorageConfig"
+        ],
+        "summary": "Obter configuração ativa de armazenamento S3/Local",
+        "operationId": "getActiveStorageConfig",
+        "responses": {
+          "200": {
+            "description": "Configuração ativa de armazenamento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageConfigResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "StorageConfig"
+        ],
+        "summary": "Salvar ou atualizar configuração de armazenamento S3/Local",
+        "operationId": "saveStorageConfig",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StorageConfigRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuração salva com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageConfigResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/config/test": {
+      "post": {
+        "tags": [
+          "StorageConfig"
+        ],
+        "summary": "Testar conectividade com o bucket e credenciais antes de salvar",
+        "operationId": "testStorageConnection",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StorageConfigRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado do teste de conexão S3",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageConnectionTestResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files": {
+      "post": {
+        "tags": [
+          "FileStorage"
+        ],
+        "summary": "Realizar upload de arquivo (foto de instalação, documento, comprovante)",
+        "operationId": "uploadFile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Arquivo para upload"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "URL pública ou interna de acesso ao arquivo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "example": "/files/c4f2e981-d055-442a-9e67-d86b978df311.jpg"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/{filename}": {
+      "get": {
+        "tags": [
+          "FileStorage"
+        ],
+        "summary": "Recuperar e fazer download/visualização de arquivo armazenado",
+        "operationId": "downloadFile",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "c4f2e981-d055-442a-9e67-d86b978df311.jpg"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arquivo binário retornado com Content-Type apropriado",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/configs": {
+      "get": {
+        "tags": [
+          "NotificationConfigs"
+        ],
+        "summary": "Listar todas as configurações de canais de notificação",
+        "operationId": "listNotificationConfigs",
+        "responses": {
+          "200": {
+            "description": "Lista de configurações",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationConfigResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "NotificationConfigs"
+        ],
+        "summary": "Cadastrar nova configuração de canal de notificação",
+        "operationId": "createNotificationConfig",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationConfigSaveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuração criada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationConfigResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/configs/{id}": {
+      "put": {
+        "tags": [
+          "NotificationConfigs"
+        ],
+        "summary": "Atualizar configuração existente de canal de notificação",
+        "operationId": "updateNotificationConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationConfigSaveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuração atualizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationConfigResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payment-gateways": {
+      "get": {
+        "tags": [
+          "PaymentGatewayConfig"
+        ],
+        "summary": "Listar todas as contas e integrações com gateways de pagamento",
+        "operationId": "getAllPaymentGatewayConfigs",
+        "responses": {
+          "200": {
+            "description": "Lista de configurações de gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentGatewayConfigResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "PaymentGatewayConfig"
+        ],
+        "summary": "Salvar ou atualizar conta de gateway de pagamento",
+        "operationId": "savePaymentGatewayConfig",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentGatewayConfigSaveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuração de gateway salva com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentGatewayConfigResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payment-gateways/{id}": {
+      "get": {
+        "tags": [
+          "PaymentGatewayConfig"
+        ],
+        "summary": "Obter detalhes da configuração de gateway por ID",
+        "operationId": "getPaymentGatewayConfigById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentGatewayConfigResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Configuração não encontrada"
+          }
+        }
+      }
+    },
+    "/webhooks/payments/{gatewayType}": {
+      "post": {
+        "tags": [
+          "PaymentWebhooks"
+        ],
+        "summary": "Receber notificação assíncrona de liquidação ou alteração de cobrança via Webhook",
+        "operationId": "handlePaymentWebhook",
+        "parameters": [
+          {
+            "name": "gatewayType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "ASAAS"
+          },
+          {
+            "name": "X-Webhook-Signature",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook processado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentWebhookResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falha no processamento ou assinatura inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentWebhookResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -14313,6 +16053,2558 @@
           "number": {
             "type": "integer",
             "example": 0
+          }
+        }
+      },
+      "FtthCableType": {
+        "type": "string",
+        "enum": [
+          "ALIMENTADOR",
+          "DISTRIBUICAO",
+          "DROP"
+        ],
+        "description": "Tipo funcional do cabo óptico na topologia FTTH."
+      },
+      "FiberColorStandard": {
+        "type": "string",
+        "enum": [
+          "ABNT_NBR_14106",
+          "TIA_EIA_598"
+        ],
+        "description": "Padrão de codificação por cores das fibras e tubos loose."
+      },
+      "FtthClosureType": {
+        "type": "string",
+        "enum": [
+          "DOMO",
+          "RETANGULAR",
+          "SUBTERRANEA"
+        ],
+        "description": "Formato físico e montagem da caixa de emenda óptica (CEO)."
+      },
+      "FtthSplitterType": {
+        "type": "string",
+        "enum": [
+          "BALANCED_1_2",
+          "BALANCED_1_4",
+          "BALANCED_1_8",
+          "BALANCED_1_16",
+          "BALANCED_1_32",
+          "BALANCED_1_64",
+          "UNBALANCED_95_05",
+          "UNBALANCED_90_10",
+          "UNBALANCED_85_15",
+          "UNBALANCED_80_20",
+          "UNBALANCED_75_25",
+          "UNBALANCED_70_30",
+          "UNBALANCED_60_40",
+          "UNBALANCED_50_50"
+        ],
+        "description": "Tipo de divisor óptico (balanceado PLC ou desbalanceado FBT em barramento)."
+      },
+      "FtthPortStatus": {
+        "type": "string",
+        "enum": [
+          "LIVRE",
+          "OCUPADA",
+          "RESERVADA",
+          "DEFEITO"
+        ],
+        "description": "Estado de ocupação da porta de atendimento na CTO."
+      },
+      "IncidentType": {
+        "type": "string",
+        "enum": [
+          "FIBER_CUT_PROBABLE",
+          "POWER_OUTAGE_PROBABLE",
+          "MASSIVE_LOS_PON",
+          "CTO_OFFLINE",
+          "DEGRADED_SIGNAL"
+        ],
+        "description": "Tipo de anomalia ou corte detectado pelo motor de correlação NOC."
+      },
+      "IncidentSeverity": {
+        "type": "string",
+        "enum": [
+          "CRITICAL",
+          "MAJOR",
+          "WARNING",
+          "INFO"
+        ],
+        "description": "Criticidade do incidente óptico."
+      },
+      "IncidentStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "INVESTIGATING",
+          "DISPATCHED",
+          "RESOLVED"
+        ],
+        "description": "Ciclo de vida operacional do incidente no NOC."
+      },
+      "MaterialDemandStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING_ALLOCATION",
+          "ALLOCATED_VEHICLE",
+          "ALLOCATED_CENTRAL",
+          "CONSUMED",
+          "CANCELED"
+        ],
+        "description": "Status de reserva e consumo do kit FTTH na O.S."
+      },
+      "FtthPopRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "POP Central Matriz"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.55052
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.633308
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "Av. Paulista, 1000"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Datacenter e OLT principal da sede"
+          }
+        }
+      },
+      "FtthPopResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "POP Central Matriz"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.55052
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.633308
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "Av. Paulista, 1000"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Datacenter e OLT principal da sede"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FtthPoleRequest": {
+        "type": "object",
+        "required": [
+          "code",
+          "latitude",
+          "longitude"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "code": {
+            "type": "string",
+            "example": "POSTE-CPFL-9021"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "example": -23.5512
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "example": -46.6341
+          },
+          "poleType": {
+            "type": "string",
+            "default": "CONCRETO",
+            "example": "CONCRETO"
+          },
+          "reservationMeters": {
+            "type": "integer",
+            "default": 0,
+            "example": 10
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Esquina com Rua Bela Cintra"
+          }
+        }
+      },
+      "FtthPoleResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "latitude",
+          "longitude",
+          "poleType",
+          "reservationMeters",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "code": {
+            "type": "string",
+            "example": "POSTE-CPFL-9021"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "example": -23.5512
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "example": -46.6341
+          },
+          "poleType": {
+            "type": "string",
+            "example": "CONCRETO"
+          },
+          "reservationMeters": {
+            "type": "integer",
+            "example": 10
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FiberColorInfo": {
+        "type": "object",
+        "required": [
+          "fiberNumber",
+          "tubeNumber",
+          "fiberInTubeNumber",
+          "fiberColorName",
+          "fiberColorHex",
+          "tubeColorName",
+          "tubeColorHex",
+          "standard"
+        ],
+        "properties": {
+          "fiberNumber": {
+            "type": "integer",
+            "example": 1
+          },
+          "tubeNumber": {
+            "type": "integer",
+            "example": 1
+          },
+          "fiberInTubeNumber": {
+            "type": "integer",
+            "example": 1
+          },
+          "fiberColorName": {
+            "type": "string",
+            "example": "Verde"
+          },
+          "fiberColorHex": {
+            "type": "string",
+            "example": "#00AA00"
+          },
+          "tubeColorName": {
+            "type": "string",
+            "example": "Verde"
+          },
+          "tubeColorHex": {
+            "type": "string",
+            "example": "#00AA00"
+          },
+          "standard": {
+            "$ref": "#/components/schemas/FiberColorStandard"
+          }
+        }
+      },
+      "FtthCableRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "CABO-TRONCAL-01"
+          },
+          "cableType": {
+            "$ref": "#/components/schemas/FtthCableType"
+          },
+          "fiberCount": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 12,
+            "example": 24
+          },
+          "tubeCount": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "example": 2
+          },
+          "colorStandard": {
+            "$ref": "#/components/schemas/FiberColorStandard"
+          },
+          "lengthMeters": {
+            "type": "number",
+            "format": "double",
+            "example": 450
+          },
+          "pathCoordinates": {
+            "type": "string",
+            "nullable": true,
+            "description": "Coordenadas georreferenciadas do traçado do cabo em formato GeoJSON"
+          },
+          "sourcePopId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "sourcePoleId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "targetPoleId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "attenuationDbPerKm": {
+            "type": "number",
+            "format": "double",
+            "default": 0.35,
+            "example": 0.35
+          }
+        }
+      },
+      "FtthCableResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "cableType",
+          "fiberCount",
+          "tubeCount",
+          "colorStandard",
+          "lengthMeters",
+          "attenuationDbPerKm",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "CABO-TRONCAL-01"
+          },
+          "cableType": {
+            "$ref": "#/components/schemas/FtthCableType"
+          },
+          "fiberCount": {
+            "type": "integer",
+            "example": 24
+          },
+          "tubeCount": {
+            "type": "integer",
+            "example": 2
+          },
+          "colorStandard": {
+            "$ref": "#/components/schemas/FiberColorStandard"
+          },
+          "lengthMeters": {
+            "type": "number",
+            "format": "double",
+            "example": 450
+          },
+          "pathCoordinates": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourcePopId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "sourcePoleId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "targetPoleId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "attenuationDbPerKm": {
+            "type": "number",
+            "format": "double",
+            "example": 0.35
+          },
+          "fibers": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/FiberColorInfo"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FtthClosureRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "CEO-01-CENTRO"
+          },
+          "poleId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.5512
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.6341
+          },
+          "closureType": {
+            "$ref": "#/components/schemas/FtthClosureType"
+          },
+          "trayCount": {
+            "type": "integer",
+            "default": 4,
+            "example": 4
+          },
+          "capacityFusions": {
+            "type": "integer",
+            "default": 48,
+            "example": 48
+          },
+          "status": {
+            "type": "string",
+            "default": "ATIVA",
+            "example": "ATIVA"
+          }
+        }
+      },
+      "FtthClosureResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "closureType",
+          "trayCount",
+          "capacityFusions",
+          "usedFusionsCount",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "CEO-01-CENTRO"
+          },
+          "poleId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "poleCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "POSTE-CPFL-9021"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.5512
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.6341
+          },
+          "closureType": {
+            "$ref": "#/components/schemas/FtthClosureType"
+          },
+          "trayCount": {
+            "type": "integer",
+            "example": 4
+          },
+          "capacityFusions": {
+            "type": "integer",
+            "example": 48
+          },
+          "usedFusionsCount": {
+            "type": "integer",
+            "example": 12
+          },
+          "status": {
+            "type": "string",
+            "example": "ATIVA"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FtthSplitterRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "closureId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "SPLITTER-1X8-01"
+          },
+          "splitterType": {
+            "$ref": "#/components/schemas/FtthSplitterType"
+          },
+          "inputCableId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "inputFiberNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "attenuationDb": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 10.5
+          }
+        }
+      },
+      "FtthSplitterResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "splitterType",
+          "attenuationDb",
+          "outputPorts",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "closureId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "SPLITTER-1X8-01"
+          },
+          "splitterType": {
+            "$ref": "#/components/schemas/FtthSplitterType"
+          },
+          "inputCableId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "inputFiberNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "attenuationDb": {
+            "type": "number",
+            "format": "double",
+            "example": 10.5
+          },
+          "outputPorts": {
+            "type": "integer",
+            "example": 8
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FtthFusionRequest": {
+        "type": "object",
+        "required": [
+          "closureId",
+          "sourceCableId",
+          "sourceFiberNumber"
+        ],
+        "properties": {
+          "closureId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "trayNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "example": 1
+          },
+          "sourceCableId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "sourceFiberNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "targetCableId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "targetFiberNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "targetSplitterId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "targetCtoId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "lossDb": {
+            "type": "number",
+            "format": "double",
+            "default": 0.05,
+            "example": 0.05
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Fusão de alimentação primária"
+          }
+        }
+      },
+      "FtthFusionResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "closureId",
+          "trayNumber",
+          "sourceCableId",
+          "sourceCableName",
+          "sourceFiberNumber",
+          "lossDb",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "closureId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "trayNumber": {
+            "type": "integer",
+            "example": 1
+          },
+          "sourceCableId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "sourceCableName": {
+            "type": "string",
+            "example": "CABO-ALIMENTADOR-01"
+          },
+          "sourceFiberNumber": {
+            "type": "integer",
+            "example": 1
+          },
+          "sourceFiberColor": {
+            "$ref": "#/components/schemas/FiberColorInfo"
+          },
+          "targetCableId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "targetCableName": {
+            "type": "string",
+            "nullable": true
+          },
+          "targetFiberNumber": {
+            "type": "integer",
+            "nullable": true
+          },
+          "targetFiberColor": {
+            "$ref": "#/components/schemas/FiberColorInfo"
+          },
+          "targetSplitterId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "targetSplitterName": {
+            "type": "string",
+            "nullable": true
+          },
+          "targetCtoId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "targetCtoName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lossDb": {
+            "type": "number",
+            "format": "double",
+            "example": 0.05
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FtthCtoPortResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "ctoId",
+          "portNumber",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "ctoId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "portNumber": {
+            "type": "integer",
+            "example": 1
+          },
+          "status": {
+            "$ref": "#/components/schemas/FtthPortStatus"
+          },
+          "onuProvisioningId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "onuSerial": {
+            "type": "string",
+            "nullable": true,
+            "example": "HWTC12345678"
+          },
+          "onuMac": {
+            "type": "string",
+            "nullable": true,
+            "example": "AA:BB:CC:DD:EE:FF"
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "customerName": {
+            "type": "string",
+            "nullable": true,
+            "example": "João Silva"
+          },
+          "pppoeUser": {
+            "type": "string",
+            "nullable": true,
+            "example": "joao.silva"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FtthCtoRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "latitude",
+          "longitude"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "CTO-CENTRO-01"
+          },
+          "poleId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "closureId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "example": -23.55052
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "example": -46.633308
+          },
+          "totalPorts": {
+            "type": "integer",
+            "default": 16,
+            "example": 16
+          },
+          "splitterType": {
+            "type": "string",
+            "default": "BALANCED_1_16",
+            "example": "BALANCED_1_16"
+          },
+          "status": {
+            "type": "string",
+            "default": "ATIVA",
+            "example": "ATIVA"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "CTO de atendimento residencial"
+          }
+        }
+      },
+      "FtthCtoResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "latitude",
+          "longitude",
+          "totalPorts",
+          "freePortsCount",
+          "occupiedPortsCount",
+          "occupancyPercentage",
+          "splitterType",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "CTO-CENTRO-01"
+          },
+          "poleId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "poleCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "POSTE-CPFL-9021"
+          },
+          "closureId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "example": -23.55052
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "example": -46.633308
+          },
+          "totalPorts": {
+            "type": "integer",
+            "example": 16
+          },
+          "freePortsCount": {
+            "type": "integer",
+            "example": 12
+          },
+          "occupiedPortsCount": {
+            "type": "integer",
+            "example": 4
+          },
+          "occupancyPercentage": {
+            "type": "number",
+            "format": "double",
+            "example": 25
+          },
+          "splitterType": {
+            "type": "string",
+            "example": "BALANCED_1_16"
+          },
+          "status": {
+            "type": "string",
+            "example": "ATIVA"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "ports": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/FtthCtoPortResponse"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FtthClosureDiagramResponse": {
+        "type": "object",
+        "required": [
+          "closure",
+          "cables",
+          "splitters",
+          "fusions",
+          "connectedCtos"
+        ],
+        "properties": {
+          "closure": {
+            "$ref": "#/components/schemas/FtthClosureResponse"
+          },
+          "cables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FtthCableResponse"
+            }
+          },
+          "splitters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FtthSplitterResponse"
+            }
+          },
+          "fusions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FtthFusionResponse"
+            }
+          },
+          "connectedCtos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FtthCtoResponse"
+            }
+          }
+        }
+      },
+      "FeasibleCtoItem": {
+        "type": "object",
+        "required": [
+          "cto",
+          "distanceMeters",
+          "freePorts",
+          "hasCapacity"
+        ],
+        "properties": {
+          "cto": {
+            "$ref": "#/components/schemas/FtthCtoResponse"
+          },
+          "distanceMeters": {
+            "type": "number",
+            "format": "double",
+            "example": 65.4
+          },
+          "freePorts": {
+            "type": "integer",
+            "example": 5
+          },
+          "hasCapacity": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "FtthFeasibilityRequest": {
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "example": -23.55052
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "example": -46.633308
+          },
+          "maxDistanceMeters": {
+            "type": "number",
+            "format": "double",
+            "default": 200,
+            "example": 200
+          }
+        }
+      },
+      "FtthFeasibilityResponse": {
+        "type": "object",
+        "required": [
+          "viable",
+          "viableCtosCount",
+          "nearbyCtos"
+        ],
+        "properties": {
+          "viable": {
+            "type": "boolean",
+            "example": true
+          },
+          "viableCtosCount": {
+            "type": "integer",
+            "example": 2
+          },
+          "nearbyCtos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeasibleCtoItem"
+            }
+          }
+        }
+      },
+      "LightPathNode": {
+        "type": "object",
+        "required": [
+          "elementType",
+          "name",
+          "addedAttenuationDb",
+          "cumulativeAttenuationDb"
+        ],
+        "properties": {
+          "elementType": {
+            "type": "string",
+            "example": "CTO_PORT"
+          },
+          "name": {
+            "type": "string",
+            "example": "Porta 3 - CTO-CENTRO-01"
+          },
+          "details": {
+            "type": "string",
+            "nullable": true,
+            "example": "Splitter Balanceado 1:16"
+          },
+          "addedAttenuationDb": {
+            "type": "number",
+            "format": "double",
+            "example": 13.8
+          },
+          "cumulativeAttenuationDb": {
+            "type": "number",
+            "format": "double",
+            "example": 13.8
+          }
+        }
+      },
+      "LightPathTraceResult": {
+        "type": "object",
+        "required": [
+          "reachedSource",
+          "totalAttenuationDb",
+          "estimatedRxPowerDbm",
+          "nodes"
+        ],
+        "properties": {
+          "reachedSource": {
+            "type": "boolean",
+            "example": true
+          },
+          "sourcePopName": {
+            "type": "string",
+            "nullable": true,
+            "example": "POP Central Matriz"
+          },
+          "totalAttenuationDb": {
+            "type": "number",
+            "format": "double",
+            "example": 22.45
+          },
+          "estimatedRxPowerDbm": {
+            "type": "number",
+            "format": "double",
+            "example": -18.45
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LightPathNode"
+            }
+          }
+        }
+      },
+      "OltPonPortRequest": {
+        "type": "object",
+        "required": [
+          "networkDeviceId",
+          "ponName"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "networkDeviceId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "slotNumber": {
+            "type": "integer",
+            "default": 0,
+            "example": 1
+          },
+          "portNumber": {
+            "type": "integer",
+            "default": 1,
+            "example": 4
+          },
+          "ponName": {
+            "type": "string",
+            "example": "GPON 0/1/4"
+          },
+          "connectedCableId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "txPowerDbm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 4.5
+          }
+        }
+      },
+      "OltPonPortResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "networkDeviceId",
+          "slotNumber",
+          "portNumber",
+          "ponName",
+          "adminStatus",
+          "operStatus",
+          "txPowerDbm",
+          "temperatureCelsius",
+          "totalOnus",
+          "onlineOnus",
+          "losOnus",
+          "dyingGaspOnus",
+          "offlineOnus",
+          "healthPercentage",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "networkDeviceId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "oltName": {
+            "type": "string",
+            "nullable": true,
+            "example": "OLT-HUAWEI-5608T"
+          },
+          "slotNumber": {
+            "type": "integer",
+            "example": 1
+          },
+          "portNumber": {
+            "type": "integer",
+            "example": 4
+          },
+          "ponName": {
+            "type": "string",
+            "example": "GPON 0/1/4"
+          },
+          "adminStatus": {
+            "type": "string",
+            "example": "UP"
+          },
+          "operStatus": {
+            "type": "string",
+            "example": "UP"
+          },
+          "txPowerDbm": {
+            "type": "number",
+            "format": "double",
+            "example": 4.5
+          },
+          "temperatureCelsius": {
+            "type": "number",
+            "format": "double",
+            "example": 42.1
+          },
+          "totalOnus": {
+            "type": "integer",
+            "example": 64
+          },
+          "onlineOnus": {
+            "type": "integer",
+            "example": 62
+          },
+          "losOnus": {
+            "type": "integer",
+            "example": 2
+          },
+          "dyingGaspOnus": {
+            "type": "integer",
+            "example": 0
+          },
+          "offlineOnus": {
+            "type": "integer",
+            "example": 2
+          },
+          "healthPercentage": {
+            "type": "number",
+            "format": "double",
+            "example": 96.8
+          },
+          "connectedCableId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "connectedCableName": {
+            "type": "string",
+            "nullable": true,
+            "example": "CABO-ALIMENTADOR-01"
+          },
+          "lastPolledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FtthIncidentDispatchRequest": {
+        "type": "object",
+        "properties": {
+          "technicianId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "example": "Técnico acionado com máquina de fusão para averiguação no poste 9021"
+          }
+        }
+      },
+      "FtthIncidentResolveRequest": {
+        "type": "object",
+        "required": [
+          "rootCauseNotes"
+        ],
+        "properties": {
+          "rootCauseNotes": {
+            "type": "string",
+            "example": "Cabo de distribuição rompido por caminhão baú. Feito refazimento de 4 fusões na CEO-01."
+          }
+        }
+      },
+      "FtthIncidentResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "incidentType",
+          "incidentTypeDescription",
+          "severity",
+          "status",
+          "title",
+          "affectedCustomersCount",
+          "detectedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "networkDeviceId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "oltName": {
+            "type": "string",
+            "nullable": true,
+            "example": "OLT-HUAWEI-5608T"
+          },
+          "oltPonPortId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "ponName": {
+            "type": "string",
+            "nullable": true,
+            "example": "GPON 0/1/4"
+          },
+          "incidentType": {
+            "$ref": "#/components/schemas/IncidentType"
+          },
+          "incidentTypeDescription": {
+            "type": "string",
+            "example": "Rompimento Provável de Fibra Óptica"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/IncidentSeverity"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IncidentStatus"
+          },
+          "title": {
+            "type": "string",
+            "example": "Alarme Massivo PON 0/1/4: 24 ONUs sem sinal (LOS)"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Queda simultânea de 24 ONUs conectadas ao cabo CABO-TRONCAL-01"
+          },
+          "affectedCustomersCount": {
+            "type": "integer",
+            "example": 24
+          },
+          "affectedCtosIds": {
+            "type": "string",
+            "nullable": true
+          },
+          "affectedCtoNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "affectedCableId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "affectedCableName": {
+            "type": "string",
+            "nullable": true,
+            "example": "CABO-TRONCAL-01"
+          },
+          "estimatedCutLatitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.5512
+          },
+          "estimatedCutLongitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.6341
+          },
+          "estimatedCutDetails": {
+            "type": "string",
+            "nullable": true,
+            "example": "Vértice de convergência entre CTO-01 e CTO-04"
+          },
+          "workOrderId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "workOrderProtocol": {
+            "type": "string",
+            "nullable": true,
+            "example": "OS-2026-00912"
+          },
+          "detectedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dispatchedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "resolvedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "rootCauseNotes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "NocMonitoringSummaryResponse": {
+        "type": "object",
+        "required": [
+          "totalOlts",
+          "totalPonPorts",
+          "activePonPorts",
+          "totalOnus",
+          "onlineOnus",
+          "losOnus",
+          "dyingGaspOnus",
+          "offlineOnus",
+          "globalHealthPercentage",
+          "activeIncidentsCount",
+          "criticalIncidentsCount",
+          "activeIncidents"
+        ],
+        "properties": {
+          "totalOlts": {
+            "type": "integer",
+            "example": 3
+          },
+          "totalPonPorts": {
+            "type": "integer",
+            "example": 24
+          },
+          "activePonPorts": {
+            "type": "integer",
+            "example": 20
+          },
+          "totalOnus": {
+            "type": "integer",
+            "example": 1250
+          },
+          "onlineOnus": {
+            "type": "integer",
+            "example": 1210
+          },
+          "losOnus": {
+            "type": "integer",
+            "example": 35
+          },
+          "dyingGaspOnus": {
+            "type": "integer",
+            "example": 5
+          },
+          "offlineOnus": {
+            "type": "integer",
+            "example": 40
+          },
+          "globalHealthPercentage": {
+            "type": "number",
+            "format": "double",
+            "example": 96.8
+          },
+          "activeIncidentsCount": {
+            "type": "integer",
+            "example": 2
+          },
+          "criticalIncidentsCount": {
+            "type": "integer",
+            "example": 1
+          },
+          "activeIncidents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FtthIncidentResponse"
+            }
+          }
+        }
+      },
+      "InstallationMaterialDemandResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "workOrderId",
+          "contractId",
+          "estimatedDropMeters",
+          "onuModelRequired",
+          "fastConnectorsCount",
+          "ptoRosetteCount",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "workOrderId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractNumber": {
+            "type": "string",
+            "nullable": true,
+            "example": "CTR-2026-001"
+          },
+          "customerName": {
+            "type": "string",
+            "nullable": true,
+            "example": "João Silva"
+          },
+          "customerPhone": {
+            "type": "string",
+            "nullable": true,
+            "example": "(11) 98765-4321"
+          },
+          "customerAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "Rua das Flores, 123"
+          },
+          "customerLatitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.55052
+          },
+          "customerLongitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.633308
+          },
+          "ctoId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "ctoName": {
+            "type": "string",
+            "nullable": true,
+            "example": "CTO-CENTRO-01"
+          },
+          "ctoLatitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.5504
+          },
+          "ctoLongitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.6332
+          },
+          "ctoPortNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 2
+          },
+          "estimatedDropMeters": {
+            "type": "integer",
+            "example": 85
+          },
+          "onuModelRequired": {
+            "type": "string",
+            "example": "ONU GPON Wi-Fi AC 1200"
+          },
+          "fastConnectorsCount": {
+            "type": "integer",
+            "example": 2
+          },
+          "ptoRosetteCount": {
+            "type": "integer",
+            "example": 1
+          },
+          "status": {
+            "$ref": "#/components/schemas/MaterialDemandStatus"
+          },
+          "allocatedWarehouseId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "allocatedWarehouseName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Veículo 04 - Fiat Strada"
+          },
+          "allocatedTechnicianName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Marcos Vinicius"
+          },
+          "workOrderType": {
+            "type": "string",
+            "nullable": true,
+            "example": "INSTALACAO"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TechnicianDispatchCandidateResponse": {
+        "type": "object",
+        "required": [
+          "technicianId",
+          "technicianName",
+          "hasCompleteKit",
+          "hasOnu",
+          "hasDropCable",
+          "hasConnectors",
+          "dropCableBalanceMeters",
+          "recommendedScore"
+        ],
+        "properties": {
+          "technicianId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "technicianName": {
+            "type": "string",
+            "example": "Carlos Oliveira"
+          },
+          "warehouseId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "vehicleWarehouseName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Veículo 02 - Renault Kangoo"
+          },
+          "hasCompleteKit": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasOnu": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasDropCable": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasConnectors": {
+            "type": "boolean",
+            "example": true
+          },
+          "dropCableBalanceMeters": {
+            "type": "integer",
+            "example": 320
+          },
+          "currentLatitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.552
+          },
+          "currentLongitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.635
+          },
+          "distanceKmToCustomer": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 1.45
+          },
+          "lastServiceAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "Rua Augusta, 450"
+          },
+          "recommendedScore": {
+            "type": "number",
+            "format": "double",
+            "example": 94.5
+          }
+        }
+      },
+      "RouteStatus": {
+        "type": "string",
+        "enum": [
+          "PLANNED",
+          "DISPATCHED",
+          "IN_PROGRESS",
+          "COMPLETED",
+          "CANCELED"
+        ],
+        "description": "Estado operacional da rota diária de atendimento técnico."
+      },
+      "CepLookupResult": {
+        "type": "object",
+        "required": [
+          "cep"
+        ],
+        "properties": {
+          "cep": {
+            "type": "string",
+            "example": "01310-100"
+          },
+          "logradouro": {
+            "type": "string",
+            "nullable": true,
+            "example": "Avenida Paulista"
+          },
+          "complemento": {
+            "type": "string",
+            "nullable": true,
+            "example": "lado ímpar"
+          },
+          "bairro": {
+            "type": "string",
+            "nullable": true,
+            "example": "Bela Vista"
+          },
+          "localidade": {
+            "type": "string",
+            "nullable": true,
+            "example": "São Paulo"
+          },
+          "uf": {
+            "type": "string",
+            "nullable": true,
+            "example": "SP"
+          },
+          "ibge": {
+            "type": "string",
+            "nullable": true,
+            "example": "3550308"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.561414
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.655881
+          }
+        }
+      },
+      "CreateRouteRequest": {
+        "type": "object",
+        "required": [
+          "routeDate",
+          "workOrderIds"
+        ],
+        "properties": {
+          "technicianUserId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "routeDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-09-10"
+          },
+          "originLatitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.55052
+          },
+          "originLongitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.633308
+          },
+          "workOrderIds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        }
+      },
+      "ServiceRouteStopResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "routeId",
+          "workOrderId",
+          "sequenceOrder",
+          "completed"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "routeId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "workOrderId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "sequenceOrder": {
+            "type": "integer",
+            "example": 1
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -23.5512
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -46.6341
+          },
+          "customerName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Ana Paula Silva"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "Rua Augusta, 500"
+          },
+          "completed": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "ServiceRouteResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "routeDate",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "code": {
+            "type": "string",
+            "example": "ROTA-20260910-1042"
+          },
+          "technicianUserId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "routeDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-09-10"
+          },
+          "totalDistanceKm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 14.8
+          },
+          "estimatedDurationMinutes": {
+            "type": "integer",
+            "nullable": true,
+            "example": 180
+          },
+          "status": {
+            "$ref": "#/components/schemas/RouteStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ContributeCoordinateRequest": {
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "properties": {
+          "cep": {
+            "type": "string",
+            "nullable": true,
+            "example": "01310-100"
+          },
+          "numero": {
+            "type": "string",
+            "nullable": true,
+            "example": "1000"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "example": -23.561414
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "example": -46.655881
+          },
+          "precisaoGpsMetros": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 4.2
+          }
+        }
+      },
+      "ContributeCoordinateResponse": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "SUCCESS"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "StorageType": {
+        "type": "string",
+        "enum": [
+          "S3",
+          "LOCAL"
+        ],
+        "description": "Tipo de armazenamento de arquivos e mídia."
+      },
+      "StorageProvider": {
+        "type": "string",
+        "enum": [
+          "SEAWEEDFS_LOCAL",
+          "AWS_S3",
+          "CLOUDFLARE_R2",
+          "CUSTOM_S3",
+          "LOCAL_DISK"
+        ],
+        "description": "Provedor ou implementação do serviço de armazenamento."
+      },
+      "WhatsAppProviderType": {
+        "type": "string",
+        "enum": [
+          "TWILIO",
+          "EVOLUTION_API",
+          "Z_API",
+          "MOCK"
+        ],
+        "description": "Gateway de mensageria WhatsApp e notificações transacionais."
+      },
+      "PaymentGatewayType": {
+        "type": "string",
+        "enum": [
+          "XINGUBIT_PAY",
+          "ASAAS",
+          "GERENCIANET",
+          "MERCADO_PAGO",
+          "CUSTOM"
+        ],
+        "description": "Integrador financeiro ou gateway de cobrança bancária/PIX."
+      },
+      "InitialSetupRequest": {
+        "type": "object",
+        "required": [
+          "adminName",
+          "adminEmail",
+          "adminPassword",
+          "companyName",
+          "siteTitle"
+        ],
+        "properties": {
+          "adminName": {
+            "type": "string",
+            "example": "Administrador ispERP"
+          },
+          "adminEmail": {
+            "type": "string",
+            "format": "email",
+            "example": "admin@isperp.com.br"
+          },
+          "adminPassword": {
+            "type": "string",
+            "format": "password",
+            "minLength": 6,
+            "example": "Admin@2026"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Nexus Fibra Telecomunicações Ltda"
+          },
+          "companyCnpj": {
+            "type": "string",
+            "nullable": true,
+            "example": "12.345.678/0001-90"
+          },
+          "companyAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "Av. Brasil, 500"
+          },
+          "companyPhone": {
+            "type": "string",
+            "nullable": true,
+            "example": "(11) 3333-4444"
+          },
+          "companyEmail": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": "contato@nexusfibra.com.br"
+          },
+          "companyWebsite": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://www.nexusfibra.com.br"
+          },
+          "siteTitle": {
+            "type": "string",
+            "example": "Nexus Fibra - Internet Ultrarrápida"
+          },
+          "siteDescription": {
+            "type": "string",
+            "nullable": true,
+            "example": "Provedor líder em conectividade 100% fibra óptica"
+          },
+          "primaryColor": {
+            "type": "string",
+            "nullable": true,
+            "example": "#0EA5E9"
+          },
+          "secondaryColor": {
+            "type": "string",
+            "nullable": true,
+            "example": "#1E293B"
+          }
+        }
+      },
+      "InitialSetupStatusResponse": {
+        "type": "object",
+        "required": [
+          "isSetupCompleted"
+        ],
+        "properties": {
+          "isSetupCompleted": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "InitialSetupResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "isSetupCompleted",
+          "message"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "isSetupCompleted": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Setup realizado com sucesso!"
+          }
+        }
+      },
+      "StorageConfigRequest": {
+        "type": "object",
+        "required": [
+          "storageType",
+          "provider",
+          "bucketName",
+          "region",
+          "pathStyleAccess",
+          "isActive"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "storageType": {
+            "$ref": "#/components/schemas/StorageType"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/StorageProvider"
+          },
+          "endpointUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "http://localhost:8333"
+          },
+          "bucketName": {
+            "type": "string",
+            "default": "isperp-files",
+            "example": "isperp-files"
+          },
+          "region": {
+            "type": "string",
+            "default": "us-east-1",
+            "example": "us-east-1"
+          },
+          "accessKey": {
+            "type": "string",
+            "nullable": true,
+            "example": "minioadmin"
+          },
+          "secretKey": {
+            "type": "string",
+            "nullable": true,
+            "example": "minioadmin"
+          },
+          "pathStyleAccess": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          }
+        }
+      },
+      "StorageConfigResponse": {
+        "type": "object",
+        "required": [
+          "storageType",
+          "provider",
+          "bucketName",
+          "region",
+          "pathStyleAccess",
+          "isActive"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "storageType": {
+            "$ref": "#/components/schemas/StorageType"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/StorageProvider"
+          },
+          "endpointUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "http://localhost:8333"
+          },
+          "bucketName": {
+            "type": "string",
+            "example": "isperp-files"
+          },
+          "region": {
+            "type": "string",
+            "example": "us-east-1"
+          },
+          "accessKey": {
+            "type": "string",
+            "nullable": true,
+            "example": "minioadmin"
+          },
+          "maskedSecretKey": {
+            "type": "string",
+            "nullable": true,
+            "example": "********"
+          },
+          "pathStyleAccess": {
+            "type": "boolean",
+            "example": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "StorageConnectionTestResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "message",
+          "latencyMs"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Conexão com o bucket S3 estabelecida com sucesso"
+          },
+          "details": {
+            "type": "string",
+            "nullable": true
+          },
+          "latencyMs": {
+            "type": "integer",
+            "example": 45
+          }
+        }
+      },
+      "NotificationConfigSaveRequest": {
+        "type": "object",
+        "required": [
+          "providerType",
+          "name"
+        ],
+        "properties": {
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "providerType": {
+            "$ref": "#/components/schemas/WhatsAppProviderType"
+          },
+          "name": {
+            "type": "string",
+            "example": "Canal Principal WhatsApp"
+          },
+          "apiUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://api.evolution.nexusfibra.com.br"
+          },
+          "apiToken": {
+            "type": "string",
+            "nullable": true,
+            "example": "evo_secret_token"
+          },
+          "accountSid": {
+            "type": "string",
+            "nullable": true
+          },
+          "authToken": {
+            "type": "string",
+            "nullable": true
+          },
+          "fromPhoneNumber": {
+            "type": "string",
+            "nullable": true,
+            "example": "+5511999998888"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          }
+        }
+      },
+      "NotificationConfigResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "providerType",
+          "name",
+          "active",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "providerType": {
+            "$ref": "#/components/schemas/WhatsAppProviderType"
+          },
+          "name": {
+            "type": "string",
+            "example": "Canal Principal WhatsApp"
+          },
+          "apiUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://api.evolution.nexusfibra.com.br"
+          },
+          "apiToken": {
+            "type": "string",
+            "nullable": true
+          },
+          "accountSid": {
+            "type": "string",
+            "nullable": true
+          },
+          "authToken": {
+            "type": "string",
+            "nullable": true
+          },
+          "fromPhoneNumber": {
+            "type": "string",
+            "nullable": true,
+            "example": "+5511999998888"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "PaymentGatewayConfigSaveRequest": {
+        "type": "object",
+        "required": [
+          "gatewayType",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "gatewayType": {
+            "$ref": "#/components/schemas/PaymentGatewayType"
+          },
+          "name": {
+            "type": "string",
+            "example": "Asaas Produção"
+          },
+          "apiKey": {
+            "type": "string",
+            "nullable": true,
+            "example": "asaas_api_key"
+          },
+          "secretKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "webhookSecret": {
+            "type": "string",
+            "nullable": true
+          },
+          "pixKey": {
+            "type": "string",
+            "nullable": true,
+            "example": "financeiro@nexusfibra.com.br"
+          },
+          "sandbox": {
+            "type": "boolean",
+            "default": false,
+            "example": false
+          },
+          "active": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          }
+        }
+      },
+      "PaymentGatewayConfigResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "gatewayType",
+          "name",
+          "sandbox",
+          "active",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "companyId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "gatewayType": {
+            "$ref": "#/components/schemas/PaymentGatewayType"
+          },
+          "name": {
+            "type": "string",
+            "example": "Asaas Produção"
+          },
+          "apiKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "secretKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "webhookSecret": {
+            "type": "string",
+            "nullable": true
+          },
+          "pixKey": {
+            "type": "string",
+            "nullable": true,
+            "example": "financeiro@nexusfibra.com.br"
+          },
+          "sandbox": {
+            "type": "boolean",
+            "example": false
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "PaymentWebhookResponse": {
+        "type": "object",
+        "required": [
+          "received"
+        ],
+        "properties": {
+          "received": {
+            "type": "boolean",
+            "example": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true,
+            "example": "PROCESSED"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

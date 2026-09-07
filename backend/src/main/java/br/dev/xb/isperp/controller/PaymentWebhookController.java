@@ -1,5 +1,7 @@
 package br.dev.xb.isperp.controller;
 
+import br.dev.xb.isperp.api.contract.PaymentWebhooksApi;
+import br.dev.xb.isperp.api.dto.PaymentWebhookResponse;
 import br.dev.xb.isperp.service.PaymentWebhookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,12 +16,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 @SuppressWarnings("null")
-public class PaymentWebhookController {
+public class PaymentWebhookController implements PaymentWebhooksApi {
 
     private final PaymentWebhookService paymentWebhookService;
 
+    @Override
     @PostMapping("/{gatewayType}")
-    public ResponseEntity<Map<String, Object>> handlePaymentWebhook(
+    public ResponseEntity<PaymentWebhookResponse> handlePaymentWebhook(
             @PathVariable String gatewayType,
             @RequestBody Map<String, Object> payload,
             @RequestHeader(value = "X-Webhook-Signature", required = false) String signature) {
@@ -27,10 +30,16 @@ public class PaymentWebhookController {
 
         try {
             paymentWebhookService.processPaymentWebhook(gatewayType, payload, signature);
-            return ResponseEntity.ok(Map.of("received", true, "status", "PROCESSED"));
+            PaymentWebhookResponse response = new PaymentWebhookResponse();
+            response.setReceived(true);
+            response.setStatus("PROCESSED");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Erro ao processar webhook {}: {}", gatewayType, e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("received", false, "error", e.getMessage()));
+            PaymentWebhookResponse response = new PaymentWebhookResponse();
+            response.setReceived(false);
+            response.setError(e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 }

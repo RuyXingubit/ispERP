@@ -85,6 +85,26 @@ tags:
     description: Validação Pública de Autenticidade de Laudos Periciais
   - name: Ipam
     description: Gestão de Endereçamento IP (IPAM), Sub-redes, ASNs e VRFs
+  - name: FtthTopology
+    description: Topologia de Rede FTTH (POPs, Postes, Cabos, Caixas de Emenda, Fusões, CTOs e Rastreamento Óptico)
+  - name: FtthMonitoring
+    description: Monitoramento Proativo NOC e Correlação de Incidentes PON
+  - name: InstallationDispatch
+    description: Torre de Controle de Despacho Técnico e Triagem de Materiais FTTH
+  - name: GeoCep
+    description: Geocodificação, Consulta de CEP e Otimização de Rotas de Atendimento
+  - name: InitialSetup
+    description: Assistente de Configuração Inicial do Provedor
+  - name: StorageConfig
+    description: Configuração de Armazenamento de Objetos S3 / SeaweedFS Local
+  - name: FileStorage
+    description: Upload e Recuperação de Arquivos, Comprovantes e Mídias
+  - name: NotificationConfigs
+    description: Configurações de Notificações e Provedores WhatsApp/SMS
+  - name: PaymentGatewayConfig
+    description: Configuração de Gateways de Pagamento (PIX, Boleto, Cartão)
+  - name: PaymentWebhooks
+    description: Webhooks de Notificação de Pagamentos Recebidos
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -410,6 +430,112 @@ paths:
     $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1regimes~1transitions~1{id}'
   /fiscal/regimes/transitions/process-pending:
     $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1regimes~1transitions~1process-pending'
+
+  # Topologia FTTH (POPs, Postes, Cabos, CEOs, Fusões, CTOs, Viabilidade e Rastreamento Óptico)
+  /ftth/pops:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1pops'
+  /ftth/poles:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1poles'
+  /ftth/cables:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1cables'
+  /ftth/cables/{id}:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1cables~1{id}'
+  /ftth/closures:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1closures'
+  /ftth/closures/{id}:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1closures~1{id}'
+  /ftth/closures/{id}/diagram:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1closures~1{id}~1diagram'
+  /ftth/closures/{id}/splitters:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1closures~1{id}~1splitters'
+  /ftth/closures/{id}/fusions:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1closures~1{id}~1fusions'
+  /ftth/fusions/{id}:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1fusions~1{id}'
+  /ftth/ctos:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1ctos'
+  /ftth/ctos/{id}:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1ctos~1{id}'
+  /ftth/feasibility:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1feasibility'
+  /ftth/lightpath/{ctoPortId}:
+    $ref: './domains/ftth/topology.yaml#/~1ftth~1lightpath~1{ctoPortId}'
+
+  # Monitoramento Proativo NOC & Incidentes PON
+  /ftth/monitoring/summary:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1summary'
+  /ftth/monitoring/pons:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1pons'
+  /ftth/monitoring/pons/device/{deviceId}:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1pons~1device~1{deviceId}'
+  /ftth/monitoring/incidents:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1incidents'
+  /ftth/monitoring/incidents/active:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1incidents~1active'
+  /ftth/monitoring/incidents/{id}/dispatch:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1incidents~1{id}~1dispatch'
+  /ftth/monitoring/incidents/{id}/resolve:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1incidents~1{id}~1resolve'
+  /ftth/monitoring/poll-now:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1poll-now'
+
+  # Triagem de Materiais FTTH & Despacho Técnico
+  /dispatch/installations/demands:
+    $ref: './domains/ftth/dispatch.yaml#/~1dispatch~1installations~1demands'
+  /dispatch/installations/demands/{workOrderId}:
+    $ref: './domains/ftth/dispatch.yaml#/~1dispatch~1installations~1demands~1{workOrderId}'
+  /dispatch/installations/{workOrderId}/candidates:
+    $ref: './domains/ftth/dispatch.yaml#/~1dispatch~1installations~1{workOrderId}~1candidates'
+  /dispatch/installations/{workOrderId}/dispatch:
+    $ref: './domains/ftth/dispatch.yaml#/~1dispatch~1installations~1{workOrderId}~1dispatch'
+  /dispatch/installations/demands/{workOrderId}/confirm-stock:
+    $ref: './domains/ftth/dispatch.yaml#/~1dispatch~1installations~1demands~1{workOrderId}~1confirm-stock'
+
+  # Geocodificação, Consulta CEP e Rotas de Atendimento
+  /geocep/cep/{cep}:
+    $ref: './domains/geocoding/geocep.yaml#/~1geocep~1cep~1{cep}'
+  /geocep/search:
+    $ref: './domains/geocoding/geocep.yaml#/~1geocep~1search'
+  /geocep/reverse:
+    $ref: './domains/geocoding/geocep.yaml#/~1geocep~1reverse'
+  /geocep/routes/optimize:
+    $ref: './domains/geocoding/geocep.yaml#/~1geocep~1routes~1optimize'
+  /geocep/routes:
+    $ref: './domains/geocoding/geocep.yaml#/~1geocep~1routes'
+  /geocep/routes/{routeId}/stops:
+    $ref: './domains/geocoding/geocep.yaml#/~1geocep~1routes~1{routeId}~1stops'
+  /geocep/contribute:
+    $ref: './domains/geocoding/geocep.yaml#/~1geocep~1contribute'
+
+  # Configuração Inicial (Setup Wizard)
+  /initial-setup/status:
+    $ref: './domains/infra/setup.yaml#/~1initial-setup~1status'
+  /initial-setup:
+    $ref: './domains/infra/setup.yaml#/~1initial-setup'
+
+  # Armazenamento de Objetos S3 / SeaweedFS Local & Arquivos
+  /storage/config:
+    $ref: './domains/infra/storage.yaml#/~1storage~1config'
+  /storage/config/test:
+    $ref: './domains/infra/storage.yaml#/~1storage~1config~1test'
+  /files:
+    $ref: './domains/infra/storage.yaml#/~1files'
+  /files/{filename}:
+    $ref: './domains/infra/storage.yaml#/~1files~1{filename}'
+
+  # Notificações WhatsApp / SMS
+  /notifications/configs:
+    $ref: './domains/infra/notifications.yaml#/~1notifications~1configs'
+  /notifications/configs/{id}:
+    $ref: './domains/infra/notifications.yaml#/~1notifications~1configs~1{id}'
+
+  # Gateways de Pagamento & Webhooks
+  /payment-gateways:
+    $ref: './domains/infra/gateways.yaml#/~1payment-gateways'
+  /payment-gateways/{id}:
+    $ref: './domains/infra/gateways.yaml#/~1payment-gateways~1{id}'
+  /webhooks/payments/{gatewayType}:
+    $ref: './domains/infra/gateways.yaml#/~1webhooks~1payments~1{gatewayType}'
 
 components:
   securitySchemes:
@@ -780,4 +906,133 @@ components:
       $ref: './domains/audit/schemas.yaml#/AuditLogResponse'
     AuditLogPageResponse:
       $ref: './domains/audit/schemas.yaml#/AuditLogPageResponse'
+
+    # FTTH & Despacho Técnico
+    FtthCableType:
+      $ref: './domains/ftth/schemas.yaml#/FtthCableType'
+    FiberColorStandard:
+      $ref: './domains/ftth/schemas.yaml#/FiberColorStandard'
+    FtthClosureType:
+      $ref: './domains/ftth/schemas.yaml#/FtthClosureType'
+    FtthSplitterType:
+      $ref: './domains/ftth/schemas.yaml#/FtthSplitterType'
+    FtthPortStatus:
+      $ref: './domains/ftth/schemas.yaml#/FtthPortStatus'
+    IncidentType:
+      $ref: './domains/ftth/schemas.yaml#/IncidentType'
+    IncidentSeverity:
+      $ref: './domains/ftth/schemas.yaml#/IncidentSeverity'
+    IncidentStatus:
+      $ref: './domains/ftth/schemas.yaml#/IncidentStatus'
+    MaterialDemandStatus:
+      $ref: './domains/ftth/schemas.yaml#/MaterialDemandStatus'
+    FtthPopRequest:
+      $ref: './domains/ftth/schemas.yaml#/FtthPopRequest'
+    FtthPopResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthPopResponse'
+    FtthPoleRequest:
+      $ref: './domains/ftth/schemas.yaml#/FtthPoleRequest'
+    FtthPoleResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthPoleResponse'
+    FiberColorInfo:
+      $ref: './domains/ftth/schemas.yaml#/FiberColorInfo'
+    FtthCableRequest:
+      $ref: './domains/ftth/schemas.yaml#/FtthCableRequest'
+    FtthCableResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthCableResponse'
+    FtthClosureRequest:
+      $ref: './domains/ftth/schemas.yaml#/FtthClosureRequest'
+    FtthClosureResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthClosureResponse'
+    FtthSplitterRequest:
+      $ref: './domains/ftth/schemas.yaml#/FtthSplitterRequest'
+    FtthSplitterResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthSplitterResponse'
+    FtthFusionRequest:
+      $ref: './domains/ftth/schemas.yaml#/FtthFusionRequest'
+    FtthFusionResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthFusionResponse'
+    FtthCtoPortResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthCtoPortResponse'
+    FtthCtoRequest:
+      $ref: './domains/ftth/schemas.yaml#/FtthCtoRequest'
+    FtthCtoResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthCtoResponse'
+    FtthClosureDiagramResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthClosureDiagramResponse'
+    FeasibleCtoItem:
+      $ref: './domains/ftth/schemas.yaml#/FeasibleCtoItem'
+    FtthFeasibilityRequest:
+      $ref: './domains/ftth/schemas.yaml#/FtthFeasibilityRequest'
+    FtthFeasibilityResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthFeasibilityResponse'
+    LightPathNode:
+      $ref: './domains/ftth/schemas.yaml#/LightPathNode'
+    LightPathTraceResult:
+      $ref: './domains/ftth/schemas.yaml#/LightPathTraceResult'
+    OltPonPortRequest:
+      $ref: './domains/ftth/schemas.yaml#/OltPonPortRequest'
+    OltPonPortResponse:
+      $ref: './domains/ftth/schemas.yaml#/OltPonPortResponse'
+    FtthIncidentDispatchRequest:
+      $ref: './domains/ftth/schemas.yaml#/FtthIncidentDispatchRequest'
+    FtthIncidentResolveRequest:
+      $ref: './domains/ftth/schemas.yaml#/FtthIncidentResolveRequest'
+    FtthIncidentResponse:
+      $ref: './domains/ftth/schemas.yaml#/FtthIncidentResponse'
+    NocMonitoringSummaryResponse:
+      $ref: './domains/ftth/schemas.yaml#/NocMonitoringSummaryResponse'
+    InstallationMaterialDemandResponse:
+      $ref: './domains/ftth/schemas.yaml#/InstallationMaterialDemandResponse'
+    TechnicianDispatchCandidateResponse:
+      $ref: './domains/ftth/schemas.yaml#/TechnicianDispatchCandidateResponse'
+
+    # Geocodificação & Rotas
+    RouteStatus:
+      $ref: './domains/geocoding/schemas.yaml#/RouteStatus'
+    CepLookupResult:
+      $ref: './domains/geocoding/schemas.yaml#/CepLookupResult'
+    CreateRouteRequest:
+      $ref: './domains/geocoding/schemas.yaml#/CreateRouteRequest'
+    ServiceRouteStopResponse:
+      $ref: './domains/geocoding/schemas.yaml#/ServiceRouteStopResponse'
+    ServiceRouteResponse:
+      $ref: './domains/geocoding/schemas.yaml#/ServiceRouteResponse'
+    ContributeCoordinateRequest:
+      $ref: './domains/geocoding/schemas.yaml#/ContributeCoordinateRequest'
+    ContributeCoordinateResponse:
+      $ref: './domains/geocoding/schemas.yaml#/ContributeCoordinateResponse'
+
+    # Infraestrutura, Setup, Storage e Gateways
+    StorageType:
+      $ref: './domains/infra/schemas.yaml#/StorageType'
+    StorageProvider:
+      $ref: './domains/infra/schemas.yaml#/StorageProvider'
+    WhatsAppProviderType:
+      $ref: './domains/infra/schemas.yaml#/WhatsAppProviderType'
+    PaymentGatewayType:
+      $ref: './domains/infra/schemas.yaml#/PaymentGatewayType'
+    InitialSetupRequest:
+      $ref: './domains/infra/schemas.yaml#/InitialSetupRequest'
+    InitialSetupStatusResponse:
+      $ref: './domains/infra/schemas.yaml#/InitialSetupStatusResponse'
+    InitialSetupResponse:
+      $ref: './domains/infra/schemas.yaml#/InitialSetupResponse'
+    StorageConfigRequest:
+      $ref: './domains/infra/schemas.yaml#/StorageConfigRequest'
+    StorageConfigResponse:
+      $ref: './domains/infra/schemas.yaml#/StorageConfigResponse'
+    StorageConnectionTestResponse:
+      $ref: './domains/infra/schemas.yaml#/StorageConnectionTestResponse'
+    NotificationConfigSaveRequest:
+      $ref: './domains/infra/schemas.yaml#/NotificationConfigSaveRequest'
+    NotificationConfigResponse:
+      $ref: './domains/infra/schemas.yaml#/NotificationConfigResponse'
+    PaymentGatewayConfigSaveRequest:
+      $ref: './domains/infra/schemas.yaml#/PaymentGatewayConfigSaveRequest'
+    PaymentGatewayConfigResponse:
+      $ref: './domains/infra/schemas.yaml#/PaymentGatewayConfigResponse'
+    PaymentWebhookResponse:
+      $ref: './domains/infra/schemas.yaml#/PaymentWebhookResponse'
+
 

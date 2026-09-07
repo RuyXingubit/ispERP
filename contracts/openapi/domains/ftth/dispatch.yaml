@@ -1,0 +1,109 @@
+# Endpoints de Torre de Controle de Despacho Técnico e Triagem de Materiais FTTH
+
+/dispatch/installations/demands:
+  get:
+    tags:
+      - InstallationDispatch
+    summary: Listar todas as demandas de instalação e dimensionamento FTTH
+    operationId: listInstallationDemands
+    responses:
+      '200':
+        description: Lista de demandas de materiais pendentes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/InstallationMaterialDemandResponse'
+
+/dispatch/installations/demands/{workOrderId}:
+  get:
+    tags:
+      - InstallationDispatch
+    summary: Obter detalhes da demanda e kit FTTH de uma O.S.
+    operationId: getInstallationDemand
+    parameters:
+      - name: workOrderId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Detalhes da demanda de materiais
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/InstallationMaterialDemandResponse'
+
+/dispatch/installations/{workOrderId}/candidates:
+  get:
+    tags:
+      - InstallationDispatch
+    summary: Listar técnicos candidatos ranqueados por estoque no veículo e proximidade GPS
+    operationId: listDispatchCandidates
+    parameters:
+      - name: workOrderId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Técnicos ranqueados por aptidão
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/TechnicianDispatchCandidateResponse'
+
+/dispatch/installations/{workOrderId}/dispatch:
+  post:
+    tags:
+      - InstallationDispatch
+    summary: Despachar O.S. para um técnico com alocação automática de estoque do veículo
+    operationId: dispatchInstallationWorkOrder
+    parameters:
+      - name: workOrderId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: technicianId
+        in: query
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: O.S. despachada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: '../workorders/schemas.yaml#/WorkOrderResponse'
+
+/dispatch/installations/demands/{workOrderId}/confirm-stock:
+  post:
+    tags:
+      - InstallationDispatch
+    summary: Confirmar e reservar materiais no almoxarifado para a O.S.
+    operationId: confirmStockAllocation
+    parameters:
+      - name: workOrderId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: warehouseId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Demanda atualizada com materiais reservados
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/InstallationMaterialDemandResponse'

@@ -1,0 +1,359 @@
+# Endpoints de Topologia FTTH (POPs, Postes, Cabos, Caixas de Emenda, Fusões, CTOs, Rastreamento Óptico e Viabilidade)
+
+/ftth/pops:
+  get:
+    tags:
+      - FtthTopology
+    summary: Listar todos os POPs / Centrais Ópticas
+    operationId: getAllPops
+    responses:
+      '200':
+        description: Lista de POPs cadastrados
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/FtthPopResponse'
+  post:
+    tags:
+      - FtthTopology
+    summary: Cadastrar novo POP / Central Óptica
+    operationId: createPop
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FtthPopRequest'
+    responses:
+      '201':
+        description: POP criado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthPopResponse'
+
+/ftth/poles:
+  get:
+    tags:
+      - FtthTopology
+    summary: Listar todos os postes georreferenciados
+    operationId: getAllPoles
+    responses:
+      '200':
+        description: Lista de postes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/FtthPoleResponse'
+  post:
+    tags:
+      - FtthTopology
+    summary: Cadastrar novo poste
+    operationId: createPole
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FtthPoleRequest'
+    responses:
+      '201':
+        description: Poste cadastrado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthPoleResponse'
+
+/ftth/cables:
+  get:
+    tags:
+      - FtthTopology
+    summary: Listar cabos ópticos da rede
+    operationId: getAllCables
+    responses:
+      '200':
+        description: Lista de cabos ópticos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/FtthCableResponse'
+  post:
+    tags:
+      - FtthTopology
+    summary: Cadastrar novo cabo óptico
+    operationId: createCable
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FtthCableRequest'
+    responses:
+      '201':
+        description: Cabo óptico cadastrado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthCableResponse'
+
+/ftth/cables/{id}:
+  get:
+    tags:
+      - FtthTopology
+    summary: Obter detalhes do cabo óptico por ID
+    operationId: getCableById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Dados detalhados do cabo
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthCableResponse'
+
+/ftth/closures:
+  get:
+    tags:
+      - FtthTopology
+    summary: Listar caixas de emenda óptica (CEO)
+    operationId: getAllClosures
+    responses:
+      '200':
+        description: Lista de caixas de emenda
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/FtthClosureResponse'
+  post:
+    tags:
+      - FtthTopology
+    summary: Cadastrar nova caixa de emenda óptica (CEO)
+    operationId: createClosure
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FtthClosureRequest'
+    responses:
+      '201':
+        description: Caixa de emenda cadastrada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthClosureResponse'
+
+/ftth/closures/{id}:
+  get:
+    tags:
+      - FtthTopology
+    summary: Obter detalhes da caixa de emenda óptica (CEO)
+    operationId: getClosureById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Dados da caixa de emenda
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthClosureResponse'
+
+/ftth/closures/{id}/diagram:
+  get:
+    tags:
+      - FtthTopology
+    summary: Obter diagrama unifilar interno da caixa de emenda (bandejas, fusões, splitters e CTOs)
+    operationId: getClosureDiagram
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Diagrama interno da caixa de emenda
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthClosureDiagramResponse'
+
+/ftth/closures/{id}/splitters:
+  post:
+    tags:
+      - FtthTopology
+    summary: Instalar splitter óptico dentro da caixa de emenda
+    operationId: createSplitter
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FtthSplitterRequest'
+    responses:
+      '201':
+        description: Splitter instalado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthSplitterResponse'
+
+/ftth/closures/{id}/fusions:
+  post:
+    tags:
+      - FtthTopology
+    summary: Registrar fusão óptica entre fibras/splitters na caixa de emenda
+    operationId: createFusion
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FtthFusionRequest'
+    responses:
+      '201':
+        description: Fusão óptica registrada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthFusionResponse'
+
+/ftth/fusions/{id}:
+  delete:
+    tags:
+      - FtthTopology
+    summary: Desfazer fusão óptica
+    operationId: deleteFusion
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '204':
+        description: Fusão óptica removida com sucesso
+
+/ftth/ctos:
+  get:
+    tags:
+      - FtthTopology
+    summary: Listar Caixas de Atendimento ao Cliente (CTO)
+    operationId: getAllCtos
+    responses:
+      '200':
+        description: Lista de CTOs cadastradas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/FtthCtoResponse'
+  post:
+    tags:
+      - FtthTopology
+    summary: Cadastrar Caixa de Atendimento ao Cliente (CTO)
+    operationId: createCto
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FtthCtoRequest'
+    responses:
+      '201':
+        description: CTO cadastrada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthCtoResponse'
+
+/ftth/ctos/{id}:
+  get:
+    tags:
+      - FtthTopology
+    summary: Obter detalhes da CTO com status de todas as portas
+    operationId: getCtoById
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Dados da CTO e suas portas
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthCtoResponse'
+
+/ftth/feasibility:
+  post:
+    tags:
+      - FtthTopology
+    summary: Consulta de viabilidade técnica de vendas por coordenadas GPS
+    operationId: checkFeasibility
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FtthFeasibilityRequest'
+    responses:
+      '200':
+        description: Resultado da análise de viabilidade com CTOs mais próximas
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthFeasibilityResponse'
+
+/ftth/lightpath/{ctoPortId}:
+  get:
+    tags:
+      - FtthTopology
+    summary: Rastrear trajeto óptico completo da porta da CTO até o POP/OLT
+    operationId: traceLightPath
+    parameters:
+      - name: ctoPortId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Caminho óptico unifilar com atenuação acumulada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/LightPathTraceResult'

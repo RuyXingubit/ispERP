@@ -1,0 +1,1378 @@
+# Schemas de FTTH (Topologia, Rastreamento Óptico, Monitoramento NOC e Triagem de Despacho)
+
+FtthCableType:
+  type: string
+  enum:
+    - ALIMENTADOR
+    - DISTRIBUICAO
+    - DROP
+  description: Tipo funcional do cabo óptico na topologia FTTH.
+
+FiberColorStandard:
+  type: string
+  enum:
+    - ABNT_NBR_14106
+    - TIA_EIA_598
+  description: Padrão de codificação por cores das fibras e tubos loose.
+
+FtthClosureType:
+  type: string
+  enum:
+    - DOMO
+    - RETANGULAR
+    - SUBTERRANEA
+  description: Formato físico e montagem da caixa de emenda óptica (CEO).
+
+FtthSplitterType:
+  type: string
+  enum:
+    - BALANCED_1_2
+    - BALANCED_1_4
+    - BALANCED_1_8
+    - BALANCED_1_16
+    - BALANCED_1_32
+    - BALANCED_1_64
+    - UNBALANCED_95_05
+    - UNBALANCED_90_10
+    - UNBALANCED_85_15
+    - UNBALANCED_80_20
+    - UNBALANCED_75_25
+    - UNBALANCED_70_30
+    - UNBALANCED_60_40
+    - UNBALANCED_50_50
+  description: Tipo de divisor óptico (balanceado PLC ou desbalanceado FBT em barramento).
+
+FtthPortStatus:
+  type: string
+  enum:
+    - LIVRE
+    - OCUPADA
+    - RESERVADA
+    - DEFEITO
+  description: Estado de ocupação da porta de atendimento na CTO.
+
+IncidentType:
+  type: string
+  enum:
+    - FIBER_CUT_PROBABLE
+    - POWER_OUTAGE_PROBABLE
+    - MASSIVE_LOS_PON
+    - CTO_OFFLINE
+    - DEGRADED_SIGNAL
+  description: Tipo de anomalia ou corte detectado pelo motor de correlação NOC.
+
+IncidentSeverity:
+  type: string
+  enum:
+    - CRITICAL
+    - MAJOR
+    - WARNING
+    - INFO
+  description: Criticidade do incidente óptico.
+
+IncidentStatus:
+  type: string
+  enum:
+    - ACTIVE
+    - INVESTIGATING
+    - DISPATCHED
+    - RESOLVED
+  description: Ciclo de vida operacional do incidente no NOC.
+
+MaterialDemandStatus:
+  type: string
+  enum:
+    - PENDING_ALLOCATION
+    - ALLOCATED_VEHICLE
+    - ALLOCATED_CENTRAL
+    - CONSUMED
+    - CANCELED
+  description: Status de reserva e consumo do kit FTTH na O.S.
+
+FtthPopRequest:
+  type: object
+  required:
+    - name
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "POP Central Matriz"
+    latitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.550520
+    longitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.633308
+    address:
+      type: string
+      nullable: true
+      example: "Av. Paulista, 1000"
+    description:
+      type: string
+      nullable: true
+      example: "Datacenter e OLT principal da sede"
+
+FtthPopResponse:
+  type: object
+  required:
+    - id
+    - name
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "POP Central Matriz"
+    latitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.550520
+    longitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.633308
+    address:
+      type: string
+      nullable: true
+      example: "Av. Paulista, 1000"
+    description:
+      type: string
+      nullable: true
+      example: "Datacenter e OLT principal da sede"
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+FtthPoleRequest:
+  type: object
+  required:
+    - code
+    - latitude
+    - longitude
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    code:
+      type: string
+      example: "POSTE-CPFL-9021"
+    latitude:
+      type: number
+      format: double
+      example: -23.551200
+    longitude:
+      type: number
+      format: double
+      example: -46.634100
+    poleType:
+      type: string
+      default: "CONCRETO"
+      example: "CONCRETO"
+    reservationMeters:
+      type: integer
+      default: 0
+      example: 10
+    description:
+      type: string
+      nullable: true
+      example: "Esquina com Rua Bela Cintra"
+
+FtthPoleResponse:
+  type: object
+  required:
+    - id
+    - code
+    - latitude
+    - longitude
+    - poleType
+    - reservationMeters
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    code:
+      type: string
+      example: "POSTE-CPFL-9021"
+    latitude:
+      type: number
+      format: double
+      example: -23.551200
+    longitude:
+      type: number
+      format: double
+      example: -46.634100
+    poleType:
+      type: string
+      example: "CONCRETO"
+    reservationMeters:
+      type: integer
+      example: 10
+    description:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+FiberColorInfo:
+  type: object
+  required:
+    - fiberNumber
+    - tubeNumber
+    - fiberInTubeNumber
+    - fiberColorName
+    - fiberColorHex
+    - tubeColorName
+    - tubeColorHex
+    - standard
+  properties:
+    fiberNumber:
+      type: integer
+      example: 1
+    tubeNumber:
+      type: integer
+      example: 1
+    fiberInTubeNumber:
+      type: integer
+      example: 1
+    fiberColorName:
+      type: string
+      example: "Verde"
+    fiberColorHex:
+      type: string
+      example: "#00AA00"
+    tubeColorName:
+      type: string
+      example: "Verde"
+    tubeColorHex:
+      type: string
+      example: "#00AA00"
+    standard:
+      $ref: '#/FiberColorStandard'
+
+FtthCableRequest:
+  type: object
+  required:
+    - name
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "CABO-TRONCAL-01"
+    cableType:
+      $ref: '#/FtthCableType'
+    fiberCount:
+      type: integer
+      minimum: 1
+      default: 12
+      example: 24
+    tubeCount:
+      type: integer
+      minimum: 1
+      default: 1
+      example: 2
+    colorStandard:
+      $ref: '#/FiberColorStandard'
+    lengthMeters:
+      type: number
+      format: double
+      example: 450.0
+    pathCoordinates:
+      type: string
+      nullable: true
+      description: "Coordenadas georreferenciadas do traçado do cabo em formato GeoJSON"
+    sourcePopId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    sourcePoleId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    targetPoleId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    attenuationDbPerKm:
+      type: number
+      format: double
+      default: 0.35
+      example: 0.35
+
+FtthCableResponse:
+  type: object
+  required:
+    - id
+    - name
+    - cableType
+    - fiberCount
+    - tubeCount
+    - colorStandard
+    - lengthMeters
+    - attenuationDbPerKm
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "CABO-TRONCAL-01"
+    cableType:
+      $ref: '#/FtthCableType'
+    fiberCount:
+      type: integer
+      example: 24
+    tubeCount:
+      type: integer
+      example: 2
+    colorStandard:
+      $ref: '#/FiberColorStandard'
+    lengthMeters:
+      type: number
+      format: double
+      example: 450.0
+    pathCoordinates:
+      type: string
+      nullable: true
+    sourcePopId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    sourcePoleId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    targetPoleId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    attenuationDbPerKm:
+      type: number
+      format: double
+      example: 0.35
+    fibers:
+      type: array
+      nullable: true
+      items:
+        $ref: '#/FiberColorInfo'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+FtthClosureRequest:
+  type: object
+  required:
+    - name
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "CEO-01-CENTRO"
+    poleId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    latitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.551200
+    longitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.634100
+    closureType:
+      $ref: '#/FtthClosureType'
+    trayCount:
+      type: integer
+      default: 4
+      example: 4
+    capacityFusions:
+      type: integer
+      default: 48
+      example: 48
+    status:
+      type: string
+      default: "ATIVA"
+      example: "ATIVA"
+
+FtthClosureResponse:
+  type: object
+  required:
+    - id
+    - name
+    - closureType
+    - trayCount
+    - capacityFusions
+    - usedFusionsCount
+    - status
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "CEO-01-CENTRO"
+    poleId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    poleCode:
+      type: string
+      nullable: true
+      example: "POSTE-CPFL-9021"
+    latitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.551200
+    longitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.634100
+    closureType:
+      $ref: '#/FtthClosureType'
+    trayCount:
+      type: integer
+      example: 4
+    capacityFusions:
+      type: integer
+      example: 48
+    usedFusionsCount:
+      type: integer
+      example: 12
+    status:
+      type: string
+      example: "ATIVA"
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+FtthSplitterRequest:
+  type: object
+  required:
+    - name
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    closureId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "SPLITTER-1X8-01"
+    splitterType:
+      $ref: '#/FtthSplitterType'
+    inputCableId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    inputFiberNumber:
+      type: integer
+      nullable: true
+      example: 1
+    attenuationDb:
+      type: number
+      format: double
+      nullable: true
+      example: 10.5
+
+FtthSplitterResponse:
+  type: object
+  required:
+    - id
+    - name
+    - splitterType
+    - attenuationDb
+    - outputPorts
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    closureId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "SPLITTER-1X8-01"
+    splitterType:
+      $ref: '#/FtthSplitterType'
+    inputCableId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    inputFiberNumber:
+      type: integer
+      nullable: true
+      example: 1
+    attenuationDb:
+      type: number
+      format: double
+      example: 10.5
+    outputPorts:
+      type: integer
+      example: 8
+    createdAt:
+      type: string
+      format: date-time
+
+FtthFusionRequest:
+  type: object
+  required:
+    - closureId
+    - sourceCableId
+    - sourceFiberNumber
+  properties:
+    closureId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    trayNumber:
+      type: integer
+      minimum: 1
+      default: 1
+      example: 1
+    sourceCableId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    sourceFiberNumber:
+      type: integer
+      minimum: 1
+      example: 1
+    targetCableId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    targetFiberNumber:
+      type: integer
+      nullable: true
+      example: 1
+    targetSplitterId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    targetCtoId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    lossDb:
+      type: number
+      format: double
+      default: 0.05
+      example: 0.05
+    description:
+      type: string
+      nullable: true
+      example: "Fusão de alimentação primária"
+
+FtthFusionResponse:
+  type: object
+  required:
+    - id
+    - closureId
+    - trayNumber
+    - sourceCableId
+    - sourceCableName
+    - sourceFiberNumber
+    - lossDb
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    closureId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    trayNumber:
+      type: integer
+      example: 1
+    sourceCableId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    sourceCableName:
+      type: string
+      example: "CABO-ALIMENTADOR-01"
+    sourceFiberNumber:
+      type: integer
+      example: 1
+    sourceFiberColor:
+      $ref: '#/FiberColorInfo'
+    targetCableId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    targetCableName:
+      type: string
+      nullable: true
+    targetFiberNumber:
+      type: integer
+      nullable: true
+    targetFiberColor:
+      $ref: '#/FiberColorInfo'
+    targetSplitterId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    targetSplitterName:
+      type: string
+      nullable: true
+    targetCtoId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    targetCtoName:
+      type: string
+      nullable: true
+    lossDb:
+      type: number
+      format: double
+      example: 0.05
+    description:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+
+FtthCtoPortResponse:
+  type: object
+  required:
+    - id
+    - ctoId
+    - portNumber
+    - status
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    ctoId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    portNumber:
+      type: integer
+      example: 1
+    status:
+      $ref: '#/FtthPortStatus'
+    onuProvisioningId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    onuSerial:
+      type: string
+      nullable: true
+      example: "HWTC12345678"
+    onuMac:
+      type: string
+      nullable: true
+      example: "AA:BB:CC:DD:EE:FF"
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    customerName:
+      type: string
+      nullable: true
+      example: "João Silva"
+    pppoeUser:
+      type: string
+      nullable: true
+      example: "joao.silva"
+    notes:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+
+FtthCtoRequest:
+  type: object
+  required:
+    - name
+    - latitude
+    - longitude
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "CTO-CENTRO-01"
+    poleId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    closureId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    latitude:
+      type: number
+      format: double
+      example: -23.550520
+    longitude:
+      type: number
+      format: double
+      example: -46.633308
+    totalPorts:
+      type: integer
+      default: 16
+      example: 16
+    splitterType:
+      type: string
+      default: "BALANCED_1_16"
+      example: "BALANCED_1_16"
+    status:
+      type: string
+      default: "ATIVA"
+      example: "ATIVA"
+    description:
+      type: string
+      nullable: true
+      example: "CTO de atendimento residencial"
+
+FtthCtoResponse:
+  type: object
+  required:
+    - id
+    - name
+    - latitude
+    - longitude
+    - totalPorts
+    - freePortsCount
+    - occupiedPortsCount
+    - occupancyPercentage
+    - splitterType
+    - status
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "CTO-CENTRO-01"
+    poleId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    poleCode:
+      type: string
+      nullable: true
+      example: "POSTE-CPFL-9021"
+    closureId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    latitude:
+      type: number
+      format: double
+      example: -23.550520
+    longitude:
+      type: number
+      format: double
+      example: -46.633308
+    totalPorts:
+      type: integer
+      example: 16
+    freePortsCount:
+      type: integer
+      example: 12
+    occupiedPortsCount:
+      type: integer
+      example: 4
+    occupancyPercentage:
+      type: number
+      format: double
+      example: 25.0
+    splitterType:
+      type: string
+      example: "BALANCED_1_16"
+    status:
+      type: string
+      example: "ATIVA"
+    description:
+      type: string
+      nullable: true
+    ports:
+      type: array
+      nullable: true
+      items:
+        $ref: '#/FtthCtoPortResponse'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+FtthClosureDiagramResponse:
+  type: object
+  required:
+    - closure
+    - cables
+    - splitters
+    - fusions
+    - connectedCtos
+  properties:
+    closure:
+      $ref: '#/FtthClosureResponse'
+    cables:
+      type: array
+      items:
+        $ref: '#/FtthCableResponse'
+    splitters:
+      type: array
+      items:
+        $ref: '#/FtthSplitterResponse'
+    fusions:
+      type: array
+      items:
+        $ref: '#/FtthFusionResponse'
+    connectedCtos:
+      type: array
+      items:
+        $ref: '#/FtthCtoResponse'
+
+FeasibleCtoItem:
+  type: object
+  required:
+    - cto
+    - distanceMeters
+    - freePorts
+    - hasCapacity
+  properties:
+    cto:
+      $ref: '#/FtthCtoResponse'
+    distanceMeters:
+      type: number
+      format: double
+      example: 65.4
+    freePorts:
+      type: integer
+      example: 5
+    hasCapacity:
+      type: boolean
+      example: true
+
+FtthFeasibilityRequest:
+  type: object
+  required:
+    - latitude
+    - longitude
+  properties:
+    latitude:
+      type: number
+      format: double
+      example: -23.550520
+    longitude:
+      type: number
+      format: double
+      example: -46.633308
+    maxDistanceMeters:
+      type: number
+      format: double
+      default: 200.0
+      example: 200.0
+
+FtthFeasibilityResponse:
+  type: object
+  required:
+    - viable
+    - viableCtosCount
+    - nearbyCtos
+  properties:
+    viable:
+      type: boolean
+      example: true
+    viableCtosCount:
+      type: integer
+      example: 2
+    nearbyCtos:
+      type: array
+      items:
+        $ref: '#/FeasibleCtoItem'
+
+LightPathNode:
+  type: object
+  required:
+    - elementType
+    - name
+    - addedAttenuationDb
+    - cumulativeAttenuationDb
+  properties:
+    elementType:
+      type: string
+      example: "CTO_PORT"
+    name:
+      type: string
+      example: "Porta 3 - CTO-CENTRO-01"
+    details:
+      type: string
+      nullable: true
+      example: "Splitter Balanceado 1:16"
+    addedAttenuationDb:
+      type: number
+      format: double
+      example: 13.8
+    cumulativeAttenuationDb:
+      type: number
+      format: double
+      example: 13.8
+
+LightPathTraceResult:
+  type: object
+  required:
+    - reachedSource
+    - totalAttenuationDb
+    - estimatedRxPowerDbm
+    - nodes
+  properties:
+    reachedSource:
+      type: boolean
+      example: true
+    sourcePopName:
+      type: string
+      nullable: true
+      example: "POP Central Matriz"
+    totalAttenuationDb:
+      type: number
+      format: double
+      example: 22.45
+    estimatedRxPowerDbm:
+      type: number
+      format: double
+      example: -18.45
+    nodes:
+      type: array
+      items:
+        $ref: '#/LightPathNode'
+
+OltPonPortRequest:
+  type: object
+  required:
+    - networkDeviceId
+    - ponName
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    networkDeviceId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    slotNumber:
+      type: integer
+      default: 0
+      example: 1
+    portNumber:
+      type: integer
+      default: 1
+      example: 4
+    ponName:
+      type: string
+      example: "GPON 0/1/4"
+    connectedCableId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    txPowerDbm:
+      type: number
+      format: double
+      nullable: true
+      example: 4.5
+
+OltPonPortResponse:
+  type: object
+  required:
+    - id
+    - networkDeviceId
+    - slotNumber
+    - portNumber
+    - ponName
+    - adminStatus
+    - operStatus
+    - txPowerDbm
+    - temperatureCelsius
+    - totalOnus
+    - onlineOnus
+    - losOnus
+    - dyingGaspOnus
+    - offlineOnus
+    - healthPercentage
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    networkDeviceId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    oltName:
+      type: string
+      nullable: true
+      example: "OLT-HUAWEI-5608T"
+    slotNumber:
+      type: integer
+      example: 1
+    portNumber:
+      type: integer
+      example: 4
+    ponName:
+      type: string
+      example: "GPON 0/1/4"
+    adminStatus:
+      type: string
+      example: "UP"
+    operStatus:
+      type: string
+      example: "UP"
+    txPowerDbm:
+      type: number
+      format: double
+      example: 4.5
+    temperatureCelsius:
+      type: number
+      format: double
+      example: 42.1
+    totalOnus:
+      type: integer
+      example: 64
+    onlineOnus:
+      type: integer
+      example: 62
+    losOnus:
+      type: integer
+      example: 2
+    dyingGaspOnus:
+      type: integer
+      example: 0
+    offlineOnus:
+      type: integer
+      example: 2
+    healthPercentage:
+      type: number
+      format: double
+      example: 96.8
+    connectedCableId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    connectedCableName:
+      type: string
+      nullable: true
+      example: "CABO-ALIMENTADOR-01"
+    lastPolledAt:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+
+FtthIncidentDispatchRequest:
+  type: object
+  properties:
+    technicianId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    notes:
+      type: string
+      nullable: true
+      example: "Técnico acionado com máquina de fusão para averiguação no poste 9021"
+
+FtthIncidentResolveRequest:
+  type: object
+  required:
+    - rootCauseNotes
+  properties:
+    rootCauseNotes:
+      type: string
+      example: "Cabo de distribuição rompido por caminhão baú. Feito refazimento de 4 fusões na CEO-01."
+
+FtthIncidentResponse:
+  type: object
+  required:
+    - id
+    - incidentType
+    - incidentTypeDescription
+    - severity
+    - status
+    - title
+    - affectedCustomersCount
+    - detectedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    networkDeviceId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    oltName:
+      type: string
+      nullable: true
+      example: "OLT-HUAWEI-5608T"
+    oltPonPortId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    ponName:
+      type: string
+      nullable: true
+      example: "GPON 0/1/4"
+    incidentType:
+      $ref: '#/IncidentType'
+    incidentTypeDescription:
+      type: string
+      example: "Rompimento Provável de Fibra Óptica"
+    severity:
+      $ref: '#/IncidentSeverity'
+    status:
+      $ref: '#/IncidentStatus'
+    title:
+      type: string
+      example: "Alarme Massivo PON 0/1/4: 24 ONUs sem sinal (LOS)"
+    description:
+      type: string
+      nullable: true
+      example: "Queda simultânea de 24 ONUs conectadas ao cabo CABO-TRONCAL-01"
+    affectedCustomersCount:
+      type: integer
+      example: 24
+    affectedCtosIds:
+      type: string
+      nullable: true
+    affectedCtoNames:
+      type: array
+      nullable: true
+      items:
+        type: string
+    affectedCableId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    affectedCableName:
+      type: string
+      nullable: true
+      example: "CABO-TRONCAL-01"
+    estimatedCutLatitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.551200
+    estimatedCutLongitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.634100
+    estimatedCutDetails:
+      type: string
+      nullable: true
+      example: "Vértice de convergência entre CTO-01 e CTO-04"
+    workOrderId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    workOrderProtocol:
+      type: string
+      nullable: true
+      example: "OS-2026-00912"
+    detectedAt:
+      type: string
+      format: date-time
+    dispatchedAt:
+      type: string
+      format: date-time
+      nullable: true
+    resolvedAt:
+      type: string
+      format: date-time
+      nullable: true
+    rootCauseNotes:
+      type: string
+      nullable: true
+
+NocMonitoringSummaryResponse:
+  type: object
+  required:
+    - totalOlts
+    - totalPonPorts
+    - activePonPorts
+    - totalOnus
+    - onlineOnus
+    - losOnus
+    - dyingGaspOnus
+    - offlineOnus
+    - globalHealthPercentage
+    - activeIncidentsCount
+    - criticalIncidentsCount
+    - activeIncidents
+  properties:
+    totalOlts:
+      type: integer
+      example: 3
+    totalPonPorts:
+      type: integer
+      example: 24
+    activePonPorts:
+      type: integer
+      example: 20
+    totalOnus:
+      type: integer
+      example: 1250
+    onlineOnus:
+      type: integer
+      example: 1210
+    losOnus:
+      type: integer
+      example: 35
+    dyingGaspOnus:
+      type: integer
+      example: 5
+    offlineOnus:
+      type: integer
+      example: 40
+    globalHealthPercentage:
+      type: number
+      format: double
+      example: 96.8
+    activeIncidentsCount:
+      type: integer
+      example: 2
+    criticalIncidentsCount:
+      type: integer
+      example: 1
+    activeIncidents:
+      type: array
+      items:
+        $ref: '#/FtthIncidentResponse'
+
+InstallationMaterialDemandResponse:
+  type: object
+  required:
+    - id
+    - workOrderId
+    - contractId
+    - estimatedDropMeters
+    - onuModelRequired
+    - fastConnectorsCount
+    - ptoRosetteCount
+    - status
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    workOrderId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractNumber:
+      type: string
+      nullable: true
+      example: "CTR-2026-001"
+    customerName:
+      type: string
+      nullable: true
+      example: "João Silva"
+    customerPhone:
+      type: string
+      nullable: true
+      example: "(11) 98765-4321"
+    customerAddress:
+      type: string
+      nullable: true
+      example: "Rua das Flores, 123"
+    customerLatitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.550520
+    customerLongitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.633308
+    ctoId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    ctoName:
+      type: string
+      nullable: true
+      example: "CTO-CENTRO-01"
+    ctoLatitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.550400
+    ctoLongitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.633200
+    ctoPortNumber:
+      type: integer
+      nullable: true
+      example: 2
+    estimatedDropMeters:
+      type: integer
+      example: 85
+    onuModelRequired:
+      type: string
+      example: "ONU GPON Wi-Fi AC 1200"
+    fastConnectorsCount:
+      type: integer
+      example: 2
+    ptoRosetteCount:
+      type: integer
+      example: 1
+    status:
+      $ref: '#/MaterialDemandStatus'
+    allocatedWarehouseId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    allocatedWarehouseName:
+      type: string
+      nullable: true
+      example: "Veículo 04 - Fiat Strada"
+    allocatedTechnicianName:
+      type: string
+      nullable: true
+      example: "Marcos Vinicius"
+    workOrderType:
+      type: string
+      nullable: true
+      example: "INSTALACAO"
+    createdAt:
+      type: string
+      format: date-time
+
+TechnicianDispatchCandidateResponse:
+  type: object
+  required:
+    - technicianId
+    - technicianName
+    - hasCompleteKit
+    - hasOnu
+    - hasDropCable
+    - hasConnectors
+    - dropCableBalanceMeters
+    - recommendedScore
+  properties:
+    technicianId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    technicianName:
+      type: string
+      example: "Carlos Oliveira"
+    warehouseId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    vehicleWarehouseName:
+      type: string
+      nullable: true
+      example: "Veículo 02 - Renault Kangoo"
+    hasCompleteKit:
+      type: boolean
+      example: true
+    hasOnu:
+      type: boolean
+      example: true
+    hasDropCable:
+      type: boolean
+      example: true
+    hasConnectors:
+      type: boolean
+      example: true
+    dropCableBalanceMeters:
+      type: integer
+      example: 320
+    currentLatitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.552000
+    currentLongitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.635000
+    distanceKmToCustomer:
+      type: number
+      format: double
+      nullable: true
+      example: 1.45
+    lastServiceAddress:
+      type: string
+      nullable: true
+      example: "Rua Augusta, 450"
+    recommendedScore:
+      type: number
+      format: double
+      example: 94.5

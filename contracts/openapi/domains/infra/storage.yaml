@@ -1,0 +1,107 @@
+# Endpoints de Configuração de Armazenamento S3/Local e Upload/Download de Arquivos
+
+/storage/config:
+  get:
+    tags:
+      - StorageConfig
+    summary: Obter configuração ativa de armazenamento S3/Local
+    operationId: getActiveStorageConfig
+    responses:
+      '200':
+        description: Configuração ativa de armazenamento
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/StorageConfigResponse'
+  put:
+    tags:
+      - StorageConfig
+    summary: Salvar ou atualizar configuração de armazenamento S3/Local
+    operationId: saveStorageConfig
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/StorageConfigRequest'
+    responses:
+      '200':
+        description: Configuração salva com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/StorageConfigResponse'
+
+/storage/config/test:
+  post:
+    tags:
+      - StorageConfig
+    summary: Testar conectividade com o bucket e credenciais antes de salvar
+    operationId: testStorageConnection
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/StorageConfigRequest'
+    responses:
+      '200':
+        description: Resultado do teste de conexão S3
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/StorageConnectionTestResponse'
+
+/files:
+  post:
+    tags:
+      - FileStorage
+    summary: Realizar upload de arquivo (foto de instalação, documento, comprovante)
+    operationId: uploadFile
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required:
+              - file
+            properties:
+              file:
+                type: string
+                format: binary
+                description: Arquivo para upload
+    responses:
+      '200':
+        description: URL pública ou interna de acesso ao arquivo
+        content:
+          application/json:
+            schema:
+              type: string
+              example: "/files/c4f2e981-d055-442a-9e67-d86b978df311.jpg"
+
+/files/{filename}:
+  get:
+    tags:
+      - FileStorage
+    summary: Recuperar e fazer download/visualização de arquivo armazenado
+    operationId: downloadFile
+    parameters:
+      - name: filename
+        in: path
+        required: true
+        schema:
+          type: string
+        example: "c4f2e981-d055-442a-9e67-d86b978df311.jpg"
+    responses:
+      '200':
+        description: Arquivo binário retornado com Content-Type apropriado
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+          image/*:
+            schema:
+              type: string
+              format: binary

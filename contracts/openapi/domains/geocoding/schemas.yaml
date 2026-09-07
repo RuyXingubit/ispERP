@@ -1,0 +1,200 @@
+# Schemas de Geocodificação, Consulta de CEP e Roteirização Inteligente
+
+RouteStatus:
+  type: string
+  enum:
+    - PLANNED
+    - DISPATCHED
+    - IN_PROGRESS
+    - COMPLETED
+    - CANCELED
+  description: Estado operacional da rota diária de atendimento técnico.
+
+CepLookupResult:
+  type: object
+  required:
+    - cep
+  properties:
+    cep:
+      type: string
+      example: "01310-100"
+    logradouro:
+      type: string
+      nullable: true
+      example: "Avenida Paulista"
+    complemento:
+      type: string
+      nullable: true
+      example: "lado ímpar"
+    bairro:
+      type: string
+      nullable: true
+      example: "Bela Vista"
+    localidade:
+      type: string
+      nullable: true
+      example: "São Paulo"
+    uf:
+      type: string
+      nullable: true
+      example: "SP"
+    ibge:
+      type: string
+      nullable: true
+      example: "3550308"
+    latitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.561414
+    longitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.655881
+
+CreateRouteRequest:
+  type: object
+  required:
+    - routeDate
+    - workOrderIds
+  properties:
+    technicianUserId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    routeDate:
+      type: string
+      format: date
+      example: "2026-09-10"
+    originLatitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.550520
+    originLongitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.633308
+    workOrderIds:
+      type: array
+      items:
+        $ref: '../../components/common.yaml#/UUIDv7'
+
+ServiceRouteStopResponse:
+  type: object
+  required:
+    - id
+    - routeId
+    - workOrderId
+    - sequenceOrder
+    - completed
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    routeId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    workOrderId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    sequenceOrder:
+      type: integer
+      example: 1
+    latitude:
+      type: number
+      format: double
+      nullable: true
+      example: -23.551200
+    longitude:
+      type: number
+      format: double
+      nullable: true
+      example: -46.634100
+    customerName:
+      type: string
+      nullable: true
+      example: "Ana Paula Silva"
+    address:
+      type: string
+      nullable: true
+      example: "Rua Augusta, 500"
+    completed:
+      type: boolean
+      example: false
+
+ServiceRouteResponse:
+  type: object
+  required:
+    - id
+    - code
+    - routeDate
+    - status
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    code:
+      type: string
+      example: "ROTA-20260910-1042"
+    technicianUserId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    routeDate:
+      type: string
+      format: date
+      example: "2026-09-10"
+    totalDistanceKm:
+      type: number
+      format: double
+      nullable: true
+      example: 14.8
+    estimatedDurationMinutes:
+      type: integer
+      nullable: true
+      example: 180
+    status:
+      $ref: '#/RouteStatus'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+ContributeCoordinateRequest:
+  type: object
+  required:
+    - latitude
+    - longitude
+  properties:
+    cep:
+      type: string
+      nullable: true
+      example: "01310-100"
+    numero:
+      type: string
+      nullable: true
+      example: "1000"
+    latitude:
+      type: number
+      format: double
+      example: -23.561414
+    longitude:
+      type: number
+      format: double
+      example: -46.655881
+    precisaoGpsMetros:
+      type: number
+      format: double
+      nullable: true
+      example: 4.2
+
+ContributeCoordinateResponse:
+  type: object
+  required:
+    - status
+  properties:
+    status:
+      type: string
+      example: "SUCCESS"
+    data:
+      type: object
+      additionalProperties: true

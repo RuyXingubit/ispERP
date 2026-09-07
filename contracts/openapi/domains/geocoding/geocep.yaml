@@ -1,0 +1,166 @@
+# Endpoints de Geocodificação, Consulta CEP e Rotas de Atendimento
+
+/geocep/cep/{cep}:
+  get:
+    tags:
+      - GeoCep
+    summary: Consulta de endereço e coordenadas por CEP
+    operationId: lookupCep
+    parameters:
+      - name: cep
+        in: path
+        required: true
+        schema:
+          type: string
+        example: "01310100"
+      - name: numero
+        in: query
+        required: false
+        schema:
+          type: string
+        example: "1000"
+    responses:
+      '200':
+        description: Endereço georreferenciado retornado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CepLookupResult'
+
+/geocep/search:
+  get:
+    tags:
+      - GeoCep
+    summary: Busca textual de endereços e logradouros
+    operationId: searchAddresses
+    parameters:
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+        example: "Avenida Paulista, Sao Paulo"
+    responses:
+      '200':
+        description: Lista de resultados de busca
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/CepLookupResult'
+
+/geocep/reverse:
+  get:
+    tags:
+      - GeoCep
+    summary: Geocodificação reversa (Latitude/Longitude para Logradouro/Bairro/CEP)
+    operationId: reverseGeocode
+    parameters:
+      - name: lat
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+        example: -23.561414
+      - name: lon
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+        example: -46.655881
+    responses:
+      '200':
+        description: Endereço inferido das coordenadas
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CepLookupResult'
+
+/geocep/routes/optimize:
+  post:
+    tags:
+      - GeoCep
+    summary: Otimizar rota de atendimento técnico ordenando paradas pela menor distância
+    operationId: createOptimizedRoute
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/CreateRouteRequest'
+    responses:
+      '200':
+        description: Rota de serviço criada e sequenciada
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ServiceRouteResponse'
+
+/geocep/routes:
+  get:
+    tags:
+      - GeoCep
+    summary: Listar rotas de serviço por data
+    operationId: getRoutesByDate
+    parameters:
+      - name: date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        example: "2026-09-10"
+    responses:
+      '200':
+        description: Lista de rotas do dia
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ServiceRouteResponse'
+
+/geocep/routes/{routeId}/stops:
+  get:
+    tags:
+      - GeoCep
+    summary: Listar paradas ordenadas de uma rota específica
+    operationId: getStopsByRouteId
+    parameters:
+      - name: routeId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Lista de paradas sequenciadas da rota
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ServiceRouteStopResponse'
+
+/geocep/contribute:
+  post:
+    tags:
+      - GeoCep
+    summary: Contribuir coordenada GPS real coletada pelo aplicativo do técnico em campo
+    operationId: contributeCoordinate
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ContributeCoordinateRequest'
+    responses:
+      '200':
+        description: Coordenada recebida com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContributeCoordinateResponse'

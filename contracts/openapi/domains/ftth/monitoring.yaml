@@ -1,0 +1,169 @@
+# Endpoints de Monitoramento NOC e Correlação Proativa de Incidentes FTTH
+
+/ftth/monitoring/summary:
+  get:
+    tags:
+      - FtthMonitoring
+    summary: Obter resumo executivo de monitoramento do NOC (saúde OLTs, PONs e incidentes ativos)
+    operationId: getMonitoringSummary
+    responses:
+      '200':
+        description: Resumo operacional do NOC
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NocMonitoringSummaryResponse'
+
+/ftth/monitoring/pons:
+  get:
+    tags:
+      - FtthMonitoring
+    summary: Listar todas as portas PON monitoradas
+    operationId: getAllPonPorts
+    responses:
+      '200':
+        description: Lista de portas PON
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/OltPonPortResponse'
+  post:
+    tags:
+      - FtthMonitoring
+    summary: Cadastrar/Mapear nova porta PON em uma OLT
+    operationId: createPonPort
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/OltPonPortRequest'
+    responses:
+      '201':
+        description: Porta PON mapeada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/OltPonPortResponse'
+
+/ftth/monitoring/pons/device/{deviceId}:
+  get:
+    tags:
+      - FtthMonitoring
+    summary: Listar portas PON de uma OLT específica
+    operationId: getPonPortsByDevice
+    parameters:
+      - name: deviceId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Portas PON da OLT
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/OltPonPortResponse'
+
+/ftth/monitoring/incidents:
+  get:
+    tags:
+      - FtthMonitoring
+    summary: Listar todos os incidentes de rede detectados pelo NOC
+    operationId: getAllIncidents
+    responses:
+      '200':
+        description: Lista de incidentes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/FtthIncidentResponse'
+
+/ftth/monitoring/incidents/active:
+  get:
+    tags:
+      - FtthMonitoring
+    summary: Listar incidentes não resolvidos (críticos e em averiguação)
+    operationId: getActiveIncidents
+    responses:
+      '200':
+        description: Incidentes ativos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/FtthIncidentResponse'
+
+/ftth/monitoring/incidents/{id}/dispatch:
+  post:
+    tags:
+      - FtthMonitoring
+    summary: Despachar equipe técnica de campo para atendimento do incidente
+    operationId: dispatchIncident
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FtthIncidentDispatchRequest'
+    responses:
+      '200':
+        description: Incidente despachado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthIncidentResponse'
+
+/ftth/monitoring/incidents/{id}/resolve:
+  post:
+    tags:
+      - FtthMonitoring
+    summary: Concluir e registrar solução e causa raiz do incidente
+    operationId: resolveIncident
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/FtthIncidentResolveRequest'
+    responses:
+      '200':
+        description: Incidente finalizado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/FtthIncidentResponse'
+
+/ftth/monitoring/poll-now:
+  post:
+    tags:
+      - FtthMonitoring
+    summary: Forçar ciclo imediato de telemetria SNMP/SSH nas OLTs e rodar correlação
+    operationId: forcePollCycle
+    responses:
+      '200':
+        description: Ciclo de varredura concluído
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/NocMonitoringSummaryResponse'

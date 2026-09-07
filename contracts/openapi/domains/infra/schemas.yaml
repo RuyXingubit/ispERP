@@ -1,0 +1,422 @@
+# Schemas de Infraestrutura (Configuração Inicial, Storage S3/Local, Notificações WhatsApp e Gateways de Pagamento)
+
+StorageType:
+  type: string
+  enum:
+    - S3
+    - LOCAL
+  description: Tipo de armazenamento de arquivos e mídia.
+
+StorageProvider:
+  type: string
+  enum:
+    - SEAWEEDFS_LOCAL
+    - AWS_S3
+    - CLOUDFLARE_R2
+    - CUSTOM_S3
+    - LOCAL_DISK
+  description: Provedor ou implementação do serviço de armazenamento.
+
+WhatsAppProviderType:
+  type: string
+  enum:
+    - TWILIO
+    - EVOLUTION_API
+    - Z_API
+    - MOCK
+  description: Gateway de mensageria WhatsApp e notificações transacionais.
+
+PaymentGatewayType:
+  type: string
+  enum:
+    - XINGUBIT_PAY
+    - ASAAS
+    - GERENCIANET
+    - MERCADO_PAGO
+    - CUSTOM
+  description: Integrador financeiro ou gateway de cobrança bancária/PIX.
+
+InitialSetupRequest:
+  type: object
+  required:
+    - adminName
+    - adminEmail
+    - adminPassword
+    - companyName
+    - siteTitle
+  properties:
+    adminName:
+      type: string
+      example: "Administrador ispERP"
+    adminEmail:
+      type: string
+      format: email
+      example: "admin@isperp.com.br"
+    adminPassword:
+      type: string
+      format: password
+      minLength: 6
+      example: "Admin@2026"
+    companyName:
+      type: string
+      example: "Nexus Fibra Telecomunicações Ltda"
+    companyCnpj:
+      type: string
+      nullable: true
+      example: "12.345.678/0001-90"
+    companyAddress:
+      type: string
+      nullable: true
+      example: "Av. Brasil, 500"
+    companyPhone:
+      type: string
+      nullable: true
+      example: "(11) 3333-4444"
+    companyEmail:
+      type: string
+      format: email
+      nullable: true
+      example: "contato@nexusfibra.com.br"
+    companyWebsite:
+      type: string
+      nullable: true
+      example: "https://www.nexusfibra.com.br"
+    siteTitle:
+      type: string
+      example: "Nexus Fibra - Internet Ultrarrápida"
+    siteDescription:
+      type: string
+      nullable: true
+      example: "Provedor líder em conectividade 100% fibra óptica"
+    primaryColor:
+      type: string
+      nullable: true
+      example: "#0EA5E9"
+    secondaryColor:
+      type: string
+      nullable: true
+      example: "#1E293B"
+
+InitialSetupStatusResponse:
+  type: object
+  required:
+    - isSetupCompleted
+  properties:
+    isSetupCompleted:
+      type: boolean
+      example: true
+
+InitialSetupResponse:
+  type: object
+  required:
+    - success
+    - isSetupCompleted
+    - message
+  properties:
+    success:
+      type: boolean
+      example: true
+    isSetupCompleted:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: "Setup realizado com sucesso!"
+
+StorageConfigRequest:
+  type: object
+  required:
+    - storageType
+    - provider
+    - bucketName
+    - region
+    - pathStyleAccess
+    - isActive
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    storageType:
+      $ref: '#/StorageType'
+    provider:
+      $ref: '#/StorageProvider'
+    endpointUrl:
+      type: string
+      nullable: true
+      example: "http://localhost:8333"
+    bucketName:
+      type: string
+      default: "isperp-files"
+      example: "isperp-files"
+    region:
+      type: string
+      default: "us-east-1"
+      example: "us-east-1"
+    accessKey:
+      type: string
+      nullable: true
+      example: "minioadmin"
+    secretKey:
+      type: string
+      nullable: true
+      example: "minioadmin"
+    pathStyleAccess:
+      type: boolean
+      default: true
+      example: true
+    isActive:
+      type: boolean
+      default: true
+      example: true
+
+StorageConfigResponse:
+  type: object
+  required:
+    - storageType
+    - provider
+    - bucketName
+    - region
+    - pathStyleAccess
+    - isActive
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    storageType:
+      $ref: '#/StorageType'
+    provider:
+      $ref: '#/StorageProvider'
+    endpointUrl:
+      type: string
+      nullable: true
+      example: "http://localhost:8333"
+    bucketName:
+      type: string
+      example: "isperp-files"
+    region:
+      type: string
+      example: "us-east-1"
+    accessKey:
+      type: string
+      nullable: true
+      example: "minioadmin"
+    maskedSecretKey:
+      type: string
+      nullable: true
+      example: "********"
+    pathStyleAccess:
+      type: boolean
+      example: true
+    isActive:
+      type: boolean
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+StorageConnectionTestResponse:
+  type: object
+  required:
+    - success
+    - message
+    - latencyMs
+  properties:
+    success:
+      type: boolean
+      example: true
+    message:
+      type: string
+      example: "Conexão com o bucket S3 estabelecida com sucesso"
+    details:
+      type: string
+      nullable: true
+    latencyMs:
+      type: integer
+      example: 45
+
+NotificationConfigSaveRequest:
+  type: object
+  required:
+    - providerType
+    - name
+  properties:
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    providerType:
+      $ref: '#/WhatsAppProviderType'
+    name:
+      type: string
+      example: "Canal Principal WhatsApp"
+    apiUrl:
+      type: string
+      nullable: true
+      example: "https://api.evolution.nexusfibra.com.br"
+    apiToken:
+      type: string
+      nullable: true
+      example: "evo_secret_token"
+    accountSid:
+      type: string
+      nullable: true
+    authToken:
+      type: string
+      nullable: true
+    fromPhoneNumber:
+      type: string
+      nullable: true
+      example: "+5511999998888"
+    active:
+      type: boolean
+      default: true
+      example: true
+
+NotificationConfigResponse:
+  type: object
+  required:
+    - id
+    - providerType
+    - name
+    - active
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    providerType:
+      $ref: '#/WhatsAppProviderType'
+    name:
+      type: string
+      example: "Canal Principal WhatsApp"
+    apiUrl:
+      type: string
+      nullable: true
+      example: "https://api.evolution.nexusfibra.com.br"
+    apiToken:
+      type: string
+      nullable: true
+    accountSid:
+      type: string
+      nullable: true
+    authToken:
+      type: string
+      nullable: true
+    fromPhoneNumber:
+      type: string
+      nullable: true
+      example: "+5511999998888"
+    active:
+      type: boolean
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+PaymentGatewayConfigSaveRequest:
+  type: object
+  required:
+    - gatewayType
+    - name
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    gatewayType:
+      $ref: '#/PaymentGatewayType'
+    name:
+      type: string
+      example: "Asaas Produção"
+    apiKey:
+      type: string
+      nullable: true
+      example: "asaas_api_key"
+    secretKey:
+      type: string
+      nullable: true
+    webhookSecret:
+      type: string
+      nullable: true
+    pixKey:
+      type: string
+      nullable: true
+      example: "financeiro@nexusfibra.com.br"
+    sandbox:
+      type: boolean
+      default: false
+      example: false
+    active:
+      type: boolean
+      default: true
+      example: true
+
+PaymentGatewayConfigResponse:
+  type: object
+  required:
+    - id
+    - gatewayType
+    - name
+    - sandbox
+    - active
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    companyId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    gatewayType:
+      $ref: '#/PaymentGatewayType'
+    name:
+      type: string
+      example: "Asaas Produção"
+    apiKey:
+      type: string
+      nullable: true
+    secretKey:
+      type: string
+      nullable: true
+    webhookSecret:
+      type: string
+      nullable: true
+    pixKey:
+      type: string
+      nullable: true
+      example: "financeiro@nexusfibra.com.br"
+    sandbox:
+      type: boolean
+      example: false
+    active:
+      type: boolean
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+PaymentWebhookResponse:
+  type: object
+  required:
+    - received
+  properties:
+    received:
+      type: boolean
+      example: true
+    status:
+      type: string
+      nullable: true
+      example: "PROCESSED"
+    error:
+      type: string
+      nullable: true
