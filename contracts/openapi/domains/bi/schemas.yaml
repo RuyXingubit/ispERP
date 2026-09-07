@@ -1,0 +1,101 @@
+DashboardBiResponse:
+  type: object
+  description: Consolidado de métricas executivas, comerciais, financeiras e de rede do provedor
+  properties:
+    mrr:
+      type: number
+      format: double
+      description: Receita Recorrente Mensal (Monthly Recurring Revenue)
+      example: 125000.00
+    arr:
+      type: number
+      format: double
+      description: Receita Recorrente Anual (ARR = MRR * 12)
+      example: 1500000.00
+    arpu:
+      type: number
+      format: double
+      description: Ticket Médio por Assinante (Average Revenue Per User)
+      example: 99.90
+    overdueAmount:
+      type: number
+      format: double
+      description: Valor total de faturas vencidas em aberto
+      example: 12450.50
+    defaultRate:
+      type: number
+      format: double
+      description: Taxa percentual de inadimplência da carteira
+      example: 4.85
+    pixConversionRate:
+      type: number
+      format: double
+      description: Percentual de faturas pagas via Pix
+      example: 68.20
+    totalReceivedMonth:
+      type: number
+      format: double
+      description: Total arrecadado e liquidado no mês corrente
+      example: 112550.00
+    totalCustomers:
+      type: integer
+      format: int64
+      description: Total de assinantes cadastrados na base
+      example: 1250
+    activeContracts:
+      type: integer
+      format: int64
+      description: Total de contratos ativos e conectados
+      example: 1180
+    suspendedContracts:
+      type: integer
+      format: int64
+      description: Total de contratos suspensos por corte financeiro ou a pedido
+      example: 45
+    pendingInstallationContracts:
+      type: integer
+      format: int64
+      description: Contratos com instalação pendente na fila técnica
+      example: 25
+    canceledContractsLast30Days:
+      type: integer
+      format: int64
+      description: Total de cancelamentos nos últimos 30 dias
+      example: 12
+    churnRate:
+      type: number
+      format: double
+      description: Taxa de evasão (Churn Rate %) nos últimos 30 dias
+      example: 1.02
+    totalOnus:
+      type: integer
+      format: int64
+      description: Total de ONUs/ONTs registradas
+      example: 1200
+    provisionedOnus:
+      type: integer
+      format: int64
+      description: ONUs ativas e provisionadas em OLTs
+      example: 1180
+    criticalSignalOnus:
+      type: integer
+      format: int64
+      description: ONUs com atenuação óptica crítica (< -25 dBm)
+      example: 18
+    totalNetworkDevices:
+      type: integer
+      format: int64
+      description: Equipamentos de rede (OLTs, Switches, BNGs) monitorados
+      example: 14
+    recentOverdueInvoices:
+      type: array
+      description: Faturas vencidas recentes para ação rápida
+      items:
+        type: object
+        additionalProperties: true
+    criticalSignalAlerts:
+      type: array
+      description: ONUs com sinal óptico degradado para manutenção preventiva
+      items:
+        type: object
+        additionalProperties: true

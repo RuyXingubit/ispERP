@@ -1,0 +1,156 @@
+/financial/backup/overview:
+  get:
+    tags:
+      - BackupDisasterRecovery
+    summary: Retorna o status geral de prontidão de Disaster Recovery e retenção
+    operationId: getBackupOverview
+    responses:
+      '200':
+        description: Visão geral obtida com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/BackupOverviewDto'
+
+/financial/backup/policies:
+  post:
+    tags:
+      - BackupDisasterRecovery
+    summary: Configura a política de backup, criptografia AES-256 e algoritmo de compressão
+    operationId: configureBackupPolicy
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/BackupPolicyRequest'
+    responses:
+      '200':
+        description: Política configurada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/BackupPolicyResponse'
+
+/financial/backup/destinations:
+  get:
+    tags:
+      - BackupDisasterRecovery
+    summary: Lista todos os destinos remotos e locais configurados
+    operationId: listBackupDestinations
+    responses:
+      '200':
+        description: Lista de destinos retornada
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/BackupDestinationResponse'
+  post:
+    tags:
+      - BackupDisasterRecovery
+    summary: Adiciona um novo destino de armazenamento (S3, Local, SFTP, etc.)
+    operationId: createBackupDestination
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/BackupDestinationRequest'
+    responses:
+      '201':
+        description: Destino criado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/BackupDestinationResponse'
+
+/financial/backup/destinations/{id}:
+  delete:
+    tags:
+      - BackupDisasterRecovery
+    summary: Remove um destino de armazenamento
+    operationId: deleteBackupDestination
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '204':
+        description: Destino removido com sucesso
+
+/financial/backup/destinations/{id}/test:
+  post:
+    tags:
+      - BackupDisasterRecovery
+    summary: Testa conexão, permissões de escrita/leitura e latência no destino
+    operationId: testBackupDestination
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Resultado do teste de conectividade
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/StorageTestResult'
+
+/financial/backup/execute:
+  post:
+    tags:
+      - BackupDisasterRecovery
+    summary: Dispara a execução manual da esteira de backup (Dump + Criptografia + Upload S3)
+    operationId: executeManualBackup
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ExecuteBackupRequest'
+    responses:
+      '200':
+        description: Execução iniciada e log retornado
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/BackupExecutionLogDto'
+
+/financial/backup/history:
+  get:
+    tags:
+      - BackupDisasterRecovery
+    summary: Histórico de execuções de backup com hashes SHA256 e status
+    operationId: listBackupHistory
+    responses:
+      '200':
+        description: Histórico de execuções retornado
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/BackupExecutionLogDto'
+
+/financial/backup/emergency-kit:
+  get:
+    tags:
+      - BackupDisasterRecovery
+    summary: Baixa o Kit de Resgate de Emergência em Markdown com instruções passo a passo
+    operationId: downloadEmergencyKit
+    responses:
+      '200':
+        description: Arquivo do Kit de Resgate gerado
+        content:
+          text/markdown:
+            schema:
+              type: string
+              format: binary

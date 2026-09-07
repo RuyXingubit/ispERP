@@ -1,0 +1,18 @@
+/bi/metrics:
+  get:
+    tags:
+      - DashboardBi
+    summary: Retorna o consolidado de métricas executivas e BI do provedor
+    description: Consolida MRR, ARR, ARPU, inadimplência, taxa de conversão Pix, contratos ativos/suspensos, churn e integridade da rede óptica PON.
+    operationId: getDashboardBi
+    responses:
+      '200':
+        description: Métricas consolidadas retornadas com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/DashboardBiResponse'
+      '401':
+        description: Não autenticado
+      '403':
+        description: Acesso restrito a administradores, diretoria e CFO

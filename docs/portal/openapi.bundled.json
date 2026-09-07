@@ -196,6 +196,14 @@
     {
       "name": "PaymentWebhooks",
       "description": "Webhooks de Notificação de Pagamentos Recebidos"
+    },
+    {
+      "name": "DashboardBi",
+      "description": "Métricas Executivas, MRR, ARPU, Churn e Saúde Operacional do Provedor"
+    },
+    {
+      "name": "BackupDisasterRecovery",
+      "description": "Governança de Backup Criptografado AES-256, Destinos Remotos e Kit de Resgate"
     }
   ],
   "paths": {
@@ -9652,6 +9660,273 @@
           }
         }
       }
+    },
+    "/bi/metrics": {
+      "get": {
+        "tags": [
+          "DashboardBi"
+        ],
+        "summary": "Retorna o consolidado de métricas executivas e BI do provedor",
+        "description": "Consolida MRR, ARR, ARPU, inadimplência, taxa de conversão Pix, contratos ativos/suspensos, churn e integridade da rede óptica PON.",
+        "operationId": "getDashboardBi",
+        "responses": {
+          "200": {
+            "description": "Métricas consolidadas retornadas com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardBiResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          },
+          "403": {
+            "description": "Acesso restrito a administradores, diretoria e CFO"
+          }
+        }
+      }
+    },
+    "/financial/backup/overview": {
+      "get": {
+        "tags": [
+          "BackupDisasterRecovery"
+        ],
+        "summary": "Retorna o status geral de prontidão de Disaster Recovery e retenção",
+        "operationId": "getBackupOverview",
+        "responses": {
+          "200": {
+            "description": "Visão geral obtida com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupOverviewDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/backup/policies": {
+      "post": {
+        "tags": [
+          "BackupDisasterRecovery"
+        ],
+        "summary": "Configura a política de backup, criptografia AES-256 e algoritmo de compressão",
+        "operationId": "configureBackupPolicy",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupPolicyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Política configurada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupPolicyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/backup/destinations": {
+      "get": {
+        "tags": [
+          "BackupDisasterRecovery"
+        ],
+        "summary": "Lista todos os destinos remotos e locais configurados",
+        "operationId": "listBackupDestinations",
+        "responses": {
+          "200": {
+            "description": "Lista de destinos retornada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BackupDestinationResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "BackupDisasterRecovery"
+        ],
+        "summary": "Adiciona um novo destino de armazenamento (S3, Local, SFTP, etc.)",
+        "operationId": "createBackupDestination",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupDestinationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Destino criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupDestinationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/backup/destinations/{id}": {
+      "delete": {
+        "tags": [
+          "BackupDisasterRecovery"
+        ],
+        "summary": "Remove um destino de armazenamento",
+        "operationId": "deleteBackupDestination",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Destino removido com sucesso"
+          }
+        }
+      }
+    },
+    "/financial/backup/destinations/{id}/test": {
+      "post": {
+        "tags": [
+          "BackupDisasterRecovery"
+        ],
+        "summary": "Testa conexão, permissões de escrita/leitura e latência no destino",
+        "operationId": "testBackupDestination",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado do teste de conectividade",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageTestResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/backup/execute": {
+      "post": {
+        "tags": [
+          "BackupDisasterRecovery"
+        ],
+        "summary": "Dispara a execução manual da esteira de backup (Dump + Criptografia + Upload S3)",
+        "operationId": "executeManualBackup",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteBackupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Execução iniciada e log retornado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupExecutionLogDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/backup/history": {
+      "get": {
+        "tags": [
+          "BackupDisasterRecovery"
+        ],
+        "summary": "Histórico de execuções de backup com hashes SHA256 e status",
+        "operationId": "listBackupHistory",
+        "responses": {
+          "200": {
+            "description": "Histórico de execuções retornado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BackupExecutionLogDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/financial/backup/emergency-kit": {
+      "get": {
+        "tags": [
+          "BackupDisasterRecovery"
+        ],
+        "summary": "Baixa o Kit de Resgate de Emergência em Markdown com instruções passo a passo",
+        "operationId": "downloadEmergencyKit",
+        "responses": {
+          "200": {
+            "description": "Arquivo do Kit de Resgate gerado",
+            "content": {
+              "text/markdown": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -18603,6 +18878,525 @@
             "example": "PROCESSED"
           },
           "error": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "DashboardBiResponse": {
+        "type": "object",
+        "description": "Consolidado de métricas executivas, comerciais, financeiras e de rede do provedor",
+        "properties": {
+          "mrr": {
+            "type": "number",
+            "format": "double",
+            "description": "Receita Recorrente Mensal (Monthly Recurring Revenue)",
+            "example": 125000
+          },
+          "arr": {
+            "type": "number",
+            "format": "double",
+            "description": "Receita Recorrente Anual (ARR = MRR * 12)",
+            "example": 1500000
+          },
+          "arpu": {
+            "type": "number",
+            "format": "double",
+            "description": "Ticket Médio por Assinante (Average Revenue Per User)",
+            "example": 99.9
+          },
+          "overdueAmount": {
+            "type": "number",
+            "format": "double",
+            "description": "Valor total de faturas vencidas em aberto",
+            "example": 12450.5
+          },
+          "defaultRate": {
+            "type": "number",
+            "format": "double",
+            "description": "Taxa percentual de inadimplência da carteira",
+            "example": 4.85
+          },
+          "pixConversionRate": {
+            "type": "number",
+            "format": "double",
+            "description": "Percentual de faturas pagas via Pix",
+            "example": 68.2
+          },
+          "totalReceivedMonth": {
+            "type": "number",
+            "format": "double",
+            "description": "Total arrecadado e liquidado no mês corrente",
+            "example": 112550
+          },
+          "totalCustomers": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total de assinantes cadastrados na base",
+            "example": 1250
+          },
+          "activeContracts": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total de contratos ativos e conectados",
+            "example": 1180
+          },
+          "suspendedContracts": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total de contratos suspensos por corte financeiro ou a pedido",
+            "example": 45
+          },
+          "pendingInstallationContracts": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Contratos com instalação pendente na fila técnica",
+            "example": 25
+          },
+          "canceledContractsLast30Days": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total de cancelamentos nos últimos 30 dias",
+            "example": 12
+          },
+          "churnRate": {
+            "type": "number",
+            "format": "double",
+            "description": "Taxa de evasão (Churn Rate %) nos últimos 30 dias",
+            "example": 1.02
+          },
+          "totalOnus": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Total de ONUs/ONTs registradas",
+            "example": 1200
+          },
+          "provisionedOnus": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ONUs ativas e provisionadas em OLTs",
+            "example": 1180
+          },
+          "criticalSignalOnus": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ONUs com atenuação óptica crítica (< -25 dBm)",
+            "example": 18
+          },
+          "totalNetworkDevices": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Equipamentos de rede (OLTs, Switches, BNGs) monitorados",
+            "example": 14
+          },
+          "recentOverdueInvoices": {
+            "type": "array",
+            "description": "Faturas vencidas recentes para ação rápida",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "criticalSignalAlerts": {
+            "type": "array",
+            "description": "ONUs com sinal óptico degradado para manutenção preventiva",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "SecurityMode": {
+        "type": "string",
+        "enum": [
+          "MANAGED_RESCUE",
+          "ZERO_KNOWLEDGE"
+        ],
+        "description": "Modo de segurança criptográfica do backup (AES-256-GCM)"
+      },
+      "BackupStorageType": {
+        "type": "string",
+        "enum": [
+          "S3_COMPATIBLE",
+          "SFTP",
+          "LOCAL_VOLUME",
+          "ISPERP_CLOUD"
+        ],
+        "description": "Tipo de armazenamento do destino de backup"
+      },
+      "CompressionAlgorithm": {
+        "type": "string",
+        "enum": [
+          "ZSTD",
+          "GZIP"
+        ],
+        "description": "Algoritmo de compressão de alta performance"
+      },
+      "BackupStatus": {
+        "type": "string",
+        "enum": [
+          "RUNNING",
+          "SUCCESS",
+          "FAILED",
+          "VERIFIED_OK"
+        ],
+        "description": "Status de execução do backup"
+      },
+      "BackupTriggerType": {
+        "type": "string",
+        "enum": [
+          "SCHEDULED",
+          "MANUAL",
+          "DRY_RUN_VERIFICATION"
+        ],
+        "description": "Origem do disparo da rotina de backup"
+      },
+      "BackupOverviewDto": {
+        "type": "object",
+        "description": "Visão geral consolidada do sistema de Disaster Recovery",
+        "properties": {
+          "securityMode": {
+            "$ref": "#/components/schemas/SecurityMode"
+          },
+          "hasActivePolicy": {
+            "type": "boolean"
+          },
+          "cronExpression": {
+            "type": "string"
+          },
+          "retentionDays": {
+            "type": "integer"
+          },
+          "activeDestinationsCount": {
+            "type": "integer"
+          },
+          "totalBackupsCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "lastBackupStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastBackupAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastBackupSizeBytes": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "lastBackupCompressionRatio": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "lastBackupSha256": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastBackupFileName": {
+            "type": "string",
+            "nullable": true
+          },
+          "isDryRunVerified": {
+            "type": "boolean"
+          },
+          "lastDryRunVerifiedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "rescueKitDownloaded": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BackupPolicyRequest": {
+        "type": "object",
+        "required": [
+          "securityMode",
+          "cronExpression",
+          "retentionDays",
+          "compressionAlgorithm"
+        ],
+        "properties": {
+          "securityMode": {
+            "$ref": "#/components/schemas/SecurityMode"
+          },
+          "customMasterKey": {
+            "type": "string",
+            "nullable": true,
+            "description": "Chave mestra personalizada (quando ZERO_KNOWLEDGE)"
+          },
+          "cronExpression": {
+            "type": "string",
+            "example": "0 0 3 * * *"
+          },
+          "retentionDays": {
+            "type": "integer",
+            "example": 30
+          },
+          "compressionAlgorithm": {
+            "$ref": "#/components/schemas/CompressionAlgorithm"
+          },
+          "autoDryRunEnabled": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "BackupPolicyResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "securityMode": {
+            "$ref": "#/components/schemas/SecurityMode"
+          },
+          "masterKeyHash": {
+            "type": "string"
+          },
+          "generatedPlainMasterKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "cronExpression": {
+            "type": "string"
+          },
+          "retentionDays": {
+            "type": "integer"
+          },
+          "compressionAlgorithm": {
+            "$ref": "#/components/schemas/CompressionAlgorithm"
+          },
+          "autoDryRunEnabled": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "rescueKitDownloadedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "BackupDestinationRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "storageType"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Wasabi Hot Cloud Storage"
+          },
+          "storageType": {
+            "$ref": "#/components/schemas/BackupStorageType"
+          },
+          "endpointUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://s3.us-east-1.wasabisys.com"
+          },
+          "bucketName": {
+            "type": "string",
+            "nullable": true,
+            "example": "isperp-disaster-recovery"
+          },
+          "region": {
+            "type": "string",
+            "example": "us-east-1"
+          },
+          "accessKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "secretKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "pathPrefix": {
+            "type": "string",
+            "nullable": true,
+            "example": "backups/isperp"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "BackupDestinationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "storageType": {
+            "$ref": "#/components/schemas/BackupStorageType"
+          },
+          "endpointUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "bucketName": {
+            "type": "string",
+            "nullable": true
+          },
+          "region": {
+            "type": "string",
+            "nullable": true
+          },
+          "accessKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "pathPrefix": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "lastTestedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastTestStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastTestError": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "StorageTestResult": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "detailedError": {
+            "type": "string",
+            "nullable": true
+          },
+          "latencyMs": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "BackupExecutionLogDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "policyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "destinationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "destinationName": {
+            "type": "string",
+            "nullable": true
+          },
+          "triggerType": {
+            "$ref": "#/components/schemas/BackupTriggerType"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BackupStatus"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "originalSizeBytes": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "compressedSizeBytes": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "compressionRatio": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "sha256Hash": {
+            "type": "string",
+            "nullable": true
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "nullable": true
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "isDryRunVerified": {
+            "type": "boolean"
+          },
+          "dryRunVerifiedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ExecuteBackupRequest": {
+        "type": "object",
+        "properties": {
+          "masterKey": {
             "type": "string",
             "nullable": true
           }

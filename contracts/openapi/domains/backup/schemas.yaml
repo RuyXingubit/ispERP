@@ -1,0 +1,302 @@
+SecurityMode:
+  type: string
+  enum:
+    - MANAGED_RESCUE
+    - ZERO_KNOWLEDGE
+  description: Modo de segurança criptográfica do backup (AES-256-GCM)
+
+BackupStorageType:
+  type: string
+  enum:
+    - S3_COMPATIBLE
+    - SFTP
+    - LOCAL_VOLUME
+    - ISPERP_CLOUD
+  description: Tipo de armazenamento do destino de backup
+
+CompressionAlgorithm:
+  type: string
+  enum:
+    - ZSTD
+    - GZIP
+  description: Algoritmo de compressão de alta performance
+
+BackupStatus:
+  type: string
+  enum:
+    - RUNNING
+    - SUCCESS
+    - FAILED
+    - VERIFIED_OK
+  description: Status de execução do backup
+
+BackupTriggerType:
+  type: string
+  enum:
+    - SCHEDULED
+    - MANUAL
+    - DRY_RUN_VERIFICATION
+  description: Origem do disparo da rotina de backup
+
+BackupOverviewDto:
+  type: object
+  description: Visão geral consolidada do sistema de Disaster Recovery
+  properties:
+    securityMode:
+      $ref: '#/SecurityMode'
+    hasActivePolicy:
+      type: boolean
+    cronExpression:
+      type: string
+    retentionDays:
+      type: integer
+    activeDestinationsCount:
+      type: integer
+    totalBackupsCount:
+      type: integer
+      format: int64
+    lastBackupStatus:
+      type: string
+      nullable: true
+    lastBackupAt:
+      type: string
+      format: date-time
+      nullable: true
+    lastBackupSizeBytes:
+      type: integer
+      format: int64
+      nullable: true
+    lastBackupCompressionRatio:
+      type: number
+      format: double
+      nullable: true
+    lastBackupSha256:
+      type: string
+      nullable: true
+    lastBackupFileName:
+      type: string
+      nullable: true
+    isDryRunVerified:
+      type: boolean
+    lastDryRunVerifiedAt:
+      type: string
+      format: date-time
+      nullable: true
+    rescueKitDownloaded:
+      type: boolean
+
+BackupPolicyRequest:
+  type: object
+  required:
+    - securityMode
+    - cronExpression
+    - retentionDays
+    - compressionAlgorithm
+  properties:
+    securityMode:
+      $ref: '#/SecurityMode'
+    customMasterKey:
+      type: string
+      nullable: true
+      description: Chave mestra personalizada (quando ZERO_KNOWLEDGE)
+    cronExpression:
+      type: string
+      example: "0 0 3 * * *"
+    retentionDays:
+      type: integer
+      example: 30
+    compressionAlgorithm:
+      $ref: '#/CompressionAlgorithm'
+    autoDryRunEnabled:
+      type: boolean
+      default: true
+
+BackupPolicyResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    securityMode:
+      $ref: '#/SecurityMode'
+    masterKeyHash:
+      type: string
+    generatedPlainMasterKey:
+      type: string
+      nullable: true
+    cronExpression:
+      type: string
+    retentionDays:
+      type: integer
+    compressionAlgorithm:
+      $ref: '#/CompressionAlgorithm'
+    autoDryRunEnabled:
+      type: boolean
+    isActive:
+      type: boolean
+    rescueKitDownloadedAt:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+
+BackupDestinationRequest:
+  type: object
+  required:
+    - name
+    - storageType
+  properties:
+    name:
+      type: string
+      example: "Wasabi Hot Cloud Storage"
+    storageType:
+      $ref: '#/BackupStorageType'
+    endpointUrl:
+      type: string
+      nullable: true
+      example: "https://s3.us-east-1.wasabisys.com"
+    bucketName:
+      type: string
+      nullable: true
+      example: "isperp-disaster-recovery"
+    region:
+      type: string
+      example: "us-east-1"
+    accessKey:
+      type: string
+      nullable: true
+    secretKey:
+      type: string
+      nullable: true
+    pathPrefix:
+      type: string
+      nullable: true
+      example: "backups/isperp"
+    isPrimary:
+      type: boolean
+      default: false
+
+BackupDestinationResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    storageType:
+      $ref: '#/BackupStorageType'
+    endpointUrl:
+      type: string
+      nullable: true
+    bucketName:
+      type: string
+      nullable: true
+    region:
+      type: string
+      nullable: true
+    accessKey:
+      type: string
+      nullable: true
+    pathPrefix:
+      type: string
+      nullable: true
+    isActive:
+      type: boolean
+    isPrimary:
+      type: boolean
+    lastTestedAt:
+      type: string
+      format: date-time
+      nullable: true
+    lastTestStatus:
+      type: string
+      nullable: true
+    lastTestError:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+
+StorageTestResult:
+  type: object
+  properties:
+    success:
+      type: boolean
+    message:
+      type: string
+    detailedError:
+      type: string
+      nullable: true
+    latencyMs:
+      type: integer
+      format: int64
+
+BackupExecutionLogDto:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    policyId:
+      type: string
+      format: uuid
+    destinationId:
+      type: string
+      format: uuid
+      nullable: true
+    destinationName:
+      type: string
+      nullable: true
+    triggerType:
+      $ref: '#/BackupTriggerType'
+    status:
+      $ref: '#/BackupStatus'
+    fileName:
+      type: string
+    originalSizeBytes:
+      type: integer
+      format: int64
+      nullable: true
+    compressedSizeBytes:
+      type: integer
+      format: int64
+      nullable: true
+    compressionRatio:
+      type: number
+      format: double
+      nullable: true
+    sha256Hash:
+      type: string
+      nullable: true
+    durationSeconds:
+      type: integer
+      nullable: true
+    errorMessage:
+      type: string
+      nullable: true
+    isDryRunVerified:
+      type: boolean
+    dryRunVerifiedAt:
+      type: string
+      format: date-time
+      nullable: true
+    startedAt:
+      type: string
+      format: date-time
+    completedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+ExecuteBackupRequest:
+  type: object
+  properties:
+    masterKey:
+      type: string
+      nullable: true

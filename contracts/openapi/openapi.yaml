@@ -105,6 +105,10 @@ tags:
     description: Configuração de Gateways de Pagamento (PIX, Boleto, Cartão)
   - name: PaymentWebhooks
     description: Webhooks de Notificação de Pagamentos Recebidos
+  - name: DashboardBi
+    description: Métricas Executivas, MRR, ARPU, Churn e Saúde Operacional do Provedor
+  - name: BackupDisasterRecovery
+    description: Governança de Backup Criptografado AES-256, Destinos Remotos e Kit de Resgate
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -536,6 +540,28 @@ paths:
     $ref: './domains/infra/gateways.yaml#/~1payment-gateways~1{id}'
   /webhooks/payments/{gatewayType}:
     $ref: './domains/infra/gateways.yaml#/~1webhooks~1payments~1{gatewayType}'
+
+  # BI & Métricas Executivas
+  /bi/metrics:
+    $ref: './domains/bi/bi.yaml#/~1bi~1metrics'
+
+  # Disaster Recovery & Backup
+  /financial/backup/overview:
+    $ref: './domains/backup/backup.yaml#/~1financial~1backup~1overview'
+  /financial/backup/policies:
+    $ref: './domains/backup/backup.yaml#/~1financial~1backup~1policies'
+  /financial/backup/destinations:
+    $ref: './domains/backup/backup.yaml#/~1financial~1backup~1destinations'
+  /financial/backup/destinations/{id}:
+    $ref: './domains/backup/backup.yaml#/~1financial~1backup~1destinations~1{id}'
+  /financial/backup/destinations/{id}/test:
+    $ref: './domains/backup/backup.yaml#/~1financial~1backup~1destinations~1{id}~1test'
+  /financial/backup/execute:
+    $ref: './domains/backup/backup.yaml#/~1financial~1backup~1execute'
+  /financial/backup/history:
+    $ref: './domains/backup/backup.yaml#/~1financial~1backup~1history'
+  /financial/backup/emergency-kit:
+    $ref: './domains/backup/backup.yaml#/~1financial~1backup~1emergency-kit'
 
 components:
   securitySchemes:
@@ -1035,4 +1061,34 @@ components:
     PaymentWebhookResponse:
       $ref: './domains/infra/schemas.yaml#/PaymentWebhookResponse'
 
+    # BI & Métricas Executivas
+    DashboardBiResponse:
+      $ref: './domains/bi/schemas.yaml#/DashboardBiResponse'
 
+    # Backup & Disaster Recovery
+    SecurityMode:
+      $ref: './domains/backup/schemas.yaml#/SecurityMode'
+    BackupStorageType:
+      $ref: './domains/backup/schemas.yaml#/BackupStorageType'
+    CompressionAlgorithm:
+      $ref: './domains/backup/schemas.yaml#/CompressionAlgorithm'
+    BackupStatus:
+      $ref: './domains/backup/schemas.yaml#/BackupStatus'
+    BackupTriggerType:
+      $ref: './domains/backup/schemas.yaml#/BackupTriggerType'
+    BackupOverviewDto:
+      $ref: './domains/backup/schemas.yaml#/BackupOverviewDto'
+    BackupPolicyRequest:
+      $ref: './domains/backup/schemas.yaml#/BackupPolicyRequest'
+    BackupPolicyResponse:
+      $ref: './domains/backup/schemas.yaml#/BackupPolicyResponse'
+    BackupDestinationRequest:
+      $ref: './domains/backup/schemas.yaml#/BackupDestinationRequest'
+    BackupDestinationResponse:
+      $ref: './domains/backup/schemas.yaml#/BackupDestinationResponse'
+    StorageTestResult:
+      $ref: './domains/backup/schemas.yaml#/StorageTestResult'
+    BackupExecutionLogDto:
+      $ref: './domains/backup/schemas.yaml#/BackupExecutionLogDto'
+    ExecuteBackupRequest:
+      $ref: './domains/backup/schemas.yaml#/ExecuteBackupRequest'
