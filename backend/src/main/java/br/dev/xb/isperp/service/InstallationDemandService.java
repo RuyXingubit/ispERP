@@ -227,6 +227,13 @@ public class InstallationDemandService {
             });
         }
 
+        workOrderRepository.findById(demand.getWorkOrderId()).ifPresent(wo -> {
+            resp.setWorkOrderType(wo.getType() != null ? wo.getType().name() : "INSTALACAO");
+            if (resp.getAllocatedTechnicianName() == null && wo.getTechnicianName() != null) {
+                resp.setAllocatedTechnicianName(wo.getTechnicianName());
+            }
+        });
+
         return resp;
     }
 

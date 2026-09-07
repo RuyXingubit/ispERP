@@ -66,7 +66,13 @@ class InstallationDemandModel {
   final String? allocatedWarehouseId;
   final String? allocatedWarehouseName;
   final String? allocatedTechnicianName;
+  final String workOrderType;
+  final String? maintenanceReason;
   final DateTime? createdAt;
+
+  bool get isMaintenance => workOrderType.toUpperCase() == 'MANUTENCAO';
+  bool get isRemoval => workOrderType.toUpperCase() == 'RETIRADA';
+  bool get isInstallation => !isMaintenance && !isRemoval;
 
   const InstallationDemandModel({
     required this.id,
@@ -91,6 +97,8 @@ class InstallationDemandModel {
     this.allocatedWarehouseId,
     this.allocatedWarehouseName,
     this.allocatedTechnicianName,
+    this.workOrderType = 'INSTALACAO',
+    this.maintenanceReason,
     this.createdAt,
   });
 
@@ -139,6 +147,8 @@ class InstallationDemandModel {
       allocatedWarehouseId: json['allocatedWarehouseId']?.toString(),
       allocatedWarehouseName: json['allocatedWarehouseName']?.toString(),
       allocatedTechnicianName: json['allocatedTechnicianName']?.toString(),
+      workOrderType: json['workOrderType']?.toString() ?? json['type']?.toString() ?? 'INSTALACAO',
+      maintenanceReason: json['maintenanceReason']?.toString(),
       createdAt: parseDate(json['createdAt']),
     );
   }

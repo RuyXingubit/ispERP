@@ -192,5 +192,50 @@ void main() {
       expect(notifier.state.selectedFilterTab, equals(1));
       expect(notifier.state.dispatchSuccessMessage, contains('despachada com sucesso para Pedro Henrique'));
     });
+
+    test('Deve filtrar demandas por tipo de processo (INSTALACAO, MANUTENCAO, RETIRADA)', () async {
+      await Future.delayed(const Duration(milliseconds: 10));
+
+      // Adiciona uma demanda de manutenção ao repositório simulado
+      final maintenanceDemand = InstallationDemandModel(
+        id: '01912345-0000-7000-8000-000000000003',
+        workOrderId: '01912345-0000-7000-8000-000000000030',
+        contractId: '01912345-0000-7000-8000-000000000300',
+        contractNumber: 'CTR-2026-003',
+        customerName: 'Carlos Reparo',
+        customerAddress: 'Rua das Flores, 50',
+        estimatedDropMeters: 20,
+        onuModelRequired: 'ONT Wi-Fi Dual-Band GPON Gigabit',
+        fastConnectorsCount: 2,
+        ptoRosetteCount: 1,
+        status: MaterialDemandStatus.pendingAllocation,
+        workOrderType: 'MANUTENCAO',
+        maintenanceReason: 'LOS Vermelho / Sem Conexão',
+      );
+
+      expect(maintenanceDemand.isMaintenance, isTrue);
+      expect(maintenanceDemand.isInstallation, isFalse);
+      expect(maintenanceDemand.isRemoval, isFalse);
+
+      fakeRepo.dummyDemands.add(maintenanceDemand);
+      await notifier.loadDemands();
+
+      // Com filtro ALL e tab 0 (Pendentes): 2 pendentes (1 instalacao e 1 manutencao)
+      notifier.setFilterTab(0);
+      notifier.setTypeFilter('ALL');
+      expect(notifier.state.filteredDemands.length, equals(2));
+
+      // Filtro MANUTENCAO: apenas a de reparo
+      notifier.setTypeFilter('MANUTENCAO');
+      expect(notifier.state.filteredDemands.length, equals(1));
+      expect(notifier.state.filteredDemands.first.customerName, equals('Carlos Reparo'));
+      expect(notifier.state.filteredDemands.first.isMaintenance, isTrue);
+
+      // Filtro INSTALACAO: apenas a de instalação
+      notifier.setTypeFilter('INSTALACAO');
+      expect(notifier.state.filteredDemands.length, equals(1));
+      expect(notifier.state.filteredDemands.first.customerName, equals('Ruy Barbosa Borges França'));
+      expect(notifier.state.filteredDemands.first.isInstallation, isTrue);
+    });
   });
 }

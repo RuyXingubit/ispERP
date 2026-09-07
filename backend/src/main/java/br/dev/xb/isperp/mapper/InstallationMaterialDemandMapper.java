@@ -20,6 +20,7 @@ public interface InstallationMaterialDemandMapper {
     @Mapping(target = "ctoLatitude", ignore = true)
     @Mapping(target = "ctoLongitude", ignore = true)
     @Mapping(target = "allocatedWarehouseName", ignore = true)
+    @Mapping(target = "workOrderType", ignore = true)
     InstallationMaterialDemandResponse toResponse(InstallationMaterialDemand entity);
 
     List<InstallationMaterialDemandResponse> toResponseList(List<InstallationMaterialDemand> entities);

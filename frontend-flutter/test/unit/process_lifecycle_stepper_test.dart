@@ -180,5 +180,57 @@ void main() {
       expect(find.byType(ProcessLifecycleStepper), findsOneWidget);
       expect(find.text('Esteira Operacional FTTH'), findsNothing);
     });
+
+    testWidgets('renders maintenance process stepper with optical diagnosis POP guide', (tester) async {
+      final maintenanceSteps = [
+        const ProcessLifecycleStep(
+          id: 'step_man_1',
+          title: '1. Abertura & Triagem N1',
+          subtitle: 'LOS Vermelho / Sem Sinal',
+          responsibleRoleName: 'Suporte N1',
+          allowedRoles: ['SUPPORT', 'SUPPORT_ANALYST', 'ADMIN'],
+          isCompleted: true,
+          isActive: false,
+          icon: Icons.headset_mic_rounded,
+        ),
+        const ProcessLifecycleStep(
+          id: 'step_man_2',
+          title: '2. Diagnóstico Remoto N2',
+          subtitle: 'Porta PON Flapando',
+          responsibleRoleName: 'NOC / Suporte N2',
+          allowedRoles: ['SUPPORT_N2', 'ADMIN'],
+          isCompleted: false,
+          isActive: true,
+          icon: Icons.router_rounded,
+          popGuideTitle: 'POP-NOC-02: Diagnóstico Avançado de Atenuação Óptica',
+          popGuideContent: '1. Medição de potência óptica na OLT.\n2. Se sinal < -27 dBm, emitir reparo físico.',
+        ),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ProcessLifecycleStepper(
+              processTitle: 'Esteira de Resolução de Incidente & Reparo FTTH',
+              steps: maintenanceSteps,
+              currentUserRole: 'SUPPORT_N2',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Esteira de Resolução de Incidente & Reparo FTTH'), findsOneWidget);
+      expect(find.text('1. Abertura & Triagem N1'), findsOneWidget);
+      expect(find.text('2. Diagnóstico Remoto N2'), findsOneWidget);
+      expect(find.textContaining('Etapa ativa sob sua responsabilidade (NOC / Suporte N2)'), findsOneWidget);
+
+      // Toca em Ver POP
+      await tester.tap(find.text('Ver POP'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('POP-NOC-02: Diagnóstico Avançado de Atenuação Óptica'), findsOneWidget);
+      expect(find.textContaining('Medição de potência óptica na OLT'), findsOneWidget);
+    });
   });
 }

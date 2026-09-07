@@ -37,5 +37,6 @@ public class InstallationMaterialDemandResponse {
     private @Nullable UUID allocatedWarehouseId;
     private @Nullable String allocatedWarehouseName;
     private @Nullable String allocatedTechnicianName;
+    private @Nullable String workOrderType;
     private OffsetDateTime createdAt;
 }

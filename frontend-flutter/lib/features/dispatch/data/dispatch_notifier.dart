@@ -14,6 +14,7 @@ class DispatchState {
   final String? dispatchSuccessMessage;
   final String? errorMessage;
   final int selectedFilterTab; // 0: Todas / Pendentes, 1: Alocadas / Agendadas, 2: Concluídas
+  final String selectedTypeFilter; // 'ALL', 'INSTALACAO', 'MANUTENCAO', 'RETIRADA'
 
   const DispatchState({
     this.isLoadingDemands = false,
@@ -25,6 +26,7 @@ class DispatchState {
     this.dispatchSuccessMessage,
     this.errorMessage,
     this.selectedFilterTab = 0,
+    this.selectedTypeFilter = 'ALL',
   });
 
   DispatchState copyWith({
@@ -39,6 +41,7 @@ class DispatchState {
     String? errorMessage,
     bool clearMessages = false,
     int? selectedFilterTab,
+    String? selectedTypeFilter,
   }) {
     return DispatchState(
       isLoadingDemands: isLoadingDemands ?? this.isLoadingDemands,
@@ -50,18 +53,25 @@ class DispatchState {
       dispatchSuccessMessage: clearMessages ? null : (dispatchSuccessMessage ?? this.dispatchSuccessMessage),
       errorMessage: clearMessages ? null : (errorMessage ?? this.errorMessage),
       selectedFilterTab: selectedFilterTab ?? this.selectedFilterTab,
+      selectedTypeFilter: selectedTypeFilter ?? this.selectedTypeFilter,
     );
   }
 
-  /// Lista filtrada conforme a aba selecionada.
+  /// Lista filtrada conforme a aba selecionada e o tipo de O.S.
   List<InstallationDemandModel> get filteredDemands {
+    List<InstallationDemandModel> list;
     if (selectedFilterTab == 1) {
-      return demands.where((d) => d.status == MaterialDemandStatus.allocatedVehicle || d.status == MaterialDemandStatus.allocatedCentral).toList();
+      list = demands.where((d) => d.status == MaterialDemandStatus.allocatedVehicle || d.status == MaterialDemandStatus.allocatedCentral).toList();
     } else if (selectedFilterTab == 2) {
-      return demands.where((d) => d.status == MaterialDemandStatus.consumedInField).toList();
+      list = demands.where((d) => d.status == MaterialDemandStatus.consumedInField).toList();
+    } else {
+      list = demands.where((d) => d.status == MaterialDemandStatus.pendingAllocation).toList();
     }
-    // Tab 0: Pendentes de Triagem / Agendamento
-    return demands.where((d) => d.status == MaterialDemandStatus.pendingAllocation).toList();
+
+    if (selectedTypeFilter != 'ALL') {
+      list = list.where((d) => d.workOrderType.toUpperCase() == selectedTypeFilter.toUpperCase()).toList();
+    }
+    return list;
   }
 }
 
@@ -178,6 +188,16 @@ class DispatchNotifier extends StateNotifier<DispatchState> {
 
   void setFilterTab(int tab) {
     state = state.copyWith(selectedFilterTab: tab);
+  }
+
+  void setTypeFilter(String type) {
+    state = state.copyWith(selectedTypeFilter: type);
+    final currentFiltered = state.filteredDemands;
+    if (currentFiltered.isNotEmpty) {
+      if (state.selectedDemand == null || !currentFiltered.any((d) => d.workOrderId == state.selectedDemand?.workOrderId)) {
+        selectDemand(currentFiltered.first);
+      }
+    }
   }
 
   void clearMessages() {

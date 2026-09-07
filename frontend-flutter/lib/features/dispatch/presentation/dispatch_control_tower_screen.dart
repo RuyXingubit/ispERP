@@ -125,14 +125,16 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                 ],
 
-                // Abas de Filtro da Fila de Instalação
+                // Abas de Filtro da Fila (Status e Tipo de Processo)
                 Wrap(
-                  spacing: 10,
+                  spacing: 8,
                   runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
+                    // Status da Fila
                     _buildFilterChip(
                       context,
-                      label: 'Aguardando Triagem / Despacho (${state.demands.where((d) => d.status == MaterialDemandStatus.pendingAllocation).length})',
+                      label: 'Aguardando Triagem (${state.demands.where((d) => d.status == MaterialDemandStatus.pendingAllocation).length})',
                       isSelected: state.selectedFilterTab == 0,
                       onSelected: () => notifier.setFilterTab(0),
                     ),
@@ -144,9 +146,38 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                     ),
                     _buildFilterChip(
                       context,
-                      label: 'Concluídas & Ativadas (${state.demands.where((d) => d.status == MaterialDemandStatus.consumedInField).length})',
+                      label: 'Concluídas (${state.demands.where((d) => d.status == MaterialDemandStatus.consumedInField).length})',
                       isSelected: state.selectedFilterTab == 2,
                       onSelected: () => notifier.setFilterTab(2),
+                    ),
+                    Container(width: 1, height: 26, color: AppTheme.darkBorder, margin: const EdgeInsets.symmetric(horizontal: 4)),
+                    // Filtro por Tipo de O.S.
+                    _buildFilterChip(
+                      context,
+                      label: 'Todas as Ordens',
+                      isSelected: state.selectedTypeFilter == 'ALL',
+                      onSelected: () => notifier.setTypeFilter('ALL'),
+                    ),
+                    _buildFilterChip(
+                      context,
+                      label: 'Instalação FTTH',
+                      isSelected: state.selectedTypeFilter == 'INSTALACAO',
+                      onSelected: () => notifier.setTypeFilter('INSTALACAO'),
+                      selectedColor: AppTheme.primaryBlue,
+                    ),
+                    _buildFilterChip(
+                      context,
+                      label: 'Reparo / Manutenção',
+                      isSelected: state.selectedTypeFilter == 'MANUTENCAO',
+                      onSelected: () => notifier.setTypeFilter('MANUTENCAO'),
+                      selectedColor: AppTheme.accentWarning,
+                    ),
+                    _buildFilterChip(
+                      context,
+                      label: 'Logística Reversa / Retirada',
+                      isSelected: state.selectedTypeFilter == 'RETIRADA',
+                      onSelected: () => notifier.setTypeFilter('RETIRADA'),
+                      selectedColor: Colors.purpleAccent,
                     ),
                   ],
                 ),
@@ -200,7 +231,9 @@ class DispatchControlTowerScreen extends ConsumerWidget {
     required String label,
     required bool isSelected,
     required VoidCallback onSelected,
+    Color? selectedColor,
   }) {
+    final activeColor = selectedColor ?? AppTheme.primaryBlue;
     return ChoiceChip(
       label: Text(
         label,
@@ -211,9 +244,9 @@ class DispatchControlTowerScreen extends ConsumerWidget {
         ),
       ),
       selected: isSelected,
-      selectedColor: AppTheme.primaryBlue,
+      selectedColor: activeColor,
       backgroundColor: AppTheme.darkSurface,
-      side: BorderSide(color: isSelected ? AppTheme.primaryBlue : AppTheme.darkBorder),
+      side: BorderSide(color: isSelected ? activeColor : AppTheme.darkBorder),
       onSelected: (_) => onSelected(),
     );
   }
@@ -302,6 +335,45 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                // Badge de Tipo de Processo / O.S.
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _getTypeColor(item.workOrderType).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: _getTypeColor(item.workOrderType).withValues(alpha: 0.35)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(_getTypeIcon(item.workOrderType), size: 11, color: _getTypeColor(item.workOrderType)),
+                          const SizedBox(width: 4),
+                          Text(
+                            _getTypeLabel(item.workOrderType),
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: _getTypeColor(item.workOrderType),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (item.maintenanceReason != null) ...[
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item.maintenanceReason!,
+                          style: const TextStyle(fontSize: 10, color: AppTheme.accentWarning, fontStyle: FontStyle.italic),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -400,8 +472,16 @@ class DispatchControlTowerScreen extends ConsumerWidget {
         children: [
           // Esteira Visual de Processo (Governança e Atribuição de Etapa)
           ProcessLifecycleStepper(
-            processTitle: 'Esteira Operacional de Instalação FTTH (Order to Cash)',
-            steps: _buildInstallationSteps(demand),
+            processTitle: demand.isMaintenance
+                ? 'Esteira de Resolução de Incidente & Reparo FTTH (Incident to Restore)'
+                : (demand.isRemoval
+                    ? 'Esteira de Logística Reversa & Recolhimento de Comodato'
+                    : 'Esteira Operacional de Instalação FTTH (Order to Cash)'),
+            steps: demand.isMaintenance
+                ? _buildMaintenanceSteps(demand)
+                : (demand.isRemoval
+                    ? _buildRemovalSteps(demand)
+                    : _buildInstallationSteps(demand)),
             currentUserRole: currentUserRole,
           ),
           const SizedBox(height: 16),
@@ -991,5 +1071,221 @@ class DispatchControlTowerScreen extends ConsumerWidget {
             '2. Validação: Checagem do status PPPoE/IPoE ativo e geração do primeiro ciclo proporcional.',
       ),
     ];
+  }
+
+  List<ProcessLifecycleStep> _buildMaintenanceSteps(InstallationDemandModel demand) {
+    final isPending = demand.status == MaterialDemandStatus.pendingAllocation;
+    final isDispatched = demand.status == MaterialDemandStatus.allocatedVehicle ||
+        demand.status == MaterialDemandStatus.allocatedCentral;
+    final isCompleted = demand.status == MaterialDemandStatus.consumedInField;
+
+    return [
+      ProcessLifecycleStep(
+        id: 'step_man_triage',
+        title: '1. Abertura & Triagem N1',
+        subtitle: demand.maintenanceReason ?? 'Incidente Reportado via SAC',
+        responsibleRoleName: 'Suporte N1',
+        allowedRoles: const ['SUPPORT', 'SUPPORT_ANALYST', 'ADMIN'],
+        isCompleted: true,
+        isActive: false,
+        icon: Icons.headset_mic_rounded,
+        popGuideTitle: 'POP-MAN-01: Triagem de Incidente e Teste Inicial',
+        popGuideContent:
+            '1. Objetivo: Validar ausência de corte massivo na região, verificar alimentação elétrica da ONU e estado dos LEDs.\n\n'
+            '2. Testes Remotos: Teste de ping e consulta de logs no concentrador RADIUS.\n\n'
+            '3. Ação: Se problema persistir no enlace óptico, encaminhar chamado para o N2 com histórico de atenuação.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_man_diag',
+        title: '2. Diagnóstico Remoto N2',
+        subtitle: demand.ctoName != null
+            ? 'Porta OLT / CTO ${demand.ctoName}'
+            : 'Análise de Flap e Potência Óptica',
+        responsibleRoleName: 'NOC / Suporte N2',
+        allowedRoles: const ['SUPPORT_N2', 'ADMIN'],
+        isCompleted: true,
+        isActive: false,
+        icon: Icons.router_rounded,
+        popGuideTitle: 'POP-NOC-02: Diagnóstico Avançado de Atenuação Óptica',
+        popGuideContent:
+            '1. Objetivo: Consultar níveis de potência óptica recebida (Rx Power) e enviada (Tx Power) na OLT via SNMP/TR-069.\n\n'
+            '2. Critérios de Alarme:\n- Sinal abaixo de -27 dBm: Alta atenuação (curvatura, conector sujo ou splitter avariado).\n- Sinal = -40 dBm ou LOS: Rompimento total de fibra.\n\n'
+            '3. Decisão: Emitir Ordem de Serviço de Reparo Físico e definir materiais prioritários.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_man_dispatch',
+        title: '3. Despacho & Ferramental',
+        subtitle: demand.allocatedTechnicianName != null
+            ? 'Técnico: ${demand.allocatedTechnicianName}'
+            : 'Aguardando Alocação',
+        responsibleRoleName: 'Torre de Controle',
+        allowedRoles: const ['SUPPORT_ANALYST', 'SUPPORT_N2', 'ADMIN'],
+        isCompleted: isDispatched || isCompleted,
+        isActive: isPending,
+        assignedPersonName: demand.allocatedTechnicianName,
+        icon: Icons.build_circle_rounded,
+        popGuideTitle: 'POP-DSP-03: Alocação de Equipe com Ferramental de Manutenção',
+        popGuideContent:
+            '1. Objetivo: Despachar a O.S. para um técnico em trânsito com máquina de fusão, clivador e Power Meter calibrado no veículo.\n\n'
+            '2. Verificação de Saldo: Garantir saldo positivo de conectores rápidos e drop de reposição no veículo.\n\n'
+            '3. Roteamento: Priorizar equipe mais próxima geograficamente para cumprir o SLA contratual de restabelecimento.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_man_field',
+        title: '4. Atendimento & Medição Óptica',
+        subtitle: isCompleted
+            ? 'Reparo Executado e Atestado'
+            : (isDispatched ? 'Técnico em Campo no Imóvel' : 'Aguardando Despacho'),
+        responsibleRoleName: 'Técnico de Campo',
+        allowedRoles: const ['TECHNICIAN', 'ADMIN'],
+        isCompleted: isCompleted,
+        isActive: isDispatched,
+        assignedPersonName: demand.allocatedTechnicianName,
+        icon: Icons.engineering_rounded,
+        popGuideTitle: 'POP-CAM-04: Procedimento de Reparo Físico e Medição de Potência',
+        popGuideContent:
+            '1. Medição Inicial: Conectar o Power Meter na ponta do drop e aferir o sinal óptico na entrada do imóvel.\n\n'
+            '2. Troca/Refação: Se sinal atenuado, clivar e refazer o conector SC-APC ou fundir nova ponta. Se fibra rompida no vão, lançar novo trecho de drop com ancoragem reforçada.\n\n'
+            '3. Padrão de Homologação: O sinal no conector da ONU DEVE estar entre -15.0 dBm e -24.0 dBm.\n\n'
+            '4. Coleta de Evidências: Fotografar a medição do Power Meter e colher assinatura do cliente no aplicativo.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_man_closing',
+        title: '5. Fechamento & Homologação',
+        subtitle: isCompleted ? 'Conexão Estável & Normalizada' : 'Aguardando Validação',
+        responsibleRoleName: 'Sistema / Atendimento',
+        allowedRoles: const ['SUPPORT', 'SUPPORT_ANALYST', 'ADMIN'],
+        isCompleted: isCompleted,
+        isActive: false,
+        icon: Icons.verified_rounded,
+        popGuideTitle: 'POP-SAC-05: Encerramento do Incidente e Pesquisa de Satisfação',
+        popGuideContent:
+            '1. Objetivo: Verificar status de conexão PPPoE online no concentrador NAS e ausência de perda de pacotes.\n\n'
+            '2. Baixa de Insumos: Registrar conectores ou metragem de cabo utilizados no reparo para baixa no Kardex do veículo.\n\n'
+            '3. Notificação ao Cliente: Disparar mensagem automática via WhatsApp comunicando a conclusão do chamado e solicitando nota de avaliação do atendimento (NPS / CSAT).',
+      ),
+    ];
+  }
+
+  List<ProcessLifecycleStep> _buildRemovalSteps(InstallationDemandModel demand) {
+    final isPending = demand.status == MaterialDemandStatus.pendingAllocation;
+    final isDispatched = demand.status == MaterialDemandStatus.allocatedVehicle ||
+        demand.status == MaterialDemandStatus.allocatedCentral;
+    final isCompleted = demand.status == MaterialDemandStatus.consumedInField;
+
+    return [
+      ProcessLifecycleStep(
+        id: 'step_rem_retention',
+        title: '1. Rescisão & Retenção',
+        subtitle: demand.contractNumber != null ? 'Contrato ${demand.contractNumber}' : 'Rescisão Contratual',
+        responsibleRoleName: 'Retenção / SAC',
+        allowedRoles: const ['SALES', 'ADMIN'],
+        isCompleted: true,
+        isActive: false,
+        icon: Icons.cancel_presentation_rounded,
+        popGuideTitle: 'POP-RET-01: Homologação de Rescisão e Tentativa de Retenção',
+        popGuideContent:
+            '1. Objetivo: Investigar a causa-raiz do cancelamento e ofertar alternativas viáveis de retenção.\n\n'
+            '2. Homologação: Caso o cliente confirme o cancelamento, registrar a rescisão e gerar a solicitação de logística reversa de comodato.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_rem_audit',
+        title: '2. Auditoria de Comodato',
+        subtitle: '${demand.onuModelRequired} + Acessórios',
+        responsibleRoleName: 'Financeiro / Almoxarifado',
+        allowedRoles: const ['FINANCIAL', 'ADMIN'],
+        isCompleted: true,
+        isActive: false,
+        icon: Icons.inventory_2_outlined,
+        popGuideTitle: 'POP-FIN-02: Levantamento Patrimonial de Ativos em Comodato',
+        popGuideContent:
+            '1. Objetivo: Identificar no contrato os seriais da ONU e Roteador Wi-Fi cedidos em comodato ao cliente.\n\n'
+            '2. Saída: Geração da Ordem de Serviço de Recolhimento com lista dos equipamentos a resgatar.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_rem_dispatch',
+        title: '3. Despacho de Recolha',
+        subtitle: demand.allocatedTechnicianName != null
+            ? 'Técnico: ${demand.allocatedTechnicianName}'
+            : 'Aguardando Alocação',
+        responsibleRoleName: 'Torre de Controle',
+        allowedRoles: const ['SUPPORT_ANALYST', 'SUPPORT_N2', 'ADMIN'],
+        isCompleted: isDispatched || isCompleted,
+        isActive: isPending,
+        assignedPersonName: demand.allocatedTechnicianName,
+        icon: Icons.local_shipping_rounded,
+        popGuideTitle: 'POP-DSP-03: Agendamento e Despacho de Coleta',
+        popGuideContent:
+            '1. Objetivo: Despachar a rota de recolhimento para equipe técnica ou motorista operacional.\n\n'
+            '2. Roteamento: Agrupar coletas no mesmo bairro das instalações para economia de combustível.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_rem_field',
+        title: '4. Coleta & Termo de Devolução',
+        subtitle: isCompleted
+            ? 'Equipamentos Coletados'
+            : (isDispatched ? 'Em Atendimento no Imóvel' : 'Aguardando Coleta'),
+        responsibleRoleName: 'Técnico de Campo',
+        allowedRoles: const ['TECHNICIAN', 'ADMIN'],
+        isCompleted: isCompleted,
+        isActive: isDispatched,
+        assignedPersonName: demand.allocatedTechnicianName,
+        icon: Icons.assignment_turned_in_outlined,
+        popGuideTitle: 'POP-CAM-04: Coleta de Equipamentos e Termo de Entrega',
+        popGuideContent:
+            '1. Objetivo: Recolher a ONU, fonte de alimentação, cabo de rede e roteador Wi-Fi.\n\n'
+            '2. Assinatura: Colher o Termo de Devolução assinado pelo cliente ou responsável maior de idade.',
+      ),
+      ProcessLifecycleStep(
+        id: 'step_rem_warehouse',
+        title: '5. Triagem & Recondicionamento',
+        subtitle: isCompleted ? 'Ativo Reintegrado ao Kardex' : 'Aguardando Entrada no Central',
+        responsibleRoleName: 'Almoxarifado',
+        allowedRoles: const ['SUPPORT_ANALYST', 'ADMIN'],
+        isCompleted: isCompleted,
+        isActive: false,
+        icon: Icons.check_circle_outline_rounded,
+        popGuideTitle: 'POP-ALM-05: Teste de Bancada, Reset e Reintegração ao Estoque',
+        popGuideContent:
+            '1. Teste: Conectar na bancada de testes, efetuar o reset de fábrica e checar portas LAN e Wi-Fi.\n\n'
+            '2. Recondicionamento: Higienizar, colocar nova embalagem e reincorporar o ativo no Kardex como "Disponível para Instalação".',
+      ),
+    ];
+  }
+
+  Color _getTypeColor(String type) {
+    switch (type.toUpperCase().trim()) {
+      case 'MANUTENCAO':
+        return AppTheme.accentWarning;
+      case 'RETIRADA':
+        return Colors.purpleAccent;
+      case 'INSTALACAO':
+      default:
+        return AppTheme.primaryBlue;
+    }
+  }
+
+  IconData _getTypeIcon(String type) {
+    switch (type.toUpperCase().trim()) {
+      case 'MANUTENCAO':
+        return Icons.build_rounded;
+      case 'RETIRADA':
+        return Icons.assignment_return_rounded;
+      case 'INSTALACAO':
+      default:
+        return Icons.add_circle_outline_rounded;
+    }
+  }
+
+  String _getTypeLabel(String type) {
+    switch (type.toUpperCase().trim()) {
+      case 'MANUTENCAO':
+        return 'REPARO / MANUTENÇÃO';
+      case 'RETIRADA':
+        return 'LOGÍSTICA REVERSA';
+      case 'INSTALACAO':
+      default:
+        return 'NOVA INSTALAÇÃO';
+    }
   }
 }
