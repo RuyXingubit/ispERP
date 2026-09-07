@@ -4,16 +4,21 @@ import br.dev.xb.isperp.api.contract.CustomersApi;
 import br.dev.xb.isperp.api.dto.CustomerCreateRequest;
 import br.dev.xb.isperp.api.dto.CustomerResponse;
 import br.dev.xb.isperp.api.dto.CustomerUpdateRequest;
+import br.dev.xb.isperp.api.dto.ResetCustomerPinRequest;
+import br.dev.xb.isperp.api.dto.ResetCustomerPinResponse;
 import br.dev.xb.isperp.entity.Customer;
 import br.dev.xb.isperp.mapper.CustomerMapper;
+import br.dev.xb.isperp.service.AuditLogService;
+import br.dev.xb.isperp.service.ClientPortalService;
 import br.dev.xb.isperp.service.CustomerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,6 +30,8 @@ public class CustomerController implements CustomersApi {
 
     private final CustomerService customerService;
     private final CustomerMapper customerMapper;
+    private final ClientPortalService clientPortalService;
+    private final AuditLogService auditLogService;
 
     @Override
     public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
@@ -38,16 +45,16 @@ public class CustomerController implements CustomersApi {
 
     @Override
     public ResponseEntity<CustomerResponse> getCustomerById(UUID id) {
-        Optional<Customer> customer = customerService.getCustomerById(id);
-        return customer.map(customerMapper::toResponse)
+        return customerService.getCustomerById(id)
+                .map(customerMapper::toResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @Override
     public ResponseEntity<CustomerResponse> getCustomerByCpf(String cpf) {
-        Optional<Customer> customer = customerService.getCustomerByCpf(cpf);
-        return customer.map(customerMapper::toResponse)
+        return customerService.getCustomerByCpf(cpf)
+                .map(customerMapper::toResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -114,5 +121,31 @@ public class CustomerController implements CustomersApi {
     public ResponseEntity<Void> deactivateCustomer(UUID id) {
         customerService.deactivateCustomer(id);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Reseta ou define um PIN temporário para o cliente pelo atendente/administrador.
+     */
+    @Override
+    public ResponseEntity<ResetCustomerPinResponse> resetCustomerPin(
+            UUID id,
+            ResetCustomerPinRequest request) {
+
+        boolean force = request.getForceChange() == null || Boolean.TRUE.equals(request.getForceChange());
+        clientPortalService.resetPinByOperator(id, request.getTemporaryPin(), force);
+
+        auditLogService.logAction(
+                "CUSTOMER_PIN_RESET",
+                "CUSTOMER",
+                id.toString(),
+                Map.of("forceChange", force)
+        );
+
+        ResetCustomerPinResponse response = new ResetCustomerPinResponse();
+        response.setMessage("PIN do cliente resetado com sucesso pelo operador.");
+        response.setCustomerId(id);
+        response.setForceChange(force);
+
+        return ResponseEntity.ok(response);
     }
 }

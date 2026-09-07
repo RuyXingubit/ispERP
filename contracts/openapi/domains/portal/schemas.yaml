@@ -1,0 +1,221 @@
+# Schemas da Central do Assinante (Portal do Cliente)
+
+ClientAuthStatus:
+  type: string
+  enum:
+    - AUTHENTICATED
+    - PIN_REQUIRED
+    - FORCE_CHANGE_PIN
+  description: Status do desafio de autenticação do cliente.
+  example: "AUTHENTICATED"
+
+ClientAuthRequest:
+  type: object
+  required:
+    - document
+  properties:
+    document:
+      type: string
+      description: CPF ou CNPJ do assinante (com ou sem pontuação).
+      example: "123.456.789-00"
+    pin:
+      type: string
+      pattern: '^\d{4}$'
+      nullable: true
+      description: PIN numérico de 4 dígitos para validação.
+      example: "1234"
+
+ClientAuthResponse:
+  type: object
+  required:
+    - status
+  properties:
+    status:
+      $ref: '#/ClientAuthStatus'
+    message:
+      type: string
+      nullable: true
+      example: "Autenticação realizada com sucesso."
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    customerName:
+      type: string
+      nullable: true
+      example: "João Pereira de Souza"
+    maskedDocument:
+      type: string
+      nullable: true
+      example: "***.456.789-**"
+    hasPin:
+      type: boolean
+      nullable: true
+      example: true
+    customer:
+      $ref: '../customers/schemas.yaml#/CustomerResponse'
+
+SetClientPinRequest:
+  type: object
+  required:
+    - customerId
+    - newPin
+  properties:
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    currentPin:
+      type: string
+      pattern: '^\d{4}$'
+      nullable: true
+      description: PIN atual (obrigatório se o cliente já possuía PIN configurado).
+      example: "1234"
+    newPin:
+      type: string
+      pattern: '^\d{4}$'
+      description: Novo PIN de 4 dígitos numéricos.
+      example: "5678"
+
+UpdateClientProfileRequest:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      example: "João Pereira de Souza"
+    email:
+      type: string
+      format: email
+      nullable: true
+      example: "joao.souza@gmail.com"
+    phone:
+      type: string
+      nullable: true
+      example: "(91) 98123-4567"
+    address:
+      type: string
+      nullable: true
+      example: "Rua dos Lírios, 45"
+    city:
+      type: string
+      nullable: true
+      example: "Belém"
+    state:
+      type: string
+      nullable: true
+      example: "PA"
+    zipCode:
+      type: string
+      nullable: true
+      example: "66050-000"
+
+ChangePasswordRequest:
+  type: object
+  required:
+    - currentPassword
+    - newPassword
+  properties:
+    currentPassword:
+      type: string
+      description: Senha atual de acesso.
+      example: "antigaSenha123"
+    newPassword:
+      type: string
+      minLength: 4
+      description: Nova senha de acesso.
+      example: "novaSenha456"
+
+PlanUpgradeRequest:
+  type: object
+  required:
+    - contractId
+    - newPlanId
+  properties:
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    newPlanId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+
+TrustUnblockRequest:
+  type: object
+  required:
+    - contractId
+  properties:
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+
+TrustUnblockResponse:
+  type: object
+  required:
+    - id
+    - contractId
+    - requestedAt
+    - expiresAt
+    - status
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    requestedAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: string
+      format: date-time
+    unblockType:
+      type: string
+      example: "BOT_AUTO"
+    grantedByUserId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    invoiceId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    status:
+      type: string
+      example: "ACTIVE"
+    createdAt:
+      type: string
+      format: date-time
+
+ClientPortalDashboardResponse:
+  type: object
+  properties:
+    customer:
+      $ref: '../customers/schemas.yaml#/CustomerResponse'
+    contract:
+      $ref: '../contracts/schemas.yaml#/ContractResponse'
+    currentPlan:
+      $ref: '../plans/schemas.yaml#/PlanResponse'
+    availableUpgradePlans:
+      type: array
+      items:
+        $ref: '../plans/schemas.yaml#/PlanResponse'
+    pendingInvoices:
+      type: array
+      items:
+        $ref: '../billing/schemas.yaml#/InvoiceResponse'
+    paidInvoices:
+      type: array
+      items:
+        $ref: '../billing/schemas.yaml#/InvoiceResponse'
+    overdueInvoices:
+      type: array
+      items:
+        $ref: '../billing/schemas.yaml#/InvoiceResponse'
+    isConnectionBlocked:
+      type: boolean
+      example: false
+    canRequestTrustUnblock:
+      type: boolean
+      example: true
+    connectionStatusMessage:
+      type: string
+      nullable: true
+      example: "Conexão ativa e em pleno funcionamento"
+
+PortalMessageResponse:
+  type: object
+  required:
+    - message
+  properties:
+    message:
+      type: string
+      example: "Operação realizada com sucesso."

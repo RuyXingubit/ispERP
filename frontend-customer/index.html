@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>Central do Assinante • ispERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles/main.css">
+  <link rel="stylesheet" href="/src/styles/portal.css">
+</head>
+<body>
+  <!-- Header Autenticado -->
+  <header class="portal-header" id="portal-header" style="display: none;">
+    <div class="container portal-header-content">
+      <div class="portal-brand">
+        <div class="portal-brand-icon" id="brand-logo-icon">⚡</div>
+        <span class="portal-brand-title" id="brand-title">Central do Assinante</span>
+      </div>
+
+      <div class="portal-user-info">
+        <div>
+          <div class="portal-user-name" id="user-display-name">Assinante</div>
+          <div class="portal-user-doc" id="user-display-doc">000.***.***-00</div>
+        </div>
+        <button type="button" class="btn-pin-action" id="btn-open-pin-modal" title="Gerenciar PIN de Segurança">
+          🔒 PIN
+        </button>
+        <button type="button" class="btn-logout" id="btn-logout" title="Sair da conta">
+          Sair
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="portal-main">
+    <div class="container" id="app-container">
+      <!-- 1. Tela de Login -->
+      <section id="view-login" class="login-wrapper">
+        <div class="login-card">
+          <div class="login-header">
+            <div class="portal-brand-icon" style="margin: 0 auto 12px auto; width: 44px; height: 44px; font-size: 1.4rem;">⚡</div>
+            <h2 id="login-brand-name">Central do Assinante</h2>
+            <p>Acesse suas faturas, 2ª via Pix e auto-desbloqueio</p>
+          </div>
+
+          <div id="login-alert" class="alert-message" style="display: none;"></div>
+
+          <form id="form-login">
+            <div class="form-group">
+              <label for="input-document" class="form-label">CPF ou CNPJ</label>
+              <input 
+                type="text" 
+                id="input-document" 
+                class="form-input" 
+                placeholder="000.000.000-00" 
+                inputmode="numeric" 
+                required 
+                autocomplete="username"
+              >
+              <span class="form-hint">Digite apenas os números do seu documento</span>
+            </div>
+
+            <!-- Campo de PIN (Ativado se o cliente possuir PIN) -->
+            <div class="form-group" id="group-pin" style="display: none;">
+              <label for="input-pin" class="form-label">PIN de Segurança (4 dígitos)</label>
+              <input 
+                type="password" 
+                id="input-pin" 
+                class="form-input" 
+                placeholder="••••" 
+                inputmode="numeric" 
+                maxlength="4" 
+                autocomplete="current-password"
+              >
+              <span class="form-hint">Informe o seu PIN numérico de 4 dígitos</span>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btn-login-submit">
+              <span id="login-submit-text">Acessar Minha Conta</span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- 2. Tela de Dashboard -->
+      <section id="view-dashboard" style="display: none;">
+        <!-- Card de Status da Conexão -->
+        <div class="status-card" id="connection-card">
+          <div class="status-info">
+            <div id="status-badge" class="status-badge status-active">
+              <span id="status-badge-dot">●</span>
+              <span id="status-badge-text">Conexão Ativa</span>
+            </div>
+            <h3 class="status-plan-name" id="plan-name">Carregando plano...</h3>
+            <p class="status-plan-speeds" id="plan-speeds">Consultando velocidades...</p>
+          </div>
+
+          <div id="trust-unblock-wrapper" style="display: none;">
+            <button type="button" class="btn-trust-unblock" id="btn-trust-unblock">
+              ⚡ Desbloqueio em Confiança (48h)
+            </button>
+          </div>
+        </div>
+
+        <!-- Seção de Faturas -->
+        <div class="invoices-header">
+          <h2 class="invoices-title">Minhas Faturas</h2>
+          <div class="invoices-tabs">
+            <button type="button" class="tab-btn active" id="tab-pending">Em Aberto</button>
+            <button type="button" class="tab-btn" id="tab-paid">Pagas</button>
+          </div>
+        </div>
+
+        <!-- Grid de Faturas -->
+        <div class="invoices-grid" id="invoices-grid">
+          <div class="loading-state" style="grid-column: 1 / -1; text-align: center; padding: 32px;">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: var(--text-muted);">Buscando faturas do assinante...</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal Pix -->
+  <div class="modal-overlay" id="modal-pix" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Pagamento via Pix</h3>
+        <button type="button" class="btn-close-modal" id="btn-close-pix">&times;</button>
+      </div>
+
+      <p style="color: var(--text-muted); font-size: 0.9rem;">
+        Aponte a câmera do aplicativo do seu banco para o QR Code ou copie o código Pix Copia-e-Cola:
+      </p>
+
+      <div class="pix-qr-container" id="pix-qr-box">
+        <img id="pix-qr-img" src="" alt="QR Code Pix" style="max-width: 180px; max-height: 180px; display: block;">
+      </div>
+
+      <div class="pix-copia-e-cola-box">
+        <span class="pix-code-text" id="pix-code-text"></span>
+        <button type="button" class="btn-copy-pix" id="btn-copy-pix">Copiar Código</button>
+      </div>
+
+      <p id="pix-copy-feedback" style="font-size: 0.8rem; color: var(--success-color); text-align: center; display: none;">
+        ✓ Código Pix copiado para a área de transferência!
+      </p>
+    </div>
+  </div>
+
+  <!-- Modal de PIN de Segurança -->
+  <div class="modal-overlay" id="modal-pin" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="pin-modal-title">PIN de Segurança</h3>
+        <button type="button" class="btn-close-modal" id="btn-close-pin-modal">&times;</button>
+      </div>
+
+      <p style="color: var(--text-muted); font-size: 0.9rem;" id="pin-modal-desc">
+        Defina ou altere seu PIN numérico de 4 dígitos para proteger seu acesso à Central.
+      </p>
+
+      <form id="form-pin" style="margin-top: 16px;">
+        <!-- Campo PIN Atual -->
+        <div class="form-group" id="group-current-pin" style="display: none;">
+          <label for="input-current-pin" class="form-label">PIN Atual (4 dígitos)</label>
+          <input 
+            type="password" 
+            id="input-current-pin" 
+            class="form-input" 
+            placeholder="••••" 
+            inputmode="numeric" 
+            maxlength="4" 
+            autocomplete="current-password"
+          >
+        </div>
+
+        <!-- Campo Novo PIN -->
+        <div class="form-group">
+          <label for="input-new-pin" class="form-label">Novo PIN (4 dígitos numéricos)</label>
+          <input 
+            type="password" 
+            id="input-new-pin" 
+            class="form-input" 
+            placeholder="••••" 
+            inputmode="numeric" 
+            maxlength="4" 
+            required 
+            autocomplete="new-password"
+          >
+          <span class="form-hint">Digite exatamente 4 números (ex: 1234)</span>
+        </div>
+
+        <!-- Confirmar Novo PIN -->
+        <div class="form-group">
+          <label for="input-confirm-pin" class="form-label">Confirmar Novo PIN</label>
+          <input 
+            type="password" 
+            id="input-confirm-pin" 
+            class="form-input" 
+            placeholder="••••" 
+            inputmode="numeric" 
+            maxlength="4" 
+            required 
+            autocomplete="new-password"
+          >
+        </div>
+
+        <div id="pin-feedback" class="login-alert" style="display: none; margin-bottom: 14px;"></div>
+
+        <button type="submit" class="btn-submit" id="btn-submit-pin">
+          <span id="pin-submit-text">Salvar PIN</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

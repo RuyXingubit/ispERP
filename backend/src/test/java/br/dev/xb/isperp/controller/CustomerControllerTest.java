@@ -3,8 +3,11 @@ package br.dev.xb.isperp.controller;
 import br.dev.xb.isperp.api.dto.CustomerCreateRequest;
 import br.dev.xb.isperp.api.dto.CustomerResponse;
 import br.dev.xb.isperp.api.dto.CustomerUpdateRequest;
+import br.dev.xb.isperp.api.dto.ResetCustomerPinRequest;
 import br.dev.xb.isperp.entity.Customer;
 import br.dev.xb.isperp.mapper.CustomerMapper;
+import br.dev.xb.isperp.service.AuditLogService;
+import br.dev.xb.isperp.service.ClientPortalService;
 import br.dev.xb.isperp.service.CustomerService;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +48,12 @@ class CustomerControllerTest {
 
     @MockitoBean
     private CustomerMapper customerMapper;
+
+    @MockitoBean
+    private ClientPortalService clientPortalService;
+
+    @MockitoBean
+    private AuditLogService auditLogService;
 
     private UUID customerId;
     private Customer customer;
@@ -215,5 +224,24 @@ class CustomerControllerTest {
                 .andExpect(status().isOk());
 
         verify(customerService).deactivateCustomer(customerId);
+    }
+
+    @Test
+    @DisplayName("POST /customers/{id}/reset-pin - Deve resetar PIN pelo operador com auditoria")
+    void shouldResetCustomerPin() throws Exception {
+        ResetCustomerPinRequest request = new ResetCustomerPinRequest("4321", true);
+
+        doNothing().when(clientPortalService).resetPinByOperator(customerId, "4321", true);
+
+        mockMvc.perform(post("/customers/{id}/reset-pin", customerId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("PIN do cliente resetado com sucesso pelo operador."))
+                .andExpect(jsonPath("$.customerId").value(customerId.toString()))
+                .andExpect(jsonPath("$.forceChange").value(true));
+
+        verify(clientPortalService).resetPinByOperator(customerId, "4321", true);
+        verify(auditLogService).logAction(eq("CUSTOMER_PIN_RESET"), eq("CUSTOMER"), eq(customerId.toString()), any());
     }
 }

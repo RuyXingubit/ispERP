@@ -147,3 +147,35 @@ CustomerUpdateRequest:
     longitude:
       type: number
       format: double
+
+ResetCustomerPinRequest:
+  type: object
+  required:
+    - temporaryPin
+  properties:
+    temporaryPin:
+      type: string
+      pattern: '^\d{4}$'
+      description: PIN temporário de 4 dígitos numéricos configurado pelo atendente.
+      example: "1234"
+    forceChange:
+      type: boolean
+      description: Se verdadeiro, força o cliente a alterar o PIN no próximo acesso.
+      default: true
+      example: true
+
+ResetCustomerPinResponse:
+  type: object
+  required:
+    - message
+    - customerId
+    - forceChange
+  properties:
+    message:
+      type: string
+      example: "PIN do cliente resetado com sucesso pelo operador."
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    forceChange:
+      type: boolean
+      example: true

@@ -1,0 +1,44 @@
+:root {
+  /* Paleta Corporativa Padrão (sobrescrita em runtime via API) */
+  --primary-color: #1976d2;
+  --primary-hover: #1565c0;
+  --secondary-color: #00897b;
+  --secondary-hover: #00796b;
+
+  /* Superfícies e Fundos */
+  --bg-color: #0b0f17;
+  --surface-color: #131b2a;
+  --surface-elevated: #1a2436;
+  --surface-card: #162032;
+
+  /* Cores Semânticas de Estado */
+  --success-color: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --danger-color: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --warning-color: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --info-color: #3b82f6;
+  --info-bg: rgba(59, 130, 246, 0.12);
+
+  /* Tipografia & Textos */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-inverse: #0b0f17;
+
+  /* Bordas e Sombras */
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(25, 118, 210, 0.4);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+  /* Transições Suaves */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}

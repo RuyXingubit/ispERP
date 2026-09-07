@@ -317,3 +317,42 @@
           application/json:
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/customers/{id}/reset-pin:
+  post:
+    tags:
+      - Customers
+    summary: Resetar PIN de acesso do cliente
+    description: Permite ao operador ou atendente redefinir o PIN de 4 dígitos do cliente na Central do Assinante com opção de exigir alteração no próximo login.
+    operationId: resetCustomerPin
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ResetCustomerPinRequest'
+    responses:
+      '200':
+        description: PIN resetado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ResetCustomerPinResponse'
+      '400':
+        description: PIN inválido (deve conter 4 dígitos numéricos).
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

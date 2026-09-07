@@ -152,3 +152,94 @@ A migração do ispERP para o modelo API-First foi estruturada em fases incremen
   - Conectar os demais controllers legados (`InvoiceController`, `ContractController`, `CustomerController`) às interfaces geradas pelo contrato.
 * **Fase 4 — CI/CD & Governança Automática:**
   - Inclusão do job de validação de contratos no GitHub Actions (`fail-fast`), impedindo merges com divergências de contrato.
+
+---
+
+## 8. Contratos do Portal do Assinante e Gestão de PIN (`/api/portal/client` e `/customers/{id}/reset-pin`)
+
+O ecossistema desacoplado da Central do Assinante (`frontend-customer`) consome endpoints públicos protegidos por autenticação de documento e PIN de 4 dígitos. Além disso, os operadores administrativos do ERP possuem endpoints auditados para suporte e reset de credenciais.
+
+### 8.1. Autenticação do Assinante (`POST /api/portal/client/auth`)
+Permite login sem atritos via CPF ou CNPJ, com validação de PIN de 4 dígitos numéricos quando existente.
+- **Rota:** `POST /api/portal/client/auth`
+- **Acesso:** Público (`permitAll()`)
+- **Corpo da Requisição (JSON):**
+  ```json
+  {
+    "document": "200.370.410-88",
+    "pin": "1234"
+  }
+  ```
+  *(O campo `pin` é opcional na primeira tentativa caso o cliente ainda não possua PIN)*
+- **Respostas Possíveis:**
+  - `200 OK` com `status: "AUTHENTICATED"`: Acesso liberado. Retorna `customerId`, `customerName`, `maskedDocument`, `hasPin: true/false` e objeto `customer`.
+  - `200 OK` com `status: "PIN_REQUIRED"`: Cliente possui PIN cadastrado, exigindo o envio do PIN de 4 dígitos.
+  - `200 OK` com `status: "FORCE_CHANGE_PIN"`: O PIN foi resetado pelo suporte do provedor ou está expirado. O cliente deve cadastrar um novo PIN antes de acessar o dashboard.
+  - `400 / 404`: Cliente não localizado com o CPF/CNPJ informado ou cadastro inativo.
+
+### 8.2. Dashboard do Assinante (`GET /api/portal/client/dashboard`)
+Retorna a visão unificada da conta do assinante: dados cadastrais, plano ativo, velocidades, status da conexão e faturas separadas por situação.
+- **Rota:** `GET /api/portal/client/dashboard`
+- **Identificação:** Via cabeçalho `X-Customer-Id: <UUID>` ou parâmetro `?customerId=<UUID>`
+- **Resposta (`ClientPortalDashboardDTO`):**
+  ```json
+  {
+    "customer": { "id": "...", "name": "...", "cpf": "..." },
+    "contract": { "id": "...", "contractNumber": "CTR-2026-...", "status": "ACTIVE|SUSPENDED" },
+    "currentPlan": { "name": "Fibra 300 Mega", "downloadSpeed": 300, "uploadSpeed": 150, "price": 79.90 },
+    "availableUpgradePlans": [ ... ],
+    "pendingInvoices": [ ... ],
+    "overdueInvoices": [ ... ],
+    "paidInvoices": [ ... ],
+    "connectionBlocked": false,
+    "canRequestTrustUnblock": false,
+    "connectionStatusMessage": "Sua conexão está ativa e operando normalmente."
+  }
+  ```
+
+### 8.3. Desbloqueio em Confiança de 48 Horas (`POST /api/portal/client/trust-unblock`)
+Permite ao assinante com conexão suspensa por inadimplência solicitar o auto-desbloqueio temporário (48h) uma única vez a cada ciclo de faturamento.
+- **Rota:** `POST /api/portal/client/trust-unblock`
+- **Identificação:** `X-Customer-Id: <UUID>` ou `?customerId=<UUID>`
+- **Corpo da Requisição (JSON):**
+  ```json
+  {
+    "contractId": "01a0674f-0271-7b5f-999d-9313eb6e3b34"
+  }
+  ```
+- **Resposta:** Registro `TrustUnblock` com `status: "ACTIVE"`, `expiresAt: <data+48h>`, disparando evento assíncrono `INTERNET_ACCESS_UNBLOCKED` no outbox para o concentrador de rede (MikroTik/Huawei/OLT).
+
+### 8.4. Cadastro e Alteração de PIN pelo Cliente (`POST /api/portal/client/pin`)
+Permite ao assinante cadastrar seu primeiro PIN de 4 dígitos ou atualizar o PIN existente.
+- **Rota:** `POST /api/portal/client/pin`
+- **Corpo da Requisição (JSON):**
+  ```json
+  {
+    "customerId": "01a0674f-0271-75a2-999c-b1faa8ae6a66",
+    "newPin": "5678",
+    "currentPin": "1234"
+  }
+  ```
+  *(O campo `currentPin` é opcional se o cliente ainda não possui PIN cadastrado ou se estiver em estado de troca forçada `FORCE_CHANGE_PIN`)*
+- **Validação:** Criptografia BCrypt, tamanho exato de 4 dígitos numéricos (`^\\d{4}$`).
+- **Resposta:** `200 OK` `{ "message": "PIN de 4 dígitos configurado com sucesso." }`
+
+### 8.5. Atualização Cadastral pelo Cliente (`PUT /api/portal/client/profile`)
+Permite ao assinante manter seus dados de contato e endereço atualizados na Central.
+- **Rota:** `PUT /api/portal/client/profile`
+- **Corpo da Requisição:** `UpdateClientProfileRequest` (nome, email, telefone, endereço, cidade, estado, cep).
+
+### 8.6. Reset Administrativo de PIN pelo Atendente (`POST /customers/{id}/reset-pin`)
+Disponível exclusivamente para atendentes e operadores do ERP autenticados via JWT. Permite definir um PIN temporário ou forçar a troca no próximo acesso do cliente.
+- **Rota:** `POST /customers/{id}/reset-pin`
+- **Acesso:** Autenticado com perfil ERP (`ROLE_ADMIN`, `ROLE_ATTENDANT`, `ROLE_FINANCIAL`)
+- **Corpo da Requisição (JSON):**
+  ```json
+  {
+    "temporaryPin": "1234",
+    "forceChange": true
+  }
+  ```
+- **Auditoria:** Toda execução gera log imutável de auditoria (`CUSTOMER_PIN_RESET`) no `AuditLogService` com identificação do operador, IP e timestamp.
+- **Resposta:** `200 OK` `{ "message": "PIN resetado com sucesso pelo operador.", "temporaryPin": "1234", "forceChange": true }`
+

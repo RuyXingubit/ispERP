@@ -1,0 +1,307 @@
+# Endpoints da Central do Assinante (Portal do Cliente)
+
+/portal/client/auth:
+  post:
+    tags:
+      - ClientPortal
+    summary: Autenticação do cliente por CPF/CNPJ com validação de PIN de 4 dígitos
+    operationId: authenticateClientPortal
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ClientAuthRequest'
+    responses:
+      '200':
+        description: Resultado da tentativa de autenticação.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ClientAuthResponse'
+      '400':
+        description: Dados de requisição inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: PIN incorreto.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Assinante não localizado pelo CPF/CNPJ informado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/portal/client/pin:
+  post:
+    tags:
+      - ClientPortal
+    summary: Cadastrar ou atualizar PIN de 4 dígitos do cliente
+    operationId: setClientPortalPin
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/SetClientPinRequest'
+    responses:
+      '200':
+        description: PIN atualizado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PortalMessageResponse'
+      '400':
+        description: PIN deve ter 4 dígitos numéricos ou PIN atual incorreto.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/portal/client/dashboard:
+  get:
+    tags:
+      - ClientPortal
+    summary: Retorna os dados consolidados do dashboard do assinante
+    operationId: getClientPortalDashboard
+    security: []
+    parameters:
+      - name: customerId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: ID do cliente (quando enviado via query param).
+      - name: X-Customer-Id
+        in: header
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+        description: ID do cliente autenticado na sessão.
+    responses:
+      '200':
+        description: Dashboard consolidado retornado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ClientPortalDashboardResponse'
+      '401':
+        description: Cliente não identificado ou não autorizado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/portal/client/profile:
+  put:
+    tags:
+      - ClientPortal
+    summary: Atualiza dados de contato do cliente
+    operationId: updateClientPortalProfile
+    security: []
+    parameters:
+      - name: customerId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: X-Customer-Id
+        in: header
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/UpdateClientProfileRequest'
+    responses:
+      '200':
+        description: Dados atualizados com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: '../customers/schemas.yaml#/CustomerResponse'
+      '400':
+        description: Dados de perfil inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autorizado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/portal/client/change-password:
+  post:
+    tags:
+      - ClientPortal
+    summary: Altera a senha do assinante
+    operationId: changeClientPortalPassword
+    security: []
+    parameters:
+      - name: customerId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: X-Customer-Id
+        in: header
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ChangePasswordRequest'
+    responses:
+      '200':
+        description: Senha alterada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/PortalMessageResponse'
+      '400':
+        description: Senha atual incorreta ou nova senha inválida.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autorizado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/portal/client/upgrade-plan:
+  post:
+    tags:
+      - ClientPortal
+    summary: Solicita upgrade de plano de banda larga
+    operationId: upgradeClientPortalPlan
+    security: []
+    parameters:
+      - name: customerId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: X-Customer-Id
+        in: header
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/PlanUpgradeRequest'
+    responses:
+      '200':
+        description: Upgrade processado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: '../contracts/schemas.yaml#/ContractResponse'
+      '400':
+        description: Solicitação de upgrade inválida.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autorizado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Contrato ou plano não localizado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/portal/client/trust-unblock:
+  post:
+    tags:
+      - ClientPortal
+    summary: Solicita o Desbloqueio em Confiança (tolerância de 48h)
+    operationId: requestClientPortalTrustUnblock
+    security: []
+    parameters:
+      - name: customerId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: X-Customer-Id
+        in: header
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/TrustUnblockRequest'
+    responses:
+      '200':
+        description: Desbloqueio em confiança concedido com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/TrustUnblockResponse'
+      '400':
+        description: Não elegível para desbloqueio em confiança.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '401':
+        description: Não autorizado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Contrato não localizado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

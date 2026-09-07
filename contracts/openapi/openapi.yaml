@@ -8,8 +8,8 @@ info:
     name: Equipe de Engenharia ispERP
     url: https://github.com/RuyXingubit/ispERP
   license:
-    name: GPL-3.0
-    url: https://www.gnu.org/licenses/gpl-3.0.html
+    name: AGPL-3.0
+    url: https://www.gnu.org/licenses/agpl-3.0.html
 
 servers:
   - url: http://localhost:8080/api
@@ -63,6 +63,8 @@ tags:
     description: Empresa Fiscal, Certificados Digitais A1, Emissão de NFCom (Modelo 62) e Convênio 115
   - name: FiscalRegimeTransitions
     description: Transição e Agendamento de Regimes Tributários (Simples Nacional, Lucro Presumido, Lucro Real)
+  - name: ClientPortal
+    description: Central do Assinante (Autenticação via PIN, consulta de faturas, desbloqueio em confiança e solicitação de upgrade)
 
 paths:
   # Ordens de Serviço & Execução de Campo
@@ -136,6 +138,24 @@ paths:
     $ref: './domains/customers/customers.yaml#/~1customers~1{id}~1activate'
   /customers/{id}/deactivate:
     $ref: './domains/customers/customers.yaml#/~1customers~1{id}~1deactivate'
+  /customers/{id}/reset-pin:
+    $ref: './domains/customers/customers.yaml#/~1customers~1{id}~1reset-pin'
+
+  # Central do Assinante (Portal do Cliente)
+  /portal/client/auth:
+    $ref: './domains/portal/portal.yaml#/~1portal~1client~1auth'
+  /portal/client/pin:
+    $ref: './domains/portal/portal.yaml#/~1portal~1client~1pin'
+  /portal/client/dashboard:
+    $ref: './domains/portal/portal.yaml#/~1portal~1client~1dashboard'
+  /portal/client/profile:
+    $ref: './domains/portal/portal.yaml#/~1portal~1client~1profile'
+  /portal/client/change-password:
+    $ref: './domains/portal/portal.yaml#/~1portal~1client~1change-password'
+  /portal/client/upgrade-plan:
+    $ref: './domains/portal/portal.yaml#/~1portal~1client~1upgrade-plan'
+  /portal/client/trust-unblock:
+    $ref: './domains/portal/portal.yaml#/~1portal~1client~1trust-unblock'
 
   # Autenticação
   /auth/login:
@@ -344,6 +364,10 @@ components:
       $ref: './domains/customers/schemas.yaml#/CustomerCreateRequest'
     CustomerUpdateRequest:
       $ref: './domains/customers/schemas.yaml#/CustomerUpdateRequest'
+    ResetCustomerPinRequest:
+      $ref: './domains/customers/schemas.yaml#/ResetCustomerPinRequest'
+    ResetCustomerPinResponse:
+      $ref: './domains/customers/schemas.yaml#/ResetCustomerPinResponse'
 
     # Auth
     LoginRequest:
@@ -524,4 +548,28 @@ components:
       $ref: './domains/fiscal/schemas.yaml#/FiscalRegimeTransitionRequest'
     FiscalRegimeTransitionResponse:
       $ref: './domains/fiscal/schemas.yaml#/FiscalRegimeTransitionResponse'
+
+    # Central do Assinante (ClientPortal)
+    ClientAuthStatus:
+      $ref: './domains/portal/schemas.yaml#/ClientAuthStatus'
+    ClientAuthRequest:
+      $ref: './domains/portal/schemas.yaml#/ClientAuthRequest'
+    ClientAuthResponse:
+      $ref: './domains/portal/schemas.yaml#/ClientAuthResponse'
+    SetClientPinRequest:
+      $ref: './domains/portal/schemas.yaml#/SetClientPinRequest'
+    UpdateClientProfileRequest:
+      $ref: './domains/portal/schemas.yaml#/UpdateClientProfileRequest'
+    ChangePasswordRequest:
+      $ref: './domains/portal/schemas.yaml#/ChangePasswordRequest'
+    PlanUpgradeRequest:
+      $ref: './domains/portal/schemas.yaml#/PlanUpgradeRequest'
+    TrustUnblockRequest:
+      $ref: './domains/portal/schemas.yaml#/TrustUnblockRequest'
+    TrustUnblockResponse:
+      $ref: './domains/portal/schemas.yaml#/TrustUnblockResponse'
+    ClientPortalDashboardResponse:
+      $ref: './domains/portal/schemas.yaml#/ClientPortalDashboardResponse'
+    PortalMessageResponse:
+      $ref: './domains/portal/schemas.yaml#/PortalMessageResponse'
 

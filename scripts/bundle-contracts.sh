@@ -34,4 +34,9 @@ ${REDOCLY_BIN} bundle "${INPUT_SPEC}" --output "${OUTPUT_BUNDLE}"
 echo "🛡️ [API-First] Executando linting na especificação compilada..."
 ${REDOCLY_BIN} lint "${OUTPUT_BUNDLE}"
 
+if [ -d "${ROOT_DIR}/docs/portal" ]; then
+  echo "📄 [API-First] Sincronizando bundle para docs/portal/openapi.bundled.json..."
+  cp "${OUTPUT_BUNDLE}" "${ROOT_DIR}/docs/portal/openapi.bundled.json"
+fi
+
 echo "✅ [API-First] Contratos compilados com sucesso em: ${OUTPUT_BUNDLE}"
