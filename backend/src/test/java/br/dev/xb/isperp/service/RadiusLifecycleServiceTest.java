@@ -150,7 +150,36 @@ class RadiusLifecycleServiceTest {
                 eq(250L),
                 eq(NasVendorType.MIKROTIK),
                 isNull(),
+                isNull(),
+                isNull(),
                 isNull()
+        );
+        verify(lifecycleLogRepository).save(any(RadiusLifecycleLog.class));
+    }
+
+    @Test
+    @DisplayName("Deve sincronizar contrato B2B com Framed-Route e Framed-IPv6-Route independentes")
+    void testSyncContractToRadiusWithFramedRoutes() {
+        onu.setFramedRoute("200.150.80.0/29 0.0.0.0 1");
+        onu.setFramedIpv6Route("2804:1234:5678::/48 :: 1");
+
+        when(contractRepository.findById(contractId)).thenReturn(Optional.of(contract));
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(planRepository.findById(planId)).thenReturn(Optional.of(plan));
+        when(onuProvisioningRepository.findByContractId(contractId)).thenReturn(Optional.of(onu));
+
+        lifecycleService.syncContractToRadius(contractId);
+
+        verify(radiusProvisioningService).provisionUser(
+                eq("carlos_pppoe"),
+                eq("secret123"),
+                eq(500L),
+                eq(250L),
+                eq(NasVendorType.MIKROTIK),
+                isNull(),
+                isNull(),
+                eq("200.150.80.0/29 0.0.0.0 1"),
+                eq("2804:1234:5678::/48 :: 1")
         );
         verify(lifecycleLogRepository).save(any(RadiusLifecycleLog.class));
     }
@@ -199,6 +228,8 @@ class RadiusLifecycleServiceTest {
                 eq(500L),
                 eq(250L),
                 eq(NasVendorType.MIKROTIK),
+                isNull(),
+                isNull(),
                 isNull(),
                 isNull()
         );

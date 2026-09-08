@@ -32,7 +32,22 @@ public class RadiusProvisioningService {
             @Nullable String fixedIp,
             @Nullable String ipv6Prefix
     ) {
-        provisionSubscriber(username, cleartextPassword, downloadMbps, uploadMbps, vendor, fixedIp, ipv6Prefix, false);
+        provisionUser(username, cleartextPassword, downloadMbps, uploadMbps, vendor, fixedIp, ipv6Prefix, null, null);
+    }
+
+    @Transactional
+    public void provisionUser(
+            String username,
+            String cleartextPassword,
+            long downloadMbps,
+            long uploadMbps,
+            NasVendorType vendor,
+            @Nullable String fixedIp,
+            @Nullable String ipv6Prefix,
+            @Nullable String framedRoute,
+            @Nullable String framedIpv6Route
+    ) {
+        provisionSubscriber(username, cleartextPassword, downloadMbps, uploadMbps, vendor, fixedIp, ipv6Prefix, framedRoute, framedIpv6Route, false);
     }
 
     @Transactional
@@ -45,7 +60,7 @@ public class RadiusProvisioningService {
                 .findFirst()
                 .orElse("xb123456");
 
-        provisionSubscriber(username, password, 0, 0, vendor, null, null, true);
+        provisionSubscriber(username, password, 0, 0, vendor, null, null, null, null, true);
     }
 
     @Transactional
@@ -57,6 +72,20 @@ public class RadiusProvisioningService {
             @Nullable String fixedIp,
             @Nullable String ipv6Prefix
     ) {
+        unblockUser(username, downloadMbps, uploadMbps, vendor, fixedIp, ipv6Prefix, null, null);
+    }
+
+    @Transactional
+    public void unblockUser(
+            String username,
+            long downloadMbps,
+            long uploadMbps,
+            NasVendorType vendor,
+            @Nullable String fixedIp,
+            @Nullable String ipv6Prefix,
+            @Nullable String framedRoute,
+            @Nullable String framedIpv6Route
+    ) {
         log.info("Restaurando acesso total RADIUS para {} ({}M/{}M)", username, downloadMbps, uploadMbps);
         String password = radCheckRepository.findByUsername(username).stream()
                 .filter(c -> "Cleartext-Password".equals(c.getAttribute()))
@@ -64,7 +93,7 @@ public class RadiusProvisioningService {
                 .findFirst()
                 .orElse("xb123456");
 
-        provisionSubscriber(username, password, downloadMbps, uploadMbps, vendor, fixedIp, ipv6Prefix, false);
+        provisionSubscriber(username, password, downloadMbps, uploadMbps, vendor, fixedIp, ipv6Prefix, framedRoute, framedIpv6Route, false);
     }
 
     @Transactional
@@ -76,6 +105,22 @@ public class RadiusProvisioningService {
             NasVendorType vendor,
             @Nullable String fixedIp,
             @Nullable String ipv6Prefix,
+            boolean blocked
+    ) {
+        provisionSubscriber(username, cleartextPassword, downloadMbps, uploadMbps, vendor, fixedIp, ipv6Prefix, null, null, blocked);
+    }
+
+    @Transactional
+    public void provisionSubscriber(
+            String username,
+            String cleartextPassword,
+            long downloadMbps,
+            long uploadMbps,
+            NasVendorType vendor,
+            @Nullable String fixedIp,
+            @Nullable String ipv6Prefix,
+            @Nullable String framedRoute,
+            @Nullable String framedIpv6Route,
             boolean blocked
     ) {
         log.info("Provisionando assinante no FreeRADIUS: {} (Vendor: {}, Bloqueado: {})", username, vendor, blocked);
@@ -122,6 +167,26 @@ public class RadiusProvisioningService {
                         .value(ipv6Prefix)
                         .build());
             }
+
+            // Rota Adicional IPv4 (Opcional / B2B - Framed-Route RFC 2865)
+            if (framedRoute != null && !framedRoute.isBlank()) {
+                replies.add(RadReply.builder()
+                        .username(username)
+                        .attribute("Framed-Route")
+                        .op("=")
+                        .value(formatFramedRoute(framedRoute))
+                        .build());
+            }
+
+            // Rota Adicional IPv6 (Opcional / B2B - Framed-IPv6-Route RFC 3162)
+            if (framedIpv6Route != null && !framedIpv6Route.isBlank()) {
+                replies.add(RadReply.builder()
+                        .username(username)
+                        .attribute("Framed-IPv6-Route")
+                        .op("=")
+                        .value(formatFramedIpv6Route(framedIpv6Route))
+                        .build());
+            }
         }
 
         // Atributo Padrão RFC (Framed-Protocol = PPP)
@@ -134,6 +199,22 @@ public class RadiusProvisioningService {
 
         radReplyRepository.saveAll(replies);
         log.info("Assinante {} provisionado com sucesso com {} atributos RADIUS.", username, replies.size());
+    }
+
+    public String formatFramedRoute(String route) {
+        String trimmed = route.trim();
+        if (trimmed.contains(" ")) {
+            return trimmed;
+        }
+        return trimmed + " 0.0.0.0 1";
+    }
+
+    public String formatFramedIpv6Route(String route) {
+        String trimmed = route.trim();
+        if (trimmed.contains(" ")) {
+            return trimmed;
+        }
+        return trimmed + " :: 1";
     }
 
     private List<RadReply> buildRateLimitAttributes(String username, long downloadMbps, long uploadMbps, NasVendorType vendor) {

@@ -57,6 +57,10 @@ public class RadiusLifecycleService {
         String password = onuOpt.map(OnuProvisioning::getPppoePassword).orElse("xb123456");
 
         NasVendorType vendorType = resolveVendorType(onuOpt.orElse(null));
+        String fixedIp = onuOpt.map(OnuProvisioning::getFixedIp).orElse(null);
+        String ipv6Prefix = onuOpt.map(OnuProvisioning::getIpv6Prefix).orElse(null);
+        String framedRoute = onuOpt.map(OnuProvisioning::getFramedRoute).orElse(null);
+        String framedIpv6Route = onuOpt.map(OnuProvisioning::getFramedIpv6Route).orElse(null);
 
         if (contract.getStatus() == Contract.ContractStatus.ACTIVE) {
             radiusProvisioningService.provisionUser(
@@ -65,8 +69,10 @@ public class RadiusLifecycleService {
                     plan.getDownloadSpeed(),
                     plan.getUploadSpeed(),
                     vendorType,
-                    null,
-                    null
+                    fixedIp,
+                    ipv6Prefix,
+                    framedRoute,
+                    framedIpv6Route
             );
             logAudit(contract.getId(), customer.getId(), username, RadiusLifecycleActionType.PROVISIONING_SYNC,
                     "Sincronização de credenciais ativa (" + plan.getDownloadSpeed() + "M/" + plan.getUploadSpeed() + "M)", null, true, null);
@@ -148,14 +154,21 @@ public class RadiusLifecycleService {
             onuProvisioningRepository.save(onu);
         });
 
-        // 2. Restaura atributos de velocidade integral no FreeRADIUS
+        String fixedIp = onuOpt.map(OnuProvisioning::getFixedIp).orElse(null);
+        String ipv6Prefix = onuOpt.map(OnuProvisioning::getIpv6Prefix).orElse(null);
+        String framedRoute = onuOpt.map(OnuProvisioning::getFramedRoute).orElse(null);
+        String framedIpv6Route = onuOpt.map(OnuProvisioning::getFramedIpv6Route).orElse(null);
+
+        // 2. Restaura atributos de velocidade integral e rotas no FreeRADIUS
         radiusProvisioningService.unblockUser(
                 username,
                 plan.getDownloadSpeed(),
                 plan.getUploadSpeed(),
                 vendorType,
-                null,
-                null
+                fixedIp,
+                ipv6Prefix,
+                framedRoute,
+                framedIpv6Route
         );
 
         // 3. Dispara PoD para forçar reconexão na velocidade total

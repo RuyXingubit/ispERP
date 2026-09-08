@@ -54,6 +54,18 @@ public class OnuProvisioning {
     @Column(name = "pppoe_password", length = 100)
     private String pppoePassword;
 
+    @Column(name = "fixed_ip", length = 50)
+    private String fixedIp;
+
+    @Column(name = "ipv6_prefix", length = 100)
+    private String ipv6Prefix;
+
+    @Column(name = "framed_route", length = 150)
+    private String framedRoute;
+
+    @Column(name = "framed_ipv6_route", length = 150)
+    private String framedIpv6Route;
+
     @NotNull(message = "Velocidade de download é obrigatória")
     @Column(name = "download_speed", nullable = false)
     private Integer downloadSpeed; // Mbps
