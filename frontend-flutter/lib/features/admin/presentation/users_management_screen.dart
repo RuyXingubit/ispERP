@@ -363,7 +363,7 @@ class _UsersManagementScreenState extends ConsumerState<UsersManagementScreen> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: users.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+        separatorBuilder: (_, _) => const Divider(height: 1),
         itemBuilder: (context, index) {
           final user = users[index];
           return _buildUserRow(context, user, notifier, isSubmitting);
@@ -729,7 +729,7 @@ class _UsersManagementScreenState extends ConsumerState<UsersManagementScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: selectedRole,
+                      initialValue: selectedRole,
                       decoration: const InputDecoration(labelText: 'Cargo / Perfil RBAC *', isDense: true),
                       items: const [
                         DropdownMenuItem(value: 'ADMIN', child: Text('Administrador Geral (Acesso Total)')),
@@ -815,7 +815,7 @@ class _UsersManagementScreenState extends ConsumerState<UsersManagementScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: selected,
+                initialValue: selected,
                 decoration: const InputDecoration(labelText: 'Novo Cargo', isDense: true),
                 items: const [
                   DropdownMenuItem(value: 'ADMIN', child: Text('Administrador Geral')),

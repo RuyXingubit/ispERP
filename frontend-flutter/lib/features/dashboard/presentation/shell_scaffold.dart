@@ -228,6 +228,8 @@ class ShellScaffold extends ConsumerWidget {
     // Se o usuário for ADMIN, ele tem acesso a todos os módulos
     if (role == UserRole.admin) {
       items.add(_buildNavItem(context, '/admin', 'Diretoria & OLTs', Icons.shield_outlined, currentPath == '/admin'));
+      items.add(_buildNavItem(context, '/admin/nas', 'Concentradores (BNG / NAS)', Icons.router_outlined, currentPath == '/admin/nas'));
+      items.add(_buildNavItem(context, '/admin/gateways', 'Gateway (Xingubit Pay)', Icons.payments_outlined, currentPath == '/admin/gateways'));
       items.add(_buildNavItem(context, '/admin/users', 'Colaboradores & RBAC', Icons.manage_accounts_outlined, currentPath == '/admin/users'));
       items.add(_buildNavItem(context, '/admin/audit-logs', 'Trilha de Auditoria', Icons.fingerprint, currentPath == '/admin/audit-logs'));
       items.add(_buildNavItem(context, '/inventory', 'Estoque & Almoxarifado', Icons.inventory_2_outlined, currentPath == '/inventory'));
@@ -364,6 +366,24 @@ class ShellScaffold extends ConsumerWidget {
                 context.go('/my-cash-custody');
               },
             ),
+            if (role == UserRole.admin) ...[
+              ListTile(
+                leading: const Icon(Icons.router_outlined, color: AppTheme.primaryBlue),
+                title: const Text('Concentradores (BNG / NAS)'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/admin/nas');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.payments_outlined, color: AppTheme.accentGreen),
+                title: const Text('Gateway (Xingubit Pay)'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/admin/gateways');
+                },
+              ),
+            ],
             ListTile(
               leading: const Icon(Icons.dns_outlined),
               title: const Text('Trocar de Servidor'),

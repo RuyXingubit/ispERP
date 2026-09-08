@@ -59,6 +59,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/setup/**",
                     "/initial-setup/**",
+                    "/api/setup/**",
+                    "/api/initial-setup/**",
                     "/auth/login",
                     "/health",
                     "/error",

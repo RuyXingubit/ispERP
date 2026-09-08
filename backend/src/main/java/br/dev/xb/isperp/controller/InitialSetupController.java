@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping({"/initial-setup", "/setup"})
+@RequestMapping({"/initial-setup", "/setup", "/api/initial-setup", "/api/setup"})
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @SuppressWarnings("null")

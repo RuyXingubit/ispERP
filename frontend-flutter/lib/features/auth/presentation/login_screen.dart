@@ -5,6 +5,8 @@ import '../../../core/models/user_role.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
 
+import '../../server_setup/data/initial_setup_repository.dart';
+
 /// Tela de autenticação dos colaboradores do ispERP contra a API central.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -15,9 +17,31 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController(text: 'admin@nexusfibra.com.br');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool? _isSetupCompleted;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSetup();
+  }
+
+  Future<void> _checkSetup() async {
+    final serverUrl = ref.read(authProvider).serverUrl;
+    if (serverUrl == null || serverUrl.isEmpty) return;
+
+    try {
+      final repo = ref.read(initialSetupRepositoryProvider);
+      final completed = await repo.isSetupCompleted();
+      if (mounted) {
+        setState(() {
+          _isSetupCompleted = completed;
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -131,7 +155,59 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 20),
+
+                      // Alerta de Instância Virgem / Setup Pendente
+                      if (_isSetupCompleted == false) ...[
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryBlue.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: const [
+                                  Icon(Icons.new_releases_outlined, color: AppTheme.primaryBlue, size: 20),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Primeiro Acesso Detectado',
+                                      style: TextStyle(
+                                        color: AppTheme.primaryBlue,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Este servidor ainda não possui empresa ou administrador cadastrados.',
+                                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                              ),
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.primaryBlue,
+                                    side: const BorderSide(color: AppTheme.primaryBlue),
+                                  ),
+                                  icon: const Icon(Icons.rocket_launch_outlined, size: 16),
+                                  label: const Text('Iniciar Assistente de Configuração'),
+                                  onPressed: () => context.go('/initial-setup'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
 
                       // Input Usuário / E-mail
                       TextFormField(

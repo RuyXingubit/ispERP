@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/admin/presentation/admin_dashboard_screen.dart';
 import '../../features/admin/presentation/audit_trail_screen.dart';
+import '../../features/admin/presentation/nas_management_screen.dart';
+import '../../features/admin/presentation/payment_gateway_config_screen.dart';
 import '../../features/admin/presentation/users_management_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/dashboard/presentation/shell_scaffold.dart';
@@ -11,6 +13,7 @@ import '../../features/financial/presentation/financial_dashboard_screen.dart';
 import '../../features/financial/presentation/my_cash_custody_screen.dart';
 import '../../features/inventory/presentation/inventory_screen.dart';
 import '../../features/sales/presentation/sales_dashboard_screen.dart';
+import '../../features/server_setup/presentation/initial_system_setup_screen.dart';
 import '../../features/server_setup/presentation/server_setup_screen.dart';
 import '../../features/support/presentation/support_dashboard_screen.dart';
 import '../../features/technician/presentation/technician_dashboard_screen.dart';
@@ -39,20 +42,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (currentAuth.isLoading) return null;
 
       final isServerSetup = state.matchedLocation == '/server-setup';
+      final isInitialSetup = state.matchedLocation == '/initial-setup';
       final isLogin = state.matchedLocation == '/login';
 
-      // 1. Se o servidor ainda não foi configurado, força a tela de Setup
+      // 1. Se o servidor ainda não foi configurado, força a tela de Setup de conexão
       if (!currentAuth.hasServerConfigured && !isServerSetup) {
         return '/server-setup';
       }
 
       // 2. Se o servidor está configurado mas o usuário não está autenticado
-      if (currentAuth.hasServerConfigured && !currentAuth.isAuthenticated && !isLogin && !isServerSetup) {
+      // Permite /login, /server-setup e /initial-setup livremente
+      if (currentAuth.hasServerConfigured && !currentAuth.isAuthenticated && !isLogin && !isServerSetup && !isInitialSetup) {
         return '/login';
       }
 
-      // 3. Se o usuário já está autenticado e tenta acessar Login ou ServerSetup, vai para o seu dashboard
-      if (currentAuth.isAuthenticated && (isLogin || isServerSetup)) {
+      // 3. Se o usuário já está autenticado e tenta acessar Login, ServerSetup ou InitialSetup, vai para o seu dashboard
+      if (currentAuth.isAuthenticated && (isLogin || isServerSetup || isInitialSetup)) {
         return currentAuth.role?.initialRoute ?? '/admin';
       }
 
@@ -62,6 +67,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/server-setup',
         builder: (context, state) => const ServerSetupScreen(),
+      ),
+      GoRoute(
+        path: '/initial-setup',
+        builder: (context, state) => const InitialSystemSetupScreen(),
       ),
       GoRoute(
         path: '/login',
@@ -81,6 +90,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/admin/audit-logs',
             builder: (context, state) => const AuditTrailScreen(),
+          ),
+          GoRoute(
+            path: '/admin/nas',
+            builder: (context, state) => const NasManagementScreen(),
+          ),
+          GoRoute(
+            path: '/admin/gateways',
+            builder: (context, state) => const PaymentGatewayConfigScreen(),
           ),
           GoRoute(
             path: '/financial',

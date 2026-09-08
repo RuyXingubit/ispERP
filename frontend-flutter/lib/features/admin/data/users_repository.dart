@@ -72,11 +72,11 @@ class UsersRepository {
       final response = await _dio.put(
         '/users/$id',
         data: {
-          if (name != null) 'name': name,
-          if (email != null) 'email': email,
-          if (role != null) 'role': role,
-          if (cpf != null) 'cpf': cpf,
-          if (active != null) 'active': active,
+          'name': ?name,
+          'email': ?email,
+          'role': ?role,
+          'cpf': ?cpf,
+          'active': ?active,
           if (password != null && password.isNotEmpty) 'password': password,
         },
       );

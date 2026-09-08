@@ -56,3 +56,7 @@ app:
       access-key: ${STORAGE_S3_ACCESS_KEY:}
       secret-key: ${STORAGE_S3_SECRET_KEY:}
       path-style-access: ${STORAGE_S3_PATH_STYLE:true}
+  admin:
+    recovery:
+      email: ${ADMIN_RECOVERY_EMAIL:}
+      password: ${ADMIN_RECOVERY_PASSWORD:}

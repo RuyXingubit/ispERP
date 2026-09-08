@@ -277,7 +277,7 @@ class _AuditTrailScreenState extends ConsumerState<AuditTrailScreen> {
     UsersState usersState,
   ) {
     return DropdownButtonFormField<String?>(
-      value: state.selectedUserId,
+      initialValue: state.selectedUserId,
       isExpanded: true,
       decoration: const InputDecoration(
         labelText: 'Colaborador / Operador',
@@ -303,7 +303,7 @@ class _AuditTrailScreenState extends ConsumerState<AuditTrailScreen> {
 
   Widget _buildEntityDropdown(AuditLogState state, AuditLogNotifier notifier) {
     return DropdownButtonFormField<String?>(
-      value: state.selectedEntityName,
+      initialValue: state.selectedEntityName,
       isExpanded: true,
       decoration: const InputDecoration(
         labelText: 'Módulo / Área do Sistema',

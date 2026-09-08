@@ -33,6 +33,12 @@ class InitialSetupServiceTest {
     private SiteSettingsRepository siteSettingsRepository;
 
     @Mock
+    private br.dev.xb.isperp.repository.PaymentGatewayConfigRepository paymentGatewayConfigRepository;
+
+    @Mock
+    private br.dev.xb.isperp.repository.PlanRepository planRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
@@ -61,6 +67,13 @@ class InitialSetupServiceTest {
     void shouldPerformSetupSuccessfully() {
         when(userRepository.count()).thenReturn(0L);
         when(passwordEncoder.encode(any())).thenReturn("$2a$12$encodedPassword");
+        Company savedCompany = Company.builder()
+                .id(br.dev.xb.isperp.util.UuidCreatorUtils.generateUuidV7())
+                .name("Fibra Telecom")
+                .build();
+        when(companyRepository.save(any(Company.class))).thenReturn(savedCompany);
+        when(paymentGatewayConfigRepository.count()).thenReturn(0L);
+        when(planRepository.count()).thenReturn(0L);
 
         InitialSetupRequest request = InitialSetupRequest.builder()
                 .adminName("Super Admin")
@@ -83,5 +96,7 @@ class InitialSetupServiceTest {
         verify(userRepository, times(1)).save(any(User.class));
         verify(companyRepository, times(1)).save(any(Company.class));
         verify(siteSettingsRepository, times(1)).save(any(SiteSettings.class));
+        verify(paymentGatewayConfigRepository, times(1)).save(any(br.dev.xb.isperp.entity.PaymentGatewayConfig.class));
+        verify(planRepository, times(1)).save(any(br.dev.xb.isperp.entity.Plan.class));
     }
 }

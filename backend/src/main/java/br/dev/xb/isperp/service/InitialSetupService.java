@@ -28,6 +28,12 @@ public class InitialSetupService {
     @Autowired
     private SiteSettingsRepository siteSettingsRepository;
 
+    @Autowired
+    private br.dev.xb.isperp.repository.PaymentGatewayConfigRepository paymentGatewayConfigRepository;
+
+    @Autowired
+    private br.dev.xb.isperp.repository.PlanRepository planRepository;
+
     public boolean isSetupCompleted() {
         // Verificar se todas as etapas do setup foram concluídas:
         // 1. Pelo menos um usuário administrador existe
@@ -44,18 +50,25 @@ public class InitialSetupService {
             throw new RuntimeException("Setup já foi realizado anteriormente");
         }
 
-        // Criar usuário administrador
+        // 1. Criar usuário administrador
         createAdminUser(request);
         
-        // Criar empresa
-        createCompany(request);
+        // 2. Criar empresa
+        Company company = createCompany(request);
         
-        // Criar configurações do site
+        // 3. Criar configurações do site
         createSiteSettings(request);
+
+        // 4. Inicializar configuração padrão do Xingubit Pay
+        createDefaultPaymentGateway(company);
+
+        // 5. Inicializar plano de internet padrão caso não exista
+        createDefaultPlan();
     }
 
     private void createAdminUser(InitialSetupRequest request) {
         User admin = new User();
+        admin.setId(br.dev.xb.isperp.util.UuidCreatorUtils.generateUuidV7());
         admin.setName(request.getAdminName());
         admin.setEmail(request.getAdminEmail());
         admin.setPassword(hashPassword(request.getAdminPassword()));
@@ -75,8 +88,9 @@ public class InitialSetupService {
         return passwordEncoder.encode(password);
     }
 
-    private void createCompany(InitialSetupRequest request) {
+    private Company createCompany(InitialSetupRequest request) {
         Company company = new Company();
+        company.setId(br.dev.xb.isperp.util.UuidCreatorUtils.generateUuidV7());
         company.setName(request.getCompanyName());
         company.setDocument(request.getCompanyCnpj());
         company.setAddress(request.getCompanyAddress());
@@ -86,11 +100,12 @@ public class InitialSetupService {
         company.setCreatedAt(LocalDateTime.now());
         company.setUpdatedAt(LocalDateTime.now());
         
-        companyRepository.save(company);
+        return companyRepository.save(company);
     }
 
     private void createSiteSettings(InitialSetupRequest request) {
         SiteSettings settings = new SiteSettings();
+        settings.setId(br.dev.xb.isperp.util.UuidCreatorUtils.generateUuidV7());
         settings.setSiteTitle(request.getSiteTitle());
         settings.setSiteDescription(request.getSiteDescription() != null ? request.getSiteDescription() : "");
         settings.setPrimaryColor(request.getPrimaryColor() != null ? request.getPrimaryColor() : "#1976d2");
@@ -99,5 +114,41 @@ public class InitialSetupService {
         settings.setUpdatedAt(LocalDateTime.now());
         
         siteSettingsRepository.save(settings);
+    }
+
+    private void createDefaultPaymentGateway(Company company) {
+        if (paymentGatewayConfigRepository.count() == 0) {
+            var config = br.dev.xb.isperp.entity.PaymentGatewayConfig.builder()
+                    .id(br.dev.xb.isperp.util.UuidCreatorUtils.generateUuidV7())
+                    .companyId(company.getId())
+                    .gatewayType(br.dev.xb.isperp.gateway.PaymentGatewayType.XINGUBIT_PAY)
+                    .name("Xingubit Pay Oficial")
+                    .apiKey("")
+                    .secretKey("")
+                    .webhookSecret("")
+                    .pixKey("")
+                    .sandbox(false)
+                    .active(true)
+                    .build();
+            paymentGatewayConfigRepository.save(config);
+        }
+    }
+
+    private void createDefaultPlan() {
+        if (planRepository.count() == 0) {
+            var defaultPlan = br.dev.xb.isperp.entity.Plan.builder()
+                    .id(br.dev.xb.isperp.util.UuidCreatorUtils.generateUuidV7())
+                    .name("Fibra 500 Mega")
+                    .downloadSpeed(500)
+                    .uploadSpeed(250)
+                    .price(new java.math.BigDecimal("99.90"))
+                    .description("Plano residencial com fibra óptica de alta velocidade e Wi-Fi 6")
+                    .suspensionDays(15)
+                    .alwaysIssueNfcom(false)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            planRepository.save(defaultPlan);
+        }
     }
 }
