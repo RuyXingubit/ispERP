@@ -55,11 +55,12 @@ public class XingubitPayGateway implements PaymentGateway {
     public String processWebhook(Map<String, Object> payload, String signature, PaymentGatewayConfig config) {
         log.info("XingubitPay: Processando webhook de notificação de pagamento: {}", payload);
 
-        // Validação de assinatura criptográfica HMAC-SHA256 se fornecida
-        if (signature != null && config.getWebhookSecret() != null) {
+        // Validação de assinatura criptográfica HMAC-SHA256 se fornecida e configurada
+        if (signature != null && config.getWebhookSecret() != null && !config.getWebhookSecret().isBlank()) {
             boolean valid = validateWebhookSignature(payload.toString(), signature, config.getWebhookSecret());
             if (!valid) {
-                log.warn("XingubitPay: Assinatura de webhook inválida!");
+                log.error("XingubitPay: Assinatura de webhook HMAC-SHA256 inválida!");
+                throw new SecurityException("XingubitPay: Assinatura de webhook HMAC inválida");
             }
         }
 
@@ -120,14 +121,27 @@ public class XingubitPayGateway implements PaymentGateway {
                 pixKey, amount, merchantName.length(), merchantName, txId.substring(0, Math.min(txId.length(), 8)));
     }
 
-    private boolean validateWebhookSignature(String payload, String signature, String secret) {
+    public String calculateSignature(String payload, String secret) {
         try {
             Mac sha256Hmac = Mac.getInstance("HmacSHA256");
             SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             sha256Hmac.init(secretKey);
             byte[] hmacBytes = sha256Hmac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
-            String calculatedSignature = HexFormat.of().formatHex(hmacBytes);
-            return MessageDigest.isEqual(calculatedSignature.getBytes(StandardCharsets.UTF_8), signature.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hmacBytes);
+        } catch (Exception e) {
+            log.error("Erro ao calcular assinatura HMAC: {}", e.getMessage());
+            throw new RuntimeException("Falha ao calcular HMAC-SHA256", e);
+        }
+    }
+
+    private boolean validateWebhookSignature(String payload, String signature, String secret) {
+        try {
+            String calculatedSignature = calculateSignature(payload, secret);
+            String normalizedSignature = signature.trim().toLowerCase();
+            return MessageDigest.isEqual(
+                    calculatedSignature.getBytes(StandardCharsets.UTF_8),
+                    normalizedSignature.getBytes(StandardCharsets.UTF_8)
+            );
         } catch (Exception e) {
             log.error("Erro ao validar assinatura do webhook: {}", e.getMessage());
             return false;

@@ -106,4 +106,67 @@ class PaymentWebhookServiceTest {
 
         verify(invoiceService, times(1)).markInvoiceAsPaid(invoiceId, new BigDecimal("119.90"), "PIX");
     }
+
+    @Test
+    @DisplayName("Deve emitir NFCom (Modelo 62) quando a fatura for elegível fiscalmente")
+    void shouldProcessWebhookAndIssueNfcomWhenEligible() {
+        doAnswer(invocation -> {
+            Runnable action = invocation.getArgument(2);
+            action.run();
+            return true;
+        }).when(idempotencyService).executeIdempotent(any(), any(), any());
+
+        when(gatewayResolver.resolve(PaymentGatewayType.XINGUBIT_PAY))
+                .thenReturn(new PaymentGatewayResolver.ResolvedGateway(paymentGateway, sampleConfig));
+
+        when(paymentGateway.getGatewayType()).thenReturn(PaymentGatewayType.XINGUBIT_PAY);
+        when(paymentGateway.processWebhook(any(), any(), eq(sampleConfig))).thenReturn("XB-TX-NFCOM-999");
+
+        UUID customerId = UuidCreatorUtils.generateUuidV7();
+        UUID invoiceId = UuidCreatorUtils.generateUuidV7();
+        Invoice sampleInvoice = Invoice.builder()
+                .id(invoiceId)
+                .customerId(customerId)
+                .amount(new BigDecimal("199.90"))
+                .externalTransactionId("XB-TX-NFCOM-999")
+                .build();
+
+        when(invoiceService.getInvoiceByExternalTransactionId("XB-TX-NFCOM-999"))
+                .thenReturn(Optional.of(sampleInvoice));
+        when(nfcomDecisionService.shouldIssueNfcom(sampleInvoice)).thenReturn(true);
+
+        br.dev.xb.isperp.entity.Customer customer = br.dev.xb.isperp.entity.Customer.builder()
+                .id(customerId)
+                .name("Empresa B2B Telecom Ltda")
+                .cpf("12345678000195")
+                .build();
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+
+        var mockNfcomResponse = br.dev.xb.isperp.gateway.xingubit.XingubitPayGateway.NfcomEmissionResponse.builder()
+                .nfcomNumber(100500)
+                .nfcomSeries(1)
+                .nfcomKey("15260812345678000195620010001005001000010427")
+                .xmlUrl("https://pay.xingubit.com.br/v1/nfcom/xml")
+                .pdfUrl("https://pay.xingubit.com.br/v1/nfcom/danfe")
+                .status("ISSUED")
+                .issuedAt(java.time.LocalDateTime.now())
+                .build();
+
+        when(xingubitPayGateway.issueNfcom(eq("XB-TX-NFCOM-999"), eq("12345678000195"), eq("Empresa B2B Telecom Ltda"), eq(new BigDecimal("199.90")), eq(sampleConfig)))
+                .thenReturn(mockNfcomResponse);
+
+        Map<String, Object> payload = Map.of(
+                "txid", "XB-TX-NFCOM-999",
+                "paidAmount", "199.90"
+        );
+
+        webhookService.processPaymentWebhook("XINGUBIT_PAY", payload, "signature_valid");
+
+        verify(invoiceService).markInvoiceAsPaid(invoiceId, new BigDecimal("199.90"), "PIX");
+        verify(xingubitPayGateway).issueNfcom(any(), any(), any(), any(), any());
+        verify(invoiceRepository).save(argThat(inv ->
+                "15260812345678000195620010001005001000010427".equals(inv.getNfcomKey())
+                && Invoice.NfcomStatus.ISSUED.equals(inv.getNfcomStatus())
+        ));
+    }
 }
