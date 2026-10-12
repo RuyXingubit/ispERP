@@ -92,9 +92,18 @@ public class RadAcct {
     @Column(name = "framedipaddress", length = 45)
     private @Nullable String framedIpAddress;
 
+    @Column(name = "framedipv6address", length = 45)
+    private @Nullable String framedIpv6Address;
+
     @Column(name = "framedipv6prefix", length = 45)
     private @Nullable String framedIpv6Prefix;
 
+    @Column(name = "framedinterfaceid", length = 45)
+    private @Nullable String framedInterfaceId;
+
     @Column(name = "delegatedipv6prefix", length = 45)
     private @Nullable String delegatedIpv6Prefix;
+
+    @Column(name = "class", length = 64)
+    private @Nullable String acctClass;
 }

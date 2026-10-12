@@ -125,4 +125,46 @@ class RadiusSessionServiceTest {
         assertThat(res.isSuccess()).isTrue();
         assertThat(res.getMessage()).contains("127.0.0.1");
     }
+
+    @Test
+    @DisplayName("Deve suportar atributos complementares do FreeRADIUS (IPv6, InterfaceId, Class) na entidade RadAcct")
+    void testRadAcctFullAttributes() {
+        RadAcct session = RadAcct.builder()
+                .radacctId(100L)
+                .acctSessionId("session-xyz")
+                .acctUniqueId("unique-xyz")
+                .username("cliente_ipv6")
+                .nasIpAddress("10.0.0.1")
+                .framedIpAddress("100.64.0.2")
+                .framedIpv6Address("2804:100::2")
+                .framedIpv6Prefix("2804:100::/64")
+                .framedInterfaceId("0000:0000:0000:0001")
+                .delegatedIpv6Prefix("2804:100:1::/56")
+                .acctClass("plano-corporativo-1g")
+                .build();
+
+        assertThat(session.getFramedIpv6Address()).isEqualTo("2804:100::2");
+        assertThat(session.getFramedInterfaceId()).isEqualTo("0000:0000:0000:0001");
+        assertThat(session.getAcctClass()).isEqualTo("plano-corporativo-1g");
+    }
+
+    @Test
+    @DisplayName("Deve instanciar entidade RadPostAuth com todos os atributos de auditoria FreeRADIUS")
+    void testRadPostAuthEntity() {
+        br.dev.xb.isperp.entity.RadPostAuth postAuth = br.dev.xb.isperp.entity.RadPostAuth.builder()
+                .id(1L)
+                .username("cliente_teste")
+                .pass("senha123")
+                .reply("Access-Accept")
+                .calledStationId("BNG-01")
+                .callingStationId("00:11:22:33:44:55")
+                .acctClass("vip")
+                .build();
+
+        assertThat(postAuth.getUsername()).isEqualTo("cliente_teste");
+        assertThat(postAuth.getReply()).isEqualTo("Access-Accept");
+        assertThat(postAuth.getCallingStationId()).isEqualTo("00:11:22:33:44:55");
+        assertThat(postAuth.getAcctClass()).isEqualTo("vip");
+        assertThat(postAuth.getAuthDate()).isNotNull();
+    }
 }
