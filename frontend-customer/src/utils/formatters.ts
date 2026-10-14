@@ -53,3 +53,63 @@ export function validatePin(pin: string): boolean {
   if (!pin) return false;
   return /^\d{4}$/.test(pin.trim());
 }
+
+/**
+ * Extrai o token de assinatura eletrônica forense a partir do pathname (/sign/{token})
+ * ou query string (?token={token} ou ?sign={token}).
+ */
+export function extractSignatureToken(pathname: string, search: string): string | null {
+  if (pathname) {
+    const cleanPath = pathname.replace(/\/+$/, '');
+    const match = cleanPath.match(/(?:^|\/)sign\/([A-Za-z0-9_-]{8,})$/);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  if (search) {
+    const params = new URLSearchParams(search.startsWith('?') ? search : `?${search}`);
+    const tokenParam = params.get('token') || params.get('sign');
+    if (tokenParam && /^[A-Za-z0-9_-]{8,}$/.test(tokenParam.trim())) {
+      return tokenParam.trim();
+    }
+  }
+  return null;
+}
+
+/**
+ * Traduz o status do contrato para exibição amigável ao assinante
+ */
+export function formatContractStatus(status?: string): string {
+  switch ((status || '').toUpperCase()) {
+    case 'ACTIVE':
+      return 'Ativo';
+    case 'BLOCKED':
+    case 'SUSPENDED':
+      return 'Bloqueado / Suspenso';
+    case 'PENDING':
+    case 'DRAFT':
+      return 'Aguardando Ativação';
+    case 'CANCELED':
+    case 'CANCELLED':
+      return 'Cancelado';
+    default:
+      return status || 'Ativo';
+  }
+}
+
+/**
+ * Traduz o método de contingência MP 2.200-2 para exibição amigável
+ */
+export function formatFallbackMethodLabel(method?: string): string {
+  switch ((method || '').toUpperCase()) {
+    case 'GOV_BR':
+      return 'Assinatura Digital Gov.br (ICP-Brasil / Prata ou Ouro)';
+    case 'EMAIL_OTP':
+      return 'Token OTP Auditado (E-mail / WhatsApp Oficial + Evidência de IP)';
+    case 'PHYSICAL_NOTARY':
+      return 'Assinatura Física / Reconhecimento em Cartório';
+    default:
+      return method || 'Contingência MP 2.200-2';
+  }
+}
+

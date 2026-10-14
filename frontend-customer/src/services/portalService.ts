@@ -25,6 +25,7 @@ export interface PlanItem {
   downloadSpeed: number;
   uploadSpeed: number;
   price: number;
+  monthlyPrice?: number;
   description?: string;
 }
 

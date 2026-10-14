@@ -118,3 +118,111 @@ test('validatePin - valida formato exato de 4 dígitos numéricos', () => {
   assert.equal(validatePin(null), false); // nulo
 });
 
+function extractSignatureToken(pathname, search) {
+  if (pathname) {
+    const cleanPath = pathname.replace(/\/+$/, '');
+    const match = cleanPath.match(/(?:^|\/)sign\/([A-Za-z0-9_-]{8,})$/);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  if (search) {
+    const params = new URLSearchParams(search.startsWith('?') ? search : `?${search}`);
+    const tokenParam = params.get('token') || params.get('sign');
+    if (tokenParam && /^[A-Za-z0-9_-]{8,}$/.test(tokenParam.trim())) {
+      return tokenParam.trim();
+    }
+  }
+  return null;
+}
+
+function formatContractStatus(status) {
+  switch ((status || '').toUpperCase()) {
+    case 'ACTIVE':
+      return 'Ativo';
+    case 'BLOCKED':
+    case 'SUSPENDED':
+      return 'Bloqueado / Suspenso';
+    case 'PENDING':
+    case 'DRAFT':
+      return 'Aguardando Ativação';
+    case 'CANCELED':
+    case 'CANCELLED':
+      return 'Cancelado';
+    default:
+      return status || 'Ativo';
+  }
+}
+
+function formatFallbackMethodLabel(method) {
+  switch ((method || '').toUpperCase()) {
+    case 'GOV_BR':
+      return 'Assinatura Digital Gov.br (ICP-Brasil / Prata ou Ouro)';
+    case 'EMAIL_OTP':
+      return 'Token OTP Auditado (E-mail / WhatsApp Oficial + Evidência de IP)';
+    case 'PHYSICAL_NOTARY':
+      return 'Assinatura Física / Reconhecimento em Cartório';
+    default:
+      return method || 'Contingência MP 2.200-2';
+  }
+}
+
+function getSignedContractPdfUrl(token, signedPdfUrl, apiBaseUrl = '/api') {
+  if (signedPdfUrl && signedPdfUrl.startsWith('http')) {
+    return signedPdfUrl;
+  }
+  return `${apiBaseUrl}/public/signatures/${encodeURIComponent(token)}/pdf`;
+}
+
+test('extractSignatureToken - extrai token de rota limpa /sign/{token} ou query ?token= / ?sign=', () => {
+  assert.equal(
+    extractSignatureToken('/sign/019633f8a4b07d8e9f1234567890abcd', ''),
+    '019633f8a4b07d8e9f1234567890abcd'
+  );
+  assert.equal(
+    extractSignatureToken('/sign/token_forense_12345/', ''),
+    'token_forense_12345'
+  );
+  assert.equal(
+    extractSignatureToken('/', '?token=019633f8a4b07d8e9f1234567890abcd'),
+    '019633f8a4b07d8e9f1234567890abcd'
+  );
+  assert.equal(
+    extractSignatureToken('/index.html', '?sign=abc123456789'),
+    'abc123456789'
+  );
+  assert.equal(extractSignatureToken('/', ''), null);
+  assert.equal(extractSignatureToken('/dashboard', '?token=curto'), null);
+});
+
+test('formatContractStatus e formatFallbackMethodLabel - traduzem estados de contrato e contingência MP 2.200-2', () => {
+  assert.equal(formatContractStatus('ACTIVE'), 'Ativo');
+  assert.equal(formatContractStatus('SUSPENDED'), 'Bloqueado / Suspenso');
+  assert.equal(formatContractStatus('PENDING'), 'Aguardando Ativação');
+
+  assert.equal(
+    formatFallbackMethodLabel('GOV_BR'),
+    'Assinatura Digital Gov.br (ICP-Brasil / Prata ou Ouro)'
+  );
+  assert.equal(
+    formatFallbackMethodLabel('EMAIL_OTP'),
+    'Token OTP Auditado (E-mail / WhatsApp Oficial + Evidência de IP)'
+  );
+  assert.equal(
+    formatFallbackMethodLabel('PHYSICAL_NOTARY'),
+    'Assinatura Física / Reconhecimento em Cartório'
+  );
+});
+
+test('getSignedContractPdfUrl - resolve URL de PDF assinado com certificado forense', () => {
+  assert.equal(
+    getSignedContractPdfUrl('tok_12345678', null),
+    '/api/public/signatures/tok_12345678/pdf'
+  );
+  assert.equal(
+    getSignedContractPdfUrl('tok_12345678', 'https://cdn.provedor.com.br/contratos/tok_12345678.pdf'),
+    'https://cdn.provedor.com.br/contratos/tok_12345678.pdf'
+  );
+});
+
+

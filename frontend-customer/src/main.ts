@@ -10,15 +10,41 @@ import {
   type ClientPortalDashboard,
   type InvoiceItem,
 } from './services/portalService';
+import {
+  fetchPublicSignatureView,
+  fetchPublicSignatureStatus,
+  selectPublicSignatureFallback,
+  getSignedContractPdfUrl,
+  type SignaturePublicView,
+  type FallbackMethodType,
+} from './services/signatureService';
 
 // Estado da Aplicação
 let currentDashboard: ClientPortalDashboard | null = null;
 let activeTab: 'pending' | 'paid' = 'pending';
 let pendingCustomerIdForPin: string | null = null;
 let isForceChangeMode: boolean = false;
+let currentSignatureView: SignaturePublicView | null = null;
+let signaturePollingTimer: ReturnType<typeof setInterval> | null = null;
 
-import { formatDocument, formatCurrency, formatDate, validatePin } from './utils/formatters';
-export { formatDocument, formatCurrency, formatDate, validatePin };
+import {
+  formatDocument,
+  formatCurrency,
+  formatDate,
+  validatePin,
+  extractSignatureToken,
+  formatContractStatus,
+  formatFallbackMethodLabel,
+} from './utils/formatters';
+export {
+  formatDocument,
+  formatCurrency,
+  formatDate,
+  validatePin,
+  extractSignatureToken,
+  formatContractStatus,
+  formatFallbackMethodLabel,
+};
 
 /**
  * Aplica paleta de cores no :root
@@ -71,6 +97,42 @@ function hideLoginAlert() {
 }
 
 /**
+ * Renderiza os planos disponíveis para upgrade quando retornados pela API
+ */
+function renderUpgradePlans() {
+  const section = document.getElementById('upgrade-plans-section');
+  const grid = document.getElementById('upgrade-plans-grid');
+  if (!section || !grid || !currentDashboard) return;
+
+  const plans = currentDashboard.availableUpgradePlans || [];
+  if (plans.length === 0) {
+    section.style.display = 'none';
+    grid.innerHTML = '';
+    return;
+  }
+
+  section.style.display = 'block';
+  grid.innerHTML = plans
+    .map(
+      (plan) => `
+      <div class="upgrade-plan-card">
+        <div>
+          <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-main);">${plan.name}</div>
+          <div class="upgrade-plan-speeds">
+            ⬇ ${plan.downloadSpeed} Mbps • ⬆ ${plan.uploadSpeed} Mbps
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+          <span class="upgrade-plan-price">R$ ${formatCurrency(plan.price ?? plan.monthlyPrice ?? 0)}<small style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">/mês</small></span>
+          <span style="font-size: 0.75rem; color: var(--success-color); font-weight: 700;">Disponível</span>
+        </div>
+      </div>
+    `
+    )
+    .join('');
+}
+
+/**
  * Renderiza o painel de faturas com base na aba ativa
  */
 function renderInvoices() {
@@ -103,12 +165,30 @@ function renderInvoices() {
     const formattedAmount = formatCurrency(inv.amount);
     const formattedDate = formatDate(inv.dueDate);
 
+    const chips: string[] = [];
+    if (inv.discountAmount && inv.discountAmount > 0) {
+      chips.push(`<span class="invoice-breakdown-chip chip-discount">Desconto: -R$ ${formatCurrency(inv.discountAmount)}</span>`);
+    }
+    if (inv.penaltyAmount && inv.penaltyAmount > 0) {
+      chips.push(`<span class="invoice-breakdown-chip chip-penalty">Multa: +R$ ${formatCurrency(inv.penaltyAmount)}</span>`);
+    }
+    if (inv.interestAmount && inv.interestAmount > 0) {
+      chips.push(`<span class="invoice-breakdown-chip chip-penalty">Juros: +R$ ${formatCurrency(inv.interestAmount)}</span>`);
+    }
+
+    const pdfButtonHtml = inv.pdfUrl
+      ? `<a href="${inv.pdfUrl}" target="_blank" rel="noopener noreferrer" class="btn-pdf-download">
+           📄 2ª Via PDF / Nota Fiscal NFCom
+         </a>`
+      : '';
+
     return `
       <div class="invoice-card ${cardClass}" id="invoice-${inv.id}">
         <div class="invoice-top">
           <div>
             <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Valor</span>
             <div class="invoice-amount">R$ ${formattedAmount}</div>
+            ${chips.length > 0 ? `<div class="invoice-breakdown">${chips.join('')}</div>` : ''}
           </div>
           <span class="invoice-status-tag ${tagClass}">${statusLabel}</span>
         </div>
@@ -118,15 +198,18 @@ function renderInvoices() {
           ${inv.paidAt ? `<div>Pago em: ${formatDate(inv.paidAt.split('T')[0])}</div>` : ''}
         </div>
 
-        ${!isPaid ? `
-          <button type="button" class="btn-pix-pay" data-invoice-id="${inv.id}">
-            ⚡ Pagar com Pix
-          </button>
-        ` : `
-          <div style="color: var(--success-color); font-size: 0.85rem; font-weight: 700; text-align: center;">
-            ✓ Pagamento Confirmado
-          </div>
-        `}
+        <div class="invoice-actions">
+          ${!isPaid ? `
+            <button type="button" class="btn-pix-pay" data-invoice-id="${inv.id}">
+              ⚡ Pagar com Pix
+            </button>
+          ` : `
+            <div style="color: var(--success-color); font-size: 0.85rem; font-weight: 700; text-align: center;">
+              ✓ Pagamento Confirmado
+            </div>
+          `}
+          ${pdfButtonHtml}
+        </div>
       </div>
     `;
   }).join('');
@@ -334,11 +417,13 @@ async function handlePinSubmit(e: Event) {
 async function loadDashboard(customerId: string) {
   const viewLogin = document.getElementById('view-login');
   const viewDashboard = document.getElementById('view-dashboard');
+  const viewSignature = document.getElementById('view-signature');
   const portalHeader = document.getElementById('portal-header');
   const userDisplayName = document.getElementById('user-display-name');
   const userDisplayDoc = document.getElementById('user-display-doc');
 
   if (viewLogin) viewLogin.style.display = 'none';
+  if (viewSignature) viewSignature.style.display = 'none';
   if (viewDashboard) viewDashboard.style.display = 'block';
   if (portalHeader) portalHeader.style.display = 'block';
 
@@ -352,6 +437,7 @@ async function loadDashboard(customerId: string) {
     // Card de Status da Conexão
     const statusBadge = document.getElementById('status-badge');
     const statusText = document.getElementById('status-badge-text');
+    const contractMeta = document.getElementById('contract-meta');
     const planName = document.getElementById('plan-name');
     const planSpeeds = document.getElementById('plan-speeds');
     const unblockWrapper = document.getElementById('trust-unblock-wrapper');
@@ -370,6 +456,17 @@ async function loadDashboard(customerId: string) {
       if (unblockWrapper) unblockWrapper.style.display = 'none';
     }
 
+    if (contractMeta) {
+      if (currentDashboard.contract?.id) {
+        const shortId = currentDashboard.contract.id.slice(0, 8).toUpperCase();
+        const label = formatContractStatus(currentDashboard.contract.status);
+        contractMeta.textContent = `Contrato #${shortId} • ${label}`;
+        contractMeta.style.display = 'inline-flex';
+      } else {
+        contractMeta.style.display = 'none';
+      }
+    }
+
     if (currentDashboard.currentPlan) {
       if (planName) planName.textContent = currentDashboard.currentPlan.name;
       if (planSpeeds) {
@@ -380,11 +477,338 @@ async function loadDashboard(customerId: string) {
       if (planSpeeds) planSpeeds.textContent = 'Consulte o suporte para detalhes';
     }
 
+    renderUpgradePlans();
     renderInvoices();
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Falha ao carregar dados da conta';
     showLoginAlert(msg, true);
     handleLogout();
+  }
+}
+
+/**
+ * Exibe alerta na tela pública de assinatura eletrônica
+ */
+function showSignatureAlert(message: string, isError: boolean = true) {
+  const el = document.getElementById('sig-alert');
+  if (!el) return;
+  el.textContent = message;
+  el.className = `alert-message ${isError ? 'alert-error' : 'alert-success'}`;
+  el.style.display = 'flex';
+}
+
+function hideSignatureAlert() {
+  const el = document.getElementById('sig-alert');
+  if (el) el.style.display = 'none';
+}
+
+function stopSignaturePolling() {
+  if (signaturePollingTimer) {
+    clearInterval(signaturePollingTimer);
+    signaturePollingTimer = null;
+  }
+}
+
+function startSignaturePolling(token: string) {
+  stopSignaturePolling();
+  signaturePollingTimer = setInterval(() => {
+    void refreshSignatureStatus(token, false);
+  }, 5000);
+}
+
+/**
+ * Renderiza o estado atual da sessão de assinatura eletrônica forense
+ */
+function renderSignatureState(view: SignaturePublicView) {
+  currentSignatureView = view;
+
+  const contractNameEl = document.getElementById('sig-contract-name');
+  const statusBadgeEl = document.getElementById('sig-status-badge');
+  const customerNameEl = document.getElementById('sig-customer-name');
+  const customerDocEl = document.getElementById('sig-customer-doc');
+  const companyNameEl = document.getElementById('sig-company-name');
+  const sha256El = document.getElementById('sig-sha256-hash');
+  const expiresAtEl = document.getElementById('sig-expires-at');
+  const renderedContentEl = document.getElementById('sig-rendered-content');
+  const consentClauseEl = document.getElementById('sig-consent-clause');
+  const consentBoxEl = document.getElementById('sig-consent-box');
+  const chkConsent = document.getElementById('chk-signature-consent') as HTMLInputElement | null;
+
+  const pixPanel = document.getElementById('sig-pix-panel');
+  const signedPanel = document.getElementById('sig-signed-panel');
+  const fallbackPanel = document.getElementById('sig-fallback-panel');
+
+  if (contractNameEl) contractNameEl.textContent = view.contractName || 'Contrato de Prestação de Serviços SCM';
+  if (customerNameEl) customerNameEl.textContent = view.customerName || '—';
+  if (customerDocEl) customerDocEl.textContent = view.customerDocumentMasked || '—';
+  if (companyNameEl) companyNameEl.textContent = view.companyName || config.defaultTitle;
+  if (sha256El) {
+    sha256El.textContent = view.documentSha256Hash || 'Integrado na geração do documento';
+    sha256El.title = view.documentSha256Hash || '';
+  }
+  if (expiresAtEl && view.expiresAt) {
+    expiresAtEl.textContent = `Válido até ${formatDate(view.expiresAt.split('T')[0])}`;
+  }
+  if (renderedContentEl) {
+    renderedContentEl.textContent = view.renderedContent || '';
+  }
+  if (consentClauseEl && view.consentClause) {
+    consentClauseEl.textContent = view.consentClause;
+  }
+
+  // Configura QR Code e Copia-e-Cola do PIX Simbólico
+  const symbolicAmountEl = document.getElementById('sig-symbolic-amount');
+  if (symbolicAmountEl) {
+    symbolicAmountEl.textContent = `R$ ${formatCurrency(view.symbolicAmount || 1.0)}`;
+  }
+
+  const pixCodeEl = document.getElementById('sig-pix-code-text');
+  const pixQrImg = document.getElementById('sig-pix-qr-img') as HTMLImageElement | null;
+  const pixCode = view.pixCopyPaste || '';
+  if (pixCodeEl) pixCodeEl.textContent = pixCode;
+  if (pixQrImg && pixCode) {
+    if (view.pixQrCodeBase64) {
+      pixQrImg.src = view.pixQrCodeBase64.startsWith('data:')
+        ? view.pixQrCodeBase64
+        : `data:image/png;base64,${view.pixQrCodeBase64}`;
+    } else {
+      pixQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(pixCode)}`;
+    }
+  }
+
+  // Tratamento por status
+  if (view.status === 'SIGNED') {
+    stopSignaturePolling();
+    if (statusBadgeEl) {
+      statusBadgeEl.className = 'status-badge status-active';
+      statusBadgeEl.textContent = '✓ Contrato Assinado';
+    }
+    if (consentBoxEl) consentBoxEl.style.display = 'none';
+    if (pixPanel) pixPanel.style.display = 'none';
+    if (fallbackPanel) fallbackPanel.style.display = 'none';
+    if (signedPanel) signedPanel.style.display = 'block';
+
+    const payerNameEl = document.getElementById('sig-payer-name');
+    const payerBankEl = document.getElementById('sig-payer-bank');
+    const creditAmountEl = document.getElementById('sig-credit-amount');
+    const signedAtEl = document.getElementById('sig-signed-at');
+    const btnDownloadPdf = document.getElementById('btn-sig-download-pdf') as HTMLAnchorElement | null;
+
+    if (payerNameEl) payerNameEl.textContent = view.payerName || view.customerName;
+    if (payerBankEl) payerBankEl.textContent = view.payerBankName || 'Confirmado via SPI/BACEN';
+    if (creditAmountEl) {
+      creditAmountEl.textContent = `R$ ${formatCurrency(view.onboardingCreditAmount ?? view.symbolicAmount ?? 1.0)} (Abatimento automático na 1ª fatura)`;
+    }
+    if (signedAtEl) {
+      signedAtEl.textContent = view.signedAt ? new Date(view.signedAt).toLocaleString('pt-BR') : 'Confirmado agora';
+    }
+    if (btnDownloadPdf) {
+      btnDownloadPdf.href = getSignedContractPdfUrl(view.token, view.signedPdfUrl);
+    }
+    return;
+  }
+
+  if (view.status === 'REJECTED_DIVERGENT_DOCUMENT' || view.status === 'AWAITING_FALLBACK_SIGNATURE') {
+    stopSignaturePolling();
+    if (statusBadgeEl) {
+      statusBadgeEl.className =
+        view.status === 'REJECTED_DIVERGENT_DOCUMENT'
+          ? 'status-badge status-blocked'
+          : 'status-badge status-unblocked';
+      statusBadgeEl.textContent =
+        view.status === 'REJECTED_DIVERGENT_DOCUMENT'
+          ? 'Divergência de CPF (Anti-Fraude)'
+          : 'Em Contingência MP 2.200-2';
+    }
+    if (pixPanel) pixPanel.style.display = 'none';
+    if (signedPanel) signedPanel.style.display = 'none';
+    if (fallbackPanel) fallbackPanel.style.display = 'block';
+
+    const rejectionBanner = document.getElementById('sig-rejection-banner');
+    const rejectionReasonEl = document.getElementById('sig-rejection-reason');
+    const fallbackActiveBanner = document.getElementById('sig-fallback-active-banner');
+    const fallbackActiveDesc = document.getElementById('sig-fallback-active-desc');
+
+    if (view.rejectionReason && rejectionBanner && rejectionReasonEl) {
+      rejectionReasonEl.textContent = view.rejectionReason;
+      rejectionBanner.style.display = 'flex';
+    } else if (rejectionBanner) {
+      rejectionBanner.style.display = 'none';
+    }
+
+    if (view.status === 'AWAITING_FALLBACK_SIGNATURE' && fallbackActiveBanner && fallbackActiveDesc) {
+      fallbackActiveDesc.textContent = `Modalidade selecionada: ${formatFallbackMethodLabel(view.fallbackMethod || undefined)}. Nossa equipe ou portal finalizará a validação.`;
+      fallbackActiveBanner.style.display = 'flex';
+    } else if (fallbackActiveBanner) {
+      fallbackActiveBanner.style.display = 'none';
+    }
+    return;
+  }
+
+  if (view.status === 'EXPIRED') {
+    stopSignaturePolling();
+    if (statusBadgeEl) {
+      statusBadgeEl.className = 'status-badge status-blocked';
+      statusBadgeEl.textContent = 'Sessão Expirada';
+    }
+    if (pixPanel) pixPanel.style.display = 'none';
+    if (signedPanel) signedPanel.style.display = 'none';
+    if (fallbackPanel) fallbackPanel.style.display = 'none';
+    showSignatureAlert('Este link de assinatura expirou. Solicite um novo link ao atendimento do provedor.', true);
+    return;
+  }
+
+  // Default: AWAITING_PAYMENT
+  if (statusBadgeEl) {
+    statusBadgeEl.className = 'status-badge status-unblocked';
+    statusBadgeEl.textContent = 'Aguardando PIX R$ 1,00';
+  }
+  if (consentBoxEl) consentBoxEl.style.display = 'block';
+  if (signedPanel) signedPanel.style.display = 'none';
+  if (fallbackPanel) fallbackPanel.style.display = 'none';
+  if (pixPanel) pixPanel.style.display = 'block';
+
+  const isConsented = !!(chkConsent && chkConsent.checked);
+  const lockedHint = document.getElementById('sig-pix-locked-hint');
+  const unlockedContent = document.getElementById('sig-pix-unlocked-content');
+  if (lockedHint) lockedHint.style.display = isConsented ? 'none' : 'block';
+  if (unlockedContent) unlockedContent.style.display = isConsented ? 'block' : 'none';
+}
+
+/**
+ * Atualiza o status da assinatura via endpoint leve /status
+ */
+async function refreshSignatureStatus(token: string, manualFeedback: boolean = false) {
+  if (!currentSignatureView) return;
+  const btnCheck = document.getElementById('btn-sig-check-now') as HTMLButtonElement | null;
+  if (manualFeedback && btnCheck) {
+    btnCheck.disabled = true;
+    btnCheck.textContent = '⏳ Consultando BACEN...';
+  }
+
+  try {
+    const statusRes = await fetchPublicSignatureStatus(token);
+    currentSignatureView = {
+      ...currentSignatureView,
+      status: statusRes.status,
+      payerName: statusRes.payerName ?? currentSignatureView.payerName,
+      payerBankName: statusRes.payerBankName ?? currentSignatureView.payerBankName,
+      rejectionReason: statusRes.rejectionReason ?? currentSignatureView.rejectionReason,
+      signedPdfUrl: statusRes.signedPdfUrl ?? currentSignatureView.signedPdfUrl,
+      documentSha256Hash: statusRes.documentSha256Hash ?? currentSignatureView.documentSha256Hash,
+      fallbackMethod: statusRes.fallbackMethod ?? currentSignatureView.fallbackMethod,
+      onboardingCreditAmount: statusRes.onboardingCreditAmount ?? currentSignatureView.onboardingCreditAmount,
+      forensicCertificatePdfUrl: statusRes.forensicCertificatePdfUrl ?? currentSignatureView.forensicCertificatePdfUrl,
+      signedAt: statusRes.signedAt ?? currentSignatureView.signedAt,
+    };
+    renderSignatureState(currentSignatureView);
+  } catch (err: unknown) {
+    if (manualFeedback) {
+      const msg = err instanceof Error ? err.message : 'Não foi possível verificar o status agora.';
+      showSignatureAlert(msg, true);
+    }
+  } finally {
+    if (manualFeedback && btnCheck) {
+      btnCheck.disabled = false;
+      btnCheck.textContent = '🔄 Já paguei / Verificar agora';
+    }
+  }
+}
+
+/**
+ * Carrega a tela pública de assinatura eletrônica forense (/sign/{token})
+ */
+async function loadPublicSignatureView(token: string) {
+  const viewLogin = document.getElementById('view-login');
+  const viewDashboard = document.getElementById('view-dashboard');
+  const viewSignature = document.getElementById('view-signature');
+  const portalHeader = document.getElementById('portal-header');
+
+  if (viewLogin) viewLogin.style.display = 'none';
+  if (viewDashboard) viewDashboard.style.display = 'none';
+  if (portalHeader) portalHeader.style.display = 'none';
+  if (viewSignature) viewSignature.style.display = 'block';
+
+  hideSignatureAlert();
+
+  try {
+    const view = await fetchPublicSignatureView(token);
+    document.title = `Assinatura de Contrato • ${view.companyName || config.defaultTitle}`;
+    renderSignatureState(view);
+
+    if (view.status === 'AWAITING_PAYMENT') {
+      startSignaturePolling(token);
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Link de assinatura inválido ou expirado.';
+    showSignatureAlert(msg, true);
+  }
+}
+
+/**
+ * Copia o código PIX da assinatura eletrônica
+ */
+async function handleSignatureCopyPix() {
+  const pixText = document.getElementById('sig-pix-code-text');
+  const copyFeedback = document.getElementById('sig-copy-feedback');
+  if (!pixText || !pixText.textContent) return;
+
+  try {
+    await navigator.clipboard.writeText(pixText.textContent);
+    if (copyFeedback) {
+      copyFeedback.style.display = 'block';
+      setTimeout(() => {
+        if (copyFeedback) copyFeedback.style.display = 'none';
+      }, 4000);
+    }
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = pixText.textContent;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    if (copyFeedback) copyFeedback.style.display = 'block';
+  }
+}
+
+/**
+ * Envia solicitação de contingência MP 2.200-2 pelo próprio cliente
+ */
+async function handleSignatureFallbackSubmit(e: Event) {
+  e.preventDefault();
+  if (!currentSignatureView) return;
+
+  const selectMethod = document.getElementById('select-sig-fallback-method') as HTMLSelectElement | null;
+  const inputJustification = document.getElementById('input-sig-fallback-justification') as HTMLInputElement | null;
+  const btnSubmit = document.getElementById('btn-sig-submit-fallback') as HTMLButtonElement | null;
+
+  const method = (selectMethod?.value || 'GOV_BR') as FallbackMethodType;
+  const justification = inputJustification?.value.trim() || undefined;
+
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Registrando contingência...';
+  }
+  hideSignatureAlert();
+
+  try {
+    const updated = await selectPublicSignatureFallback(currentSignatureView.token, method, justification);
+    currentSignatureView = {
+      ...currentSignatureView,
+      status: updated.status,
+      fallbackMethod: updated.fallbackMethod ?? method,
+    };
+    renderSignatureState(currentSignatureView);
+    showSignatureAlert('Modalidade de contingência registrada com sucesso!', false);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Não foi possível registrar a contingência.';
+    showSignatureAlert(msg, true);
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Confirmar Modalidade de Contingência';
+    }
   }
 }
 
@@ -555,6 +979,43 @@ function setupEventListeners() {
   if (btnClosePin) btnClosePin.addEventListener('click', closePinModal);
   if (formPin) formPin.addEventListener('submit', handlePinSubmit);
 
+  // Eventos da Página Pública de Assinatura Eletrônica Forense
+  const chkSigConsent = document.getElementById('chk-signature-consent') as HTMLInputElement | null;
+  const btnSigCopyPix = document.getElementById('btn-sig-copy-pix');
+  const btnSigCheckNow = document.getElementById('btn-sig-check-now');
+  const btnSigOpenFallback = document.getElementById('btn-sig-open-fallback');
+  const formSigFallback = document.getElementById('form-sig-fallback');
+
+  if (chkSigConsent) {
+    chkSigConsent.addEventListener('change', () => {
+      const lockedHint = document.getElementById('sig-pix-locked-hint');
+      const unlockedContent = document.getElementById('sig-pix-unlocked-content');
+      if (lockedHint) lockedHint.style.display = chkSigConsent.checked ? 'none' : 'block';
+      if (unlockedContent) unlockedContent.style.display = chkSigConsent.checked ? 'block' : 'none';
+    });
+  }
+
+  if (btnSigCopyPix) btnSigCopyPix.addEventListener('click', handleSignatureCopyPix);
+  if (btnSigCheckNow) {
+    btnSigCheckNow.addEventListener('click', () => {
+      if (currentSignatureView) {
+        void refreshSignatureStatus(currentSignatureView.token, true);
+      }
+    });
+  }
+  if (btnSigOpenFallback) {
+    btnSigOpenFallback.addEventListener('click', () => {
+      const fallbackPanel = document.getElementById('sig-fallback-panel');
+      if (fallbackPanel) {
+        fallbackPanel.style.display = 'block';
+        fallbackPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  }
+  if (formSigFallback) {
+    formSigFallback.addEventListener('submit', handleSignatureFallbackSubmit);
+  }
+
   // Fecha modais ao clicar fora
   window.addEventListener('click', (e) => {
     const modalPix = document.getElementById('modal-pix');
@@ -571,6 +1032,13 @@ async function bootstrap() {
   await loadBranding();
   setupEventListeners();
 
+  // Verifica se a URL é um link público de Assinatura Eletrônica Forense (/sign/{token} ou ?token={token})
+  const signatureToken = extractSignatureToken(window.location.pathname, window.location.search);
+  if (signatureToken) {
+    await loadPublicSignatureView(signatureToken);
+    return;
+  }
+
   const session = getCurrentSession();
   if (session) {
     await loadDashboard(session.customerId);
@@ -582,3 +1050,4 @@ if (document.readyState === 'loading') {
 } else {
   bootstrap();
 }
+
