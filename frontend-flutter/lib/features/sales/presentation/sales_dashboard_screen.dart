@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/models/user_role.dart';
+import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../financial/data/dashboard_bi_provider.dart';
 import '../data/sales_models.dart';
@@ -21,6 +24,8 @@ class SalesDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final biAsync = ref.watch(dashboardBiProvider);
     final salesState = ref.watch(salesOnboardingProvider);
+    final authState = ref.watch(authProvider);
+    final isAdmin = authState.role == UserRole.admin;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -47,11 +52,23 @@ class SalesDashboardScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 16),
-                ElevatedButton.icon(
-                  onPressed: () => SalesOnboardingModal.show(context),
-                  icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
-                  label: const Text('Nova Proposta'),
+                const SizedBox(width: 12),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  children: [
+                    if (isAdmin)
+                      OutlinedButton.icon(
+                        onPressed: () => context.go('/admin/catalog'),
+                        icon: const Icon(Icons.settings_suggest_outlined, size: 18),
+                        label: const Text('Catálogo & Minutas'),
+                      ),
+                    ElevatedButton.icon(
+                      onPressed: () => SalesOnboardingModal.show(context),
+                      icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
+                      label: const Text('Nova Proposta'),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/admin/presentation/admin_dashboard_screen.dart';
 import '../../features/admin/presentation/audit_trail_screen.dart';
+import '../../features/admin/presentation/backup_dr_screen.dart';
+import '../../features/admin/presentation/catalog_and_templates_screen.dart';
 import '../../features/admin/presentation/nas_management_screen.dart';
-import '../../features/admin/presentation/payment_gateway_config_screen.dart';
+import '../../features/admin/presentation/system_settings_screen.dart';
 import '../../features/admin/presentation/users_management_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/dashboard/presentation/shell_scaffold.dart';
@@ -84,6 +86,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AdminDashboardScreen(),
           ),
           GoRoute(
+            path: '/admin/catalog',
+            builder: (context, state) => const CatalogAndTemplatesScreen(),
+          ),
+          GoRoute(
+            path: '/admin/settings',
+            builder: (context, state) => const SystemSettingsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/gateways',
+            builder: (context, state) => const SystemSettingsScreen(initialTabIndex: 4),
+          ),
+          GoRoute(
+            path: '/admin/backup',
+            builder: (context, state) => const BackupDrScreen(),
+          ),
+          GoRoute(
             path: '/admin/users',
             builder: (context, state) => const UsersManagementScreen(),
           ),
@@ -94,10 +112,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/admin/nas',
             builder: (context, state) => const NasManagementScreen(),
-          ),
-          GoRoute(
-            path: '/admin/gateways',
-            builder: (context, state) => const PaymentGatewayConfigScreen(),
           ),
           GoRoute(
             path: '/financial',

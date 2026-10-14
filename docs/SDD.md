@@ -142,9 +142,11 @@ Todos os 11 papéis do Backend devem ser mapeados em [`lib/core/models/user_role
     4. `FinancialDashboardScreen` ➔ Ação real de Desbloqueio em Confiança (`POST /radius/lifecycle/action`).
     5. `MyCashCustodyScreen` ➔ `GET /financial/custody/cash/all` e `GET /financial/custody/cash/deposit/pending`.
 
-#### Ondas Subsequentes no `frontend-flutter` (Aguardando Solicitação Explícita por Onda)
-- **Onda A — Governança, Configurações Unificadas, Planos, Contratos e Backup:**
-  - Hub de Configurações (`/admin/settings`: Empresa, Site, SMTP, WhatsApp, Storage S3), CRUD de Planos (`/plans`), Templates de Contrato (`/contracts/templates`) e Backup & Disaster Recovery (`/financial/backup/*`).
+#### Ondas Subsequentes no `frontend-flutter` (Estritamente Sob Demanda)
+- **Onda A (Concluída) — Governança, Catálogo & Minutas, Configurações Unificadas e Backup DR:**
+  - **Catálogo & Minutas (`/admin/catalog`):** [`catalog_repository.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/admin/data/catalog_repository.dart) e [`catalog_and_templates_screen.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/admin/presentation/catalog_and_templates_screen.dart) integrando CRUD de Planos (`/plans`) e Templates de Contrato (`/contracts/templates`, `/variables`, `/clone`, `/preview`), mais atalho direto em `SalesDashboardScreen`.
+  - **Configurações Unificadas (`/admin/settings`):** [`system_settings_repository.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/admin/data/system_settings_repository.dart) e [`system_settings_screen.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/admin/presentation/system_settings_screen.dart) reunindo 5 abas: Empresas & Filiais (`/companies`), Site Vitrine (`/site-settings`), Storage S3/Local (`/storage/config` e `/storage/config/test`), Notificações WhatsApp/SMS (`/notifications/configs`) e Gateway Xingubit Pay (`/payment-gateways`).
+  - **Backup & Disaster Recovery (`/admin/backup`):** [`backup_dr_repository.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/admin/data/backup_dr_repository.dart) e [`backup_dr_screen.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/admin/presentation/backup_dr_screen.dart) integrando `/financial/backup/overview`, `/policies` (AES-256-GCM com exibição única da Master Key e termo de responsabilidade Zero-Knowledge), `/destinations`, `/execute`, `/history` e `/emergency-kit`.
 - **Onda B — Engenharia de Rede, Topologia FTTH, RADIUS Sessions, IPAM, CGNAT e Marco Civil:**
   - Gestão de OLTs/PONs/CTOs/ONUs (`/ftth/*`, `/network-devices`, `/onus`), Monitoramento NOC (`/ftth/monitoring/*`), Sessões RADIUS Ativas e PoD (`/radius/sessions/*`, `/radius/disconnect`), IPAM (`/ipam/*`), CGNAT (`/cgnat/*`) e Marco Civil (`/marco-civil/*`).
 - **Onda C — Gestão Financeira Avançada, DRE e Custódia Patrimonial:**
