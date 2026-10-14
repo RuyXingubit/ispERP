@@ -1,45 +1,48 @@
-# Arquitetura de Frontends: Frontend Flutter Multiperfil & Site Vitrine Comercial
+# Arquitetura de Frontends: ERP Operacional Flutter, Central do Assinante & Site Institucional
 
-**Data de Consolidação:** 2026-09-04  
-**Branch:** `feat/frontend-flutter`  
-**Status:** Arquitetura Oficial Aprovada em Desenvolvimento  
+**Data de Consolidação:** 2026-10-14  
+**Branch:** `main`  
+**Status:** Arquitetura Oficial Consolidada (veja [`docs/SDD.md`](SDD.md))  
 
 ---
 
 ## 1. Visão Geral & Contexto Estratégico
 
-O ecossistema **ispERP** adota a arquitetura de **1 API Central + 2 Frontends Especializados**. Essa decisão resolve o dilema histórico em sistemas de gestão para provedores de internet (ISPs), onde tentar unificar a operação interna e o site comercial em um único frontend acarreta prejuízos para ambos os públicos:
+O ecossistema **ispERP** adota a arquitetura de **1 API Central + 3 Frontends Especializados**. Essa decisão separa a operação interna corporativa, o portal de autoatendimento do assinante e o site institucional em aplicações dedicadas e independentes:
 
 ```
                        ┌──────────────────────────────────────────────┐
-                       │          ispERP Backend Central (Java 25)    │
-                       │           OpenAPI 3.0.3 (Single Source)      │
+                       │       ispERP Backend Central (Java 25)       │
+                       │        OpenAPI 3.0.3 (Single Source)         │
                        └──────────────────────┬───────────────────────┘
                                               │
-                    ┌─────────────────────────┴─────────────────────────┐
-                    │                                                   │
-                    ▼                                                   ▼
-       ┌─────────────────────────┐                         ┌─────────────────────────┐
-       │   ERP Operacional       │                         │   Site Vitrine ISP      │
-       │   (Flutter Multiplataforma)│                       │   (Web Leve com SEO)    │
-       ├─────────────────────────┤                         ├─────────────────────────┤
-       │ • Desktop (Windows/Linux)│                        │ • HTML5/CSS3 Puro/Next  │
-       │ • Web Interna           │                         │ • 100% Indexável Google │
-       │ • Mobile (Android/iOS)  │                         │ • Consome Dados da API  │
-       │ • Uso: Colaboradores    │                         │ • Uso: Clientes / Leads │
-       └─────────────────────────┘                         └─────────────────────────┘
+         ┌────────────────────────────────────┼────────────────────────────────────┐
+         │                                    │                                    │
+         ▼                                    ▼                                    ▼
+┌─────────────────────────┐        ┌─────────────────────────┐        ┌─────────────────────────┐
+│   ERP Operacional       │        │   Central do Assinante  │        │   Site Vitrine ISP      │
+│   (frontend-flutter/)   │        │   (frontend-customer/)  │        │   (frontend-site/)      │
+├─────────────────────────┤        ├─────────────────────────┤        ├─────────────────────────┤
+│ • Flutter 3.29+ / M3    │        │ • Vanilla TS + Vite 6   │        │ • Vanilla TS + Vite 6   │
+│ • Desktop / Web / Mobile│        │ • Pix, 2ª Via, NFCom    │        │ • SEO & Core Web Vitals │
+│ • Uso: Colaboradores    │        │ • Uso: Assinantes       │        │ • Uso: Visitantes/Leads │
+└─────────────────────────┘        └─────────────────────────┘        └─────────────────────────┘
 ```
 
 ### A Separação das Responsabilidades
 
 1. **Frontend Operacional (`frontend-flutter/`)**:
-   - **Público:** Colaboradores do provedor (Diretoria, Financeiro, Atendimento, Vendas, Técnicos de Campo).
-   - **Necessidades:** Densidade de informação, atalhos de teclado, velocidade de digitação, mapas, suporte offline para técnicos, leitor de código de barras para ONUs, e execução nativa em múltiplos sistemas operacionais.
+   - **Público:** Colaboradores do provedor (Diretoria, Financeiro, Atendimento, Vendas, Técnicos de Campo, Almoxarifado, NOC).
+   - **Necessidades:** Densidade de informação, atalhos de teclado, mapas, suporte multiplataforma (macOS, Windows, Linux, Web, Android, iOS) e RBAC de 11 perfis.
    - **SEO:** Zero necessidade de indexação em motores de busca.
 
-2. **Site Vitrine Comercial (`frontend-site/`)**:
+2. **Central do Assinante (`frontend-customer/`)**:
+   - **Público:** Assinantes ativos ou suspensos do provedor.
+   - **Necessidades:** Aplicação web leve em **Vanilla TypeScript + Vite 6 + HTML5/CSS3** (zero dependências de runtime) para consulta de faturas, pagamento via Pix Copia e Cola / QR Code, download de NFCom/contratos, assinatura eletrônica Pix (`/sign?token=...`) e solicitação de Desbloqueio em Confiança.
+
+3. **Site Vitrine Comercial (`frontend-site/`)**:
    - **Público:** Clientes finais e potenciais assinantes (leads) do provedor de internet.
-   - **Necessidades:** "A homenagem a Tim Berners-Lee e a World Wide Web" — a porta de entrada da empresa na internet. Tempo de carregamento inferior a 1 segundo em redes 4G, conformidade rigorosa com Core Web Vitals, metadados OpenGraph para redes sociais, campanhas de tráfego pago (Google Ads, Meta Ads) com rastreamento UTM, e catálogo de planos atualizado dinamicamente.
+   - **Necessidades:** Aplicação web leve em **Vanilla TypeScript + Vite 6 + HTML5/CSS3** (zero dependências de runtime), conformidade com Core Web Vitals, metadados OpenGraph, rastreamento UTM e catálogo de planos atualizado dinamicamente pela API.
 
 ---
 
@@ -109,9 +112,9 @@ Em vez de menus genéricos e telas poluídas, a interface do Flutter se adapta a
 
 Toda a comunicação do Flutter com o backend Java 25 segue o princípio **API-First**:
 - O contrato oficial em `contracts/openapi/openapi.bundled.json` é a fonte única da verdade (*Single Source of Truth*).
-- O cliente HTTP e os DTOs são gerados em Dart com a biblioteca `Dio`, garantindo que:
+- O cliente HTTP e os repositórios tipados são implementados de forma enxuta em Dart com a biblioteca `Dio`, espelhando rigorosamente os schemas do contrato OpenAPI e garantindo que:
   - Todas as respostas de erro usem a especificação `ProblemDetails` (RFC 7807).
-  - Headers `Authorization: Bearer <token>` sejam injetados automaticamente por um interceptor de rede.
+  - Headers `Authorization: Bearer <token>` sejam injetados automaticamente por um interceptor de rede (`AuthInterceptor`).
   - Tokens expirados (HTTP 401) disparem o fluxo de renovação silenciosa (*refresh token*) ou redirecionem à tela de login.
 
 ---
@@ -124,7 +127,7 @@ O site comercial do provedor é a vitrine aberta para o público da internet. El
 
 ### 3.2 Dinâmica de Consumo da API Central
 
-O site vitrine consome dados públicos da API do ispERP de forma assíncrona ou em Server-Side Rendering (SSR), eliminando a necessidade de reescrever código quando o negócio muda:
+O site vitrine consome dados públicos da API do ispERP de forma assíncrona em Vanilla TypeScript + Vite 6, eliminando a necessidade de reescrever código quando o negócio muda:
 
 1. **Identidade e Unidades (`GET /companies`)**:
    - Razão social, nome fantasia, CNPJ, telefone do SAC, WhatsApp de vendas e endereços das lojas físicas vêm diretamente do ERP. Mudou o endereço da sede? O site atualiza sem novo deploy.
@@ -135,20 +138,14 @@ O site vitrine consome dados públicos da API do ispERP de forma assíncrona ou 
 4. **Atribuição de Marketing e Rastreamento de Campanhas (UTMs)**:
    - A equipe de marketing cria campanhas no ERP (ex: `CAMPANHA_BLACK_FRIDAY`).
    - Os links patrocinados no Instagram, Facebook ou Google Ads incluem parâmetros como `?utm_source=instagram&utm_campaign=black_friday`.
-   - Ao preencher o formulário de assinatura no site, esses parâmetros são enviados ao ERP (`POST /sales`), permitindo ao diretor visualizar no DRE exatamente o ROI de cada campanha.
+   - Ao preencher o formulário de assinatura no site, esses parâmetros são enviados ao ERP (`POST /sales`), permitindo ao diretor visualizar no DRE o ROI de cada campanha.
 5. **Liberdade de Customização:**
-   - O projeto entrega um template de alta performance com design moderno, mas 100% aberto. Agências terceirizadas ou a equipe interna do ISP podem modificar o CSS, as cores e as fotos livremente.
+   - O projeto entrega um template leve com design moderno, 100% aberto sob licença MIT. Agências terceirizadas ou a equipe interna do ISP podem modificar o CSS, as cores e as fotos livremente.
 
 ---
 
 ## 4. Governança de Branches e Ciclo de Desenvolvimento
 
-Para preservar a integridade do sistema em produção e dos deploys de documentação:
-
-1. **Branch `feat/frontend-flutter` (Isolamento Total)**:
-   - Todo o desenvolvimento do Flutter (`frontend-flutter/`) e do template do site vitrine (`frontend-site/`) ocorre com exclusividade nesta branch.
-   - A branch `main` permanece intocada, estável e com o portal de documentação operacional no GitHub Pages.
-2. **Validação Prática & Aprovação**:
-   - Apenas após a implementação completa das Fases 1 a 4, com testes de widget e validação de usabilidade nas plataformas Desktop e Mobile, será agendada a revisão final com o usuário para decidir entre:
-     - **Opção A:** Realizar o *Merge* da branch `feat/frontend-flutter` na `main`.
-     - **Opção B:** Promover a branch `feat/frontend-flutter` a nova branch padrão (`main`).
+- **Branch `main` Consolidada**:
+  - Os 3 frontends especializados (`frontend-flutter/`, `frontend-customer/` e `frontend-site/`) estão integrados na branch `main`, substituindo definitivamente o antigo monólito React/MUI.
+  - Qualquer evolução segue o fluxo **API-First** documentado em [`docs/SDD.md`](SDD.md), acompanhada de testes automatizados (`flutter test` e `npm test && npm run typecheck`).

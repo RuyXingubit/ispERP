@@ -1,5 +1,7 @@
 # Roadmap de Desenvolvimento (ispERP - Milestones)
 
+> **Especificação Técnica Atualizada:** Consulte [`docs/SDD.md`](SDD.md) para o documento mestre de especificação vigente. *(Nota histórica: referências a `frontend/` em React 19 nos Milestones 1 a 33 registram a evolução histórica anterior à consolidação nos 3 frontends especializados: `frontend-flutter/`, `frontend-customer/` e `frontend-site/`).*
+
 Este documento estabelece as etapas e marcos de desenvolvimento priorizados para a evolução do **ispERP**, registrando o status de entrega e os próximos passos.
 
 ---
@@ -511,30 +513,28 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 
 ---
 
-## 🎯 Milestone 28: Blindagem Patrimonial & Custódia Estrita por CPF (Concluído)
-> **Objetivo:** Estabelecer governança rígida sobre valores e materiais. Princípio: "Veículo não tem CPF. Todo valor e equipamento possui responsabilidade civil vinculada ao CPF do colaborador." Fim do extravio de dinheiro e sumiço de equipamentos em campo.
+## 🎯 Milestone 28: Controle de Custódia de Valores e Materiais por CPF (Concluído)
+> **Objetivo:** Estabelecer governança sobre valores em espécie e materiais. Princípio: "Todo valor em espécie e equipamento possui custódia vinculada ao CPF do colaborador."
 
 - [x] **Banco de Dados (Flyway `V27`):**
-  - `user_cash_custodies`: Livro-caixa individual de dinheiro vivo sob guarda de cada colaborador.
-  - `cash_transfer_logs`: Histórico de transferência entre colaboradores com duplo aceite obrigatório.
+  - `user_cash_custodies`: Livro-caixa individual de dinheiro sob guarda de cada colaborador.
+  - `cash_transfer_logs`: Histórico de transferência entre colaboradores com confirmação em duas etapas.
   - `bank_deposit_confirmations`: Prestação de contas com comprovante de depósito e conciliação restrita a CFO/Auditor.
-  - `user_material_custodies`: Carga patrimonial de equipamentos (ONTs, ferramentas, drop) vinculada ao CPF do técnico.
-  - `material_transfer_logs`: Repasse de peças entre técnicos em campo com duplo aceite.
+  - `user_material_custodies`: Carga de equipamentos (ONTs, ferramentas, drop) vinculada ao CPF do técnico.
+  - `material_transfer_logs`: Repasse de peças entre técnicos em campo com confirmação em duas etapas.
 - [x] **Backend Core (Java 25 + Spring Boot 4.1.1):**
   - `CashCustodyService`: Quitação de fatura em dinheiro com débito na custódia do colaborador e disparo do evento `INVOICE_PAID`.
-  - Mecanismo de **Duplo Aceite**: Saldo de gaveta só migra quando o recebedor confere as cédulas e confirma.
-  - **Segregação de Funções:** Depósito bancário só baixa a custódia do colaborador após conferência e aprovação do CFO contra o extrato real.
+  - Mecanismo de **Confirmação em Duas Etapas**: Saldo de caixa só migra quando o recebedor confere e confirma.
+  - **Segregação de Funções:** Depósito bancário só baixa a custódia do colaborador após conferência e aprovação do gestor financeiro contra o extrato.
   - `MaterialCustodyService`: Carga de materiais no CPF e baixa automática na conclusão da O.S.
   - Controladores REST: `CashCustodyController` e `MaterialCustodyController`.
-- [x] **Frontend React 19 / TypeScript:**
-  - [`CashCustodyManager.tsx`](file:///Users/ruy/Code/ispERP/frontend/src/pages/Financial/CashCustodyManager.tsx) (`/financial/custody`): Interface corporativa moderna de alta densidade com livro-caixa por colaborador, passagem de gaveta com duplo aceite, esteira de conciliação bancária para CFO e controle de carga de materiais.
 - [x] **Testes Automatizados (TDD):**
-  - `CashCustodyServiceTest` e `MaterialCustodyServiceTest` cobrindo 100% dos fluxos de recebimento, duplo aceite, conciliação e travas de segurança. Suíte completa de 214+ testes do monólito verde.
+  - `CashCustodyServiceTest` e `MaterialCustodyServiceTest` cobrindo 100% dos fluxos de recebimento, confirmação em duas etapas, conciliação e travas de segurança. Suíte completa de 214+ testes do monólito verde.
 
 ---
 
 ## 🎯 Milestone 29: Plano de Contas Dinâmico (5 Níveis Telecom), Contas a Pagar & Esteira de Isenção de Taxas (Concluído)
-> **Objetivo:** Fundação contábil e de despesas do provedor: árvore de 5 níveis com padrão canônico de telecom, contas a pagar, parcelamentos de longo prazo com amortização e juros, e a esteira de isenção de taxas de O.S. com notificação anti-fraude ao cliente.
+> **Objetivo:** Fundação contábil e de despesas do provedor: árvore de 5 níveis com padrão canônico de telecom, contas a pagar, parcelamentos de longo prazo com amortização e juros, e a esteira de isenção de taxas de O.S. com notificação oficial ao cliente.
 
 - [x] **Banco de Dados (Flyway `V28`):**
   - `chart_of_accounts`: Árvore hierárquica contábil auto-referenciada (`parent_id`, `code`, `name`, `type`, `dre_category`, `is_synthetic`, `is_analytical`).
@@ -546,46 +546,36 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
   - `PayableInvoiceService`: Gestão de contas a pagar, geração automática de parcelas e quitação com atualização de status.
   - `WorkOrderFeeService`: Tarifação padrão de serviços de O.S., solicitação de isenção comercial e auditoria gerencial com publicação de evento `WORK_ORDER_FEE_WAIVED` para WhatsApp oficial.
   - Controladores REST: `ChartOfAccountController`, `PayableInvoiceController` e `WorkOrderFeeController`.
-- [x] **Frontend React 19 / TypeScript:**
-  - `ChartOfAccountsManager.tsx` (`/financial/chart-of-accounts`): Árvore contábil expansível de 5 níveis com badges coloridas por grupo e modal de cadastro.
-  - `PayablesManager.tsx` (`/financial/payables`): Gestão de despesas, visualizador de parcelas futuras e baixa de pagamentos com comprovante.
-  - `WorkOrderFeeWaivers.tsx` (`/financial/fee-waivers`): Painel de aprovação gerencial de isenção de taxas com disparo de aviso oficial anti-fraude.
 - [x] **Testes Automatizados:**
   - `ChartOfAccountServiceTest`, `PayableInvoiceServiceTest` e `WorkOrderFeeServiceTest` passando 100%.
   - `ChartOfAccountsAndPayablesIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando seeder, parcelas e esteira de isenção. Suíte completa de mais de 250 testes verde.
 
 ---
 
-## 🎯 Milestone 30: O Santo Graal: DRE em Tempo Real & Motor de Desalavancagem ("Saída do Vermelho") (Concluído)
-> **Objetivo:** Cockpit executivo do dono com EBITDA real de telecom, curva de desalavancagem de 36 meses, identificação matemática do ponto do fundo do poço e simulador de novos investimentos "E Se...?".
+## 🎯 Milestone 30: DRE em Tempo Real & Projeção de Desalavancagem 36M (Concluído)
+> **Objetivo:** Painel financeiro executivo com EBITDA real de telecom, curva de desalavancagem de 36 meses, identificação do ponto de maior exposição de caixa e simulador de novos investimentos "E Se...?".
 
 - [x] **Backend Core (Java 25 + Spring Boot 4.1.1):**
   - `DreReportService`: Cálculo dinâmico do EBITDA, Margem de Contribuição e Fluxo de Caixa Livre nos Regimes de Competência e Caixa.
-  - `DeleveragingEngineService`: Motor determinístico de 36 meses combinando MRR com churn, OPEX fixo e amortização de CAPEX, calculando o Fundo do Poço (Maximum Drawdown) e a Data da Alforria Financeira.
-  - Simulador Interativo "E Se...?": Parecer de risco de solvência e cálculo do atraso temporal de alforria para novos investimentos sem persistência.
+  - `DeleveragingEngineService`: Motor determinístico de 36 meses combinando MRR com churn, OPEX fixo e amortização de CAPEX, calculando o *Maximum Drawdown* e a data estimada de quitação do passivo.
+  - Simulador Interativo "E Se...?": Avaliação de impacto financeiro para novos investimentos sem persistência.
   - Controladores REST: `DreReportController` (`/api/financial/reports/dre`) e `DeleveragingController` (`/api/financial/deleveraging`).
-- [x] **Frontend Corporativo (React 19 / TypeScript):**
-  - `DeleveragingDashboard.tsx` (`/financial/deleveraging`): Cockpit executivo dos 3 Números Sagrados (EBITDA, Fundo do Poço e Data da Alforria), visualizador da curva de 36 meses e simulador "E Se...?".
-  - `DreReportViewer.tsx` (`/financial/dre`): Visualização contábil em cascata com chaveador Competência vs Caixa.
 - [x] **Testes Automatizados:**
   - `DreReportServiceTest` e `DeleveragingEngineServiceTest` cobrindo 100% das fórmulas de EBITDA e projeção.
   - `DeleveragingAndDreIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando DRE e curva contínua.
 
 ---
 
-## 🎯 Milestone 31: Payback por Projeto de Rede (Mapa de Guerra Comercial) & Sentinela IA (Concluído)
-> **Objetivo:** Vínculo de caixas CTO a centros de custo de projetos de expansão com cálculo de payback e direcionador comercial, além do Sentinela Anti-Fraude com IA.
+## 🎯 Milestone 31: Payback por Projeto de Rede FTTH & Monitoramento de Anomalias Operacionais (Concluído)
+> **Objetivo:** Vínculo de caixas CTO a centros de custo de projetos de expansão com cálculo de payback e ocupação comercial, além de rotina de auditoria operacional.
 
 - [x] **Migração Flyway:**
   - `V29__create_network_projects_and_sentinel_audit_schema.sql`: Tabela `network_projects`, coluna `project_id` em `ftth_ctos` e tabela `sentinel_audit_logs`.
 - [x] **Backend Core (Java 25 + Spring Boot 4.1.1):**
   - Entidades `NetworkProject` e `SentinelAuditLog` com UUIDv7 nativo.
-  - `NetworkProjectService`: Vínculo de CTOs a projetos, cálculo em tempo real de portas ocupadas vs livres, MRR no bairro, margem líquida, meses de payback e geração do alerta do **Direcionador Comercial** (*"🚨 DINHEIRO DORMINDO NO POSTE: Bairro possui baixa ocupação. Direcionar vendas aqui!"*).
-  - `SentinelWatchdogService`: Varredura pericial automatizada de anomalias (retenção excessiva de dinheiro vivo por CPF, anomalias de isenções de O.S., auditoria de materiais).
+  - `NetworkProjectService`: Vínculo de CTOs a projetos, cálculo em tempo real de portas ocupadas vs livres, MRR no bairro, margem líquida, meses de payback e indicador de capacidade ociosa para direcionamento comercial.
+  - `SentinelWatchdogService`: Rotina automatizada de verificação de anomalias (retenção prolongada de valores em custódia, anomalias de isenções de O.S., auditoria de materiais).
   - Controladores REST: `NetworkProjectController` (`/api/financial/network-projects`) e `SentinelAuditController` (`/api/financial/sentinel`).
-- [x] **Frontend Corporativo (React 19 / TypeScript):**
-  - `NetworkProjectsPayback.tsx` (`/financial/projects-payback`): Mapa de guerra comercial, cards por projeto de bairro com barra de ocupação e termômetro comercial.
-  - `SentinelWatchdog.tsx` (`/financial/sentinel`): Painel pericial anti-fraude com disparo de varredura forense e dossiês analíticos.
 - [x] **Testes Automatizados:**
   - `NetworkProjectServiceTest` e `SentinelWatchdogServiceTest` passando 100%.
   - `NetworkProjectsAndSentinelIntegrationTest`: Teste com Testcontainers e PostgreSQL 17 real validando todo o ciclo ponta a ponta.
@@ -593,7 +583,7 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 ---
 
 ## 🎯 Milestone 32: Assinatura Eletrônica Baseada em Autenticação Pix (MP 2.200-2/01 & Lei 14.063/2020) (Concluído)
-> **Objetivo:** Assinatura digital instantânea via micro-transação Pix (R$ 1,00) com validação de titularidade do CPF diretamente no Banco Central, abatimento automático de R$ 1,00 na fatura, rotas oficiais de fallback (Gov.br, E-mail/OTP, Cartório) e emissão de folha pericial forense com Hash SHA-256 e EndToEndId.
+> **Objetivo:** Assinatura digital via micro-transação Pix (R$ 1,00) com validação de titularidade do CPF diretamente no Banco Central, abatimento automático de R$ 1,00 na fatura, rotas oficiais de fallback (Gov.br, E-mail/OTP, Cartório) e emissão de certificado de auditoria com Hash SHA-256 e EndToEndId.
 
 - [x] **Migração Flyway:**
   - `V30__enhance_contract_signatures_and_onboarding_discounts.sql`: Campos `fallback_method`, `discount_applied_invoice_id`, `onboarding_credit_amount`, `forensic_certificate_pdf_url` e `pending_onboarding_credit`.
@@ -601,31 +591,27 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
   - Validação estrita de titularidade do CPF do pagador (SPI/BACEN) contra o CPF cadastrado no contrato.
   - Bloqueio imediato na divergência com status `REJECTED_DIVERGENT_DOCUMENT` e oferecimento de rotas de fallback.
   - Conversão automática do R$ 1,00 pago em desconto na próxima fatura `PENDING` ou crédito de onboarding.
-  - Geração de Folha de Rosto / Certificado de Autenticidade Forense anexada ao contrato com Hash SHA-256 e End-to-End ID do BACEN.
+  - Geração de Certificado de Auditoria anexado ao contrato com Hash SHA-256 e End-to-End ID do BACEN.
   - Endpoints REST para seleção de fallback (`/api/public/signatures/{token}/fallback`) e download do PDF assinado (`/api/public/signatures/{token}/pdf`).
-- [x] **Frontend do Assinante (React 19 / TypeScript):**
-  - `PublicSignaturePage.tsx` (`/sign/:token`): Tela pública com leitor do contrato, QR Code Pix dinâmico, polling reativo, card de confirmação do desconto de R$ 1,00 na mensalidade e seletor dos 3 fallbacks na rejeição por divergência de CPF.
 - [x] **Testes Automatizados:**
-  - `ElectronicSignaturePixIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando rejeição de CPF terceiro, desconto na fatura e emissão do certificado pericial. Suíte de mais de 250 testes verdes.
+  - `ElectronicSignaturePixIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando rejeição de CPF terceiro, desconto na fatura e emissão do certificado. Suíte de mais de 250 testes verdes.
 
 ---
 
 ## 🎯 Milestone 33: Backup Multi-Destino, Criptografia AES-256 & Disaster Recovery (Concluído)
-> **Objetivo:** Infraestrutura nativa de proteção patrimonial e recuperação de desastres do ispERP com pipeline de streaming em memória sem estouro de disco, compressão ZStandard, criptografia militar AES-256 (PBKDF2), múltiplos destinos (S3, Cloudflare R2, MinIO, SFTP, NAS Local), teste contínuo de restauração (Dry-Run Restore) e emissão de Kit de Resgate de Emergência.
+> **Objetivo:** Infraestrutura nativa de backup e recuperação de desastres do ispERP com pipeline de streaming em memória sem escrita intermediária em disco, compressão ZStandard, criptografia padrão AES-256 (PBKDF2), múltiplos destinos (S3, Cloudflare R2, MinIO, SFTP, NAS Local), teste contínuo de restauração (Dry-Run Restore) e emissão de guia de restauração.
 
 - [x] **Migração Flyway:**
-  - `V31__create_backup_and_disaster_recovery_schema.sql`: Tabelas `backup_policies`, `backup_destinations` e `backup_execution_logs` com índices periciais e UUIDv7.
+  - `V31__create_backup_and_disaster_recovery_schema.sql`: Tabelas `backup_policies`, `backup_destinations` e `backup_execution_logs` com UUIDv7.
 - [x] **Backend Core (Java 25 + Spring Boot 4.1.1):**
   - `BackupCryptoService`: Geração de chaves mestras de 256 bits, derivação PBKDF2 com Salt e IV aleatórios de 16 bytes, `CipherOutputStream` e `CipherInputStream` para streaming sem carga na heap.
   - `StorageProviderService`: Integração com AWS S3, Cloudflare R2, MinIO e volumes locais com teste de conectividade em tempo real (`testConnection`).
-  - `BackupStreamingPipelineService`: Pipeline contínuo `Dump -> ZstdOutputStream -> CipherOutputStream -> DigestOutputStream (SHA-256) -> Storage` sem criação de dumps intermediários gigantes em disco.
-  - `DisasterRecoveryService`: Gestão de políticas centrais (Modo Resgate ispERP vs Zero-Knowledge), expurgo automático por retenção e geração do Kit de Resgate de Emergência em Markdown com comandos OpenSSL.
+  - `BackupStreamingPipelineService`: Pipeline contínuo `Dump -> ZstdOutputStream -> CipherOutputStream -> DigestOutputStream (SHA-256) -> Storage` sem criação de dumps intermediários em disco.
+  - `DisasterRecoveryService`: Gestão de políticas centrais (Modo Resgate ispERP vs Zero-Knowledge), expurgo automático por retenção e geração do guia de restauração em Markdown com comandos OpenSSL.
   - Controladores REST: `BackupDisasterRecoveryController` (`/api/financial/backup/overview`, `/policies`, `/destinations`, `/execute`, `/history`, `/emergency-kit`).
-- [x] **Frontend Corporativo (React 19 / TypeScript):**
-  - `BackupDisasterRecoveryDashboard.tsx` (`/settings/backup` e `/financial/backup`): Cockpit dos 3 Indicadores Sagrados (Último Backup com taxa de compressão e SHA-256, Rotina Automática e Integridade Dry-Run), Wizard de cadastro e teste de destinos S3/SFTP em tempo real e histórico de auditoria.
 - [x] **Testes Automatizados:**
   - `BackupCryptoServiceTest`: Validação unitária de criptografia/descriptografia AES-256 reversa com integridade byte a byte.
-  - `BackupAndDisasterRecoveryIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando todo o ciclo de streaming, compressão ZSTD, integridade pericial (Dry-Run Restore) e emissão do Kit de Resgate. Suíte completa de testes verdes.
+  - `BackupAndDisasterRecoveryIntegrationTest`: Teste ponta a ponta com Testcontainers e PostgreSQL 17 real validando todo o ciclo de streaming, compressão ZSTD, Dry-Run Restore e emissão do guia de restauração. Suíte completa de testes verdes.
 
 ---
 
@@ -639,47 +625,60 @@ Este documento estabelece as etapas e marcos de desenvolvimento priorizados para
 - [x] **Módulos Operacionais Implementados:**
   - **Torre de Despacho & Candidatos Técnicos:** Triagem de O.S. pendentes, visualização de demandas de cabos e insumos, ranking de técnicos por proximidade e despacho instantâneo.
   - **Controle de Estoque, Almoxarifado & Kardex:** Visão de saldos por depósito, histórico cronológico de movimentações auditável (+10, +5 = 15, -2 = 13), autorização de saídas com vinculação de O.S., confirmação de devoluções e transferências inter-bases vinculadas estritamente ao CPF de colaboradores ou motoristas terceiros cadastrados.
-  - **Atendimento ao Assinante (Raio-X 360°):** Busca inteligente por CPF ou nome, diagnóstico de conexão em tempo real, régua de faturamento, liquidação instantânea Pix e esteira de Desbloqueio em Confiança (48h).
+  - **Atendimento ao Assinante (Visão 360°):** Busca inteligente por CPF ou nome, diagnóstico de conexão em tempo real, régua de faturamento, liquidação instantânea Pix e esteira de Desbloqueio em Confiança (48h).
   - **Onboarding de Vendas & GeoCEP:** Consulta de viabilidade por CEP/Rua, mapa interativo de CTOs, seleção de planos oficiais e contribuição de coordenadas GPS submétricas em campo.
-  - **Cockpit Executivo & DRE BI:** Indicadores de MRR, CAC, churn, EBITDA e projeção de fluxo de caixa com consumo de dados 100% reais do backend.
+  - **Painel Executivo & DRE BI:** Indicadores de MRR, CAC, churn, EBITDA e projeção de fluxo de caixa com consumo de dados 100% reais do backend.
 - [x] **Testes Automatizados:**
   - 56 testes unitários e de máquinas de estado Riverpod passando 100% via `flutter test`.
 
 ---
 
-## 🎯 Milestone 35: Ciclo de Vida Operacional E2E, Retirada Compulsória (Inadimplência 30d+), Proteção ao Crédito (SPC/Serasa) & Sincronização EDA/OpenAPI (Concluído)
+## 🎯 Milestone 35: Ciclo de Vida Operacional E2E, Retirada de Comodato (Inadimplência 30d+), Proteção ao Crédito (SPC/Serasa) & Sincronização EDA/OpenAPI (Concluído)
 > **Objetivo:** Fechamento completo do ciclo de vida do cliente em casos de inadimplência severa, integrando detecção automatizada de faturas vencidas há mais de 30 dias, emissão de O.S. de retirada de comodato, logística reversa rastreada, abertura de processo de proteção ao crédito (SPC/Serasa) em caso de recusa/ausência, arquitetura orientada a eventos (EDA) assíncrona via Transactional Outbox e sincronização de contratos OpenAPI.
 
 - [x] **Migração Flyway:**
-  - `V34__create_legal_collections_and_removal_enhancements.sql`: Criação da tabela `legal_collection_records` para formalização de processos extrajudiciais/judiciais de cobrança e inclusão do status `INFRUTIFERA` e coluna `unsuccess_reason` na tabela `work_orders`.
+  - `V34__create_legal_collections_and_removal_enhancements.sql`: Criação da tabela `legal_collection_records` para formalização de processos de cobrança e inclusão do status `INFRUTIFERA` e coluna `unsuccess_reason` na tabela `work_orders`.
 - [x] **Serviço de Negócio (`WorkOrderRemovalService`):**
   - Varredura de faturas vencidas há mais de 30 dias (`generateRemovalOrdersForOverdueContracts`) gerando automaticamente ordens de serviço de retirada na Torre de Despacho.
   - Conclusão com sucesso (`completeSuccessfulRemoval`): devolução física dos equipamentos comodatados ao almoxarifado via `AssetCustodyService.returnAssetFromWorkOrder` e rescisão formal do contrato (`CANCELED`).
-  - Conclusão como infrutífera (`completeUnsuccessfulRemoval`): apuração do débito consolidado de faturas + valor indenizatório por retenção indevida da ONT (R$ 420,00 padrão), rescisão do contrato e geração do processo em `LegalCollectionRecord`.
+  - Conclusão como infrutífera (`completeUnsuccessfulRemoval`): apuração do débito consolidado de faturas + valor indenizatório por retenção indevida da ONT (R$ 420,00 padrão), rescisão do contrato e geração do registro em `LegalCollectionRecord`.
 - [x] **Arquitetura Orientada a Eventos (EDA) & Mensageria Multicanal:**
   - Injeção do `DomainEventPublisher` no serviço de remoção, publicando `REMOVAL_ORDER_GENERATED`, `REMOVAL_ORDER_COMPLETED` e `LEGAL_COLLECTION_RECORD_CREATED` no Transactional Outbox.
   - Consumo assíncrono e idempotente em `NotificationEventConsumer`:
     - Aviso preventivo de agendamento de recolhimento via WhatsApp com opção de 2ª via Pix;
     - Comprovante formal de recebimento e quitação de comodato via WhatsApp;
-    - Notificação extrajudicial preventiva contendo o valor consolidado da dívida e indenização da ONT antes da inclusão nos birôs de crédito (SPC/Serasa).
+    - Notificação de cobrança contendo o valor consolidado da dívida e indenização da ONT.
 - [x] **Contratos OpenAPI (API-First):**
   - Atualização dos schemas com `unsuccessReason`, `CompleteRemovalWorkOrderRequest`, `FailRemovalWorkOrderRequest`, `BatchRemovalRequest` e `LegalCollectionResponse`.
   - Novos endpoints: `POST /work-orders/{id}/complete-removal`, `POST /work-orders/{id}/fail-removal` e `POST /work-orders/batch-generate-removals`.
   - Bundling via `./scripts/bundle-contracts.sh` e implementação dos métodos gerados em `WorkOrderController` e `WorkOrderMapper`.
 - [x] **Matriz E2E de Seeders Operacionais (`DevDataSeederService`):**
-  - Enriquecimento do seeder de desenvolvimento com 7 clientes representativos com dados 100% rastreáveis, CPFs matematicamente válidos e equipamentos reais percorrendo cada etapa do ciclo de vida:
-    1. *Lucas Andrade:* Venda recente com O.S. agendada para hoje;
-    2. *Beatriz Santos:* Ativa e adimplente com 3 faturas pagas e ONT provisionada;
-    3. *Fernando Lima:* Inadimplente há 7 dias com auto-corte RADIUS (elegível ao desbloqueio em confiança);
-    4. *Juliana Rocha:* Em tolerância de 48h de desbloqueio em confiança (2ª solicitação bloqueada);
-    5. *Roberto Silva:* Inadimplente há 32 dias com O.S. de retirada agendada para hoje;
-    6. *Mariana Costa:* Retirada concluída com sucesso e ONT devolvida ao almoxarifado;
-    7. *Rodrigo Mendes:* Retirada infrutífera (mudou-se) com contrato cancelado e processo executável de R$ 619,80 no SPC/Serasa.
+  - Enriquecimento do seeder de desenvolvimento com 7 clientes representativos com dados 100% rastreáveis, CPFs matematicamente válidos e equipamentos reais percorrendo cada etapa do ciclo de vida.
 - [x] **Testes Automatizados:**
-  - `WorkOrderRemovalServiceTest`: Asserções para os 3 fluxos de remoção e verificação da publicação de eventos no Outbox.
-  - `NotificationEventConsumerTest`: Testes unitários para envio de mensagens multicanais de forma idempotente.
-  - `WorkOrderControllerTest`: Testes de integração WebMvc para os novos endpoints de remoção.
-  - Suíte completa do backend aprovada com 416 testes verdes (`BUILD SUCCESSFUL`).
+  - `WorkOrderRemovalServiceTest`, `NotificationEventConsumerTest` e `WorkOrderControllerTest`.
+  - Suíte completa do backend aprovada com 416+ testes verdes (`BUILD SUCCESSFUL`).
+
+---
+
+## 🎯 Milestone 36: Alinhamento SDD, Governança 100% OpenAPI, RBAC de 11 Perfis & Frontends Web Leves (Concluído)
+> **Objetivo:** Consolidar o documento mestre de especificação (`docs/SDD.md`), unificar 100% dos endpoints HTTP em `contracts/openapi/` com zero exposição de `@Entity`, documentar as migrações `V32` a `V36` e os frontends `frontend-customer` e `frontend-site` (Vanilla TS + Vite 6), modernizar Docker/CI-CD e concluir a integração das 5 telas de conclusão da Fase 1 no `frontend-flutter`.
+
+- [x] **Migrações Flyway Complementares (`V32` a `V36`):**
+  - `V32__add_first_access_setup_fields.sql`: Campos de setup inicial (`/setup`), logo e cor primária.
+  - `V33__add_geocep_token_to_companies.sql`: Token GeoCEP por empresa.
+  - `V35__add_trade_name_and_phone_to_companies.sql`: Nome fantasia e telefone comercial em `companies`.
+  - `V36__expand_rbac_roles_and_third_party_transport.sql`: Expansão do RBAC para 11 perfis corporativos e metadados de transporte terceirizado no almoxarifado.
+- [x] **Frontends Web Especializados (Vanilla TS + Vite 6.1.1):**
+  - `frontend-customer/`: Central do Assinante (login, faturas, Pix, NFCom, contratos, assinatura eletrônica `/sign` e desbloqueio em confiança) com testes Vitest.
+  - `frontend-site/`: Site Institucional WWW com catálogo dinâmico, consulta de viabilidade, checkout de venda com UTMs e SEO técnico com testes Vitest.
+- [x] **Entrega 1.1 — SDD & Governança 100% OpenAPI:**
+  - Criação de [`docs/SDD.md`](SDD.md) e alinhamento documental completo sem hipérboles.
+  - Migração dos 8 endpoints manuais restantes (`UserController`, `InventoryController`, `AssetCustodyController`, `WorkOrderController`, `TechnicianFieldExecutionController`) para `contracts/openapi/domains/`, eliminando 100% de exposição direta de `@Entity`.
+- [x] **Entrega 1.2 — Infraestrutura Docker & GitHub Actions:**
+  - Atualização de `.github/workflows/deploy-pages.yml` (`@v7`/`@v5` Node 24 + `paths-ignore` + 5 pilares de economia), `docker/Dockerfile.backend` multi-stage, inclusão de `frontend-customer` (`docker/Dockerfile.customer`), remoção de `docker/wait-for-mysql.sh` e criação de `docker/nginx-prod.conf`.
+- [x] **Entrega 1.3 — Conclusão da Fase 1 no `frontend-flutter`:**
+  - Correção da rota `/radius/nas` e dos 11+ papéis RBAC em `user_role.dart`, e integração real das 5 telas operacionais (`SalesDashboardScreen`, `TechnicianDashboardScreen`, `SupportDashboardScreen`, `FinancialDashboardScreen`, `MyCashCustodyScreen`) com cobertura de testes unitários e de widget.
+
 
 
 

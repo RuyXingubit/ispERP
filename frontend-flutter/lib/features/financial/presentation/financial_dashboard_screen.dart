@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/process_lifecycle_stepper.dart';
+import '../data/cash_custody_repository.dart';
 import '../data/dashboard_bi_model.dart';
 import '../data/dashboard_bi_provider.dart';
 
@@ -286,14 +287,27 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
                     ),
                     if (currentUserRole == 'ADMIN' || currentUserRole == 'FINANCIAL') ...[
                       ElevatedButton.icon(
-                        onPressed: () {
+                        onPressed: () async {
+                          final contractId = _selectedInvoice!.contractId;
+                          final ok = await ref
+                              .read(cashCustodyRepositoryProvider)
+                              .executeTrustUnblock(contractId: contractId);
+                          if (!context.mounted) return;
+                          final shortId = contractId.length > 8 ? contractId.substring(0, 8) : contractId;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              backgroundColor: AppTheme.accentGreen,
-                              content: Text('Desbloqueio em Confiança (48h) ativado para o contrato ${_selectedInvoice!.contractId.length > 8 ? _selectedInvoice!.contractId.substring(0, 8) : _selectedInvoice!.contractId}!'),
+                              backgroundColor: ok ? AppTheme.accentGreen : AppTheme.accentError,
+                              content: Text(
+                                ok
+                                    ? 'Desbloqueio em Confiança (48h) ativado para o contrato $shortId!'
+                                    : 'Não foi possível ativar o Desbloqueio em Confiança para o contrato $shortId.',
+                              ),
                               duration: const Duration(seconds: 3),
                             ),
                           );
+                          if (ok) {
+                            ref.invalidate(dashboardBiProvider);
+                          }
                         },
                         style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentGreen),
                         icon: const Icon(Icons.lock_open_rounded, size: 16, color: Color(0xFF0A0F1D)),

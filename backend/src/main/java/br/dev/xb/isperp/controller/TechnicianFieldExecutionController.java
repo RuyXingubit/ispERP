@@ -5,11 +5,12 @@ import br.dev.xb.isperp.api.dto.OltUnprovisionedOnu;
 import br.dev.xb.isperp.api.dto.ProvisionOnu200Response;
 import br.dev.xb.isperp.api.dto.ProvisionOnuRequest;
 import br.dev.xb.isperp.api.dto.RadiusStatusResponse;
+import br.dev.xb.isperp.api.dto.TechnicianExecutionCompleteRequest;
+import br.dev.xb.isperp.api.dto.WorkOrderResponse;
 import br.dev.xb.isperp.dto.OltUnprovisionedOnuResponse;
-import br.dev.xb.isperp.dto.TechnicianExecutionCompleteRequest;
 import br.dev.xb.isperp.entity.WorkOrder;
+import br.dev.xb.isperp.mapper.WorkOrderMapper;
 import br.dev.xb.isperp.service.TechnicianFieldExecutionService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class TechnicianFieldExecutionController implements TechnicianExecutionApi {
 
     private final TechnicianFieldExecutionService fieldExecutionService;
+    private final WorkOrderMapper workOrderMapper;
 
     @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN', 'SUPPORT_N2', 'SUPPORT_ANALYST')")
@@ -79,11 +81,15 @@ public class TechnicianFieldExecutionController implements TechnicianExecutionAp
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping({"/technician/execution/{workOrderId}/complete", "/api/technician/execution/{workOrderId}/complete"})
+    @Override
     @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN', 'SUPPORT_N2', 'SUPPORT_ANALYST')")
-    public ResponseEntity<WorkOrder> completeInstallation(
-            @PathVariable UUID workOrderId,
-            @Valid @RequestBody TechnicianExecutionCompleteRequest request) {
-        return ResponseEntity.ok(fieldExecutionService.completeInstallation(workOrderId, request));
+    public ResponseEntity<WorkOrderResponse> completeInstallation(
+            UUID workOrderId,
+            TechnicianExecutionCompleteRequest request) {
+        WorkOrder completed = fieldExecutionService.completeInstallation(
+                workOrderId,
+                workOrderMapper.toCompleteInstallationRequest(request)
+        );
+        return ResponseEntity.ok(workOrderMapper.toResponse(completed));
     }
 }

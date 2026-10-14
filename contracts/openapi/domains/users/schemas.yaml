@@ -106,3 +106,16 @@ UserUpdateRequest:
     active:
       type: boolean
       example: true
+
+ResetUserPasswordRequest:
+  type: object
+  required:
+    - newPassword
+  properties:
+    newPassword:
+      type: string
+      format: password
+      minLength: 6
+      description: "Nova senha de acesso a ser definida para o colaborador."
+      example: "NovaSenha@2026"
+

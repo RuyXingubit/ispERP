@@ -127,3 +127,98 @@
           application/json:
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/users/{id}/status:
+  patch:
+    tags:
+      - Users
+    summary: Alterar status ativo/inativo de um usuário
+    operationId: updateUserStatus
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: active
+        in: query
+        required: true
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: Status do usuário atualizado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/UserResponse'
+      '404':
+        description: Usuário não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/users/{id}/role:
+  patch:
+    tags:
+      - Users
+    summary: Alterar papel RBAC de um usuário
+    operationId: updateUserRole
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: role
+        in: query
+        required: true
+        schema:
+          $ref: './schemas.yaml#/UserRole'
+    responses:
+      '200':
+        description: Papel do usuário atualizado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/UserResponse'
+      '404':
+        description: Usuário não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/users/{id}/reset-password:
+  post:
+    tags:
+      - Users
+    summary: Redefinir senha de um usuário
+    operationId: resetUserPassword
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ResetUserPasswordRequest'
+    responses:
+      '200':
+        description: Senha redefinida com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/UserResponse'
+      '404':
+        description: Usuário não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+

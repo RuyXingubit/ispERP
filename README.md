@@ -18,48 +18,48 @@ Sistema ERP moderno de alto desempenho, desenvolvido especialmente para **Proved
 * **Backend Core:** Java 25 (Virtual Threads) + Spring Boot 4.1.1
 * **Arquitetura:** Monólito Modular Orientado a Eventos (EDA) com *Transactional Outbox* e Idempotência
 * **Frontend ERP (Multiplataforma):** Flutter 3.x (Web, Desktop, Android, iOS) multiperfil com navegação adaptativa
-* **Frontend Institucional (WWW):** Vite + TypeScript + HTML5/CSS3 puro (< 25 kB, ultra-leve e customizável)
-* **Frontend Portal do Cliente:** Central do Assinante desacoplada (faturas Pix e auto-desbloqueio)
+* **Frontend Institucional (WWW):** Vanilla TypeScript + Vite 6 + HTML5/CSS3 puro (zero dependências de runtime)
+* **Frontend Portal do Cliente:** Central do Assinante em Vanilla TypeScript + Vite 6 (autenticação CPF+PIN, faturas Pix e Desbloqueio em Confiança 48h)
 * **Banco de Dados:** PostgreSQL 17+ com tipos nativos `UUID DEFAULT uuidv7()` e `JSONB`
-* **Migrações:** Flyway (V1 a V31 com histórico linear e verificações integradas)
-* **Segurança & Criptografia:** JWT (JJWT 0.13), AES-256 com PBKDF2 e assinaturas SHA-256
-* **Compressão & Storage:** ZStandard (ZSTD) para streaming em memória e AWS S3 SDK v2 (S3, Cloudflare R2, SeaweedFS)
-* **Contratos & API-First:** OpenAPI 3.0.3 (Design-First) + Redocly CLI + OpenAPI Generator (Spring Boot) + Orval (React / TypeScript)
-* **Testes Automatizados:** Testcontainers PostgreSQL 17 + JUnit 5 + Mockito (> 270 testes com 100% de aprovação)
+* **Migrações:** Flyway (`V1` a `V36` com histórico linear e integração FreeRADIUS SQL)
+* **Segurança & Criptografia:** JWT (JJWT 0.13), RBAC em nível de método (`@PreAuthorize`), criptografia AES-256-GCM com PBKDF2 e hashes SHA-256
+* **Compressão & Storage:** ZStandard (ZSTD) para streaming em memória e AWS S3 SDK v2 (S3, Cloudflare R2, SeaweedFS e armazenamento local seguro)
+* **Contratos & API-First:** OpenAPI 3.0.3 (Design-First) + Redocly CLI + OpenAPI Generator (Spring Boot)
+* **Testes Automatizados:** Testcontainers PostgreSQL 17 + JUnit 5 + Mockito + Flutter Test + Node Test Runner
 
-Consulte a pasta [`docs/`](docs/) para documentação detalhada de Arquitetura, PRD, Roadmap, Eventos e Pareceres Jurídicos.
+Consulte o documento mestre [**`docs/SDD.md`**](docs/SDD.md) e a pasta [`docs/`](docs/) para a especificação completa de Arquitetura, PRD, Contratos, Processos e Governança.
 
 ---
 
 ## 📐 Arquitetura API-First & Contratos (Design-First)
 
-O **ispERP** adota rigorosamente a metodologia **API-First (Design-First)**. Toda e qualquer comunicação entre Frontend, Backend e futuros clientes móveis ou microsserviços é governada por **contratos OpenAPI 3.0.3** centralizados e modulares na pasta [`contracts/openapi/`](contracts/openapi/).
+O **ispERP** adota rigorosamente a metodologia **API-First (Design-First)**. Toda e qualquer comunicação entre os Frontends, o Backend e integrações externas é governada por **contratos OpenAPI 3.0.3** centralizados e modulares na pasta [`contracts/openapi/`](contracts/openapi/).
 
 ```mermaid
 flowchart LR
-    YAML["1. Contrato YAML\n(contracts/openapi/)"] --> Codegen["2. ./scripts/generate-api.sh\n(Redocly + Gradle + Orval)"]
+    YAML["1. Contrato YAML\n(contracts/openapi/)"] --> Codegen["2. ./scripts/generate-api.sh\n(Redocly + Gradle OpenAPI)"]
     Codegen --> Backend["3. Backend Java 25\n(Implementa Interfaces *Api.java)"]
-    Codegen --> Frontend["4. Frontend React 19\n(Consome Clientes/Tipos do Orval)"]
+    Backend --> Frontends["4. Frontends Desacoplados\n(Flutter ERP + Portal + Site)"]
 ```
 
-* **Fonte Única da Verdade:** Nenhuma rota, endpoint, DTO ou parâmetro é criado manualmente no Java ou TypeScript sem existir previamente no contrato OpenAPI.
+* **Fonte Única da Verdade:** Nenhuma rota, endpoint, DTO ou parâmetro é criado manualmente no Backend sem existir previamente no contrato OpenAPI.
 * **Segurança por Padrão (Zero Trust DTOs):** Nenhuma entidade JPA (`@Entity`) é exposta diretamente nas APIs. Todos os dados trafegam via DTOs estritos e validados (`@Valid`, Bean Validation) gerados pelo contrato.
 * **Documentação Visual Interativa & Portal do Projeto:**
   - **Visualização Local (Live-Reload):**
     ```bash
     ./scripts/view-docs.sh
     ```
-  - **Portal Completo (Landing Page + Redocly 118 Endpoints):**
+  - **Portal Completo (Landing Page + Redocly):**
     ```bash
     ./scripts/view-docs.sh --portal
     ```
   - **GitHub Pages:** Publicado automaticamente a cada alteração em `main` via `.github/workflows/deploy-pages.yml`.
-* **Geração Automatizada em 1 Comando:** Para atualizar os stubs Java e clientes TypeScript após editar qualquer contrato:
+* **Geração Automatizada em 1 Comando:** Para atualizar e validar o bundle e as interfaces/DTOs Java após editar qualquer contrato:
   ```bash
   ./scripts/generate-api.sh
   ```
 
-Consulte a documentação completa em [`docs/API_FIRST_AND_CONTRACTS.md`](docs/API_FIRST_AND_CONTRACTS.md) e a regra mandatória de engenharia em [`.agents/rules/api-first-contracts.md`](.agents/rules/api-first-contracts.md).
+Consulte a documentação completa em [`docs/SDD.md`](docs/SDD.md), [`docs/API_FIRST_AND_CONTRACTS.md`](docs/API_FIRST_AND_CONTRACTS.md) e a regra mandatória de engenharia em [`.agents/rules/api-first-contracts.md`](.agents/rules/api-first-contracts.md).
 
 ---
 
@@ -69,30 +69,30 @@ Consulte a documentação completa em [`docs/API_FIRST_AND_CONTRACTS.md`](docs/A
 * Baseada na **MP 2.200-2/01** e **Lei Federal nº 14.063/2020**.
 * Validação de titularidade estrita do CPF do pagador diretamente contra a base do Banco Central (BACEN).
 * Rejeição automática de pagamentos de terceiros e concessão de rotas oficiais de fallback (Gov.br, E-mail OTP e Cartório).
-* Abatimento automático de R$ 1,00 na mensalidade do cliente e emissão de **Folha Pericial Forense** com Hash SHA-256 e End-to-End ID.
+* Abatimento automático de R$ 1,00 na mensalidade do cliente e emissão de **Certificado de Autenticidade Digital** com Hash SHA-256 e End-to-End ID.
 
-### 2. Gestão Financeira, Blindagem Patrimonial & DRE Telecom
-* **Custódia Estrita por CPF:** Livro-caixa individual de dinheiro vivo sob custódia de cada colaborador, transferência de gaveta com duplo aceite obrigatório e conciliação bancária cega para CFO.
+### 2. Gestão Financeira, Custódia de Caixa & DRE Telecom
+* **Custódia Estrita por CPF:** Livro-caixa individual de valores em espécie sob custódia de cada colaborador, transferência de gaveta com duplo aceite obrigatório e conciliação bancária para o Financeiro/CFO.
 * **Plano de Contas 5 Níveis Telecom:** Árvore hierárquica contábil padrão (Receitas, Impostos, Interconexão, OPEX e CAPEX), contas a pagar e parcelamentos futuros com juros/amortização.
-* **Esteira Anti-Fraude de Isenção de O.S.:** Tarifação padrão de serviços de campo com esteira de auditoria gerencial e aviso oficial automático ao cliente via WhatsApp.
+* **Esteira de Isenção de Taxas de O.S.:** Tarifação padrão de serviços de campo com alçada de aprovação gerencial e aviso oficial automático ao cliente via WhatsApp.
 * **Cockpit DRE em Tempo Real:** EBITDA real de telecom nos regimes de Competência e Caixa.
-* **Motor de Desalavancagem 36M:** Cálculo matemático do Fundo do Poço (Maximum Drawdown), Data da Alforria Financeira e simulador de novos investimentos "E Se...?".
-* **Payback por Projeto FTTH & Sentinela IA:** Mapa de guerra de ocupação de CTOs com alerta de vendas direcionadas e varredura pericial de fraudes.
+* **Motor de Desalavancagem 36M:** Projeção matemática de fluxo de caixa de 36 meses, ponto de máxima exposição de caixa e simulador de novos investimentos.
+* **Payback & Expansão de Rede FTTH:** Análise de ocupação de CTOs por projeto de expansão e verificação automática de consistência operacional.
 
 ### 3. Engenharia de Rede, FTTH & NOC Ativo
 * **Documentação Óptica ABNT/TIA-598:** Código oficial de cores para tubos e fibras (6 a 144 FO), diagrama unifilar interativo e cálculo de atenuação teórica (*Power Budget*).
-* **Auto-Discovery de ONUs:** Descoberta e provisionamento 1-clique em OLTs (SmartOLT / MikroTik / Huawei) com perfis de velocidade.
-* **Monitoramento Ativo & Correlação de Rompimento:** NOC com diferenciação automática de *Dying Gasp* (queda de energia no bairro) vs *LOS* (rompimento de fibra).
-* **FreeRADIUS Multi-Vendor:** Desconexão PoD (RFC 3576) na porta UDP 3799 para desbloqueio instantâneo pós-Pix (< 1s) e auto-corte inteligente.
+* **Auto-Discovery de ONUs:** Descoberta e provisionamento em OLTs (SmartOLT / MikroTik / Huawei) com perfis de velocidade.
+* **Monitoramento Ativo & Correlação de Rompimento:** NOC com diferenciação automática de *Dying Gasp* (queda de energia elétrica) vs *LOS* (rompimento óptico).
+* **FreeRADIUS v3 Multi-Vendor (MikroTik & Huawei):** Integração nativa com PostgreSQL (`rlm_sql_postgresql`), suporte a `Framed-Route` IPv4/IPv6 e desconexão PoD (RFC 3576) na porta UDP 3799 para desbloqueio instantâneo pós-Pix.
 
 ### 4. Marco Civil da Internet (Lei nº 12.965/2014)
-* **CGNAT Forense Reverso:** Cruzamento em milissegundos de `IP Público + Porta Lógica + Timestamp` ➔ `Mapeamento CGNAT` ➔ `IP Privado` ➔ `radacct` ➔ `Assinante e Endereço`.
-* **Laudos Periciais Invioláveis:** Geração de laudo pericial oficial com Hash SHA-256 e QR Code público de autenticidade para autoridades policiais e judiciais.
+* **Identificação Reversa de Conexão CGNAT:** Cruzamento de `IP Público + Porta Lógica + Timestamp` ➔ `Mapeamento CGNAT` ➔ `IP Privado` ➔ `radacct` ➔ `Assinante e Endereço`.
+* **Laudos de Identificação de Conexão:** Geração de relatório técnico oficial com Hash SHA-256 e QR Code público de verificação de autenticidade para atendimento a ofícios judiciais.
 
 ### 5. Backup Multi-Destino & Disaster Recovery
-* Pipeline contínuo de streaming em memória: `Dump -> ZstdOutputStream -> CipherOutputStream (AES-256) -> DigestOutputStream (SHA-256) -> Storage` sem criar arquivos intermediários gigantes no disco.
+* Pipeline contínuo de streaming em memória: `Dump -> ZstdOutputStream -> CipherOutputStream (AES-256-GCM) -> DigestOutputStream (SHA-256) -> Storage` sem criar arquivos intermediários no disco.
 * Múltiplos destinos simultâneos (AWS S3, Cloudflare R2, MinIO, SFTP e Volumes Locais).
-* Teste contínuo de restauração (*Dry-Run Restore*) e emissão de **Kit de Resgate de Emergência** em Markdown com comandos OpenSSL puros (resgate sem depender da aplicação).
+* Teste contínuo de restauração (*Dry-Run Restore*) e emissão de **Kit de Resgate de Emergência** em Markdown com comandos OpenSSL puros.
 
 ---
 
@@ -159,12 +159,12 @@ Todos os usuários do ambiente de teste utilizam a senha padrão: **`password123
   * **92 faturas pagas retroativamente** mês a mês, alimentando receitas líquidas reais no DRE.
   * **Contas a Pagar:** Financiamento de OLT Huawei em 24 parcelas de R$ 2.000 (12 quitadas, 12 pendentes alimentando passivo).
   * **Custos Fixos Pagos:** Link de Trânsito IP (R$ 3.500/mês) e Compartilhamento de Postes (R$ 1.200/mês) quitados nos 12 meses.
-* **Mapa de Guerra de Payback FTTH:**
+* **Payback & Expansão de Rede FTTH:**
   * **Expansão Bairro Jardins:** Orçamento de R$ 48.000, 2 CTOs implantadas (32 portas).
   * **Expansão Bairro Alvorada:** Orçamento de R$ 65.000, 1 CTO implantada (16 portas).
-  * **Alerta Comercial Ativo:** Identificação de capacidade ociosa para panfletagem e vendas direcionadas.
+  * **Alerta Comercial Ativo:** Identificação de capacidade ociosa para vendas direcionadas.
 * **Custódia por CPF & Passagem de Turno:**
-  * Técnico Carlos Alberto com **R$ 150,00 em dinheiro vivo** em custódia patrimonial para teste de transferência de gaveta e duplo aceite em `/financial/custody/cash`.
+  * Técnico Carlos Alberto com **R$ 150,00 em espécie** em custódia para teste de transferência de caixa e confirmação em duas etapas em `/financial/custody/cash`.
   * Máquinas de fusão (Fujikura 70S e Inno View 5) sob custódia direta no CPF dos técnicos.
 * **Cenários Prontos para Teste na Interface:**
   1. **Inadimplência e Desbloqueio em Confiança:** Cliente *Marcos Vinicius Inadimplente* com fatura vencida há 12 dias (`OVERDUE`) e contrato suspenso no RADIUS.
@@ -175,7 +175,7 @@ Todos os usuários do ambiente de teste utilizam a senha padrão: **`password123
 
 ### 2. Desenvolvimento Local (Sem Docker)
 
-#### Backend (Spring Boot 4.1.1):
+#### Backend (Spring Boot 4.1.1 / Java 25):
 ```bash
 cd backend
 ./gradlew bootRun --args='--spring.profiles.active=dev'
@@ -188,7 +188,14 @@ flutter pub get
 flutter run -d chrome  # ou -d macos / -d linux
 ```
 
-#### Frontend Institucional (Site WWW):
+#### Central do Assinante (`frontend-customer` — Vanilla TS + Vite 6):
+```bash
+cd frontend-customer
+npm install
+npm run dev
+```
+
+#### Site Institucional (`frontend-site` — Vanilla TS + Vite 6):
 ```bash
 cd frontend-site
 npm install
@@ -207,7 +214,13 @@ cd backend
 cd frontend-flutter
 flutter test
 
-# Frontend Institucional (Testes de integração e tipagem)
+# Central do Assinante (Testes de integração, tipagem e build)
+cd frontend-customer
+npm test
+npm run typecheck
+npm run build
+
+# Site Institucional (Testes de integração, tipagem e build)
 cd frontend-site
 npm test
 npm run typecheck
@@ -228,32 +241,36 @@ npm run build
 
 ## 🤝 Como Contribuir
 
-Agradecemos imensamente contribuições da comunidade! Para manter a integridade, segurança e alta qualidade arquitetural do **ispERP**, siga as diretrizes abaixo:
+Agradecemos contribuições da comunidade! Para manter a integridade, segurança e qualidade arquitetural do **ispERP**, siga as diretrizes abaixo (detalhadas em [`docs/SDD.md`](docs/SDD.md)):
 
 ### 📐 Regra de Ouro: Workflow API-First
 Se a sua contribuição envolver criação, alteração ou exclusão de rotas, endpoints, parâmetros ou payloads:
-1. **Comece pelo Contrato:** Nunca crie anotações (`@GetMapping`, `@PostMapping`) ou interfaces manuais no frontend. Declare a alteração no domínio correspondente em `contracts/openapi/domains/<modulo>/`.
+1. **Comece pelo Contrato:** Nunca crie anotações (`@GetMapping`, `@PostMapping`) manuais no controller. Declare a alteração no domínio correspondente em `contracts/openapi/domains/<modulo>/`.
 2. **Execute o Codegen Unificado:**
    ```bash
    ./scripts/generate-api.sh
    ```
-   *(Ele compila o bundle com Redocly, gera stubs Java no Backend e clientes tipados no Frontend).*
-3. **Implemente no Backend:** Conecte o Controller Spring Boot à interface gerada (ex: `implements WorkOrdersApi`).
-4. **Consuma no Frontend:** Importe as funções tipadas e modelos gerados a partir de `src/api/generated/`.
-5. **Escreva Testes Unitários:** Toda nova feature deve conter testes unitários correspondentes no Backend (`./gradlew test`) e checagem estrita de tipos no Frontend (`npm run typecheck`).
+   *(Ele compila o bundle `contracts/openapi/openapi.bundled.json` com Redocly e gera as interfaces e DTOs Java no Backend).*
+3. **Implemente no Backend:** Conecte o Controller Spring Boot à interface gerada (ex: `implements WorkOrdersApi` com `@Override`) e utilize MapStruct para conversão entre `@Entity` e DTO.
+4. **Consuma nos Frontends:** Atualize os repositórios e modelos tipados em `frontend-flutter/lib/`, `frontend-customer/src/services/` ou `frontend-site/src/services/` em estrita conformidade com o contrato OpenAPI.
+5. **Escreva Testes Unitários:** Toda nova feature deve conter testes unitários correspondentes no Backend (`./gradlew test`) e nos Frontends (`flutter test` / `npm test && npm run typecheck`).
 
 ### 🛠️ Passos para o Pull Request
 1. Faça um Fork do projeto.
 2. Crie uma branch para sua funcionalidade (`git checkout -b feat/minha-funcionalidade`).
 3. Valide a integridade do código localmente:
    ```bash
+   # Contratos OpenAPI
+   ./scripts/generate-api.sh
+
    # Backend (Testes unitários e de integração)
    cd backend && ./gradlew test
    
    # Frontend ERP (Testes unitários e widgets Flutter)
    cd frontend-flutter && flutter test
 
-   # Frontend Institucional (Testes de integração e build)
+   # Central do Assinante e Site Institucional
+   cd frontend-customer && npm test && npm run typecheck && npm run build
    cd frontend-site && npm test && npm run typecheck && npm run build
    ```
 4. Faça commit seguindo as diretrizes de [Conventional Commits](https://www.conventionalcommits.org/):

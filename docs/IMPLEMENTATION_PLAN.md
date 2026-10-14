@@ -1,107 +1,62 @@
-# Plano de Implementação Imediata - Milestone 13: Consolidação do Frontend React 19 & Validação E2E
+# Plano de Implementação e Evolução — ispERP (Alinhado ao SDD v2.0)
 
-Este documento detalha o plano de execução para a **Milestone 13** do **ispERP**, servindo de guia passo a passo para conectar, validar e testar as telas e fluxos no frontend com as APIs já ativas no backend.
-
----
-
-## 1. Visão Geral da Fase Atual
-
-Com a conclusão e validação do backend (Java 25, Spring Boot 4.1.1, PostgreSQL 17 com Flyway `V1` a `V12` e 100% de testes unitários verdes), o foco atual é a **integração das telas no Frontend (React 19 / Vite)** e **validação dos fluxos operacionais ponta a ponta**.
-
-### Módulos do Backend Prontos para Conexão no Frontend:
-1. **Almoxarifado & Custódia de Ativos (`V10`):** `WarehouseController`, `AssetCustodyController`.
-2. **Helpdesk & Protocolos Anatel (`V12`):** `HelpdeskController`, `NfcomDecisionController`.
-3. **Faturamento Hierárquico & Rebalanceamento (`V11`):** `HierarchicalBillingController`, `InvoiceRebalanceController`.
-4. **Roteirização de O.S. & BI (`V9`):** `RouteOptimizationController`, `DashboardBiController`.
-5. **Central do Assinante (`V8`):** `ClientPortalController`.
+**Data de Atualização:** 14 de Outubro de 2026  
+**Documento Mestre de Referência:** [`docs/SDD.md`](file:///Volumes/240/Code/ispERP/docs/SDD.md)
 
 ---
 
-## 2. Tarefas e Telas a Serem Integradas / Validadas
+## 1. Visão Geral do Estado Atual
 
-### 2.1. Central de Atendimento & Helpdesk ([frontend/src/pages/Helpdesk](../frontend/src/pages/Helpdesk))
-- [x] **Listagem de Chamados:**
-  - Exibição de tabela paginada com status (Aberto, Em Atendimento, Pendente Cliente, Resolvido, Cancelado).
-  - Badge colorido de prioridade e SLA restante (tempo até expiração).
-  - Exibição do **Protocolo Anatel formatado** (`YYYYMMDD-XXXXXX`) com botão de cópia rápida.
-- [x] **Abertura e Interações do Chamado:**
-  - Modal/Formulário para nova abertura com seleção de contrato, categoria do problema e descrição.
-  - Timeline de interações (mensagens públicas para o cliente vs. notas internas da equipe técnica).
-  - Botão de ação para gerar Ordem de Serviço de Reparo vinculada diretamente ao chamado.
-
-### 2.2. Almoxarifado Multi-Depósito & Custódia ([frontend/src/pages/Inventory](../frontend/src/pages/Inventory))
-- [x] **Gestão de Depósitos e Estoques:**
-  - Visão geral de múltiplos estoques (Almoxarifado Principal vs. Veículos Técnicos).
-  - Transferência de itens em lote com geração de guia de remessa interna e duplo handshake.
-- [x] **Controle de Ativos Serializados:**
-  - Consulta de ONTs e Roteadores por MAC / Número de Série / Status (Disponível, Em Trânsito, Instalado no Cliente, Avariado).
-- [x] **Termos de Custódia de Ferramentas:**
-  - Emissão de Termo de Responsabilidade com valor de Nota Promissória Executiva para ferramentas caras (Máquina de Fusão, OTDR, Power Meter).
-  - Histórico de devolução e conferência de avarias com logs imutáveis e triagem de logística reversa.
-
-### 2.3. Painel Financeiro & Rebalanceamento Pro-Rata ([frontend/src/pages/Financial](../frontend/src/pages/Financial))
-- [x] **Gestão de Faturas & Faturamento Hierárquico:**
-  - Visualização de faturas individuais e faturas com status em tempo real.
-  - Modal de detalhes da fatura com QR Code dinâmico do Pix Xingubit Pay e cópia de Pix Copia e Cola.
-- [x] **Simulador de Rebalanceamento:**
-  - Simulador e execução de compensação cruzada (pagamento fora de ordem / Dona Maria) quitando fatura anterior e reabrindo futura sem penalidades.
-  - Régua de dunning automatizada e desbloqueio em confiança concedido por atendente.
-
-### 2.4. Central do Assinante (Portal do Cliente) ([frontend/src/pages/Portal](../frontend/src/pages/Portal))
-- [x] **Área de Autoatendimento & Simulação:**
-  - Barra de alternância rápida de clientes para suporte/atendentes.
-  - Diagnóstico de sinal óptico (dBm), velocidade contratada e botão de upgrade de plano.
-- [x] **Autoatendimento Financeiro & Suporte:**
-  - Visualização de faturas em aberto e pagas com link para download de NFCom (Modelo 62).
-  - Botão de **Desbloqueio em Confiança (Trust Unblock)** de 48 horas com reativação instantânea do sinal.
-  - Abertura de chamados com protocolo regulatório ANATEL direto pelo assinante.
-
-### 2.5. Otimização de Rotas de Campo & BI ([frontend/src/pages/WorkOrders](../frontend/src/pages/WorkOrders))
-- [x] **Dashboard de BI & Despacho Técnico:**
-  - Métricas consolidadas de ISP (MRR, Churn, Inadimplência, ARPU).
-  - Roteirização de O.S. com proximidade geográfica (Haversine/GeoCEP).
-
-### 2.6. Emissão Fiscal NFCom & Convênio ICMS 115/03 ([frontend/src/pages/Fiscal](../frontend/src/pages/Fiscal))
-- [x] **Painel de Controle Fiscal (`FiscalDashboard.jsx`):**
-  - Listagem de notas fiscais NFCom com status de autorização SEFAZ, chave de acesso e download de XML e DANFE PDF.
-  - Formulário de parametrização da empresa emissora com upload seguro de Certificado A1 (`.pfx`).
-  - Geração e exportação dos 4 arquivos magnéticos do Convênio ICMS 115/03 em lote compactado (`.zip`).
-
-### 2.7. Portal Mobile do Técnico & GeoCEP ([frontend/src/pages/Technician](../frontend/src/pages/Technician))
-- [x] **App de Campo Mobile-First (`TechnicianPortal.jsx`):**
-  - Mapa vetorial acelerado por WebGL via MapLibre GL (`GeoCepMapView.jsx`) integrado à API GeoCEP.
-  - Crowdsourcing de coordenadas prediais (`POST /v1/contribute`) no momento do atendimento.
-  - Coleta de assinatura digital na tela (touch screen) e conclusão de O.S. com ativação imediata de rede.
-
-### 2.8. OpenAPI Swagger UI, MapStruct Mandatório & TypeScript no Frontend
-- [x] **OpenAPI & Swagger UI:**
-  - Habilitado em `/swagger-ui.html` com suporte a autenticação Bearer JWT e metadados oficiais.
-- [x] **MapStruct Mandatório:**
-  - Eliminação do `ModelMapper` e introdução do MapStruct 1.6.3 com compilação determinística no Java 25.
-  - Regra arquitetural (**ADR 016**) obrigatória para novas entidades e DTOs.
-- [x] **TypeScript no Frontend:**
-  - Suporte a TypeScript (React 19 + Vite 6 + TypeScript) com `tsconfig.json` e tipos do domínio ispERP em `src/types/`.
-
-### 2.9. Excelência REST (RFC 7807, JPA Specifications, Cache ETag & Storage Desacoplado)
-- [x] **RFC 7807 Problem Details:**
-  - `GlobalExceptionHandler` padronizando respostas de erro com `userMessage` e lista de campos inválidos `objects`.
-- [x] **JPA Specifications:**
-  - `InvoiceSpecs` e `WorkOrderSpecs` para buscas e filtros combinados em tempo real.
-- [x] **Cache ETag:**
-  - `ShallowEtagHeaderFilter` para respostas instantâneas `304 Not Modified`.
-- [x] **Seeder Isolado de Homologação:**
-  - `afterMigrate.sql` ativo apenas no profile `dev` (`application-dev.yml`), mantendo `prod` 100% limpo.
-- [x] **Storage Desacoplado:**
-  - `FileStorageService` e `LocalFileStorageService` para uploads e downloads de fotos e documentos.
+O **ispERP** opera com sua arquitetura consolidada em 4 stacks:
+1. **Contratos (`contracts/openapi/`):** 22 domínios OpenAPI 3.0.3 cobrindo 100% dos 53 controllers do Backend (zero endpoints fora do contrato e zero exposição direta de `@Entity`).
+2. **Backend (`backend/`):** Java 25, Spring Boot 4.1.1, PostgreSQL 17 com Flyway `V1` a `V36`, UUIDv7 nativo, Transactional Outbox, FreeRADIUS v3 integrado e suíte de testes automatizados.
+3. **Frontends Web (`frontend-customer/` e `frontend-site/`):** Aplicações leves em Vanilla TypeScript + Vite 6 + HTML5/CSS3 (zero dependências de runtime), atendendo a Central do Assinante (login CPF+PIN, 2ª via Pix, Desbloqueio em Confiança 48h) e o Site Institucional (vitrine dinâmica de planos `GET /plans/active`).
+4. **Frontend Operacional (`frontend-flutter/`):** Aplicativo multiplataforma em Flutter 3.x (Riverpod + GoRouter + Dio) para todas as personas internas do provedor.
 
 ---
 
-## 3. Critérios de Aceite e Verificação
+## 2. Fase 1 (Em Execução) — Alinhamento SDD, Infraestrutura e Fechamento do Ciclo de Vida MVP
 
-1. [x] **Compilação e Lint do Frontend:** `npm run build` e `npm run typecheck` executados com sucesso no Node 24 / Vite 6 sem erros de tipagem.
-2. [x] **Integração com Backend:** Todos os endpoints REST consumidos com tratamento adequado de erros e feedbacks visuais (toasts, loading states, validações de formulário).
-3. [x] **Responsividade:** Telas operacionais, portal do técnico e portal do assinante com layout responsivo para desktop e dispositivos móveis.
-4. [x] **Segurança:** Respeito integral às permissões do usuário logado (RBAC) e proteção de endpoints autenticados com tokens JWT e UUIDv7.
-5. [x] **Teste E2E do Ciclo Operacional:** `CompleteOperationalLifecycleE2EIntegrationTest.java` com 100% de aprovação no PostgreSQL 17.
-6. [x] **Suíte Geral de Testes:** Mais de 109 testes automatizados aprovados no backend (`./gradlew test`).
+### Entrega 1.1 — Documentação SDD & Governança 100% OpenAPI `[CONCLUÍDO]`
+- [x] Criação do documento mestre [`docs/SDD.md`](file:///Volumes/240/Code/ispERP/docs/SDD.md).
+- [x] Atualização de [`.agents/rules/api-first-contracts.md`](file:///Volumes/240/Code/ispERP/.agents/rules/api-first-contracts.md), [`README.md`](file:///Volumes/240/Code/ispERP/README.md), [`docs/API_FIRST_AND_CONTRACTS.md`](file:///Volumes/240/Code/ispERP/docs/API_FIRST_AND_CONTRACTS.md) e [`docs/IMPLEMENTATION_PLAN.md`](file:///Volumes/240/Code/ispERP/docs/IMPLEMENTATION_PLAN.md) removendo referências ao antigo React/Orval e aplicando sobriedade terminológica.
+- [x] Migração dos 8 endpoints pendentes (`UserController`, `InventoryController`, `AssetCustodyController`, `WorkOrderController`, `TechnicianFieldExecutionController`) para `contracts/openapi/` e eliminação de retornos diretos de `@Entity`.
 
+### Entrega 1.2 — Infraestrutura Docker & CI/CD `[PRÓXIMA]`
+- [ ] Correção de [`.github/workflows/deploy-pages.yml`](file:///Volumes/240/Code/ispERP/.github/workflows/deploy-pages.yml) (`actions/checkout@v4`, `actions/setup-node@v4` e `paths-ignore`).
+- [ ] Conversão de [`docker/Dockerfile.backend`](file:///Volumes/240/Code/ispERP/docker/Dockerfile.backend) para multi-stage build determinístico (Gradle JDK 25 -> JRE 25) e remoção do script obsoleto `docker/wait-for-mysql.sh`.
+- [ ] Correção do conflito de portas `80/443` e configuração Nginx em [`docker-compose.prod.yml`](file:///Volumes/240/Code/ispERP/docker-compose.prod.yml) e adição do serviço para `frontend-customer`.
+
+### Entrega 1.3 — Saneamento de Bugs, RBAC e Integração Real das 5 Telas do `frontend-flutter` `[SEQUÊNCIA]`
+- [ ] Correção da rota `/radius/nas` em [`nas_repository.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/admin/data/nas_repository.dart).
+- [ ] Mapeamento completo dos 11 papéis RBAC do Backend em [`user_role.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/core/models/user_role.dart).
+- [ ] Remoção de 100% dos dados fictícios/hardcoded e integração com os endpoints reais nas 5 telas existentes:
+  1. [`sales_dashboard_screen.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/sales/presentation/sales_dashboard_screen.dart) ➔ consumir `GET /plans/active` e `GET /sales`.
+  2. [`technician_dashboard_screen.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/technician/presentation/technician_dashboard_screen.dart) ➔ consumir `GET /work-orders`, `GET /technician/execution/{id}/unprovisioned-onus`, `POST /technician/execution/{id}/provision`, `GET /technician/execution/{id}/radius-status` e `POST /technician/execution/{id}/complete`.
+  3. [`support_dashboard_screen.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/support/presentation/support_dashboard_screen.dart) ➔ consumir `GET /helpdesk/tickets`, `POST /helpdesk/tickets` e busca integrada ao `AttendanceHubModal`.
+  4. [`financial_dashboard_screen.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/financial/presentation/financial_dashboard_screen.dart) ➔ conectar botão de Desbloqueio em Confiança ao endpoint real (`POST /billing/dunning/trust-unblock/attendant`).
+  5. [`my_cash_custody_screen.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/financial/presentation/my_cash_custody_screen.dart) ➔ consumir `GET /financial/custody/cash/user/{userId}` e `POST /financial/custody/cash/deposit`.
+
+---
+
+## 3. Ondas Subsequentes de Evolução no `frontend-flutter` (Sob Demanda)
+
+Após a aprovação da Fase 1, os módulos já implementados no Backend serão integrados ao `frontend-flutter` em 4 ondas sob demanda:
+
+- **Onda A — Governança, Configurações Unificadas, Planos, Contratos e Backup:**
+  - Tela unificada de Configurações do Provedor (`Empresa`, `Site`, `SMTP`, `WhatsApp`, `Storage S3`).
+  - CRUD de Planos de Internet (`/plans`) e Templates de Contrato (`/contracts/templates`).
+  - Painel de Backup & Disaster Recovery (`/financial/backup/*`).
+- **Onda B — Engenharia de Rede, Topologia FTTH, RADIUS Sessions, IPAM, CGNAT e Marco Civil:**
+  - Cadastro e gestão de OLTs, Portas PON, Cabos, CEOs, CTOs e ONUs (`/ftth/*`, `/network-devices`, `/onus`).
+  - Monitoramento NOC e Incidentes PON (`/ftth/monitoring/*`).
+  - Sessões PPPoE Ativas, Histórico e Desconexão PoD (`/radius/sessions/*`, `/radius/disconnect`).
+  - IPAM (`/ipam/*`), CGNAT (`/cgnat/*`) e Marco Civil da Internet (`/marco-civil/*`).
+- **Onda C — Gestão Financeira Avançada, DRE e Custódia de Caixa:**
+  - Plano de Contas Hierárquico (`/financial/chart-of-accounts`) e Contas a Pagar (`/financial/payables`).
+  - Conferência de Custódia de Caixa pelo Financeiro (`/financial/custody/cash/*`) e Alçadas de Taxas de O.S. (`/financial/work-orders/*`).
+  - Relatório DRE Contábil/Caixa (`/financial/reports/dre`), Projeção de Desalavancagem 36M (`/financial/deleveraging/*`), Payback & Expansão de Rede FTTH (`/financial/network-projects/*`) e Auditoria de Desvios (`/financial/sentinel/*`).
+- **Onda D — Fiscal & Conformidade Tributária:**
+  - Emissão e gestão de NFCom Modelo 62 (`/fiscal/records`, `/fiscal/invoices/{id}/emit`).
+  - Parametrização Fiscal e Certificado Digital A1 (`/fiscal/company`).
+  - Exportação do Convênio ICMS 115/03 (`/fiscal/convenio115/*`) e Transição de Regime Tributário (`/fiscal/regimes/transitions`).

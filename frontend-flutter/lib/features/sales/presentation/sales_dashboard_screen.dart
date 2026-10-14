@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../financial/data/dashboard_bi_provider.dart';
+import '../data/sales_models.dart';
+import '../data/sales_onboarding_notifier.dart';
 import 'sales_onboarding_modal.dart';
 
 /// Painel Comercial & Vendas do Provedor.
@@ -18,6 +20,7 @@ class SalesDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final biAsync = ref.watch(dashboardBiProvider);
+    final salesState = ref.watch(salesOnboardingProvider);
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -86,7 +89,7 @@ class SalesDashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 28),
 
-            // Catálogo de Planos Ativos
+            // Catálogo de Planos Ativos (GET /plans/active)
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -95,21 +98,61 @@ class SalesDashboardScreen extends ConsumerWidget {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('Planos Vigentes para Comercialização', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        Icon(Icons.inventory_2_outlined, color: AppTheme.primaryBlue, size: 20),
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Planos Vigentes para Comercialização',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => ref.read(salesOnboardingProvider.notifier).loadActivePlans(),
+                          tooltip: 'Atualizar Catálogo de Planos',
+                          icon: const Icon(Icons.refresh, color: AppTheme.primaryBlue, size: 20),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      children: [
-                        _buildPlanCard('Fibra 400 Mega', '400 Mbps Down / 200 Mbps Up', 'R\$ 89,90/mês', 'Wi-Fi 5 incluso', AppTheme.primaryBlue),
-                        _buildPlanCard('Fibra 600 Mega', '600 Mbps Down / 300 Mbps Up', 'R\$ 109,90/mês', 'Wi-Fi 6 Mesh Incluso', AppTheme.accentGreen),
-                        _buildPlanCard('Fibra 1 Giga Dedicado', '1000 Mbps Down / 500 Mbps Up', 'R\$ 149,90/mês', 'Roteador Wi-Fi 6 + IP Fixo', AppTheme.primaryIndigo),
-                      ],
-                    ),
+                    if (salesState.isLoadingPlans)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                      )
+                    else if (salesState.plans.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        alignment: Alignment.center,
+                        child: Column(
+                          children: [
+                            const Icon(Icons.inventory_2_outlined, color: AppTheme.textSecondary, size: 32),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Nenhum plano comercial ativo retornado pelo servidor no momento.',
+                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: () => ref.read(salesOnboardingProvider.notifier).loadActivePlans(),
+                              icon: const Icon(Icons.refresh, size: 16),
+                              label: const Text('Recarregar Catálogo'),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      Wrap(
+                        spacing: 16,
+                        runSpacing: 16,
+                        children: salesState.plans.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final plan = entry.value;
+                          final colors = [AppTheme.primaryBlue, AppTheme.accentGreen, AppTheme.primaryIndigo];
+                          final col = colors[idx % colors.length];
+                          return _buildPlanCard(context, ref, plan, col);
+                        }).toList(),
+                      ),
                   ],
                 ),
               ),
@@ -149,26 +192,41 @@ class SalesDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPlanCard(String name, String speed, String price, String perks, Color col) {
-    return Container(
-      width: 280,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppTheme.darkBg,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: col.withValues(alpha: 0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: col)),
-          const SizedBox(height: 6),
-          Text(speed, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-          const SizedBox(height: 12),
-          Text(price, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 6),
-          Text('• $perks', style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
-        ],
+  Widget _buildPlanCard(BuildContext context, WidgetRef ref, CommercialPlan plan, Color col) {
+    final speed = '${plan.downloadSpeed} Mbps Down / ${plan.uploadSpeed} Mbps Up';
+    final price = '${_formatCurrency(plan.price)}/mês';
+    final perks = plan.svaIncluded ?? plan.description ?? 'Fibra Óptica FTTH';
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: () {
+        ref.read(salesOnboardingProvider.notifier).selectPlan(plan);
+        SalesOnboardingModal.show(context);
+      },
+      child: Container(
+        width: 280,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: AppTheme.darkBg,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: col.withValues(alpha: 0.5)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              plan.name,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: col),
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 6),
+            Text(speed, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary), overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 12),
+            Text(price, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 6),
+            Text('• $perks', style: const TextStyle(fontSize: 11, color: AppTheme.textMuted), overflow: TextOverflow.ellipsis),
+          ],
+        ),
       ),
     );
   }

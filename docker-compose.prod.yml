@@ -56,6 +56,9 @@ services:
     restart: unless-stopped
 
   backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
     image: ${DOCKER_REGISTRY:-localhost}/isperp-backend:${VERSION:-latest}
     container_name: isperp-backend-prod
     environment:
@@ -85,20 +88,35 @@ services:
       start_period: 40s
 
   frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
     image: ${DOCKER_REGISTRY:-localhost}/isperp-frontend:${VERSION:-latest}
     container_name: isperp-frontend-prod
-    ports:
-      - "80:80"
-      - "443:443"
     depends_on:
       - backend
     networks:
       - isperp-network
-    volumes:
-      - ./ssl:/etc/nginx/ssl:ro
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/" ]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  customer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.customer
+    image: ${DOCKER_REGISTRY:-localhost}/isperp-customer:${VERSION:-latest}
+    container_name: isperp-customer-prod
+    depends_on:
+      - backend
+    networks:
+      - isperp-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -114,6 +132,7 @@ services:
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - frontend
+      - customer
       - backend
     networks:
       - isperp-network

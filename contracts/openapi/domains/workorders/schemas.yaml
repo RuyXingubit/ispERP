@@ -354,3 +354,61 @@ LegalCollectionResponse:
       type: string
       nullable: true
       example: "Tentativa de recolha de equipamento frustrada."
+
+TechnicianExecutionCompleteRequest:
+  type: object
+  required:
+    - onuSerial
+  properties:
+    onuSerial:
+      type: string
+      description: Serial da ONU instalada.
+      example: "ZTEGC89A12B3"
+    onuMac:
+      type: string
+      nullable: true
+      example: "48:57:02:11:22:33"
+    vlanId:
+      type: integer
+      nullable: true
+      example: 100
+    pppoeUsername:
+      type: string
+      nullable: true
+    pppoePassword:
+      type: string
+      nullable: true
+    wifiSsid:
+      type: string
+      nullable: true
+    wifiPassword:
+      type: string
+      nullable: true
+    fiberSignalDbm:
+      type: number
+      format: double
+      nullable: true
+      example: -19.50
+    installationPhotoUrl:
+      type: string
+      nullable: true
+    digitalSignatureBase64:
+      type: string
+      nullable: true
+    customerSignatureName:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+    technicianLatitude:
+      type: number
+      format: double
+      nullable: true
+    technicianLongitude:
+      type: number
+      format: double
+      nullable: true
+    warehouseId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+

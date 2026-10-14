@@ -78,11 +78,11 @@ tags:
   - name: ContractTemplates
     description: Gestão de Minutas e Templates Contratuais
   - name: Cgnat
-    description: CGNAT e Mapeamento Forense Multi-Vendor
+    description: CGNAT e Mapeamento de Portas Multi-Vendor
   - name: MarcoCivil
-    description: Investigação Forense e Marco Civil da Internet (Lei 12.965/2014)
+    description: Marco Civil da Internet (Lei 12.965/2014 - Identificação de Conexão)
   - name: PublicVerification
-    description: Validação Pública de Autenticidade de Laudos Periciais
+    description: Validação Pública de Autenticidade de Laudos de Conexão
   - name: Ipam
     description: Gestão de Endereçamento IP (IPAM), Sub-redes, ASNs e VRFs
   - name: FtthTopology
@@ -108,23 +108,23 @@ tags:
   - name: DashboardBi
     description: Métricas Executivas, MRR, ARPU, Churn e Saúde Operacional do Provedor
   - name: BackupDisasterRecovery
-    description: Governança de Backup Criptografado AES-256, Destinos Remotos e Kit de Resgate
+    description: Governança de Backup Criptografado AES-256-GCM, Destinos Remotos e Kit de Resgate
   - name: CashCustody
-    description: Custódia de Dinheiro Vivo, Transferência por Duplo Aceite e Depósitos
+    description: Custódia de Caixa por CPF, Transferência por Duplo Aceite e Depósitos
   - name: ChartOfAccounts
     description: Plano de Contas Hierárquico Contábil e Categorização DRE
   - name: Deleveraging
-    description: Motor de Desalavancagem Financeira, Curva de Caixa de 36 Meses e Simulador
+    description: Motor de Desalavancagem Financeira, Projeção de Caixa de 36 Meses e Simulador
   - name: DreReports
     description: DRE Telecom em Tempo Real com Margens EBITDA e Resultado Contábil/Caixa
   - name: MaterialCustody
     description: Custódia de Materiais e Ferramental por CPF com Duplo Aceite
   - name: NetworkProjects
-    description: Payback de Projetos de Expansão de Rede FTTH e Associação de CTOs
+    description: Payback & Expansão de Rede FTTH e Associação de CTOs
   - name: PayableInvoices
     description: Contas a Pagar, CAPEX e Parcelamento de Dívidas com Fornecedores
   - name: SentinelAudit
-    description: Sentinela IA para Auditoria Forense, Detecção de Anomalias e Desvios
+    description: Auditoria de Desvios, Detecção de Anomalias e Verificação de Consistência
   - name: WorkOrderFees
     description: Tarifação de Serviços Técnicos de Campo e Esteira de Isenção Auditada
 
@@ -134,6 +134,8 @@ paths:
     $ref: './domains/workorders/workorders.yaml#/~1work-orders'
   /work-orders/{id}:
     $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}'
+  /work-orders/contract/{contractId}:
+    $ref: './domains/workorders/workorders.yaml#/~1work-orders~1contract~1{contractId}'
   /work-orders/{id}/schedule:
     $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}~1schedule'
   /work-orders/{id}/complete:
@@ -150,6 +152,8 @@ paths:
     $ref: './domains/workorders/workorders.yaml#/~1technician~1execution~1{workOrderId}~1provision'
   /technician/execution/{workOrderId}/radius-status:
     $ref: './domains/workorders/workorders.yaml#/~1technician~1execution~1{workOrderId}~1radius-status'
+  /technician/execution/{workOrderId}/complete:
+    $ref: './domains/workorders/workorders.yaml#/~1technician~1execution~1{workOrderId}~1complete'
 
   # Faturamento & Cobrança
   /invoices:
@@ -269,6 +273,12 @@ paths:
     $ref: './domains/users/users.yaml#/~1users'
   /users/{id}:
     $ref: './domains/users/users.yaml#/~1users~1{id}'
+  /users/{id}/status:
+    $ref: './domains/users/users.yaml#/~1users~1{id}~1status'
+  /users/{id}/role:
+    $ref: './domains/users/users.yaml#/~1users~1{id}~1role'
+  /users/{id}/reset-password:
+    $ref: './domains/users/users.yaml#/~1users~1{id}~1reset-password'
 
   # Dispositivos de Rede (OLTs)
   /network-devices:
@@ -290,7 +300,7 @@ paths:
   /onus/{id}/diagnose:
     $ref: './domains/network/onus.yaml#/~1onus~1{id}~1diagnose'
 
-  # CGNAT & Mapeamento Forense Multi-Vendor
+  # CGNAT & Mapeamento de Portas Multi-Vendor
   /cgnat/mappings:
     $ref: './domains/network/cgnat.yaml#/~1cgnat~1mappings'
   /cgnat/mappings/nas/{nasId}:
@@ -300,7 +310,7 @@ paths:
   /cgnat/import-script:
     $ref: './domains/network/cgnat.yaml#/~1cgnat~1import-script'
 
-  # Marco Civil da Internet (Lei 12.965/2014) & Laudos Periciais
+  # Marco Civil da Internet (Lei 12.965/2014) & Laudos de Identificação de Conexão
   /marco-civil/search:
     $ref: './domains/network/marcocivil.yaml#/~1marco-civil~1search'
   /marco-civil/reports:
@@ -402,6 +412,10 @@ paths:
   # Estoque, Depósitos & Custódia de Ativos
   /inventory:
     $ref: './domains/inventory/inventory.yaml#/~1inventory'
+  /inventory/entry:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1entry'
+  /inventory/items/{itemId}/movements:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1items~1{itemId}~1movements'
   /warehouses:
     $ref: './domains/inventory/inventory.yaml#/~1warehouses'
   /warehouses/active:
@@ -428,6 +442,10 @@ paths:
     $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1tool-agreements~1{id}~1return'
   /inventory/custody/assets/{id}/reverse-logistics:
     $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1assets~1{id}~1reverse-logistics'
+  /inventory/custody/materials/checkout-os:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1materials~1checkout-os'
+  /inventory/custody/materials/checkin-os:
+    $ref: './domains/inventory/inventory.yaml#/~1inventory~1custody~1materials~1checkin-os'
 
   # Fiscal, NFCom (Mod. 62) & Transição de Regimes
   /fiscal/company:
@@ -684,6 +702,8 @@ components:
       $ref: './domains/workorders/schemas.yaml#/ScheduleWorkOrderRequest'
     CompleteWorkOrderRequest:
       $ref: './domains/workorders/schemas.yaml#/CompleteWorkOrderRequest'
+    TechnicianExecutionCompleteRequest:
+      $ref: './domains/workorders/schemas.yaml#/TechnicianExecutionCompleteRequest'
     OltUnprovisionedOnu:
       $ref: './domains/workorders/schemas.yaml#/OltUnprovisionedOnu'
     ProvisionOnuRequest:
@@ -763,6 +783,8 @@ components:
       $ref: './domains/users/schemas.yaml#/UserCreateRequest'
     UserUpdateRequest:
       $ref: './domains/users/schemas.yaml#/UserUpdateRequest'
+    ResetUserPasswordRequest:
+      $ref: './domains/users/schemas.yaml#/ResetUserPasswordRequest'
 
     # Network
     NetworkDriverType:
@@ -930,6 +952,10 @@ components:
       $ref: './domains/inventory/schemas.yaml#/AgreementStatus'
     InventoryItemResponse:
       $ref: './domains/inventory/schemas.yaml#/InventoryItemResponse'
+    StockEntryRequest:
+      $ref: './domains/inventory/schemas.yaml#/StockEntryRequest'
+    StockMovementResponse:
+      $ref: './domains/inventory/schemas.yaml#/StockMovementResponse'
     WarehouseResponse:
       $ref: './domains/inventory/schemas.yaml#/WarehouseResponse'
     WarehouseCreateRequest:
@@ -952,6 +978,14 @@ components:
       $ref: './domains/inventory/schemas.yaml#/ReturnToolAgreementRequest'
     ReverseLogisticsRequest:
       $ref: './domains/inventory/schemas.yaml#/ReverseLogisticsRequest'
+    MaterialCheckoutOsRequest:
+      $ref: './domains/inventory/schemas.yaml#/MaterialCheckoutOsRequest'
+    CustodyLogResponse:
+      $ref: './domains/inventory/schemas.yaml#/CustodyLogResponse'
+    MaterialCheckinOsRequest:
+      $ref: './domains/inventory/schemas.yaml#/MaterialCheckinOsRequest'
+    MaterialCheckinResponse:
+      $ref: './domains/inventory/schemas.yaml#/MaterialCheckinResponse'
 
     # Fiscal & NFCom (Mod. 62)
     FiscalRegime:

@@ -544,3 +544,278 @@ ReverseLogisticsRequest:
     notes:
       type: string
       nullable: true
+
+StockEntryRequest:
+  type: object
+  description: Dados para entrada de lote de materiais no estoque
+  required:
+    - warehouseId
+    - itemCode
+    - itemName
+    - category
+    - quantity
+    - unit
+  properties:
+    warehouseId:
+      type: string
+      format: uuid
+    itemCode:
+      type: string
+      example: "CABO-DROP-1FO"
+    itemName:
+      type: string
+      example: "Cabo Drop Óptico 1FO Compacto"
+    category:
+      type: string
+      example: "CABO_OPTICO"
+    quantity:
+      type: integer
+      example: 1000
+    unit:
+      type: string
+      example: "M"
+    notes:
+      type: string
+      nullable: true
+
+StockMovementResponse:
+  type: object
+  description: Registro de movimentação de estoque (Kardex)
+  required:
+    - id
+    - createdAt
+    - eventType
+    - eventDescription
+  properties:
+    id:
+      type: string
+      format: uuid
+    createdAt:
+      type: string
+      format: date-time
+    eventType:
+      type: string
+      example: "STOCK_ENTRY"
+    eventDescription:
+      type: string
+      example: "Entrada de Nota Fiscal"
+    quantity:
+      type: integer
+      nullable: true
+    balanceAfter:
+      type: integer
+      nullable: true
+    warehouseName:
+      type: string
+      nullable: true
+    warehouseId:
+      type: string
+      format: uuid
+      nullable: true
+    userName:
+      type: string
+      nullable: true
+    userId:
+      type: string
+      format: uuid
+      nullable: true
+    workOrderId:
+      type: string
+      format: uuid
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+    photoUrl:
+      type: string
+      nullable: true
+
+MaterialCheckoutOsRequest:
+  type: object
+  description: Dados para retirada de material vinculada a uma Ordem de Serviço
+  required:
+    - workOrderId
+    - technicianUserId
+    - quantityOrMeters
+  properties:
+    workOrderId:
+      type: string
+      format: uuid
+    technicianUserId:
+      type: string
+      format: uuid
+    warehouseId:
+      type: string
+      format: uuid
+      nullable: true
+    itemCode:
+      type: string
+      nullable: true
+    assetId:
+      type: string
+      format: uuid
+      nullable: true
+    quantityOrMeters:
+      type: integer
+      example: 150
+    beforePhotoUrl:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+
+CustodyLogResponse:
+  type: object
+  description: Registro de movimentação de custódia de material ou ativo
+  required:
+    - id
+    - eventType
+    - createdAt
+  properties:
+    id:
+      type: string
+      format: uuid
+    assetId:
+      type: string
+      format: uuid
+      nullable: true
+    itemId:
+      type: string
+      format: uuid
+      nullable: true
+    fromUserId:
+      type: string
+      format: uuid
+      nullable: true
+    toUserId:
+      type: string
+      format: uuid
+      nullable: true
+    fromWarehouseId:
+      type: string
+      format: uuid
+      nullable: true
+    toWarehouseId:
+      type: string
+      format: uuid
+      nullable: true
+    workOrderId:
+      type: string
+      format: uuid
+      nullable: true
+    eventType:
+      type: string
+      example: "MATERIAL_OS_CHECKOUT"
+    quantity:
+      type: integer
+      nullable: true
+    balanceAfter:
+      type: integer
+      nullable: true
+    photoUrl:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+
+MaterialCheckinOsRequest:
+  type: object
+  description: Dados para conferência de consumo e devolução de material em O.S.
+  required:
+    - workOrderId
+    - technicianUserId
+    - initialMetersOrQty
+    - consumedMetersOrQty
+    - actualRemainingMetersOrQty
+  properties:
+    workOrderId:
+      type: string
+      format: uuid
+    technicianUserId:
+      type: string
+      format: uuid
+    warehouseId:
+      type: string
+      format: uuid
+      nullable: true
+    itemCode:
+      type: string
+      nullable: true
+    assetId:
+      type: string
+      format: uuid
+      nullable: true
+    initialMetersOrQty:
+      type: integer
+    consumedMetersOrQty:
+      type: integer
+    actualRemainingMetersOrQty:
+      type: integer
+    beforePhotoUrl:
+      type: string
+      nullable: true
+    installedPhotoUrl:
+      type: string
+      nullable: true
+    returnPhotoUrl:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+
+MaterialCheckinResponse:
+  type: object
+  description: Resultado da conferência de devolução de material de O.S.
+  required:
+    - logId
+    - workOrderId
+    - technicianUserId
+    - status
+    - hasDivergence
+    - expectedRemaining
+    - actualRemaining
+    - divergenceQuantity
+    - checkedAt
+  properties:
+    logId:
+      type: string
+      format: uuid
+    workOrderId:
+      type: string
+      format: uuid
+    technicianUserId:
+      type: string
+      format: uuid
+    status:
+      type: string
+      example: "CONFORMANT"
+    hasDivergence:
+      type: boolean
+    expectedRemaining:
+      type: integer
+    actualRemaining:
+      type: integer
+    divergenceQuantity:
+      type: integer
+    beforePhotoUrl:
+      type: string
+      nullable: true
+    installedPhotoUrl:
+      type: string
+      nullable: true
+    returnPhotoUrl:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+    checkedAt:
+      type: string
+      format: date-time
+

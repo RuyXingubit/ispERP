@@ -6,7 +6,7 @@ enum UserRole {
   sales,
   technician;
 
-  /// Converte uma string (ex: 'ROLE_ADMIN', 'admin', 'ADMIN') para o enum [UserRole].
+  /// Converte uma string (ex: 'ROLE_ADMIN', 'admin', 'ADMIN', 'CFO', 'SUPPORT_N2') para o enum [UserRole].
   static UserRole fromString(String? role) {
     if (role == null) return UserRole.support;
     final normalized = role.toUpperCase().replaceAll('ROLE_', '').trim();
@@ -15,13 +15,24 @@ enum UserRole {
       case 'ADMINISTRATOR':
       case 'DIRECTOR':
         return UserRole.admin;
+      case 'CFO':
       case 'FINANCIAL':
       case 'FINANCE':
       case 'ADMINISTRATIVO':
+      case 'AUDITOR':
         return UserRole.financial;
       case 'SUPPORT':
+      case 'SUPPORT_N2':
+      case 'SUPPORT_ANALYST':
+      case 'ATTENDANT':
+      case 'ADMINISTRATIVE_ASSISTANT':
       case 'ATENDIMENTO':
       case 'HELPDESK':
+      case 'WAREHOUSE_MANAGER':
+      case 'STOCKIST':
+      case 'ALMOXARIFADO':
+      case 'USER':
+      case 'CLIENT':
         return UserRole.support;
       case 'SALES':
       case 'COMERCIAL':

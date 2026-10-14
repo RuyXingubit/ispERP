@@ -143,15 +143,15 @@
     },
     {
       "name": "Cgnat",
-      "description": "CGNAT e Mapeamento Forense Multi-Vendor"
+      "description": "CGNAT e Mapeamento de Portas Multi-Vendor"
     },
     {
       "name": "MarcoCivil",
-      "description": "Investigação Forense e Marco Civil da Internet (Lei 12.965/2014)"
+      "description": "Marco Civil da Internet (Lei 12.965/2014 - Identificação de Conexão)"
     },
     {
       "name": "PublicVerification",
-      "description": "Validação Pública de Autenticidade de Laudos Periciais"
+      "description": "Validação Pública de Autenticidade de Laudos de Conexão"
     },
     {
       "name": "Ipam",
@@ -203,11 +203,11 @@
     },
     {
       "name": "BackupDisasterRecovery",
-      "description": "Governança de Backup Criptografado AES-256, Destinos Remotos e Kit de Resgate"
+      "description": "Governança de Backup Criptografado AES-256-GCM, Destinos Remotos e Kit de Resgate"
     },
     {
       "name": "CashCustody",
-      "description": "Custódia de Dinheiro Vivo, Transferência por Duplo Aceite e Depósitos"
+      "description": "Custódia de Caixa por CPF, Transferência por Duplo Aceite e Depósitos"
     },
     {
       "name": "ChartOfAccounts",
@@ -215,7 +215,7 @@
     },
     {
       "name": "Deleveraging",
-      "description": "Motor de Desalavancagem Financeira, Curva de Caixa de 36 Meses e Simulador"
+      "description": "Motor de Desalavancagem Financeira, Projeção de Caixa de 36 Meses e Simulador"
     },
     {
       "name": "DreReports",
@@ -227,7 +227,7 @@
     },
     {
       "name": "NetworkProjects",
-      "description": "Payback de Projetos de Expansão de Rede FTTH e Associação de CTOs"
+      "description": "Payback & Expansão de Rede FTTH e Associação de CTOs"
     },
     {
       "name": "PayableInvoices",
@@ -235,7 +235,7 @@
     },
     {
       "name": "SentinelAudit",
-      "description": "Sentinela IA para Auditoria Forense, Detecção de Anomalias e Desvios"
+      "description": "Auditoria de Desvios, Detecção de Anomalias e Verificação de Consistência"
     },
     {
       "name": "WorkOrderFees",
@@ -308,6 +308,47 @@
         "responses": {
           "200": {
             "description": "Ordem de serviço encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ordem de serviço não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/work-orders/contract/{contractId}": {
+      "get": {
+        "tags": [
+          "WorkOrders"
+        ],
+        "summary": "Buscar ordem de serviço por ID do contrato",
+        "operationId": "getWorkOrderByContractId",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ordem de serviço encontrada para o contrato.",
             "content": {
               "application/json": {
                 "schema": {
@@ -707,6 +748,57 @@
           },
           "404": {
             "description": "Ordem de serviço não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/technician/execution/{workOrderId}/complete": {
+      "post": {
+        "tags": [
+          "TechnicianExecution"
+        ],
+        "summary": "Concluir instalação técnica em campo com validação óptica e baixa de estoque",
+        "operationId": "completeInstallation",
+        "parameters": [
+          {
+            "name": "workOrderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TechnicianExecutionCompleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Instalação concluída com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados de conclusão inválidos.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3659,6 +3751,155 @@
         "responses": {
           "204": {
             "description": "Usuário removido com sucesso."
+          },
+          "404": {
+            "description": "Usuário não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/status": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Alterar status ativo/inativo de um usuário",
+        "operationId": "updateUserStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status do usuário atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuário não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/role": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Alterar papel RBAC de um usuário",
+        "operationId": "updateUserRole",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UserRole"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Papel do usuário atualizado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuário não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/reset-password": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Redefinir senha de um usuário",
+        "operationId": "resetUserPassword",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetUserPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Senha redefinida com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
           },
           "404": {
             "description": "Usuário não encontrado.",
@@ -6699,6 +6940,72 @@
         }
       }
     },
+    "/inventory/entry": {
+      "post": {
+        "tags": [
+          "Inventory"
+        ],
+        "summary": "Registrar entrada de lote de materiais em estoque",
+        "operationId": "registerStockEntry",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StockEntryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entrada de estoque registrada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inventory/items/{itemId}/movements": {
+      "get": {
+        "tags": [
+          "Inventory"
+        ],
+        "summary": "Listar movimentações de estoque (Kardex) de um item por ID ou código",
+        "operationId": "getItemMovements",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "description": "UUID ou código do item de estoque",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Extrato de movimentações retornado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockMovementResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/warehouses": {
       "get": {
         "tags": [
@@ -7272,6 +7579,68 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inventory/custody/materials/checkout-os": {
+      "post": {
+        "tags": [
+          "AssetCustody"
+        ],
+        "summary": "Registrar retirada de material vinculada a uma Ordem de Serviço",
+        "operationId": "checkoutMaterialForWorkOrder",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaterialCheckoutOsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Retirada de material registrada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustodyLogResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inventory/custody/materials/checkin-os": {
+      "post": {
+        "tags": [
+          "AssetCustody"
+        ],
+        "summary": "Registrar devolução e conferência de consumo de material de Ordem de Serviço",
+        "operationId": "checkinMaterialForWorkOrder",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaterialCheckinOsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Conferência e devolução registradas com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaterialCheckinResponse"
                 }
               }
             }
@@ -11536,6 +11905,80 @@
           }
         }
       },
+      "TechnicianExecutionCompleteRequest": {
+        "type": "object",
+        "required": [
+          "onuSerial"
+        ],
+        "properties": {
+          "onuSerial": {
+            "type": "string",
+            "description": "Serial da ONU instalada.",
+            "example": "ZTEGC89A12B3"
+          },
+          "onuMac": {
+            "type": "string",
+            "nullable": true,
+            "example": "48:57:02:11:22:33"
+          },
+          "vlanId": {
+            "type": "integer",
+            "nullable": true,
+            "example": 100
+          },
+          "pppoeUsername": {
+            "type": "string",
+            "nullable": true
+          },
+          "pppoePassword": {
+            "type": "string",
+            "nullable": true
+          },
+          "wifiSsid": {
+            "type": "string",
+            "nullable": true
+          },
+          "wifiPassword": {
+            "type": "string",
+            "nullable": true
+          },
+          "fiberSignalDbm": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -19.5
+          },
+          "installationPhotoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "digitalSignatureBase64": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerSignatureName": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "technicianLatitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "technicianLongitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "warehouseId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          }
+        }
+      },
       "OltUnprovisionedOnu": {
         "type": "object",
         "required": [
@@ -12768,6 +13211,21 @@
           "active": {
             "type": "boolean",
             "example": true
+          }
+        }
+      },
+      "ResetUserPasswordRequest": {
+        "type": "object",
+        "required": [
+          "newPassword"
+        ],
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "format": "password",
+            "minLength": 6,
+            "description": "Nova senha de acesso a ser definida para o colaborador.",
+            "example": "NovaSenha@2026"
           }
         }
       },
@@ -15704,6 +16162,115 @@
           }
         }
       },
+      "StockEntryRequest": {
+        "type": "object",
+        "description": "Dados para entrada de lote de materiais no estoque",
+        "required": [
+          "warehouseId",
+          "itemCode",
+          "itemName",
+          "category",
+          "quantity",
+          "unit"
+        ],
+        "properties": {
+          "warehouseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemCode": {
+            "type": "string",
+            "example": "CABO-DROP-1FO"
+          },
+          "itemName": {
+            "type": "string",
+            "example": "Cabo Drop Óptico 1FO Compacto"
+          },
+          "category": {
+            "type": "string",
+            "example": "CABO_OPTICO"
+          },
+          "quantity": {
+            "type": "integer",
+            "example": 1000
+          },
+          "unit": {
+            "type": "string",
+            "example": "M"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "StockMovementResponse": {
+        "type": "object",
+        "description": "Registro de movimentação de estoque (Kardex)",
+        "required": [
+          "id",
+          "createdAt",
+          "eventType",
+          "eventDescription"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "eventType": {
+            "type": "string",
+            "example": "STOCK_ENTRY"
+          },
+          "eventDescription": {
+            "type": "string",
+            "example": "Entrada de Nota Fiscal"
+          },
+          "quantity": {
+            "type": "integer",
+            "nullable": true
+          },
+          "balanceAfter": {
+            "type": "integer",
+            "nullable": true
+          },
+          "warehouseName": {
+            "type": "string",
+            "nullable": true
+          },
+          "warehouseId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "userName": {
+            "type": "string",
+            "nullable": true
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "workOrderId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "photoUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "WarehouseResponse": {
         "type": "object",
         "description": "Dados cadastrais de um depósito ou almoxarifado físico",
@@ -16252,6 +16819,250 @@
           "notes": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "MaterialCheckoutOsRequest": {
+        "type": "object",
+        "description": "Dados para retirada de material vinculada a uma Ordem de Serviço",
+        "required": [
+          "workOrderId",
+          "technicianUserId",
+          "quantityOrMeters"
+        ],
+        "properties": {
+          "workOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "technicianUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "warehouseId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "itemCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "assetId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "quantityOrMeters": {
+            "type": "integer",
+            "example": 150
+          },
+          "beforePhotoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CustodyLogResponse": {
+        "type": "object",
+        "description": "Registro de movimentação de custódia de material ou ativo",
+        "required": [
+          "id",
+          "eventType",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assetId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "fromUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "toUserId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "fromWarehouseId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "toWarehouseId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "workOrderId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "eventType": {
+            "type": "string",
+            "example": "MATERIAL_OS_CHECKOUT"
+          },
+          "quantity": {
+            "type": "integer",
+            "nullable": true
+          },
+          "balanceAfter": {
+            "type": "integer",
+            "nullable": true
+          },
+          "photoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MaterialCheckinOsRequest": {
+        "type": "object",
+        "description": "Dados para conferência de consumo e devolução de material em O.S.",
+        "required": [
+          "workOrderId",
+          "technicianUserId",
+          "initialMetersOrQty",
+          "consumedMetersOrQty",
+          "actualRemainingMetersOrQty"
+        ],
+        "properties": {
+          "workOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "technicianUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "warehouseId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "itemCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "assetId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "initialMetersOrQty": {
+            "type": "integer"
+          },
+          "consumedMetersOrQty": {
+            "type": "integer"
+          },
+          "actualRemainingMetersOrQty": {
+            "type": "integer"
+          },
+          "beforePhotoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "installedPhotoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "returnPhotoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "MaterialCheckinResponse": {
+        "type": "object",
+        "description": "Resultado da conferência de devolução de material de O.S.",
+        "required": [
+          "logId",
+          "workOrderId",
+          "technicianUserId",
+          "status",
+          "hasDivergence",
+          "expectedRemaining",
+          "actualRemaining",
+          "divergenceQuantity",
+          "checkedAt"
+        ],
+        "properties": {
+          "logId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "technicianUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "example": "CONFORMANT"
+          },
+          "hasDivergence": {
+            "type": "boolean"
+          },
+          "expectedRemaining": {
+            "type": "integer"
+          },
+          "actualRemaining": {
+            "type": "integer"
+          },
+          "divergenceQuantity": {
+            "type": "integer"
+          },
+          "beforePhotoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "installedPhotoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "returnPhotoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },

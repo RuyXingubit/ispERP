@@ -19,7 +19,7 @@ class NasRepository {
   /// Retorna todos os concentradores NAS cadastrados no FreeRADIUS.
   Future<List<NasModel>> getAllNas() async {
     try {
-      final response = await _dio.get('/nas');
+      final response = await _dio.get('/radius/nas');
       if (response.statusCode == 200 && response.data is List) {
         return (response.data as List)
             .map((e) => NasModel.fromJson(e as Map<String, dynamic>))
@@ -35,7 +35,7 @@ class NasRepository {
   Future<NasModel> createNas(NasModel nas) async {
     try {
       final response = await _dio.post(
-        '/nas',
+        '/radius/nas',
         data: nas.toJson(),
       );
       return NasModel.fromJson(response.data as Map<String, dynamic>);
@@ -48,7 +48,7 @@ class NasRepository {
   Future<NasModel> updateNas(String id, NasModel nas) async {
     try {
       final response = await _dio.put(
-        '/nas/$id',
+        '/radius/nas/$id',
         data: nas.toJson(),
       );
       return NasModel.fromJson(response.data as Map<String, dynamic>);
@@ -60,7 +60,7 @@ class NasRepository {
   /// Remove um concentrador do FreeRADIUS.
   Future<void> deleteNas(String id) async {
     try {
-      await _dio.delete('/nas/$id');
+      await _dio.delete('/radius/nas/$id');
     } catch (e) {
       rethrow;
     }

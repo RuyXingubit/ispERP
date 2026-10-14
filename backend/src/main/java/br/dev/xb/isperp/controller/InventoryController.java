@@ -2,6 +2,8 @@ package br.dev.xb.isperp.controller;
 
 import br.dev.xb.isperp.api.contract.InventoryApi;
 import br.dev.xb.isperp.api.dto.InventoryItemResponse;
+import br.dev.xb.isperp.api.dto.StockEntryRequest;
+import br.dev.xb.isperp.api.dto.StockMovementResponse;
 import br.dev.xb.isperp.mapper.InventoryMapper;
 import br.dev.xb.isperp.service.InventoryService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -25,9 +28,8 @@ public class InventoryController implements InventoryApi {
         return ResponseEntity.ok(inventoryMapper.toInventoryItemResponseList(inventoryService.getAllItems()));
     }
 
-    @org.springframework.web.bind.annotation.PostMapping({"/inventory/entry", "/api/inventory/entry"})
-    public ResponseEntity<InventoryItemResponse> registerStockEntry(
-            @org.springframework.web.bind.annotation.RequestBody br.dev.xb.isperp.dto.StockEntryRequest request) {
+    @Override
+    public ResponseEntity<InventoryItemResponse> registerStockEntry(StockEntryRequest request) {
         var item = inventoryService.registerStockEntry(
                 request.getWarehouseId(),
                 request.getItemCode(),
@@ -40,14 +42,13 @@ public class InventoryController implements InventoryApi {
         return ResponseEntity.ok(inventoryMapper.toResponse(item));
     }
 
-    @org.springframework.web.bind.annotation.GetMapping({"/inventory/items/{itemId}/movements", "/api/inventory/items/{itemId}/movements"})
-    public ResponseEntity<List<br.dev.xb.isperp.dto.StockMovementResponse>> getItemMovements(
-            @org.springframework.web.bind.annotation.PathVariable("itemId") String itemIdOrCode) {
+    @Override
+    public ResponseEntity<List<StockMovementResponse>> getItemMovements(String itemIdOrCode) {
         try {
-            java.util.UUID itemId = java.util.UUID.fromString(itemIdOrCode);
-            return ResponseEntity.ok(inventoryService.getItemMovements(itemId));
+            UUID itemId = UUID.fromString(itemIdOrCode);
+            return ResponseEntity.ok(inventoryMapper.toStockMovementResponseList(inventoryService.getItemMovements(itemId)));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.ok(inventoryService.getItemMovementsByCode(itemIdOrCode));
+            return ResponseEntity.ok(inventoryMapper.toStockMovementResponseList(inventoryService.getItemMovementsByCode(itemIdOrCode)));
         }
     }
 }

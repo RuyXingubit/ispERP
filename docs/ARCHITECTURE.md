@@ -1,12 +1,16 @@
 # Arquitetura e Decisões Técnicas (ADR & Architecture Blueprint)
 
+> **Especificação Consolidada:** Para a especificação técnica completa e vigente das 4 stacks (`contracts/openapi/`, `backend/`, `frontend-flutter/`, `frontend-customer/` e `frontend-site/`), consulte [`docs/SDD.md`](SDD.md).
+
 ## 1. Visão Geral da Arquitetura
 
 O **ispERP** adota a arquitetura de **Monólito Modular Orientado a Eventos (Event-Driven Modular Monolith)**. Esse padrão combina a facilidade de deploy e desenvolvimento de um monólito com o baixo acoplamento, alta coesão e assincronia de microsserviços.
 
 ```mermaid
 graph TD
-    UI[Frontend React / MUI] -->|REST API + JWT| API[Spring Boot REST Controllers]
+    UI_ERP[ERP Operacional - Flutter Multiplataforma] -->|REST API + JWT| API[Spring Boot REST Controllers]
+    UI_CUST[Central do Assinante - Vanilla TS + Vite 6] -->|REST API + Portal Token| API
+    UI_SITE[Site Institucional - Vanilla TS + Vite 6] -->|REST API Pública| API
     
     subgraph Core Monolith [ispERP Core Backend]
         API --> Sales[Sales Module]
@@ -143,7 +147,7 @@ sequenceDiagram
 ### ADR 005: Segurança, RBAC e Conformidade LGPD
 - **Princípio da Segurança em Primeiro Lugar:**
   - **Autenticação:** JWT Stateless com rotação de segredo.
-  - **Autorização (RBAC):** Anotações `@PreAuthorize` granulares em nível de serviço/controlador.
+  - **Autorização (RBAC):** Anotações `@PreAuthorize` granulares em nível de serviço/controlador (11 papéis corporativos).
   - **Proteção de Dados Sensíveis:** Validação e mascaramento de CPF/CNPJ nos logs. Armazenamento seguro de chaves de API.
   - **Auditoria:** Registro imutável de logs de alteração cadastral e liberação manual de sinal na tabela `audit_logs`.
 
@@ -152,9 +156,9 @@ sequenceDiagram
 ### ADR 006: Estratégia de Testes Automatizados (TDD & Pirâmide de Testes)
 - **Regra:** Nenhuma nova funcionalidade ou refatoração é considerada concluída sem testes unitários cobrindo o caminho feliz, cenários de borda e validações de segurança.
 - **Ferramentas:**
-  - **Unitários:** JUnit 5 + Mockito + AssertJ.
-  - **Integração:** `@DataJpaTest` com **Testcontainers PostgreSQL** (testando migrações reais do Flyway e queries nativas).
-  - **Frontend:** React Testing Library + Jest.
+  - **Unitários (Backend):** JUnit 5 + Mockito + AssertJ.
+  - **Integração (Backend):** `@DataJpaTest` / `@SpringBootTest` com **Testcontainers PostgreSQL** (testando migrações reais do Flyway e queries nativas).
+  - **Frontends:** `flutter_test` no `frontend-flutter/` e `vitest` + `jsdom` + `tsc --noEmit` em `frontend-customer/` e `frontend-site/`.
 
 ---
 
@@ -333,7 +337,7 @@ sequenceDiagram
 
 ### ADR 023: Subsistema IPAM Hierárquico e Aritmética de Rede (IPv4 / IPv6)
 - **Contexto:** Provedores de internet necessitam documentar seus blocos de numeração (ASNs, VRFs, subnets públicas e privadas, CGNAT e prefixos IPv6), permitindo cálculos precisos de gateway/broadcast/hosts, divisão de blocos (Split VLSM) e alocação opcional para contratos ou equipamentos de rede.
-- **Decisão:** Criar um subsistema corporativo de IPAM desacoplado e modular, utilizando a biblioteca padrão da indústria `com.github.seancfoley:ipaddress:5.5.1` encapsulada no serviço [`IpCalculator.java`](file:///Users/ruy/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/ipam/IpCalculator.java).
+- **Decisão:** Criar um subsistema corporativo de IPAM desacoplado e modular, utilizando aritmética nativa em Java (`java.net.InetAddress` + `BigInteger`, zero dependências externas) encapsulada no serviço [`IpCalculator.java`](../backend/src/main/java/br/dev/xb/isperp/ipam/IpCalculator.java).
 - **Diretrizes de Implementação:**
   1. **Schema PostgreSQL com UUIDv7:** Tabelas `ipam_asns`, `ipam_vrfs`, `ipam_subnets` e `ipam_ip_addresses` via Flyway `V19`.
   2. **Independência Operacional:** O IPAM é opcional para o funcionamento básico de autenticação RADIUS, mas disponível como ferramenta de primeira classe para ISPs organizados.
@@ -345,19 +349,19 @@ sequenceDiagram
 
 ---
 
-### ADR 024: FreeRADIUS Multi-Vendor, CGNAT Forense & Central do Marco Civil Anti-Fraude
-- **Contexto:** Provedores de internet operam com infraestruturas heterogêneas de BNGs (MikroTik RouterOS, Huawei NE40/ME60, Juniper MX, Accel-PPP, Cisco ASR) e realizam CGNAT para economia de endereços IPv4 públicos. Paralelamente, a Lei nº 12.965/2014 (Marco Civil da Internet) exige a guarda e pronta disponibilização sob ordem judicial de registros de conexão (IP, porta lógica de origem, data/hora e identificação inequívoca do titular), com necessidade de proteção contra falsificação de laudos periciais entregues a autoridades policiais ou judiciais.
-- **Decisão:** Integrar nativamente o FreeRADIUS com PostgreSQL 17+, fornecer parsers automatizados de regras CGNAT multi-fabricante e uma Central de Investigação Forense com emissão de laudos oficiais assinados criptograficamente.
+### ADR 024: FreeRADIUS Multi-Vendor, Correlação CGNAT & Central do Marco Civil da Internet
+- **Contexto:** Provedores de internet operam com infraestruturas heterogêneas de BNGs (MikroTik RouterOS, Huawei NE40/ME60, Juniper MX, Accel-PPP, Cisco ASR) e realizam CGNAT para economia de endereços IPv4 públicos. Paralelamente, a Lei nº 12.965/2014 (Marco Civil da Internet) exige a guarda e disponibilização sob ordem judicial de registros de conexão (IP, porta lógica de origem, data/hora e identificação do titular), com verificação de integridade dos relatórios emitidos.
+- **Decisão:** Integrar nativamente o FreeRADIUS com PostgreSQL 17+, fornecer parsers automatizados de regras CGNAT multi-fabricante e uma Central de Consulta do Marco Civil com emissão de relatórios verificáveis por hash SHA-256.
 - **Diretrizes de Implementação:**
   1. **Schema FreeRADIUS + CGNAT com UUIDv7:** Tabelas `nas`, `radcheck`, `radreply`, `radacct`, `cgnat_mappings` e `marco_civil_reports` criadas na migração Flyway `V20`.
   2. **Injeção Dinâmica Multi-Vendor:** Suporte a perfis de rate-limit nativos por fabricante (MikroTik, Huawei, Juniper, Cisco/RFC) e pool de bloqueio automático por inadimplência.
   3. **Desconexão PoD (Packet of Disconnect - RFC 3576):** Envio de pacotes CoA/PoD UDP na porta 3799 para derrubar conexões de clientes em tempo real.
-  4. **Cruzamento Forense Reverso:** Algoritmo determinístico que correlaciona `IP Público + Porta + Timestamp` ➔ `Mapeamento CGNAT` ➔ `IP Privado` ➔ `radacct` ➔ `Assinante e Endereço de Instalação`.
-  5. **Garantia de Autenticidade Anti-Fraude:** Emissão de laudos periciais com Hash Criptográfico SHA-256 e QR Code com link público `/public/validar-laudo/:token`, permitindo à autoridade policial/judicial atestar que o laudo impresso confere com os registros invioláveis do provedor.
+  4. **Correlação Reversa de Logs:** Algoritmo determinístico que correlaciona `IP Público + Porta + Timestamp` ➔ `Mapeamento CGNAT` ➔ `IP Privado` ➔ `radacct` ➔ `Assinante e Endereço de Instalação`.
+  5. **Verificação de Integridade:** Emissão de relatórios com Hash Criptográfico SHA-256 e QR Code com link público `/public/validar-laudo/:token`, permitindo validar que o relatório confere com os registros do sistema.
 - **Consequências:**
-  - Plena conformidade legal com o Marco Civil e LGPD.
-  - Agilidade imediata no atendimento a ofícios e inquéritos policiais.
-  - Blindagem do ISP contra retaliação e fraudes documentais.
+  - Conformidade legal com o Marco Civil e LGPD.
+  - Agilidade no atendimento a ofícios judiciais.
+  - Garantia de integridade documental.
 
 ---
 
@@ -373,27 +377,27 @@ sequenceDiagram
 
 ### ADR 026: Documentação de Rede FTTH, Gestão de Fibras ABNT/TIA-598, Diagramas Unifilares e Viabilidade de Vendas
 - **Contexto:** A operação de ISPs requer documentação precisa de ativos passivos de rede óptica (cabos ópticos, caixas de emenda/CEO, divisores/splitters, caixas de atendimento/CTO e postes). Para manutenções de campo e fusões sem erro humano, o sistema deve respeitar os códigos de cores oficiais das fibras ópticas conforme as normas nacionais (ABNT NBR 14106) e internacionais (TIA/EIA-598). Além disso, o time de vendas e suporte necessita de consulta instantânea de viabilidade técnica por geolocalização e cálculo do orçamento de potência óptica (Power Budget).
-- **Decisão:** Desenvolver um módulo completo de topologia FTTH no backend Java 25 / PostgreSQL 17+ com motor de cores dinâmico, rastreamento óptico com atenuação acumulada teórica e interface gráfica interativa em React 19 / TypeScript com diagrama unifilar vetorial.
+- **Decisão:** Desenvolver um módulo completo de topologia FTTH no backend Java 25 / PostgreSQL 17+ com motor de cores dinâmico, rastreamento óptico com atenuação acumulada teórica e visualização de diagrama unifilar.
 - **Diretrizes de Implementação:**
   1. **Schema FTTH com UUIDv7:** Tabelas `ftth_pops`, `ftth_poles`, `ftth_cables`, `ftth_closures`, `ftth_splitters`, `ftth_ctos`, `ftth_cto_ports` e `ftth_fusions` criadas na migração Flyway `V23`.
   2. **Motor de Cores Multi-Norma (`FtthColorService.java`):**
      - **ABNT NBR 14106 / Telebrás:** 1: Verde, 2: Amarelo, 3: Branco, 4: Azul, 5: Vermelho, 6: Violeta, 7: Marrom, 8: Rosa, 9: Preto, 10: Cinza, 11: Laranja, 12: Aqua.
      - **TIA/EIA-598:** 1: Azul, 2: Laranja, 3: Verde, 4: Marrom, 5: Cinza, 6: Branco, 7: Vermelho, 8: Preto, 9: Amarelo, 10: Violeta, 11: Rosa, 12: Aqua.
      - Suporte a agrupamento em tubos *loose* para cabos de 6, 12, 24, 36, 72 e 144 fibras.
-  3. **Diagrama Unifilar Interativo em 2 Cliques (`FtthFusionDiagram.tsx`):**
+  3. **Diagrama Unifilar Interativo:**
      - Visualização das fibras de entrada com código de cores e identificação de tubos.
      - Montagem e exclusão de fusões fibra-a-fibra e divisores ópticos balanceados (PLC 1:2 até 1:64) ou desbalanceados (FBT 95/05 até 50/50).
-  4. **Painel Frontal de CTOs & Rastreamento Óptico (`FtthCtoDetail.tsx` & `FtthLightPathService.java`):**
-     - Visão realista de 8 ou 16 adaptadores SC-APC com identificação de ocupação por cliente/ONU.
+  4. **Painel de CTOs & Rastreamento Óptico (`FtthLightPathService.java`):**
+     - Visão de 8 ou 16 adaptadores SC-APC com identificação de ocupação por cliente/ONU.
      - Rastreamento reverso do caminho da luz calculando a atenuação teórica (Power Budget) e potência óptica Rx estimada na ONT.
 ---
 
 ### ADR 027: Monitoramento Ativo de OLTs, Alarmística de LOS e Correlação de Rompimento de Fibra FTTH
 - **Contexto:** Em operações de ISPs com milhares de assinantes ópticos, falhas físicas na rede externa (rompimento de cabos por caminhões, obras ou vandalismo) ou quedas de energia elétrica em bairros precisam ser diagnosticadas instantaneamente. O envio de consultas SNMP frequentes e individuais para dezenas de milhares de ONUs pode sobrecarregar a CPU das controladoras das OLTs e travar o plano de gerência da rede.
-- **Decisão:** Desenvolver um Centro de Operações de Rede (NOC) com arquitetura escalonada anti-tempestade em 3 camadas e um motor de correlação analítica topológica que cruza telemetria de OLTs com a rede passiva FTTH.
+- **Decisão:** Desenvolver um Centro de Operações de Rede (NOC) com arquitetura escalonada em 3 camadas e um motor de correlação analítica topológica que cruza telemetria de OLTs com a rede passiva FTTH.
 - **Diretrizes de Implementação:**
   1. **Schema de Telemetria & Incidentes com UUIDv7:** Tabelas `olt_pon_ports`, `ftth_incidents` e `onu_telemetry_records` criadas na migração Flyway `V24`.
-  2. **Arquitetura Escalonada Anti-Tempestade:**
+  2. **Arquitetura Escalonada em 3 Camadas:**
      - *Camada 1 (Push Reativo):* Recepção instantânea de SNMP Traps / Syslog de alarmes de *LOS* e *Dying Gasp* com custo zero de CPU em regime normal.
      - *Camada 2 (Summary Polling Leve a cada 2 min):* Consulta leve de contadores agregados por porta PON (< 0.1% CPU na OLT).
      - *Camada 3 (Leitura em Lotes com Rate-Limiting):* Coleta detalhada de dBm em blocos com Java 25 Virtual Threads e semáforo limitador de concorrência por OLT.
@@ -403,132 +407,138 @@ sequenceDiagram
      - Cálculo da coordenada geográfica central estimada do ponto de corte.
      - Abertura e despacho de Ordem de Serviço emergencial para a equipe de campo.
 - **Consequências:**
-  - Redução do MTTR (Mean Time to Repair) de incidentes graves de rompimento de fibra de horas para minutos.
+  - Redução do MTTR (Mean Time to Repair) de incidentes graves de rompimento de fibra.
   - Eliminação de falsos despachos de técnicos de fusão durante apagões elétricos da concessionária de energia.
-  - Estabilidade e segurança total das controladoras de OLTs mesmo em redes com mais de 100.000 clientes.
+  - Estabilidade das controladoras de OLTs.
 
 ---
 
-### ADR 028: Custódia Patrimonial Estrita por CPF, Livro-Caixa Individual e Duplo Aceite de Gaveta
-- **Contexto:** Em operações de telecom, a perda de dinheiro vivo de faturas pagas em campo e o sumiço de equipamentos decorriam da ausência de responsabilização direta por indivíduo ("o dinheiro ou ONT ficou no veículo do plantão").
-- **Decisão:** Adotar o princípio civil inegociável: *"Veículo não tem CPF. Todo valor em dinheiro e equipamento possui responsabilidade civil vinculada ao CPF do colaborador."*
+### ADR 028: Custódia de Valores e Materiais por CPF, Livro-Caixa Individual e Confirmação em Duas Etapas
+- **Contexto:** Em operações de telecom, a perda de dinheiro em espécie de faturas pagas em campo e o extravio de equipamentos decorriam da ausência de responsabilização direta por indivíduo.
+- **Decisão:** Adotar o princípio de responsabilidade individual: *"Todo valor em espécie e equipamento possui custódia vinculada ao CPF do colaborador."*
 - **Diretrizes de Implementação:**
   1. **Schema de Custódia com UUIDv7:** Tabelas `user_cash_custodies`, `cash_transfer_logs`, `bank_deposit_confirmations` e `user_material_custodies` criadas na migração Flyway `V27`.
-  2. **Mecanismo de Duplo Aceite Obrigatório:** O saldo de gaveta e a posse de peças entre técnicos em campo só migram no banco quando o recebedor confere o valor/itens e clica em aceitar.
-  3. **Segregação de Funções & Conciliação Cega:** Depósitos bancários de prestação de contas só baixam a custódia do colaborador após conferência e aprovação manual do CFO contra o extrato real da conta corrente.
+  2. **Confirmação em Duas Etapas:** O saldo de caixa e a posse de peças entre técnicos em campo só migram no banco quando o recebedor confere o valor/itens e confirma o recebimento.
+  3. **Segregação de Funções & Conciliação:** Depósitos bancários de prestação de contas só baixam a custódia do colaborador após conferência e aprovação do gestor financeiro contra o extrato da conta corrente.
   4. **Baixa Automática na Conclusão da O.S.:** Na conclusão técnica em campo, os materiais utilizados são baixados automaticamente da custódia do técnico para o cliente final.
 - **Consequências:**
-  - Eliminação de extravios de dinheiro vivo em atendimentos e plantões.
-  - Rastreabilidade pericial byte-a-byte do inventário em trânsito com os técnicos.
+  - Eliminação de extravios de numerário em atendimentos e plantões.
+  - Rastreabilidade completa do inventário em trânsito com os técnicos.
 
 ---
 
 ### ADR 029: Plano de Contas Dinâmico de 5 Níveis Telecom, Contas a Pagar & Esteira de Isenção de Taxas
-- **Contexto:** Provedores necessitam de uma árvore contábil padronizada para telecomunicação (separação canônica de Receitas, Impostos, Trânsito/Interconexão, OPEX e CAPEX), além de controle rígido de contas a pagar de infraestrutura e uma trava contra concessões indiscriminadas de isenções de taxas de O.S.
+- **Contexto:** Provedores necessitam de uma árvore contábil padronizada para telecomunicação (separação canônica de Receitas, Impostos, Trânsito/Interconexão, OPEX e CAPEX), além de controle de contas a pagar de infraestrutura e aprovação formal para isenções de taxas de O.S.
 - **Decisão:** Desenvolver o módulo contábil no backend Java 25 / PostgreSQL 17+ com seeder oficial de telecom e esteira auditada de isenção de taxas.
 - **Diretrizes de Implementação:**
   1. **Schema Contábil & Despesas com UUIDv7:** Tabelas `chart_of_accounts`, `payable_invoices` e `expense_installments` criadas na migração Flyway `V28`.
   2. **Árvore Hierárquica de 5 Níveis:** Diferenciação estrita de nós sintéticos (agrupadores) e analíticos (que recebem lançamentos), com seeder canônico de telecom.
   3. **Cronograma de Amortização & Juros:** Despesas de longo prazo divididas automaticamente em parcelas com controle de liquidação e comprovante anexado.
-  4. **Esteira Anti-Fraude de Isenção de Taxas (`WorkOrderFeeService.java`):** Solicitação de isenção comercial com auditoria obrigatória de gestor e disparo do evento `WORK_ORDER_FEE_WAIVED` para notificação oficial ao cliente via WhatsApp, impedindo cobranças "por fora".
+  4. **Esteira de Isenção de Taxas (`WorkOrderFeeService.java`):** Solicitação de isenção comercial com aprovação obrigatória de gestor e disparo do evento `WORK_ORDER_FEE_WAIVED` para notificação oficial ao cliente via WhatsApp.
 - **Consequências:**
   - Visibilidade analítica detalhada de custos fixos vs variáveis do provedor.
-  - Fim de concessões verbais ou não auditadas de isenção de taxas técnicas.
+  - Controle auditável de concessões de isenção de taxas técnicas.
 
 ---
 
-### ADR 030: Cockpit DRE em Tempo Real (Competência vs Caixa) & Motor de Desalavancagem 36M
-- **Contexto:** Provedores de internet em fase de expansão frequentemente enfrentam o "paradoxo do crescimento": muitas vendas e alto MRR, mas aperto severo de caixa por descasamento entre o CAPEX de instalação e o recebimento das mensalidades. O dono necessita de clareza imediata sobre EBITDA real e horizonte temporal de alforria financeira.
-- **Decisão:** Criar o `DreReportService` dinâmico e o `DeleveragingEngineService` determinístico com projeção matemática contínua de 36 meses.
+### ADR 030: DRE em Tempo Real (Competência vs Caixa) & Projeção de Desalavancagem 36M
+- **Contexto:** Provedores de internet em fase de expansão frequentemente enfrentam descasamento entre o CAPEX de instalação e o recebimento das mensalidades. A gestão necessita de clareza sobre o EBITDA real e o horizonte de amortização das dívidas.
+- **Decisão:** Criar o `DreReportService` dinâmico e o `DeleveragingEngineService` determinístico com projeção financeira de 36 meses.
 - **Diretrizes de Implementação:**
   1. **DRE em Cascata:** Cálculo instantâneo da Receita Bruta ➔ Impostos ➔ Custos Diretos de Conexão ➔ Margem de Contribuição ➔ OPEX Operacional ➔ **EBITDA** ➔ Fluxo de Caixa Livre nos Regimes de Competência e Caixa.
-  2. **Os 3 Números Sagrados:** Cálculo determinístico do Fundo do Poço financeiro (*Maximum Drawdown*), da Data da Alforria Financeira e da folga mínima de liquidez.
-  3. **Simulador Interativo "E Se...?":** Avaliação de risco em memória para novos investimentos (ex: compra de nova OLT ou ampliação de frota) sem persistência no banco de dados.
+  2. **Indicadores de Desalavancagem:** Cálculo determinístico do ponto de maior exposição de caixa (*Maximum Drawdown*), da data estimada de quitação do passivo e da margem mínima de liquidez.
+  3. **Simulador Interativo "E Se...?":** Avaliação de impacto financeiro em memória para novos investimentos sem persistência no banco de dados.
 - **Consequências:**
-  - Tomada de decisão executiva baseada em matemática financeira rigorosa e EBITDA real.
-  - Prevenção ativa de insolvência durante picos de aquisição de clientes.
+  - Tomada de decisão baseada em indicadores financeiros e EBITDA real.
+  - Prevenção de risco de liquidez durante ciclos de expansão.
 
 ---
 
-### ADR 031: Payback por Projeto FTTH / Centros de Custo & Sentinela IA Pericial
-- **Contexto:** A expansão de redes ópticas passivas envolve aportes significativos de capital. O provedor precisa saber com precisão cirúrgica em quantos meses cada bairro se paga e onde focar o time comercial. Simultaneamente, comportamentos atípicos e fraudes internas precisam ser identificados antes de gerarem rombos.
-- **Decisão:** Relacionar caixas CTO a centros de custo de projetos de rede (`network_projects`), calcular ocupação de portas e acionar o Sentinela IA pericial.
+### ADR 031: Payback por Projeto FTTH / Centros de Custo & Monitoramento de Anomalias Operacionais
+- **Contexto:** A expansão de redes ópticas passivas envolve aportes de capital. O provedor precisa acompanhar em quantos meses cada área de expansão atinge o ponto de equilíbrio e onde concentrar esforços comerciais, além de monitorar desvios operacionais.
+- **Decisão:** Relacionar caixas CTO a centros de custo de projetos de rede (`network_projects`), calcular ocupação de portas e disponibilizar rotinas de auditoria operacional (`SentinelWatchdogService`).
 - **Diretrizes de Implementação:**
   1. **Schema de Projetos & Auditoria com UUIDv7:** Tabelas `network_projects` e `sentinel_audit_logs` criadas na migração Flyway `V29`.
-  2. **Direcionador Comercial:** Cálculo em tempo real de portas ocupadas vs ociosas, gerando alertas proativos (*"🚨 DINHEIRO DORMINDO NO POSTE: Bairro com baixa ocupação. Direcionar vendas aqui!"*).
-  3. **Sentinela IA (`SentinelWatchdogService.java`):** Algoritmo analítico que executa varreduras periciais contínuas contra anomalias (retenção excessiva de dinheiro vivo por técnico, desvio de materiais e padrão suspeito de isenções de taxas).
+  2. **Indicador de Ocupação Comercial:** Cálculo em tempo real de portas ocupadas vs ociosas para direcionamento de vendas.
+  3. **Monitoramento de Anomalias (`SentinelWatchdogService.java`):** Rotina analítica que identifica retenção prolongada de numerário em custódia, desvios de estoque e padrões atípicos de isenções de taxas.
 - **Consequências:**
-  - Otimização do retorno sobre o capital investido (ROIC) em expansões de fibra óptica.
-  - Detecção pericial precoce de irregularidades operacionais e de estoque.
+  - Acompanhamento objetivo do retorno sobre o capital investido (ROIC) em expansões FTTH.
+  - Detecção preventiva de divergências operacionais e de estoque.
 
 ---
 
-### ADR 032: Assinatura Eletrônica Baseada em Autenticação Pix (SPI / BACEN) e Certificado Forense
-- **Contexto:** Assinaturas digitais de contratos baseadas apenas em cliques web ou códigos SMS enfrentam fragilidade jurídica em litígios (alegação de "não fui eu que cliquei"). Era necessária uma forma de assinatura com comprovação irrefutável de autoria, baixo atrito e custo acessível conforme a MP 2.200-2/01 e Lei Federal nº 14.063/2020.
-- **Decisão:** Desenvolver um fluxo de assinatura eletrônica avançada ancorado na autenticação bancária de micro-transação Pix (R$ 1,00) via Sistema de Pagamentos Instantâneos (SPI) do Banco Central do Brasil.
+### ADR 032: Assinatura Eletrônica Baseada em Autenticação Pix (SPI / BACEN) e Certificado de Auditoria
+- **Contexto:** Assinaturas digitais de contratos baseadas apenas em cliques web enfrentam questionamentos sobre autoria. Era necessária uma forma de assinatura com comprovação de titularidade bancária, baixo atrito e conformidade com a MP 2.200-2/01 e Lei Federal nº 14.063/2020.
+- **Decisão:** Desenvolver um fluxo de assinatura eletrônica ancorado na validação de titularidade de micro-transação Pix (R$ 1,00) via Sistema de Pagamentos Instantâneos (SPI) do Banco Central do Brasil.
 - **Diretrizes de Implementação:**
-  1. **Schema de Assinatura Forense com UUIDv7:** Campos em `contracts` e `contract_signatures` via Flyway `V30`.
-  2. **Validação Estrita de CPF no SPI/BACEN:** O CPF retornado pelo BACEN na liquidação do Pix DEVE bater com o CPF cadastrado no contrato. Na divergência (pagamento de terceiros), o contrato é rejeitado imediatamente com status `REJECTED_DIVERGENT_DOCUMENT` e são ofertadas rotas oficiais de fallback (Gov.br, E-mail OTP ou Cartório).
+  1. **Schema de Assinatura com UUIDv7:** Campos em `contracts` e `contract_signatures` via Flyway `V30`.
+  2. **Validação Estrita de CPF no SPI/BACEN:** O CPF retornado pelo BACEN na liquidação do Pix DEVE coincidir com o CPF cadastrado no contrato. Em caso de divergência (pagamento por terceiros), o contrato recebe status `REJECTED_DIVERGENT_DOCUMENT` e são disponibilizadas opções de fallback (Gov.br, E-mail OTP ou Cartório).
   3. **Abatimento Automático:** O R$ 1,00 pago na assinatura é convertido automaticamente em desconto na próxima fatura `PENDING` ou crédito de onboarding do assinante.
-  4. **Certificado Pericial Forense:** Geração de documento probatório com Hash SHA-256 do contrato, End-to-End ID do BACEN, IP, Timestamp UTC e dados bancários do signatário.
+  4. **Certificado de Auditoria:** Geração de documento comprobatório com Hash SHA-256 do contrato, End-to-End ID do BACEN, IP, Timestamp UTC e dados do signatário.
 - **Consequências:**
-  - Validade jurídica irrefutável e incontestável em qualquer juizado cível.
-  - Zero custo de terceiros com plataformas proprietárias de assinatura digital.
-  - Experiência fluida para o cliente final sem burocracia de criação de contas.
+  - Comprovação técnica e jurídica de autoria da assinatura.
+  - Redução de custos com plataformas externas de assinatura digital.
 
 ---
 
-### ADR 033: Backup Multi-Destino, Streaming ZStandard em Memória, Criptografia Militar AES-256 (PBKDF2) & Disaster Recovery
-- **Contexto:** Bancos de dados de telecomunicações acumulam grandes volumes de dados (faturas, conexões do Marco Civil, logs contábeis). Gerar arquivos de despejo (dumps) intermediários no disco local causa estouro de storage (Disk Full), travando a operação do provedor. Além disso, a LGPD exige criptografia ponta a ponta e a operação requer capacidade de resgate mesmo sem a aplicação estar de pé.
-- **Decisão:** Desenvolver um motor nativo de Disaster Recovery com streaming contínuo em memória, compressão ZStandard, criptografia militar AES-256 e múltiplos destinos de armazenamento.
+### ADR 033: Backup Multi-Destino, Streaming ZStandard em Memória, Criptografia AES-256 (PBKDF2) & Disaster Recovery
+- **Contexto:** Bancos de dados de telecomunicações acumulam grandes volumes de dados. Gerar arquivos de dump intermediários no disco local pode causar esgotamento de armazenamento. Além disso, a LGPD exige criptografia de backups armazenados externamente e procedimentos claros de restauração.
+- **Decisão:** Desenvolver um módulo nativo de Backup e Recuperação de Desastres com streaming contínuo em memória, compressão ZStandard, criptografia padrão AES-256 e múltiplos destinos de armazenamento.
 - **Diretrizes de Implementação:**
   1. **Schema de Políticas & Destinos com UUIDv7:** Tabelas `backup_policies`, `backup_destinations` e `backup_execution_logs` criadas na migração Flyway `V31`.
   2. **Pipeline Contínuo sem Escrita em Disco:**
      `pg_dump ➔ ZstdOutputStream (ZSTD) ➔ CipherOutputStream (AES-256 CBC) ➔ DigestOutputStream (SHA-256) ➔ S3 / R2 / MinIO / SFTP / Local`.
-  3. **Derivação Militar PBKDF2:** Chave mestra de 256 bits derivada com PBKDF2WithHmacSHA256, 100.000 iterações, Salt e IV aleatórios de 16 bytes embutidos no cabeçalho do arquivo cifrado.
-  4. **Teste Contínuo de Restauração (*Dry-Run Restore*):** Descriptografia e descompressão em tempo real em stream de verificação para garantir integridade byte a byte do arquivo gerado.
-  5. **Kit de Resgate de Emergência em Markdown:** Geração de manual executável com comandos OpenSSL e Zstandard para restauração direta no terminal Linux sem depender do monólito.
+  3. **Derivação Padrão PBKDF2:** Chave mestra de 256 bits derivada com `PBKDF2WithHmacSHA256`, 100.000 iterações, Salt e IV aleatórios de 16 bytes no cabeçalho do arquivo cifrado.
+  4. **Teste de Restauração (*Dry-Run Restore*):** Descriptografia e descompressão em stream de verificação para validar a integridade do arquivo gerado.
+  5. **Guia de Restauração em Markdown:** Geração de instruções com comandos `openssl` e `zstd` para restauração direta via terminal Linux.
 - **Consequências:**
-  - Risco zero de queda da VPS por estouro de disco durante rotinas de backup.
-  - Máxima segurança e confidencialidade em armazenamentos em nuvens públicas.
-  - Garantia de continuidade do negócio mesmo em cenários de desastre catastrófico.
+  - Execução de backups sem criação de arquivos temporários em disco local.
+  - Confidencialidade e verificação de integridade em armazenamentos externos.
 
 ---
 
-### ADR 034: Arquitetura Frontend de Alta Performance: Migração para Vite 8 (Rolldown/Rust), Code-Splitting e Lazy Loading por Rota
-- **Contexto:** Com a expansão do ispERP para mais de 40 módulos corporativos (NOC, FTTH, DRE, Payback, Sentinela, Backup, Faturamento), o carregamento estático único (*Eager Loading*) elevou o bundle principal para 2.45 MB, penalizando o tempo de abertura no login e em dispositivos móveis de técnicos em campo.
-- **Decisão:** Migrar o pipeline de build para Vite 8.2 com motor Rust Rolldown, implementar Code-Splitting total com `React.lazy()` e `<Suspense>` no roteamento e configurar fatiamento customizado de vendors (`manualChunks`).
-- **Diretrizes de Implementação:**
-  1. **Migração do Bundler:** Adoção do Vite 8.2 + Rolldown com compilação ultra-rápida em Rust (~650ms para build de produção).
-  2. **Lazy Loading de Rotas no `App.tsx`:** Todas as páginas administrativas e públicas são carregadas sob demanda, acompanhadas de componente unificado `PageLoadingFallback`.
-  3. **Isolamento de Chunks Pesados no `vite.config.ts`:**
-     - `vendor-react`: React, React-DOM e React-Router-DOM (~89 kB gzip).
-     - `vendor-mui`: Componentes do Material-UI (~107 kB gzip).
-     - `vendor-maps`: MapLibre GL isolado (~258 kB gzip), carregado estritamente quando o mapa FTTH é aberto.
-- **Consequências:**
-  - Redução drástica do bundle inicial de 2.45 MB para apenas 21 kB (-99.1%).
-  - Eliminação completa de avisos de chunks pesados no bundler.
-  - Carregamento instantâneo em redes móveis 4G/5G de campo e na tela pública de assinatura Pix.
+### ADR 034: (Histórico / Substituído pelo ADR 036) Otimização de Bundler do Antigo Monólito Web
+- **Status:** *Substituído pelo ADR 036 (Descontinuação do Monólito React/MUI e Adoção dos 3 Frontends Especializados).*
 
 ---
 
-### ADR 035: Ciclo de Inadimplência Severa (30d+), Logística Reversa de Comodato e Execução de Cobrança Judicial / SPC
-- **Contexto:** Em provedores de internet, a inadimplência prolongada (> 30 dias) causa duplo prejuízo patrimonial: o acúmulo de mensalidades não pagas e o extravio de equipamentos comodatados de alto valor agregado (ONTs Wi-Fi 6 e roteadores Mesh). A transição entre corte de sinal RADIUS, agendamento de recolhimento em campo, devolução patrimonial ao almoxarifado ou envio para proteção ao crédito (SPC/Serasa) precisa ser 100% auditável, idempotente e orientada a eventos, sem perda de rastreabilidade.
-- **Decisão:** Criar o serviço `WorkOrderRemovalService` acoplado ao Transactional Outbox (`DomainEventPublisher`), à governança de estoque (`AssetCustodyService`) e à entidade de proteção ao crédito (`LegalCollectionRecord`).
+### ADR 035: Ciclo de Inadimplência Severa (30d+), Logística Reversa de Comodato e Registro de Cobrança / SPC
+- **Contexto:** Em provedores de internet, a inadimplência prolongada (> 30 dias) exige controle tanto das faturas vencidas quanto do recolhimento dos equipamentos em comodato (ONTs e roteadores). A transição entre suspensão RADIUS, agendamento de retirada em campo, devolução ao almoxarifado ou registro para cobrança/proteção ao crédito precisa ser auditável, idempotente e orientada a eventos.
+- **Decisão:** Criar o serviço `WorkOrderRemovalService` acoplado ao Transactional Outbox (`DomainEventPublisher`), ao controle de estoque (`AssetCustodyService`) e à entidade de cobrança (`LegalCollectionRecord`).
 - **Diretrizes de Implementação:**
-  1. **Schema de Cobrança Judicial & Status Infrutífera (`V34`):** Criação da tabela `legal_collection_records` e adição do status `INFRUTIFERA` e coluna `unsuccess_reason` na tabela `work_orders`.
-  2. **Varredura e Agendamento Automático de Retirada:** Rotina que identifica faturas vencidas além do limite tolerado (>= 30 dias) e gera a O.S. de `RETIRADA` na Torre de Despacho com status `PENDING_SCHEDULE`, publicando o evento `REMOVAL_ORDER_GENERATED`.
-  3. **Logística Reversa de Comodato com Rescisão Amigável:** Quando o equipamento é recolhido com sucesso, o método `completeSuccessfulRemoval` devolve o ativo serializado ao almoxarifado via `AssetCustodyService`, altera o contrato para `CANCELED` e publica `REMOVAL_ORDER_COMPLETED`, acionando o envio de termo de quitação ao cliente via WhatsApp.
-  4. **Proteção ao Crédito & Cobrança Judicial (`completeUnsuccessfulRemoval`):** Caso a tentativa seja frustrada (cliente mudou-se, recusou entrega ou extraviou o aparelho), o sistema:
+  1. **Schema de Cobrança & Status Infrutífera (`V34`):** Criação da tabela `legal_collection_records` e adição do status `INFRUTIFERA` e coluna `unsuccess_reason` na tabela `work_orders`.
+  2. **Geração Automática de O.S. de Retirada:** Rotina que identifica faturas vencidas além do limite configurado (>= 30 dias) e gera a O.S. de `RETIRADA` na Torre de Despacho com status `PENDING_SCHEDULE`, publicando o evento `REMOVAL_ORDER_GENERATED`.
+  3. **Logística Reversa de Comodato:** Quando o equipamento é recolhido com sucesso, o método `completeSuccessfulRemoval` devolve o ativo serializado ao almoxarifado via `AssetCustodyService`, altera o contrato para `CANCELED` e publica `REMOVAL_ORDER_COMPLETED`, acionando o envio de comprovante de devolução ao cliente.
+  4. **Registro de Cobrança (`completeUnsuccessfulRemoval`):** Caso a retirada não seja concluída (cliente mudou-se, recusou entrega ou extraviou o aparelho), o sistema:
      - Marca a O.S. como `INFRUTIFERA` com a justificativa técnica;
      - Cancela o contrato formalmente;
-     - Apura a soma de faturas atrasadas + indenização de retenção indevida do hardware (R$ 420,00 da ONT Wi-Fi 6);
-     - Grava o dossiê executável em `LegalCollectionRecord` com fotos e evidências;
-     - Emite `LEGAL_COLLECTION_RECORD_CREATED` para notificação extrajudicial preventiva antes da negativação formal no SPC/Serasa.
-  5. **Resiliência e Contratos API-First:** Todos os endpoints expostos via OpenAPI (`POST /work-orders/{id}/complete-removal`, `POST /work-orders/{id}/fail-removal`) com DTOs gerados e validação estrita.
+     - Apura a soma de faturas em atraso + valor de reposição do equipamento comodatado;
+     - Registra os dados e evidências em `LegalCollectionRecord`;
+     - Emite `LEGAL_COLLECTION_RECORD_CREATED` para envio de notificação de cobrança.
+  5. **Contratos API-First:** Endpoints expostos via OpenAPI (`POST /work-orders/{id}/complete-removal`, `POST /work-orders/{id}/fail-removal`, `POST /work-orders/batch-generate-removals`) com DTOs gerados.
 - **Consequências:**
-  - Blindagem patrimonial contra retenção indébita de ONTs comodatadas.
-  - Redução de perdas financeiras com cobrança consolidada executável extrajudicialmente.
-  - Zero intervenção manual em planilhas ou cadastros paralelos.
+  - Controle rastreável da devolução de ONTs comodatadas.
+  - Consolidação automática de débitos para cobrança em casos de não devolução.
+
+---
+
+### ADR 036: Consolidação dos 3 Frontends Especializados (Flutter + Vanilla TS), RBAC de 11 Perfis e Governança SDD
+- **Contexto:** O antigo monólito frontend em React 19 + Material-UI concentrava em uma única aplicação pesada tanto o ERP operacional interno quanto páginas públicas e de autoatendimento. Além disso, a operação real do provedor exigiu granularidade maior de perfis de acesso (RBAC), assistente de primeiro acesso (`/setup`) e rastreabilidade de transporte terceirizado no almoxarifado.
+- **Decisão:** Descontinuar e remover o monólito `frontend/` (React/MUI/Orval, substituindo os antigos ADRs 017, 022 e 034) e consolidar a arquitetura em **3 Frontends Especializados** + **Governança SDD (`docs/SDD.md`)**:
+  1. **`frontend-flutter/` (ERP Operacional Corporativo — AGPLv3):**
+     - Desenvolvido em **Flutter 3.29+ / Dart 3.11+**, **Riverpod 2.6+**, **GoRouter 14.8+** e **Material 3** para Desktop (macOS/Windows/Linux), Web e Mobile (iOS/Android).
+     - Consumo da API via repositórios `Dio` tipados com `AuthInterceptor` (JWT + `ProblemDetails` RFC 7807) e armazenamento seguro (`flutter_secure_storage`).
+  2. **`frontend-customer/` (Central do Assinante — MIT):**
+     - Aplicação web leve em **Vanilla TypeScript + Vite 6.1.1 + HTML5/CSS3** (zero dependências de runtime) para autoatendimento do assinante (2ª via Pix, NFCom, contratos, assinatura eletrônica Pix `/sign` e Desbloqueio em Confiança).
+  3. **`frontend-site/` (Site Institucional WWW — MIT):**
+     - Aplicação web leve em **Vanilla TypeScript + Vite 6.1.1 + HTML5/CSS3** (zero dependências de runtime) focada em SEO, Core Web Vitals, catálogo dinâmico de planos, consulta de viabilidade e captação de leads com rastreamento UTM.
+  4. **Evoluções de Schema e Segurança no Backend (`V32` a `V36`):**
+     - `V32__add_first_access_setup_fields.sql`: Controle de conclusão do assistente de primeiro acesso (`/setup`) e identidade visual da empresa.
+     - `V33__add_geocep_token_to_companies.sql`: Token de integração GeoCEP por empresa.
+     - `V35__add_trade_name_and_phone_to_companies.sql`: Nome fantasia e telefone comercial em `companies`.
+     - `V36__expand_rbac_roles_and_third_party_transport.sql`: Expansão do RBAC para **11 papéis corporativos** (`ADMIN`, `DIRECTOR`, `FINANCIAL`, `AUDITOR`, `SUPPORT`, `SUPPORT_ANALYST`, `ADMINISTRATIVE_ASSISTANT`, `ATTENDANT`, `SALES`, `TECHNICIAN`, `WAREHOUSE_MANAGER`) e metadados de motorista/transportadora terceirizada (`carrier_name`, `driver_name`, `driver_cpf`, `vehicle_plate`) nas transferências de estoque.
+  5. **100% dos Endpoints sob Contrato OpenAPI:**
+     - Todos os 46 controllers REST do Backend implementam as interfaces geradas por `./scripts/generate-api.sh` a partir de `contracts/openapi/openapi.yaml`, sem exposição direta de entidades JPA (`@Entity`) na camada HTTP.
+
 
 

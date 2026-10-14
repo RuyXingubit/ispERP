@@ -178,4 +178,55 @@ class MapperTest {
         assertThat(dto.getFiberSignalDbm()).isEqualByComparingTo("-19.50");
         assertThat(dto.getStatus()).isEqualTo(WorkOrder.WorkOrderStatus.COMPLETED);
     }
+
+    @Test
+    @DisplayName("Deve mapear StockMovementResponse e CustodyLog para DTOs OpenAPI sem expor entidades JPA")
+    void shouldMapInventoryMovementAndCustodyLogToOpenApiResponses() {
+        InventoryMapper inventoryMapper = Mappers.getMapper(InventoryMapper.class);
+        UUID movId = UUID.randomUUID();
+        UUID whId = UUID.randomUUID();
+
+        br.dev.xb.isperp.dto.StockMovementResponse movement = br.dev.xb.isperp.dto.StockMovementResponse.builder()
+                .id(movId)
+                .warehouseId(whId)
+                .warehouseName("Almoxarifado Central")
+                .eventType("STOCK_ENTRY")
+                .eventDescription("Entrada de Lote")
+                .quantity(10)
+                .balanceAfter(25)
+                .userName("Carlos Almoxarife")
+                .notes("Compra NF 1020")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        var movResponse = inventoryMapper.toApiMovementResponse(movement);
+        assertThat(movResponse).isNotNull();
+        assertThat(movResponse.getId()).isEqualTo(movId);
+        assertThat(movResponse.getEventType()).isEqualTo("STOCK_ENTRY");
+        assertThat(movResponse.getQuantity()).isEqualTo(10);
+        assertThat(movResponse.getBalanceAfter()).isEqualTo(25);
+
+        UUID logId = UUID.randomUUID();
+        UUID itemId = UUID.randomUUID();
+        UUID techId = UUID.randomUUID();
+        UUID woId = UUID.randomUUID();
+        br.dev.xb.isperp.entity.CustodyLog custodyLog = br.dev.xb.isperp.entity.CustodyLog.builder()
+                .id(logId)
+                .itemId(itemId)
+                .toUserId(techId)
+                .workOrderId(woId)
+                .eventType("MATERIAL_OS_CHECKOUT")
+                .quantity(2)
+                .balanceAfter(8)
+                .notes("Saída vinculada à O.S.")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        var logResponse = inventoryMapper.toResponse(custodyLog);
+        assertThat(logResponse).isNotNull();
+        assertThat(logResponse.getId()).isEqualTo(logId);
+        assertThat(logResponse.getToUserId()).isEqualTo(techId);
+        assertThat(logResponse.getEventType()).isEqualTo("MATERIAL_OS_CHECKOUT");
+        assertThat(logResponse.getQuantity()).isEqualTo(2);
+    }
 }

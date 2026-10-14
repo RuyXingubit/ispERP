@@ -1,8 +1,10 @@
 package br.dev.xb.isperp.controller;
 
 import br.dev.xb.isperp.api.contract.UsersApi;
+import br.dev.xb.isperp.api.dto.ResetUserPasswordRequest;
 import br.dev.xb.isperp.api.dto.UserCreateRequest;
 import br.dev.xb.isperp.api.dto.UserResponse;
+import br.dev.xb.isperp.api.dto.UserRole;
 import br.dev.xb.isperp.api.dto.UserUpdateRequest;
 import br.dev.xb.isperp.entity.User;
 import br.dev.xb.isperp.mapper.UserMapper;
@@ -14,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,22 +66,22 @@ public class UserController implements UsersApi {
         return ResponseEntity.ok(userMapper.toResponse(updated));
     }
 
-    @PatchMapping("/users/{id}/status")
-    public ResponseEntity<UserResponse> updateUserStatus(@PathVariable UUID id, @RequestParam boolean active) {
-        User updated = userService.updateUserStatus(id, active);
+    @Override
+    public ResponseEntity<UserResponse> updateUserStatus(UUID id, Boolean active) {
+        User updated = userService.updateUserStatus(id, Boolean.TRUE.equals(active));
         return ResponseEntity.ok(userMapper.toResponse(updated));
     }
 
-    @PatchMapping("/users/{id}/role")
-    public ResponseEntity<UserResponse> updateUserRole(@PathVariable UUID id, @RequestParam br.dev.xb.isperp.entity.UserRole role) {
-        User updated = userService.updateUserRole(id, role);
+    @Override
+    public ResponseEntity<UserResponse> updateUserRole(UUID id, UserRole role) {
+        br.dev.xb.isperp.entity.UserRole domainRole = br.dev.xb.isperp.entity.UserRole.valueOf(role.name());
+        User updated = userService.updateUserRole(id, domainRole);
         return ResponseEntity.ok(userMapper.toResponse(updated));
     }
 
-    @PostMapping("/users/{id}/reset-password")
-    public ResponseEntity<UserResponse> resetPassword(@PathVariable UUID id, @RequestBody Map<String, String> payload) {
-        String newPassword = payload.get("newPassword");
-        User updated = userService.resetPassword(id, newPassword);
+    @Override
+    public ResponseEntity<UserResponse> resetUserPassword(UUID id, ResetUserPasswordRequest resetUserPasswordRequest) {
+        User updated = userService.resetPassword(id, resetUserPasswordRequest.getNewPassword());
         return ResponseEntity.ok(userMapper.toResponse(updated));
     }
 

@@ -7,12 +7,22 @@ void main() {
       expect(UserRole.fromString('ROLE_ADMIN'), UserRole.admin);
       expect(UserRole.fromString('admin'), UserRole.admin);
       expect(UserRole.fromString('ADMINISTRATOR'), UserRole.admin);
+      expect(UserRole.fromString('DIRECTOR'), UserRole.admin);
 
       expect(UserRole.fromString('ROLE_FINANCIAL'), UserRole.financial);
+      expect(UserRole.fromString('CFO'), UserRole.financial);
+      expect(UserRole.fromString('AUDITOR'), UserRole.financial);
       expect(UserRole.fromString('FINANCE'), UserRole.financial);
       expect(UserRole.fromString('ADMINISTRATIVO'), UserRole.financial);
 
       expect(UserRole.fromString('ROLE_SUPPORT'), UserRole.support);
+      expect(UserRole.fromString('SUPPORT_N2'), UserRole.support);
+      expect(UserRole.fromString('SUPPORT_ANALYST'), UserRole.support);
+      expect(UserRole.fromString('ATTENDANT'), UserRole.support);
+      expect(UserRole.fromString('ADMINISTRATIVE_ASSISTANT'), UserRole.support);
+      expect(UserRole.fromString('WAREHOUSE_MANAGER'), UserRole.support);
+      expect(UserRole.fromString('STOCKIST'), UserRole.support);
+      expect(UserRole.fromString('USER'), UserRole.support);
       expect(UserRole.fromString('ATENDIMENTO'), UserRole.support);
       expect(UserRole.fromString('HELPDESK'), UserRole.support);
 

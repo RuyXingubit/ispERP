@@ -302,3 +302,62 @@
           application/json:
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/work-orders/contract/{contractId}:
+  get:
+    tags:
+      - WorkOrders
+    summary: Buscar ordem de serviço por ID do contrato
+    operationId: getWorkOrderByContractId
+    parameters:
+      - name: contractId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Ordem de serviço encontrada para o contrato.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WorkOrderResponse'
+      '404':
+        description: Ordem de serviço não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/technician/execution/{workOrderId}/complete:
+  post:
+    tags:
+      - TechnicianExecution
+    summary: Concluir instalação técnica em campo com validação óptica e baixa de estoque
+    operationId: completeInstallation
+    parameters:
+      - name: workOrderId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/TechnicianExecutionCompleteRequest'
+    responses:
+      '200':
+        description: Instalação concluída com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/WorkOrderResponse'
+      '400':
+        description: Dados de conclusão inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+

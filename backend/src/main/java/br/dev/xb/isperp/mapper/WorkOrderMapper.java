@@ -54,6 +54,8 @@ public interface WorkOrderMapper {
 
     br.dev.xb.isperp.dto.CompleteWorkOrderRequest toCompleteRequest(br.dev.xb.isperp.api.dto.CompleteWorkOrderRequest request);
 
+    br.dev.xb.isperp.dto.TechnicianExecutionCompleteRequest toCompleteInstallationRequest(br.dev.xb.isperp.api.dto.TechnicianExecutionCompleteRequest request);
+
     @Mapping(target = "status", expression = "java(record.getStatus() != null ? record.getStatus().name() : null)")
     br.dev.xb.isperp.api.dto.LegalCollectionResponse toLegalCollectionResponse(br.dev.xb.isperp.entity.LegalCollectionRecord record);
 

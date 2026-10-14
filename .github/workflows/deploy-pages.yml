@@ -11,6 +11,7 @@ on:
     paths:
       - 'contracts/**'
       - 'docs/**'
+      - '!docs/brainstorming/**'
       - 'scripts/build-portal.sh'
       - 'scripts/bundle-contracts.sh'
       - 'redocly.yaml'

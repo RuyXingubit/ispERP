@@ -409,3 +409,87 @@
           application/json:
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/inventory/entry:
+  post:
+    tags:
+      - Inventory
+    summary: Registrar entrada de lote de materiais em estoque
+    operationId: registerStockEntry
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/StockEntryRequest'
+    responses:
+      '200':
+        description: Entrada de estoque registrada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/InventoryItemResponse'
+
+/inventory/items/{itemId}/movements:
+  get:
+    tags:
+      - Inventory
+    summary: Listar movimentações de estoque (Kardex) de um item por ID ou código
+    operationId: getItemMovements
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        description: UUID ou código do item de estoque
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Extrato de movimentações retornado com sucesso
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/StockMovementResponse'
+
+/inventory/custody/materials/checkout-os:
+  post:
+    tags:
+      - AssetCustody
+    summary: Registrar retirada de material vinculada a uma Ordem de Serviço
+    operationId: checkoutMaterialForWorkOrder
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/MaterialCheckoutOsRequest'
+    responses:
+      '200':
+        description: Retirada de material registrada com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/CustodyLogResponse'
+
+/inventory/custody/materials/checkin-os:
+  post:
+    tags:
+      - AssetCustody
+    summary: Registrar devolução e conferência de consumo de material de Ordem de Serviço
+    operationId: checkinMaterialForWorkOrder
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/MaterialCheckinOsRequest'
+    responses:
+      '200':
+        description: Conferência e devolução registradas com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/MaterialCheckinResponse'
+

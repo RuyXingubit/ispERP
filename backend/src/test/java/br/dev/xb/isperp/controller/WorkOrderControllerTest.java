@@ -225,4 +225,17 @@ class WorkOrderControllerTest {
                 .andExpect(jsonPath("$[0].type").value("RETIRADA"))
                 .andExpect(jsonPath("$[0].status").value("PENDING_SCHEDULE"));
     }
+
+    @Test
+    @DisplayName("GET /work-orders/contract/{contractId} - Deve buscar O.S. por contrato conforme contrato OpenAPI")
+    void shouldGetWorkOrderByContractId() throws Exception {
+        when(workOrderService.getWorkOrderByContractId(contractId)).thenReturn(Optional.of(workOrder));
+        when(workOrderMapper.toResponse(workOrder)).thenReturn(workOrderResponse);
+
+        mockMvc.perform(get("/work-orders/contract/{contractId}", contractId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(workOrderId.toString()))
+                .andExpect(jsonPath("$.contractId").value(contractId.toString()));
+    }
 }

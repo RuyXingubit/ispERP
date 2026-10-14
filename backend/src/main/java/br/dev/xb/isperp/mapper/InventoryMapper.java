@@ -25,6 +25,19 @@ public interface InventoryMapper {
 
     List<InventoryItemResponse> toInventoryItemResponseList(List<InventoryItem> items);
 
+    StockMovementResponse toApiMovementResponse(br.dev.xb.isperp.dto.StockMovementResponse movement);
+
+    List<StockMovementResponse> toStockMovementResponseList(List<br.dev.xb.isperp.dto.StockMovementResponse> movements);
+
+    br.dev.xb.isperp.dto.MaterialCheckoutOsRequest toServiceRequest(MaterialCheckoutOsRequest request);
+
+    CustodyLogResponse toResponse(CustodyLog custodyLog);
+
+    br.dev.xb.isperp.dto.MaterialCheckinOsRequest toServiceRequest(MaterialCheckinOsRequest request);
+
+    MaterialCheckinResponse toApiCheckinResponse(br.dev.xb.isperp.dto.MaterialCheckinResponse response);
+
+
     // -------------------------------------------------------------------------
     // Depósitos & Almoxarifados Físicos
     // -------------------------------------------------------------------------

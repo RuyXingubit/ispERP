@@ -103,15 +103,15 @@ public class AssetCustodyController implements AssetCustodyApi {
         return ResponseEntity.ok(inventoryMapper.toResponse(saved));
     }
 
-    @org.springframework.web.bind.annotation.PostMapping({"/inventory/custody/materials/checkout-os", "/api/inventory/custody/materials/checkout-os"})
-    public ResponseEntity<br.dev.xb.isperp.entity.CustodyLog> checkoutMaterialForWorkOrder(
-            @org.springframework.web.bind.annotation.RequestBody br.dev.xb.isperp.dto.MaterialCheckoutOsRequest request) {
-        return ResponseEntity.ok(assetCustodyService.checkoutMaterialForWorkOrder(request));
+    @Override
+    public ResponseEntity<CustodyLogResponse> checkoutMaterialForWorkOrder(MaterialCheckoutOsRequest request) {
+        var savedLog = assetCustodyService.checkoutMaterialForWorkOrder(inventoryMapper.toServiceRequest(request));
+        return ResponseEntity.ok(inventoryMapper.toResponse(savedLog));
     }
 
-    @org.springframework.web.bind.annotation.PostMapping({"/inventory/custody/materials/checkin-os", "/api/inventory/custody/materials/checkin-os"})
-    public ResponseEntity<br.dev.xb.isperp.dto.MaterialCheckinResponse> checkinMaterialForWorkOrder(
-            @org.springframework.web.bind.annotation.RequestBody br.dev.xb.isperp.dto.MaterialCheckinOsRequest request) {
-        return ResponseEntity.ok(assetCustodyService.checkinMaterialForWorkOrder(request));
+    @Override
+    public ResponseEntity<MaterialCheckinResponse> checkinMaterialForWorkOrder(MaterialCheckinOsRequest request) {
+        var result = assetCustodyService.checkinMaterialForWorkOrder(inventoryMapper.toServiceRequest(request));
+        return ResponseEntity.ok(inventoryMapper.toApiCheckinResponse(result));
     }
 }

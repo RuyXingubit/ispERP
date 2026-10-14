@@ -83,8 +83,8 @@ public class WorkOrderController implements WorkOrdersApi {
         return ResponseEntity.ok(workOrderMapper.toResponseList(generated));
     }
 
-    @GetMapping("/work-orders/contract/{contractId}")
-    public ResponseEntity<WorkOrderResponse> getWorkOrderByContractId(@PathVariable UUID contractId) {
+    @Override
+    public ResponseEntity<WorkOrderResponse> getWorkOrderByContractId(UUID contractId) {
         Optional<WorkOrder> workOrder = workOrderService.getWorkOrderByContractId(contractId);
         return workOrder.map(workOrderMapper::toResponse)
                 .map(ResponseEntity::ok)
