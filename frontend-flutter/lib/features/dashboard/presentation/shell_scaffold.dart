@@ -232,6 +232,7 @@ class ShellScaffold extends ConsumerWidget {
       items.add(_buildNavItem(context, '/admin/settings', 'Configurações do Sistema', Icons.settings_outlined, currentPath == '/admin/settings' || currentPath == '/admin/gateways'));
       items.add(_buildNavItem(context, '/admin/backup', 'Backup & Disaster Recovery', Icons.cloud_sync_outlined, currentPath == '/admin/backup'));
       items.add(_buildNavItem(context, '/admin/nas', 'Concentradores (BNG / NAS)', Icons.router_outlined, currentPath == '/admin/nas'));
+      items.add(_buildNavItem(context, '/network', 'Engenharia & NOC FTTH', Icons.hub_outlined, currentPath == '/network'));
       items.add(_buildNavItem(context, '/admin/users', 'Colaboradores & RBAC', Icons.manage_accounts_outlined, currentPath == '/admin/users'));
       items.add(_buildNavItem(context, '/admin/audit-logs', 'Trilha de Auditoria', Icons.fingerprint, currentPath == '/admin/audit-logs'));
       items.add(_buildNavItem(context, '/inventory', 'Estoque & Almoxarifado', Icons.inventory_2_outlined, currentPath == '/inventory'));
@@ -248,6 +249,7 @@ class ShellScaffold extends ConsumerWidget {
           break;
         case UserRole.support:
           items.add(_buildNavItem(context, '/support', 'Central de Suporte', Icons.headset_mic_outlined, currentPath == '/support'));
+          items.add(_buildNavItem(context, '/network', 'Engenharia & NOC FTTH', Icons.hub_outlined, currentPath == '/network'));
           items.add(_buildNavItem(context, '/inventory', 'Estoque & Almoxarifado', Icons.inventory_2_outlined, currentPath == '/inventory'));
           items.add(_buildNavItem(context, '/dispatch', 'Torre de Despacho', Icons.local_shipping_outlined, currentPath == '/dispatch'));
           break;
@@ -399,6 +401,14 @@ class ShellScaffold extends ConsumerWidget {
                 onTap: () {
                   Navigator.pop(context);
                   context.go('/admin/nas');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.hub_outlined, color: AppTheme.primaryBlue),
+                title: const Text('Engenharia & NOC FTTH'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/network');
                 },
               ),
             ],

@@ -4,8 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../data/nas_model.dart';
 import '../data/nas_notifier.dart';
+import 'cgnat_and_marco_civil_tab.dart';
+import 'ipam_management_tab.dart';
+import 'radius_lifecycle_tab.dart';
+import 'radius_sessions_and_pod_tab.dart';
 
-/// Tela de Gestão de Concentradores BNG / NAS (MikroTik CHR & Huawei).
+/// Central de Concentradores BNG / NAS, Sessões RADIUS, Auto-Corte, IPAM e Marco Civil (`/admin/nas`).
 class NasManagementScreen extends ConsumerWidget {
   const NasManagementScreen({super.key});
 
@@ -79,138 +83,204 @@ class NasManagementScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final nasListAsync = ref.watch(nasListProvider);
 
-    return Scaffold(
-      backgroundColor: AppTheme.darkBg,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
+    return DefaultTabController(
+      length: 5,
+      child: Scaffold(
+        backgroundColor: AppTheme.darkBg,
+        body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cabeçalho
-            Row(
+            // Barra de Abas Unificada (Onda B — Etapa 2)
+            Container(
+              color: AppTheme.darkSurface,
+              child: const TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                tabs: [
+                  Tab(
+                    icon: Icon(Icons.router_outlined, size: 18),
+                    text: 'Concentradores BNG / NAS',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.wifi_tethering, size: 18),
+                    text: 'Sessões RADIUS & PoD',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.autorenew, size: 18),
+                    text: 'Auto-Corte & Ciclo de Vida',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.lan_outlined, size: 18),
+                    text: 'IPAM IPv4/IPv6 & VLSM',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.gavel_outlined, size: 18),
+                    text: 'CGNAT & Marco Civil',
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _buildNasTab(context, ref, nasListAsync),
+                  const RadiusSessionsAndPodTab(),
+                  const RadiusLifecycleTab(),
+                  const IpamManagementTab(),
+                  const CgnatAndMarcoCivilTab(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNasTab(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<NasModel>> nasListAsync,
+  ) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cabeçalho
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Concentradores de Acesso (BNG / NAS)',
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Roteadores de borda para autenticação PPPoE/IPoE no FreeRADIUS com suporte a MikroTik e Huawei',
+                      style: TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    ref.read(nasListProvider.notifier).loadNasList(),
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Recarregar'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryBlue,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => _openNasModal(context, ref),
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Novo Concentrador'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Banner explicativo com suporte MikroTik & Huawei
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.darkSurface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.darkCard),
+            ),
+            child: Row(
               children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.router_outlined,
+                      color: AppTheme.primaryBlue, size: 24),
+                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
                       Text(
-                        'Concentradores de Acesso (BNG / NAS)',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        'Provisionamento Dinâmico RADIUS Ativo',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Roteadores de borda para autenticação PPPoE/IPoE no FreeRADIUS com suporte a MikroTik e Huawei',
-                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                        'MikroTik: Rate-Limit e Address-List dinâmicos via CoA porta 3799. '
+                        'Huawei: Huawei-Input/Output-Average-Rate e redirecionamento de corte por captive portal.',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                            height: 1.4),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: () => ref.read(nasListProvider.notifier).loadNasList(),
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Recarregar'),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryBlue,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () => _openNasModal(context, ref),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Novo Concentrador'),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+          ),
+          const SizedBox(height: 24),
 
-            // Banner explicativo com suporte MikroTik & Huawei
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.darkSurface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.darkCard),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.router_outlined, color: AppTheme.primaryBlue, size: 24),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Provisionamento Dinâmico RADIUS Ativo',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'MikroTik: Rate-Limit e Address-List dinâmicos via CoA porta 3799. '
-                          'Huawei: Huawei-Input/Output-Average-Rate e redirecionamento de corte por captive portal.',
-                          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.4),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+          // Lista de Concentradores
+          nasListAsync.when(
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(48.0),
+                child: CircularProgressIndicator(),
               ),
             ),
-            const SizedBox(height: 24),
-
-            // Lista de Concentradores
-            nasListAsync.when(
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(48.0),
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-              error: (err, _) => Card(
-                color: AppTheme.accentError.withValues(alpha: 0.1),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline, color: AppTheme.accentError),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Erro ao carregar lista de concentradores: $err',
-                          style: const TextStyle(color: AppTheme.accentError),
-                        ),
+            error: (err, _) => Card(
+              color: AppTheme.accentError.withValues(alpha: 0.1),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline,
+                        color: AppTheme.accentError),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Erro ao carregar lista de concentradores: $err',
+                        style: const TextStyle(color: AppTheme.accentError),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              data: (list) {
-                if (list.isEmpty) {
-                  return _buildEmptyState(context, ref);
-                }
-
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: list.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (ctx, index) {
-                    final nas = list[index];
-                    return _buildNasCard(context, ref, nas);
-                  },
-                );
-              },
             ),
-          ],
-        ),
+            data: (list) {
+              if (list.isEmpty) {
+                return _buildEmptyState(context, ref);
+              }
+
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: list.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (ctx, index) {
+                  final nas = list[index];
+                  return _buildNasCard(context, ref, nas);
+                },
+              );
+            },
+          ),
+        ],
       ),
     );
   }
