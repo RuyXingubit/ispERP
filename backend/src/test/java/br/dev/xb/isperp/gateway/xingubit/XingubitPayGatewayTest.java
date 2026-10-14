@@ -57,17 +57,36 @@ class XingubitPayGatewayTest {
     }
 
     @Test
-    @DisplayName("Deve extrair txId ao processar webhook do Xingubit Pay")
+    @DisplayName("Regressão: Deve extrair txId ao processar webhook quando webhookSecret não está configurado (ambiente sandbox)")
     void shouldExtractTxIdFromWebhookPayload() {
+        PaymentGatewayConfig sandboxConfig = PaymentGatewayConfig.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .gatewayType(PaymentGatewayType.XINGUBIT_PAY)
+                .webhookSecret(null)
+                .build();
+
         Map<String, Object> payload = Map.of(
                 "txid", "XB-TEST12345678",
                 "paidAmount", "119.90",
                 "status", "PAID"
         );
 
-        String txId = gateway.processWebhook(payload, null, sampleConfig);
+        String txId = gateway.processWebhook(payload, null, sandboxConfig);
 
         assertEquals("XB-TEST12345678", txId);
+    }
+
+    @Test
+    @DisplayName("Segurança (Fail-Closed): Deve rejeitar webhook sem assinatura (signature = null ou vazia) quando webhookSecret está configurado")
+    void shouldRejectMissingSignatureWhenWebhookSecretIsConfigured() {
+        Map<String, Object> payload = Map.of(
+                "txid", "XB-BYPASS-ATTEMPT",
+                "paidAmount", "119.90",
+                "status", "PAID"
+        );
+
+        assertThrows(SecurityException.class, () -> gateway.processWebhook(payload, null, sampleConfig));
+        assertThrows(SecurityException.class, () -> gateway.processWebhook(payload, "   ", sampleConfig));
     }
 
     @Test

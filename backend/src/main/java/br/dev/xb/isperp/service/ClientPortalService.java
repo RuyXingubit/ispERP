@@ -257,6 +257,15 @@ public class ClientPortalService {
         return lastActive.isEmpty();
     }
 
+    private static final int MAX_PIN_ATTEMPTS = 5;
+    private static final int LOCKOUT_MINUTES = 15;
+    private final java.util.concurrent.ConcurrentHashMap<String, PinAttemptTracker> pinAttemptCache = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static class PinAttemptTracker {
+        int attempts;
+        LocalDateTime lockedUntil;
+    }
+
     /**
      * Autentica o cliente por CPF/CNPJ e valida PIN de 4 dígitos.
      */
@@ -264,6 +273,16 @@ public class ClientPortalService {
     public ClientAuthResponse authenticateClient(ClientAuthRequest request) {
         String rawDoc = request.getDocument();
         String cleanDoc = rawDoc.replaceAll("[^0-9]", "");
+
+        PinAttemptTracker tracker = pinAttemptCache.get(cleanDoc);
+        if (tracker != null && tracker.lockedUntil != null) {
+            if (LocalDateTime.now().isBefore(tracker.lockedUntil)) {
+                throw new IllegalArgumentException(
+                        "Acesso temporariamente bloqueado devido a múltiplas tentativas incorretas de PIN. Aguarde alguns minutos ou contate o suporte.");
+            } else {
+                pinAttemptCache.remove(cleanDoc);
+            }
+        }
 
         Customer customer = customerRepository.findByCpfOrCleanDocument(rawDoc, cleanDoc)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não localizado com o CPF/CNPJ informado."));
@@ -280,7 +299,7 @@ public class ClientPortalService {
                 return ClientAuthResponse.builder()
                         .status("PIN_REQUIRED")
                         .message("Informe seu PIN de 4 dígitos para prosseguir.")
-                        .customerId(customer.getId())
+                        .customerId(null)
                         .customerName(customer.getName())
                         .maskedDocument(maskDocument(cleanDoc))
                         .hasPin(true)
@@ -292,8 +311,18 @@ public class ClientPortalService {
                     || request.getPin().equals(customer.getPortalPin()); // fallback para PIN legado não hasheado
 
             if (!pinMatches) {
+                pinAttemptCache.compute(cleanDoc, (k, v) -> {
+                    PinAttemptTracker t = (v != null) ? v : new PinAttemptTracker();
+                    t.attempts++;
+                    if (t.attempts >= MAX_PIN_ATTEMPTS) {
+                        t.lockedUntil = LocalDateTime.now().plusMinutes(LOCKOUT_MINUTES);
+                    }
+                    return t;
+                });
                 throw new IllegalArgumentException("PIN incorreto. Tente novamente.");
             }
+
+            pinAttemptCache.remove(cleanDoc);
 
             if (Boolean.TRUE.equals(customer.getPinForceChange())) {
                 return ClientAuthResponse.builder()
@@ -327,10 +356,12 @@ public class ClientPortalService {
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado: " + request.getCustomerId()));
 
-        // Se já tiver PIN e não for force change, valida o PIN atual
+        // Se já tiver PIN e não for force change, exige e valida obrigatoriamente o PIN atual
         if (customer.getPortalPin() != null && !customer.getPortalPin().isBlank()
-                && !Boolean.TRUE.equals(customer.getPinForceChange())
-                && request.getCurrentPin() != null && !request.getCurrentPin().isBlank()) {
+                && !Boolean.TRUE.equals(customer.getPinForceChange())) {
+            if (request.getCurrentPin() == null || request.getCurrentPin().isBlank()) {
+                throw new IllegalArgumentException("O PIN atual é obrigatório para alterar um PIN já cadastrado.");
+            }
             boolean pinMatches = passwordEncoder.matches(request.getCurrentPin(), customer.getPortalPin())
                     || request.getCurrentPin().equals(customer.getPortalPin());
             if (!pinMatches) {
@@ -341,6 +372,9 @@ public class ClientPortalService {
         customer.setPortalPin(passwordEncoder.encode(request.getNewPin()));
         customer.setPinForceChange(false);
         customerRepository.save(customer);
+        if (customer.getCpf() != null) {
+            pinAttemptCache.remove(customer.getCpf().replaceAll("[^0-9]", ""));
+        }
         log.info("PIN de 4 dígitos atualizado com sucesso para o cliente {}", customer.getId());
     }
 
@@ -355,6 +389,9 @@ public class ClientPortalService {
         customer.setPortalPin(passwordEncoder.encode(temporaryPin));
         customer.setPinForceChange(forceChange);
         customerRepository.save(customer);
+        if (customer.getCpf() != null) {
+            pinAttemptCache.remove(customer.getCpf().replaceAll("[^0-9]", ""));
+        }
         log.info("PIN resetado pelo operador para o cliente {}", customerId);
     }
 

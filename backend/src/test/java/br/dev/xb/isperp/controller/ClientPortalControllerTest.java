@@ -69,13 +69,12 @@ class ClientPortalControllerTest {
     }
 
     @Test
-    @DisplayName("POST /portal/client/auth - Deve exigir PIN quando cliente possui PIN cadastrado")
+    @DisplayName("POST /portal/client/auth - Deve exigir PIN quando cliente possui PIN cadastrado sem vazar customerId")
     void shouldRequirePinWhenConfigured() throws Exception {
-        UUID customerId = UuidCreatorUtils.generateUuidV7();
         ClientAuthResponse authResponse = ClientAuthResponse.builder()
                 .status("PIN_REQUIRED")
                 .message("Informe seu PIN de 4 dígitos para prosseguir.")
-                .customerId(customerId)
+                .customerId(null)
                 .customerName("Maria Souza")
                 .maskedDocument("123.***.***-45")
                 .hasPin(true)
@@ -92,7 +91,8 @@ class ClientPortalControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PIN_REQUIRED"))
-                .andExpect(jsonPath("$.hasPin").value(true));
+                .andExpect(jsonPath("$.hasPin").value(true))
+                .andExpect(jsonPath("$.customerId").doesNotExist());
     }
 
     @Test

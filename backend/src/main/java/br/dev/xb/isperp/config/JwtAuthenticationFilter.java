@@ -34,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+        request.removeAttribute(getAlreadyFilteredAttributeName());
         final JwtUtil jwtUtil = jwtUtilProvider.getIfAvailable();
         if (jwtUtil == null) {
             filterChain.doFilter(request, response);
@@ -53,7 +54,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String username = jwtUtil.extractUsername(token);
             final String role = jwtUtil.extractRole(token);
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            var currentAuth = SecurityContextHolder.getContext().getAuthentication();
+            if (username != null && (currentAuth == null || currentAuth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
                 if (jwtUtil.validateToken(token, username)) {
                     List<SimpleGrantedAuthority> authorities = role != null
                             ? Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
@@ -75,3 +77,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+

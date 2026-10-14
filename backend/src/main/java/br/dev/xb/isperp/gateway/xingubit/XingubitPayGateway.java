@@ -55,8 +55,12 @@ public class XingubitPayGateway implements PaymentGateway {
     public String processWebhook(Map<String, Object> payload, String signature, PaymentGatewayConfig config) {
         log.info("XingubitPay: Processando webhook de notificação de pagamento: {}", payload);
 
-        // Validação de assinatura criptográfica HMAC-SHA256 se fornecida e configurada
-        if (signature != null && config.getWebhookSecret() != null && !config.getWebhookSecret().isBlank()) {
+        // Validação de assinatura criptográfica HMAC-SHA256 (Fail-Closed quando webhookSecret está configurado)
+        if (config != null && config.getWebhookSecret() != null && !config.getWebhookSecret().isBlank()) {
+            if (signature == null || signature.isBlank()) {
+                log.error("XingubitPay: Webhook rejeitado por ausência de assinatura HMAC-SHA256!");
+                throw new SecurityException("XingubitPay: Assinatura de webhook HMAC ausente");
+            }
             boolean valid = validateWebhookSignature(payload.toString(), signature, config.getWebhookSecret());
             if (!valid) {
                 log.error("XingubitPay: Assinatura de webhook HMAC-SHA256 inválida!");

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneOffset;
@@ -17,6 +18,7 @@ import java.time.ZoneOffset;
 @RestController
 @RequestMapping({"/storage/config", "/api/storage/config"})
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Configuração de Armazenamento S3", description = "Endpoints para gerenciamento e teste de conectividade de S3 local (SeaweedFS) e provedores em nuvem")
 @SuppressWarnings("null")
 public class StorageConfigController implements StorageConfigApi {

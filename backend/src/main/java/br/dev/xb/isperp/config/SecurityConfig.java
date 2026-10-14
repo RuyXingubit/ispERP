@@ -21,7 +21,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(proxyTargetClass = true)
 @SuppressWarnings("null")
 public class SecurityConfig {
 
@@ -67,15 +67,11 @@ public class SecurityConfig {
                     "/actuator/**",
                     "/api/webhooks/**",
                     "/portal/client/**",
-                    "/bi/**",
-                    "/dashboard/**",
-                    "/api/bi/**",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/swagger-resources/**",
                     "/webjars/**",
-                    "/files/**",
                     "/api/public/**",
                     "/contracts/signature/**",
                     "/geocep/**",
@@ -85,7 +81,9 @@ public class SecurityConfig {
                     HttpMethod.GET,
                     "/plans/active",
                     "/site-settings",
-                    "/companies/primary"
+                    "/companies/primary",
+                    "/files/**",
+                    "/api/files/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             );

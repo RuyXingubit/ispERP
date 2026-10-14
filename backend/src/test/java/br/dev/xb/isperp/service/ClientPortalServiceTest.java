@@ -190,4 +190,121 @@ class ClientPortalServiceTest {
         assertEquals(Contract.ContractStatus.ACTIVE, contract.getStatus());
         verify(outboxEventRepository).save(any(OutboxEvent.class));
     }
+
+    @Test
+    @DisplayName("Regressão: Cliente sem PIN cadastrado deve autenticar no primeiro acesso e receber customerId")
+    void shouldAuthenticateFirstAccessWithoutPin() {
+        customer.setActive(true);
+        customer.setPortalPin(null);
+        when(customerRepository.findByCpfOrCleanDocument("52998224725", "52998224725"))
+                .thenReturn(Optional.of(customer));
+
+        br.dev.xb.isperp.dto.ClientAuthRequest req = br.dev.xb.isperp.dto.ClientAuthRequest.builder()
+                .document("52998224725")
+                .build();
+
+        br.dev.xb.isperp.dto.ClientAuthResponse resp = clientPortalService.authenticateClient(req);
+
+        assertEquals("AUTHENTICATED", resp.getStatus());
+        assertEquals(customerId, resp.getCustomerId());
+        assertFalse(resp.getHasPin());
+    }
+
+    @Test
+    @DisplayName("Segurança: Quando PIN_REQUIRED, NÃO deve expor o customerId (UUID) antes da validação do PIN")
+    void shouldNotLeakCustomerIdWhenPinIsRequired() {
+        customer.setActive(true);
+        customer.setPortalPin("$2a$10$hashedPin");
+        when(customerRepository.findByCpfOrCleanDocument("52998224725", "52998224725"))
+                .thenReturn(Optional.of(customer));
+
+        br.dev.xb.isperp.dto.ClientAuthRequest req = br.dev.xb.isperp.dto.ClientAuthRequest.builder()
+                .document("52998224725")
+                .build();
+
+        br.dev.xb.isperp.dto.ClientAuthResponse resp = clientPortalService.authenticateClient(req);
+
+        assertEquals("PIN_REQUIRED", resp.getStatus());
+        assertTrue(resp.getHasPin());
+        assertNull(resp.getCustomerId(), "O UUID do cliente jamais deve ser retornado antes da validação do PIN");
+        assertNull(resp.getCustomer(), "Os dados completos do cliente jamais devem ser retornados antes do PIN");
+    }
+
+    @Test
+    @DisplayName("Segurança: Não deve permitir sobrescrever PIN existente enviando currentPin nulo ou em branco")
+    void shouldRejectPinOverwriteWhenCurrentPinIsNullOrBlank() {
+        customer.setActive(true);
+        customer.setPortalPin("$2a$10$hashedPin");
+        customer.setPinForceChange(false);
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+
+        br.dev.xb.isperp.dto.SetClientPinRequest nullCurrentPinReq = br.dev.xb.isperp.dto.SetClientPinRequest.builder()
+                .customerId(customerId)
+                .newPin("9999")
+                .currentPin(null)
+                .build();
+
+        assertThrows(IllegalArgumentException.class, () -> clientPortalService.setPin(nullCurrentPinReq));
+
+        br.dev.xb.isperp.dto.SetClientPinRequest blankCurrentPinReq = br.dev.xb.isperp.dto.SetClientPinRequest.builder()
+                .customerId(customerId)
+                .newPin("9999")
+                .currentPin("   ")
+                .build();
+
+        assertThrows(IllegalArgumentException.class, () -> clientPortalService.setPin(blankCurrentPinReq));
+    }
+
+    @Test
+    @DisplayName("Regressão: Deve permitir alterar PIN quando currentPin correto é informado ou quando pinForceChange = true")
+    void shouldAllowPinUpdateWithValidCurrentPinOrForceChange() {
+        customer.setActive(true);
+        customer.setPortalPin("$2a$10$hashedPin");
+        customer.setPinForceChange(false);
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(passwordEncoder.matches("1234", "$2a$10$hashedPin")).thenReturn(true);
+        when(passwordEncoder.encode("5678")).thenReturn("$2a$10$newHashedPin");
+
+        br.dev.xb.isperp.dto.SetClientPinRequest validReq = br.dev.xb.isperp.dto.SetClientPinRequest.builder()
+                .customerId(customerId)
+                .currentPin("1234")
+                .newPin("5678")
+                .build();
+
+        assertDoesNotThrow(() -> clientPortalService.setPin(validReq));
+        assertEquals("$2a$10$newHashedPin", customer.getPortalPin());
+    }
+
+    @Test
+    @DisplayName("Segurança: Deve bloquear temporariamente após 5 tentativas consecutivas de PIN incorreto (Brute-Force Lockout)")
+    void shouldLockoutAfterFiveFailedPinAttempts() {
+        customer.setActive(true);
+        customer.setPortalPin("$2a$10$hashedPin");
+        when(customerRepository.findByCpfOrCleanDocument("52998224725", "52998224725"))
+                .thenReturn(Optional.of(customer));
+        when(passwordEncoder.matches("0000", "$2a$10$hashedPin")).thenReturn(false);
+
+        br.dev.xb.isperp.dto.ClientAuthRequest wrongPinReq = br.dev.xb.isperp.dto.ClientAuthRequest.builder()
+                .document("52998224725")
+                .pin("0000")
+                .build();
+
+        for (int i = 0; i < 5; i++) {
+            assertThrows(IllegalArgumentException.class, () -> clientPortalService.authenticateClient(wrongPinReq));
+        }
+
+        // Na 6ª tentativa, mesmo com PIN correto, deve estar bloqueado por brute-force
+        br.dev.xb.isperp.dto.ClientAuthRequest rightPinReq = br.dev.xb.isperp.dto.ClientAuthRequest.builder()
+                .document("52998224725")
+                .pin("1234")
+                .build();
+
+        IllegalArgumentException lockoutEx = assertThrows(
+                IllegalArgumentException.class,
+                () -> clientPortalService.authenticateClient(rightPinReq)
+        );
+        assertTrue(lockoutEx.getMessage().toLowerCase().contains("bloquead")
+                || lockoutEx.getMessage().toLowerCase().contains("tentativas"));
+    }
 }
+

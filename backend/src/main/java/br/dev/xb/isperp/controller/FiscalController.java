@@ -25,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +38,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
+@PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
 @SuppressWarnings("null")
 public class FiscalController implements FiscalApi {
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isperp_app/core/constants/app_constants.dart';
 import 'package:isperp_app/core/models/user_role.dart';
 import 'package:isperp_app/core/storage/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,6 +49,48 @@ class FakeSecureStorage extends Fake implements FlutterSecureStorage {
     WindowsOptions? wOptions,
   }) async {
     _store.remove(key);
+  }
+}
+
+class FailingSecureStorage extends Fake implements FlutterSecureStorage {
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    throw Exception('Keychain unavailable');
+  }
+
+  @override
+  Future<String?> read({
+    required String key,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    throw Exception('Keychain unavailable');
+  }
+
+  @override
+  Future<void> delete({
+    required String key,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    throw Exception('Keychain unavailable');
   }
 }
 
@@ -99,6 +142,37 @@ void main() {
       expect(storageService.getUserEmail(), 'tecnico@provedor.com');
       expect(storageService.getUserName(), 'João Técnico');
       expect(await storageService.hasValidSession(), isTrue);
+    });
+
+    test('Segurança: Quando FlutterSecureStorage está ativo, NÃO deve vazar accessToken ou refreshToken em texto plano no SharedPreferences', () async {
+      await storageService.saveSession(
+        accessToken: 'secret_jwt_access_token',
+        refreshToken: 'secret_jwt_refresh_token',
+        role: UserRole.admin,
+        email: 'admin@provedor.com',
+        name: 'Admin',
+      );
+
+      // Tokens devem ser lidos do SecureStorage, mas NUNCA gravados em texto plano no SharedPreferences
+      expect(prefs.getString(AppConstants.keyAccessToken), isNull);
+      expect(prefs.getString(AppConstants.keyRefreshToken), isNull);
+      expect(await storageService.getAccessToken(), 'secret_jwt_access_token');
+      expect(await storageService.getRefreshToken(), 'secret_jwt_refresh_token');
+    });
+
+    test('Regressão: Deve usar fallback no SharedPreferences apenas se o Keychain do SO falhar', () async {
+      final fallbackService = StorageService(prefs, FailingSecureStorage());
+
+      await fallbackService.saveSession(
+        accessToken: 'fallback_access_token',
+        refreshToken: 'fallback_refresh_token',
+        role: UserRole.admin,
+        email: 'admin@provedor.com',
+        name: 'Admin',
+      );
+
+      expect(await fallbackService.getAccessToken(), 'fallback_access_token');
+      expect(await fallbackService.getRefreshToken(), 'fallback_refresh_token');
     });
 
     test('Deve limpar a sessão completamente no logout', () async {
@@ -159,3 +233,4 @@ void main() {
     });
   });
 }
+

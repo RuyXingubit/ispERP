@@ -103,6 +103,16 @@ function renderCompanyInfo(company: Company | null, settings: SiteSettings | nul
   }
 }
 
+function escapeHtml(raw: string | undefined | null): string {
+  if (!raw) return '';
+  return String(raw)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /**
  * Renderiza dinamicamente os cards de planos ativos vindos do backend
  */
@@ -129,9 +139,13 @@ function renderPlans(plans: PlanItem[], company: Company | null) {
   container.innerHTML = plans
     .map((plan, index) => {
       const isFeatured = index === featuredIndex;
-      const speedMbps = plan.downloadSpeed;
-      const uploadMbps = plan.uploadSpeed;
+      const speedMbps = Number(plan.downloadSpeed) || 0;
+      const uploadMbps = Number(plan.uploadSpeed) || 0;
       const priceFormatted = formatCurrency(plan.price);
+      const safeId = escapeHtml(plan.id);
+      const safeName = escapeHtml(plan.name);
+      const safeDescription = plan.description ? escapeHtml(plan.description) : '';
+      const safeSva = plan.svaIncluded ? escapeHtml(plan.svaIncluded) : '';
 
       const contractMessage = encodeURIComponent(
         `Olá! Tenho interesse no plano ${plan.name} (${speedMbps} Mega por R$ ${priceFormatted}/mês) da ${companyName}. Poderiam verificar a disponibilidade para o meu endereço?`
@@ -141,12 +155,12 @@ function renderPlans(plans: PlanItem[], company: Company | null) {
         : '#contato';
 
       return `
-        <article class="plan-card ${isFeatured ? 'featured' : ''}" id="plan-${plan.id}">
+        <article class="plan-card ${isFeatured ? 'featured' : ''}" id="plan-${safeId}">
           ${isFeatured ? '<span class="featured-tag">Mais Escolhido</span>' : ''}
           
           <div class="plan-header">
-            <h3 class="plan-name">${plan.name}</h3>
-            ${plan.description ? `<p class="section-subtitle" style="font-size: 0.85rem;">${plan.description}</p>` : ''}
+            <h3 class="plan-name">${safeName}</h3>
+            ${safeDescription ? `<p class="section-subtitle" style="font-size: 0.85rem;">${safeDescription}</p>` : ''}
             
             <div class="plan-speed-wrapper">
               <span class="plan-speed-number">${speedMbps}</span>
@@ -177,10 +191,10 @@ function renderPlans(plans: PlanItem[], company: Company | null) {
               <span class="plan-feature-icon">✓</span>
               <span>Suporte Técnico Prioritário Local</span>
             </li>
-            ${plan.svaIncluded ? `
+            ${safeSva ? `
             <li class="plan-feature-item">
               <span class="plan-feature-icon">★</span>
-              <span>Benefício Incluso: ${plan.svaIncluded}</span>
+              <span>Benefício Incluso: ${safeSva}</span>
             </li>
             ` : ''}
           </ul>

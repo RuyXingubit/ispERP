@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', {
@@ -21,6 +22,16 @@ function buildWhatsAppLink(phone, companyName, plan) {
   return `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`;
 }
 
+function escapeHtml(raw) {
+  if (raw === null || raw === undefined) return '';
+  return String(raw)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 test('formatCurrency - formata valores monetários no padrão brasileiro', () => {
   assert.equal(formatCurrency(99.9), '99,90');
   assert.equal(formatCurrency(149.99), '149,99');
@@ -40,3 +51,16 @@ test('buildWhatsAppLink - gera URL de WhatsApp com mensagem pré-preenchida do p
   assert.ok(link.includes('Fibra%20Gamer'));
   assert.ok(link.includes('600%20Mega'));
 });
+
+test('Segurança: escapeHtml - deve neutralizar tags e atributos maliciosos contra DOM XSS', () => {
+  const maliciousName = '<img src=x onerror="alert(1)">Fibra';
+  const sanitized = escapeHtml(maliciousName);
+  assert.equal(sanitized, '&lt;img src=x onerror=&quot;alert(1)&quot;&gt;Fibra');
+  assert.ok(!sanitized.includes('<img'));
+
+  const mainTsContent = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+  assert.ok(mainTsContent.includes('escapeHtml(plan.name)'), 'main.ts deve sanitizar plan.name com escapeHtml');
+  assert.ok(mainTsContent.includes('escapeHtml(plan.description)'), 'main.ts deve sanitizar plan.description com escapeHtml');
+  assert.ok(mainTsContent.includes('escapeHtml(plan.svaIncluded)'), 'main.ts deve sanitizar plan.svaIncluded com escapeHtml');
+});
+

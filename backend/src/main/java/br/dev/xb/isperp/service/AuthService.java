@@ -27,6 +27,11 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         
+        if (!Boolean.TRUE.equals(user.getActive())) {
+            log.warn("Tentativa de login bloqueada para usuário inativo: {}", request.getUsername());
+            throw new RuntimeException("Usuário inativo ou desativado");
+        }
+        
         boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
         if (!passwordMatches) {
             log.warn("Falha de autenticação para usuário: {}", request.getUsername());

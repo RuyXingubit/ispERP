@@ -9,6 +9,7 @@ import br.dev.xb.isperp.repository.PaymentGatewayConfigRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneOffset;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @RequestMapping({"/payment-gateways", "/api/payment-gateways"})
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
 @SuppressWarnings("null")
 public class PaymentGatewayConfigController implements PaymentGatewayConfigApi {
 
@@ -47,8 +49,32 @@ public class PaymentGatewayConfigController implements PaymentGatewayConfigApi {
     @PostMapping
     public ResponseEntity<PaymentGatewayConfigResponse> savePaymentGatewayConfig(@Valid @RequestBody PaymentGatewayConfigSaveRequest request) {
         PaymentGatewayConfig entity = toEntity(request);
+        if (request.getId() != null) {
+            configRepository.findById(request.getId()).ifPresent(existing -> {
+                if (isMaskedOrBlank(entity.getSecretKey())) {
+                    entity.setSecretKey(existing.getSecretKey());
+                }
+                if (isMaskedOrBlank(entity.getWebhookSecret())) {
+                    entity.setWebhookSecret(existing.getWebhookSecret());
+                }
+            });
+        }
         PaymentGatewayConfig saved = configRepository.save(entity);
         return ResponseEntity.ok(toApiResponse(saved));
+    }
+
+    private boolean isMaskedOrBlank(String value) {
+        return value == null || value.isBlank() || value.startsWith("••••");
+    }
+
+    private String maskSecret(String secret) {
+        if (secret == null || secret.isBlank()) {
+            return secret;
+        }
+        if (secret.length() <= 4) {
+            return "••••";
+        }
+        return "••••••••" + secret.substring(secret.length() - 4);
     }
 
     private PaymentGatewayConfig toEntity(PaymentGatewayConfigSaveRequest req) {
@@ -78,8 +104,8 @@ public class PaymentGatewayConfigController implements PaymentGatewayConfigApi {
         }
         res.setName(entity.getName());
         res.setApiKey(entity.getApiKey());
-        res.setSecretKey(entity.getSecretKey());
-        res.setWebhookSecret(entity.getWebhookSecret());
+        res.setSecretKey(maskSecret(entity.getSecretKey()));
+        res.setWebhookSecret(maskSecret(entity.getWebhookSecret()));
         res.setPixKey(entity.getPixKey());
         res.setSandbox(entity.getSandbox());
         res.setActive(entity.getActive());
@@ -92,3 +118,4 @@ public class PaymentGatewayConfigController implements PaymentGatewayConfigApi {
         return res;
     }
 }
+

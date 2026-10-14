@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZoneOffset;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
+@PreAuthorize("hasRole('ADMIN')")
 @SuppressWarnings("null")
 public class NotificationConfigController implements NotificationConfigsApi {
 
@@ -51,8 +53,30 @@ public class NotificationConfigController implements NotificationConfigsApi {
     ) {
         NotificationConfig entity = toEntity(request);
         entity.setId(id);
+        configRepository.findById(id).ifPresent(existing -> {
+            if (isMaskedOrBlank(entity.getApiToken())) {
+                entity.setApiToken(existing.getApiToken());
+            }
+            if (isMaskedOrBlank(entity.getAuthToken())) {
+                entity.setAuthToken(existing.getAuthToken());
+            }
+        });
         NotificationConfig saved = configRepository.save(entity);
         return ResponseEntity.ok(toApiResponse(saved));
+    }
+
+    private boolean isMaskedOrBlank(String value) {
+        return value == null || value.isBlank() || value.startsWith("••••");
+    }
+
+    private String maskSecret(String secret) {
+        if (secret == null || secret.isBlank()) {
+            return secret;
+        }
+        if (secret.length() <= 4) {
+            return "••••";
+        }
+        return "••••••••" + secret.substring(secret.length() - 4);
     }
 
     private NotificationConfig toEntity(NotificationConfigSaveRequest req) {
@@ -81,9 +105,9 @@ public class NotificationConfigController implements NotificationConfigsApi {
         }
         res.setName(entity.getName());
         res.setApiUrl(entity.getApiUrl());
-        res.setApiToken(entity.getApiToken());
+        res.setApiToken(maskSecret(entity.getApiToken()));
         res.setAccountSid(entity.getAccountSid());
-        res.setAuthToken(entity.getAuthToken());
+        res.setAuthToken(maskSecret(entity.getAuthToken()));
         res.setFromPhoneNumber(entity.getFromPhoneNumber());
         res.setActive(entity.getActive());
         if (entity.getCreatedAt() != null) {
@@ -95,3 +119,4 @@ public class NotificationConfigController implements NotificationConfigsApi {
         return res;
     }
 }
+

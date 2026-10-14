@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @RequestMapping({"", "/api"})
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT_N2')")
 @Tag(name = "RADIUS - NAS / BNG", description = "Gestão de Servidores NAS e Roteadores BNG do FreeRADIUS")
 public class NasController implements NasApi {
 

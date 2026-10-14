@@ -61,11 +61,13 @@ class StorageService {
         key: AppConstants.keyRefreshToken,
         value: refreshToken,
       ).timeout(const Duration(milliseconds: 300));
+      await _prefs.remove(AppConstants.keyAccessToken);
+      await _prefs.remove(AppConstants.keyRefreshToken);
     } catch (_) {
-      // Fallback gracioso para SharedPreferences caso o Keychain do OS demore ou esteja inacessível
+      // Fallback gracioso para SharedPreferences apenas caso o Keychain do OS demore ou esteja inacessível
+      await _prefs.setString(AppConstants.keyAccessToken, accessToken);
+      await _prefs.setString(AppConstants.keyRefreshToken, refreshToken);
     }
-    await _prefs.setString(AppConstants.keyAccessToken, accessToken);
-    await _prefs.setString(AppConstants.keyRefreshToken, refreshToken);
     await _prefs.setString(AppConstants.keyUserRole, role.name);
     await _prefs.setString(AppConstants.keyUserEmail, email);
     await _prefs.setString(AppConstants.keyUserName, name);
@@ -73,32 +75,36 @@ class StorageService {
 
   /// Retorna o token de acesso (Bearer JWT).
   Future<String?> getAccessToken() async {
-    final prefsToken = _prefs.getString(AppConstants.keyAccessToken);
-    if (prefsToken == null || prefsToken.isEmpty) {
-      return null;
-    }
+    final hasSessionMeta = _prefs.getString(AppConstants.keyUserEmail) != null ||
+        _prefs.containsKey(AppConstants.keyAccessToken);
+    if (!hasSessionMeta) return null;
+
     try {
       final token = await _secureStorage
           .read(key: AppConstants.keyAccessToken)
           .timeout(const Duration(milliseconds: 300));
       if (token != null && token.isNotEmpty) return token;
     } catch (_) {}
-    return prefsToken;
+    final prefsToken = _prefs.getString(AppConstants.keyAccessToken);
+    if (prefsToken != null && prefsToken.isNotEmpty) return prefsToken;
+    return null;
   }
 
   /// Retorna o token de renovação.
   Future<String?> getRefreshToken() async {
-    final prefsToken = _prefs.getString(AppConstants.keyRefreshToken);
-    if (prefsToken == null || prefsToken.isEmpty) {
-      return null;
-    }
+    final hasSessionMeta = _prefs.getString(AppConstants.keyUserEmail) != null ||
+        _prefs.containsKey(AppConstants.keyRefreshToken);
+    if (!hasSessionMeta) return null;
+
     try {
       final token = await _secureStorage
           .read(key: AppConstants.keyRefreshToken)
           .timeout(const Duration(milliseconds: 300));
       if (token != null && token.isNotEmpty) return token;
     } catch (_) {}
-    return prefsToken;
+    final prefsToken = _prefs.getString(AppConstants.keyRefreshToken);
+    if (prefsToken != null && prefsToken.isNotEmpty) return prefsToken;
+    return null;
   }
 
   /// Retorna o perfil (Role) do colaborador conectado.
