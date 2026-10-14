@@ -9,6 +9,7 @@ enum AttendanceStep {
   overview,
   payment,
   receiptEvidence,
+  supportTicket,
 }
 
 /// Estado imutável do atendimento guiado.
@@ -155,6 +156,9 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
     state = state.copyWith(selectedIntent: intent);
     if (intent == AttendanceIntent.payment) {
       state = state.copyWith(step: AttendanceStep.payment);
+    } else if (intent == AttendanceIntent.support ||
+        intent == AttendanceIntent.general) {
+      state = state.copyWith(step: AttendanceStep.supportTicket);
     }
   }
 
@@ -209,6 +213,7 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
         state = state.copyWith(step: AttendanceStep.channelAndSearch);
         break;
       case AttendanceStep.payment:
+      case AttendanceStep.supportTicket:
         state = state.copyWith(step: AttendanceStep.overview);
         break;
       case AttendanceStep.receiptEvidence:

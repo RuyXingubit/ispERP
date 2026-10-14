@@ -6,6 +6,7 @@ import 'steps/step_channel_and_search.dart';
 import 'steps/step_customer_360_overview.dart';
 import 'steps/step_invoice_payment.dart';
 import 'steps/step_receipt_evidence.dart';
+import 'steps/step_support_ticket.dart';
 
 /// Modal principal do Hub de Atendimento Guiado.
 class AttendanceHubModal extends ConsumerWidget {
@@ -37,6 +38,9 @@ class AttendanceHubModal extends ConsumerWidget {
         break;
       case AttendanceStep.receiptEvidence:
         stepTitle = '4. Custódia & Canhoto';
+        break;
+      case AttendanceStep.supportTicket:
+        stepTitle = '3. Chamado & Protocolo Anatel (N1 / N2)';
         break;
     }
 
@@ -133,6 +137,8 @@ class AttendanceHubModal extends ConsumerWidget {
         return const StepInvoicePayment();
       case AttendanceStep.receiptEvidence:
         return const StepReceiptEvidence();
+      case AttendanceStep.supportTicket:
+        return const StepSupportTicket();
     }
   }
 }
