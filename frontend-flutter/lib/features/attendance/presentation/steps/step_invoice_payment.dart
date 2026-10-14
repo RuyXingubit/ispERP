@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../financial/data/fiscal_repository.dart';
 import '../../data/attendance_notifier.dart';
 
 /// Passo 3 do Hub de Atendimento: Escolha da Fatura e Recebimento Guiado.
@@ -105,6 +106,42 @@ class StepInvoicePayment extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      TextButton.icon(
+                        onPressed: () async {
+                          try {
+                            final rec = await ref
+                                .read(fiscalRepositoryProvider)
+                                .emitNfcom(inv.id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'NFCom Nº ${rec.numero} (${rec.status}) emitida para a fatura.',
+                                  ),
+                                  backgroundColor: AppTheme.accentGreen,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    e.toString().replaceFirst('Exception: ', ''),
+                                  ),
+                                  backgroundColor: AppTheme.accentError,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.receipt_long_outlined, size: 15),
+                        label: const Text(
+                          'Emitir NFCom',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       Text(
                         'R\$ ${inv.amount.toStringAsFixed(2)}',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),

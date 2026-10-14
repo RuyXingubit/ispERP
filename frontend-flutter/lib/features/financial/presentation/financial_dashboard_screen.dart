@@ -8,10 +8,12 @@ import '../../../core/widgets/process_lifecycle_stepper.dart';
 import '../data/cash_custody_repository.dart';
 import '../data/dashboard_bi_model.dart';
 import '../data/dashboard_bi_provider.dart';
+import '../data/fiscal_repository.dart';
 import '../data/payables_and_accounts_repository.dart';
 import '../data/strategic_finance_repository.dart';
 import 'cfo_audit_and_waivers_tab.dart';
 import 'dre_and_deleveraging_tab.dart';
+import 'fiscal_and_nfcom_tab.dart';
 import 'payback_and_sentinel_tab.dart';
 import 'payables_and_accounts_tab.dart';
 
@@ -22,6 +24,7 @@ import 'payables_and_accounts_tab.dart';
 /// 3. DRE & Desalavancagem 36M
 /// 4. Payback FTTH & Sentinela
 /// 5. Auditoria de Caixa & Alçadas
+/// 6. Fiscal & NFCom Mod. 62
 class FinancialDashboardScreen extends ConsumerStatefulWidget {
   const FinancialDashboardScreen({super.key});
 
@@ -50,6 +53,10 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
     ref.invalidate(deleveragingProjectionProvider);
     ref.invalidate(networkProjectsPaybackProvider);
     ref.invalidate(activeSentinelAlertsProvider);
+    ref.invalidate(activeFiscalCompanyProvider);
+    ref.invalidate(activeFiscalGatewayConfigProvider);
+    ref.invalidate(nfcomRecordsPageProvider(0));
+    ref.invalidate(fiscalRegimeTransitionsProvider);
   }
 
   @override
@@ -59,7 +66,7 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
     final currentUserRole = authState.role?.name.toUpperCase();
 
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Scaffold(
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -125,6 +132,10 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
                     icon: Icon(Icons.verified_user_outlined, size: 18),
                     text: 'Auditoria de Caixa & Alçadas',
                   ),
+                  Tab(
+                    icon: Icon(Icons.receipt_long_outlined, size: 18),
+                    text: 'Fiscal & NFCom Mod. 62',
+                  ),
                 ],
               ),
             ),
@@ -160,6 +171,8 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
                     padding: EdgeInsets.all(24.0),
                     child: CfoAuditAndWaiversTab(),
                   ),
+                  // Aba 6: Fiscal & NFCom Mod. 62
+                  const FiscalAndNfcomTab(),
                 ],
               ),
             ),

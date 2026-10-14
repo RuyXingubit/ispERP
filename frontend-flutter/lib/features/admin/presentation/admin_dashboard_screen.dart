@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
@@ -225,6 +226,12 @@ class AdminDashboardScreen extends ConsumerWidget {
                           _buildAuditTile('Sessão Ativa Autenticada', 'JWT válido para ${authState.email ?? ""}'),
                           _buildAuditTile('Conexão com Backend', 'Instância em ${authState.serverUrl ?? "Local"}'),
                           _buildAuditTile('Regime Fiscal & NFCom 62', 'Módulo de faturamento em conformidade'),
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: () => context.go('/financial'),
+                            icon: const Icon(Icons.receipt_long_outlined, size: 16),
+                            label: const Text('Acessar Fiscal & NFCom Mod. 62'),
+                          ),
                         ],
                       ),
                     ),
