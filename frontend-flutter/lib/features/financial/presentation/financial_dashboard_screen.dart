@@ -8,10 +8,20 @@ import '../../../core/widgets/process_lifecycle_stepper.dart';
 import '../data/cash_custody_repository.dart';
 import '../data/dashboard_bi_model.dart';
 import '../data/dashboard_bi_provider.dart';
+import '../data/payables_and_accounts_repository.dart';
+import '../data/strategic_finance_repository.dart';
+import 'cfo_audit_and_waivers_tab.dart';
+import 'dre_and_deleveraging_tab.dart';
+import 'payback_and_sentinel_tab.dart';
+import 'payables_and_accounts_tab.dart';
 
-/// Painel Administrativo & Financeiro do Provedor com Régua de Adimplência (Dunning / RGC Anatel).
-/// Apresenta cards executivos, esteira de processos de cobrança e auditoria de faturas em atraso
-/// alimentados estritamente por dados reais da API (GET /bi/metrics).
+/// Cockpit Financeiro & Blindagem Patrimonial do Provedor.
+/// Reúne em abas:
+/// 1. Cobrança & Régua (Dunning / RGC Anatel)
+/// 2. Contas a Pagar & Plano de Contas Hierárquico
+/// 3. DRE & Desalavancagem 36M
+/// 4. Payback FTTH & Sentinela
+/// 5. Auditoria de Caixa & Alçadas
 class FinancialDashboardScreen extends ConsumerStatefulWidget {
   const FinancialDashboardScreen({super.key});
 
@@ -28,52 +38,130 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
     return fmt.format(val);
   }
 
+  void _refreshAll() {
+    ref.invalidate(dashboardBiProvider);
+    ref.invalidate(pendingExpenseInstallmentsProvider);
+    ref.invalidate(allPayableInvoicesProvider);
+    ref.invalidate(chartOfAccountsTreeProvider);
+    ref.invalidate(chartOfAccountsFlatProvider);
+    ref.invalidate(allCashCustodiesProvider);
+    ref.invalidate(pendingBankDepositsProvider);
+    ref.invalidate(pendingWorkOrderFeeWaiversProvider);
+    ref.invalidate(deleveragingProjectionProvider);
+    ref.invalidate(networkProjectsPaybackProvider);
+    ref.invalidate(activeSentinelAlertsProvider);
+  }
+
   @override
   Widget build(BuildContext context) {
     final biAsync = ref.watch(dashboardBiProvider);
     final authState = ref.watch(authProvider);
     final currentUserRole = authState.role?.name.toUpperCase();
 
-    return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return DefaultTabController(
+      length: 5,
+      child: Scaffold(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header responsivo sem overflow
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Gestão Financeira & Tesouraria',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Fluxo de caixa, Contas a Pagar, Régua de Cobrança e Fechamento Fiscal',
-                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                      ),
-                    ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Gestão Financeira & Tesouraria',
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Fluxo de caixa, Contas a Pagar, Régua de Cobrança e Fechamento Fiscal',
+                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                IconButton(
-                  onPressed: () => ref.invalidate(dashboardBiProvider),
-                  tooltip: 'Atualizar Indicadores',
-                  icon: const Icon(Icons.refresh, color: AppTheme.primaryBlue),
-                ),
-              ],
+                  const SizedBox(width: 16),
+                  IconButton(
+                    onPressed: _refreshAll,
+                    tooltip: 'Atualizar Indicadores',
+                    icon: const Icon(Icons.refresh, color: AppTheme.primaryBlue),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
-
-            // Estados do Provider (Carregando / Erro / Dados Reais)
-            biAsync.when(
-              loading: () => _buildLoadingState(),
-              error: (err, stack) => _buildErrorState(ref, err.toString()),
-              data: (bi) => _buildContent(context, bi, currentUserRole),
+            Container(
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: AppTheme.darkBorder)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: const TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicatorColor: AppTheme.primaryBlue,
+                labelColor: AppTheme.primaryBlue,
+                unselectedLabelColor: AppTheme.textSecondary,
+                tabs: [
+                  Tab(
+                    icon: Icon(Icons.gavel_rounded, size: 18),
+                    text: 'Cobrança & Régua',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.account_tree_outlined, size: 18),
+                    text: 'Contas a Pagar & Plano de Contas',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.analytics_outlined, size: 18),
+                    text: 'DRE & Desalavancagem 36M',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.security_rounded, size: 18),
+                    text: 'Payback FTTH & Sentinela',
+                  ),
+                  Tab(
+                    icon: Icon(Icons.verified_user_outlined, size: 18),
+                    text: 'Auditoria de Caixa & Alçadas',
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  // Aba 1: Cobrança & Régua (Dunning)
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(24.0),
+                    child: biAsync.when(
+                      loading: () => _buildLoadingState(),
+                      error: (err, stack) => _buildErrorState(ref, err.toString()),
+                      data: (bi) => _buildContent(context, bi, currentUserRole),
+                    ),
+                  ),
+                  // Aba 2: Contas a Pagar & Plano de Contas
+                  const SingleChildScrollView(
+                    padding: EdgeInsets.all(24.0),
+                    child: PayablesAndAccountsTab(),
+                  ),
+                  // Aba 3: DRE & Desalavancagem 36M
+                  const SingleChildScrollView(
+                    padding: EdgeInsets.all(24.0),
+                    child: DreAndDeleveragingTab(),
+                  ),
+                  // Aba 4: Payback FTTH & Sentinela
+                  const SingleChildScrollView(
+                    padding: EdgeInsets.all(24.0),
+                    child: PaybackAndSentinelTab(),
+                  ),
+                  // Aba 5: Auditoria de Caixa & Alçadas
+                  const SingleChildScrollView(
+                    padding: EdgeInsets.all(24.0),
+                    child: CfoAuditAndWaiversTab(),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -329,13 +417,13 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
                             'Faturas em Atraso & Régua de Adimplência (Cobrança Ativa)',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
