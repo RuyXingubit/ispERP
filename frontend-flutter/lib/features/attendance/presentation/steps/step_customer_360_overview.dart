@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../sales/data/sales_onboarding_notifier.dart';
+import '../../../sales/presentation/contract_forensic_signature_modal.dart';
 import '../../../sales/presentation/sales_onboarding_modal.dart';
 import '../../data/attendance_models.dart';
 import '../../data/attendance_notifier.dart';
@@ -74,6 +75,65 @@ class StepCustomer360Overview extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 14),
+
+          // 1.5. Contratos do Assinante & Assinatura Eletrônica Forense
+          if (state.contracts.isNotEmpty) ...[
+            ...state.contracts.map((contract) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.darkSurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.darkBorder),
+                ),
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.description_outlined, color: AppTheme.primaryBlue, size: 20),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Contrato ${contract.contractNumber} • ${contract.status}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                              Text(
+                                'R\$ ${contract.monthlyFee.toStringAsFixed(2)}/mês • Venc. dia ${contract.dueDay}',
+                                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => ContractForensicSignatureModal.show(
+                        context,
+                        contractId: contract.id,
+                        contractNumber: contract.contractNumber,
+                        customerName: customer.name,
+                      ),
+                      icon: const Icon(Icons.verified_user_outlined, size: 15),
+                      label: const Text(
+                        'Assinatura Forense (PIX R\$ 1,00)',
+                        style: TextStyle(fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            const SizedBox(height: 4),
+          ],
 
           // 2. Alerta Financeiro: Fatura em Aberto
           if (hasPendingInvoice)

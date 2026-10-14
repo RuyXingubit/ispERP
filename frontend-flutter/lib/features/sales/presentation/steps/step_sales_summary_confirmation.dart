@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../data/electronic_signature_repository.dart';
 import '../../data/sales_models.dart';
 import '../../data/sales_onboarding_notifier.dart';
+import '../contract_forensic_signature_modal.dart';
 
 /// Passo 4 do Onboarding de Venda Expressa: Resumo da Contratação & Confirmação.
 class StepSalesSummaryConfirmation extends ConsumerWidget {
@@ -12,6 +14,25 @@ class StepSalesSummaryConfirmation extends ConsumerWidget {
   String _formatCurrency(double val) {
     final fmt = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
     return fmt.format(val);
+  }
+
+  Future<void> _openForensicSignature(
+    BuildContext context,
+    WidgetRef ref,
+    SaleResult sale,
+  ) async {
+    final repo = ref.read(electronicSignatureRepositoryProvider);
+    final contract = await repo.findContractForSale(sale.id);
+    if (!context.mounted) return;
+    final contractId = contract?['id']?.toString() ?? sale.id;
+    final contractNumber =
+        contract?['contractNumber']?.toString() ?? 'CTR-${sale.id.substring(0, 6)}';
+    await ContractForensicSignatureModal.show(
+      context,
+      contractId: contractId,
+      contractNumber: contractNumber,
+      customerName: sale.customerName,
+    );
   }
 
   @override
@@ -23,8 +44,8 @@ class StepSalesSummaryConfirmation extends ConsumerWidget {
     if (state.saleResult != null) {
       final res = state.saleResult!;
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24.0),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -60,7 +81,13 @@ class StepSalesSummaryConfirmation extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Protocolo da Venda:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                        Text(res.id, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                        Flexible(
+                          child: Text(
+                            res.id,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                     const Divider(height: 16),
@@ -95,17 +122,32 @@ class StepSalesSummaryConfirmation extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: () {
-                  notifier.reset();
-                  Navigator.of(context).pop();
-                },
-                icon: const Icon(Icons.done_all, size: 18),
-                label: const Text('Finalizar Atendimento'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                ),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 12,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => _openForensicSignature(context, ref, res),
+                    icon: const Icon(Icons.verified_user_outlined, size: 18),
+                    label: const Text('Assinatura Forense (PIX R\$ 1,00 / MP 2.200-2)'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      notifier.reset();
+                      Navigator.of(context).pop();
+                    },
+                    icon: const Icon(Icons.done_all, size: 18),
+                    label: const Text('Finalizar Atendimento'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
