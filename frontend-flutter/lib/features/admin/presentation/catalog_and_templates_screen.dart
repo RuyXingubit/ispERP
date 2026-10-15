@@ -301,6 +301,53 @@ class _CatalogAndTemplatesScreenState
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              _buildMetricPill(
+                Icons.receipt_long_outlined,
+                'SCM (NFCom): ${_formatCurrency(plan.scmAmount > 0 ? plan.scmAmount : plan.price)}',
+                AppTheme.accentGreen,
+              ),
+              if (plan.svaAmount > 0)
+                _buildMetricPill(
+                  Icons.layers_outlined,
+                  'SVA/Locação: ${_formatCurrency(plan.svaAmount)}',
+                  AppTheme.accentWarning,
+                ),
+            ],
+          ),
+          if (plan.compositionItems.length > 1) ...[
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: plan.compositionItems
+                  .map(
+                    (item) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.darkBg,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppTheme.darkCard),
+                      ),
+                      child: Text(
+                        '${item.name} (${item.category}): ${_formatCurrency(item.amount)}',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
           if (plan.svaIncluded != null && plan.svaIncluded!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
@@ -399,11 +446,68 @@ class _CatalogAndTemplatesScreenState
     bool active = existing?.active ?? true;
     bool isSaving = false;
 
+    final List<Map<String, dynamic>> editableItems =
+        (existing != null && existing.compositionItems.isNotEmpty)
+        ? existing.compositionItems
+              .map(
+                (i) => {
+                  'id': i.id,
+                  'nameCtrl': TextEditingController(text: i.name),
+                  'category': i.category,
+                  'amountCtrl': TextEditingController(
+                    text: i.amount.toStringAsFixed(2),
+                  ),
+                  'fiscalCodeCtrl': TextEditingController(
+                    text: i.fiscalCode ?? '',
+                  ),
+                },
+              )
+              .toList()
+        : [
+            {
+              'id': null,
+              'nameCtrl': TextEditingController(
+                text: existing != null
+                    ? 'Acesso SCM — ${existing.name}'
+                    : 'Acesso SCM Fibra Óptica',
+              ),
+              'category': 'SCM',
+              'amountCtrl': TextEditingController(
+                text: existing != null
+                    ? existing.price.toStringAsFixed(2)
+                    : '99.90',
+              ),
+              'fiscalCodeCtrl': TextEditingController(text: '5307'),
+            },
+          ];
+
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final planTotal =
+                double.tryParse(priceCtrl.text.trim().replaceAll(',', '.')) ??
+                0.0;
+            double scmSum = 0.0;
+            double svaSum = 0.0;
+            for (final row in editableItems) {
+              final amt =
+                  double.tryParse(
+                    (row['amountCtrl'] as TextEditingController).text
+                        .trim()
+                        .replaceAll(',', '.'),
+                  ) ??
+                  0.0;
+              if ((row['category'] as String) == 'SCM') {
+                scmSum += amt;
+              } else {
+                svaSum += amt;
+              }
+            }
+            final itemsSum = scmSum + svaSum;
+            final sumMatches = (itemsSum - planTotal).abs() <= 0.01;
+
             return AlertDialog(
               backgroundColor: AppTheme.darkSurface,
               title: Text(
@@ -412,12 +516,13 @@ class _CatalogAndTemplatesScreenState
                     : 'Editar Plano: ${existing.name}',
               ),
               content: SizedBox(
-                width: 520,
+                width: 640,
                 child: SingleChildScrollView(
                   child: Form(
                     key: formKey,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TextFormField(
                           controller: nameCtrl,
@@ -472,8 +577,9 @@ class _CatalogAndTemplatesScreenState
                                       decimal: true,
                                     ),
                                 decoration: const InputDecoration(
-                                  labelText: 'Mensalidade (R\$) *',
+                                  labelText: 'Mensalidade Total (R\$) *',
                                 ),
+                                onChanged: (_) => setModalState(() {}),
                                 validator: (v) {
                                   final parsed = double.tryParse(
                                     (v ?? '').replaceAll(',', '.'),
@@ -496,11 +602,239 @@ class _CatalogAndTemplatesScreenState
                             ),
                           ],
                         ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.darkBg,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: sumMatches
+                                  ? AppTheme.darkCard
+                                  : AppTheme.accentError,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.spaceBetween,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  const Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Composição Fiscal Multi-Item (SCM + SVA / Locação)',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        'A NFCom (Mod. 62) tributa apenas a soma dos itens SCM.',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      setModalState(() {
+                                        editableItems.add({
+                                          'id': null,
+                                          'nameCtrl': TextEditingController(
+                                            text: 'SVA Adicional',
+                                          ),
+                                          'category': 'SVA_DIGITAL_CONTENT',
+                                          'amountCtrl': TextEditingController(
+                                            text: '10.00',
+                                          ),
+                                          'fiscalCodeCtrl':
+                                              TextEditingController(text: ''),
+                                        });
+                                      });
+                                    },
+                                    icon: const Icon(Icons.add, size: 16),
+                                    label: const Text('Adicionar Item'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              ...editableItems.asMap().entries.map((entry) {
+                                final idx = entry.key;
+                                final row = entry.value;
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 190,
+                                        child: TextFormField(
+                                          controller:
+                                              row['nameCtrl']
+                                                  as TextEditingController,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Descrição do Item *',
+                                            isDense: true,
+                                          ),
+                                          validator: (v) =>
+                                              (v == null || v.trim().isEmpty)
+                                              ? 'Obrigatório'
+                                              : null,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 195,
+                                        child: DropdownButtonFormField<String>(
+                                          initialValue:
+                                              row['category'] as String,
+                                          isExpanded: true,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Categoria Fiscal *',
+                                            isDense: true,
+                                          ),
+                                          items: const [
+                                            DropdownMenuItem(
+                                              value: 'SCM',
+                                              child: Text(
+                                                'SCM (NFCom Mod. 62)',
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'EQUIPMENT_RENTAL',
+                                              child: Text(
+                                                'Locação Equipamento',
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'SVA_DIGITAL_CONTENT',
+                                              child: Text(
+                                                'SVA Conteúdo Digital',
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'SVA_STREAMING_APP',
+                                              child: Text(
+                                                'SVA App / Streaming',
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'SVA_OTHER',
+                                              child: Text(
+                                                'SVA Outros',
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                          onChanged: (val) {
+                                            if (val != null) {
+                                              setModalState(
+                                                () => row['category'] = val,
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 105,
+                                        child: TextFormField(
+                                          controller:
+                                              row['amountCtrl']
+                                                  as TextEditingController,
+                                          keyboardType:
+                                              const TextInputType.numberWithOptions(
+                                                decimal: true,
+                                              ),
+                                          decoration: const InputDecoration(
+                                            labelText: 'Valor (R\$) *',
+                                            isDense: true,
+                                          ),
+                                          onChanged: (_) =>
+                                              setModalState(() {}),
+                                          validator: (v) {
+                                            final parsed = double.tryParse(
+                                              (v ?? '').replaceAll(',', '.'),
+                                            );
+                                            return (parsed == null ||
+                                                    parsed < 0)
+                                                ? 'Inválido'
+                                                : null;
+                                          },
+                                        ),
+                                      ),
+                                      if (editableItems.length > 1)
+                                        IconButton(
+                                          tooltip: 'Remover Item',
+                                          icon: const Icon(
+                                            Icons.remove_circle_outline,
+                                            color: AppTheme.accentError,
+                                            size: 20,
+                                          ),
+                                          onPressed: () {
+                                            setModalState(() {
+                                              editableItems.removeAt(idx);
+                                            });
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                              const Divider(height: 16),
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 6,
+                                children: [
+                                  Text(
+                                    'Base SCM (NFCom): ${_formatCurrency(scmSum)}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.accentGreen,
+                                    ),
+                                  ),
+                                  Text(
+                                    'SVA / Locação (Isento ICMS): ${_formatCurrency(svaSum)}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.accentWarning,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Soma dos Itens: ${_formatCurrency(itemsSum)} / ${_formatCurrency(planTotal)}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: sumMatches
+                                          ? AppTheme.textSecondary
+                                          : AppTheme.accentError,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: svaCtrl,
                           decoration: const InputDecoration(
-                            labelText: 'SVAs Inclusos (Opcional)',
+                            labelText: 'Resumo Comercial SVAs (Opcional)',
                             hintText: 'Ex: Paramount+, E-books, Telemedicina',
                           ),
                         ),
@@ -553,8 +887,45 @@ class _CatalogAndTemplatesScreenState
                       ? null
                       : () async {
                           if (!formKey.currentState!.validate()) return;
+                          if (!sumMatches) {
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'A soma dos itens (${_formatCurrency(itemsSum)}) deve ser igual ao preço total do plano (${_formatCurrency(planTotal)}).',
+                                ),
+                                backgroundColor: AppTheme.accentError,
+                              ),
+                            );
+                            return;
+                          }
                           setModalState(() => isSaving = true);
                           try {
+                            final parsedItems = editableItems.map((row) {
+                              final nameText =
+                                  (row['nameCtrl'] as TextEditingController)
+                                      .text
+                                      .trim();
+                              final catText = row['category'] as String;
+                              final amtVal = double.parse(
+                                (row['amountCtrl'] as TextEditingController)
+                                    .text
+                                    .trim()
+                                    .replaceAll(',', '.'),
+                              );
+                              final fCode =
+                                  (row['fiscalCodeCtrl']
+                                          as TextEditingController)
+                                      .text
+                                      .trim();
+                              return PlanCompositionItemModel(
+                                id: row['id']?.toString(),
+                                name: nameText,
+                                category: catText,
+                                amount: amtVal,
+                                fiscalCode: fCode.isEmpty ? null : fCode,
+                              );
+                            }).toList();
+
                             final payload = PlanSavePayload(
                               name: nameCtrl.text,
                               downloadSpeed: int.parse(downCtrl.text.trim()),
@@ -568,6 +939,7 @@ class _CatalogAndTemplatesScreenState
                                   int.tryParse(suspCtrl.text.trim()) ?? 5,
                               alwaysIssueNfcom: alwaysIssueNfcom,
                               active: active,
+                              compositionItems: parsedItems,
                             );
                             final repo = ref.read(catalogRepositoryProvider);
                             if (existing == null) {
@@ -576,7 +948,9 @@ class _CatalogAndTemplatesScreenState
                               await repo.updatePlan(existing.id, payload);
                             }
                             ref.invalidate(adminPlansListProvider);
-ref.read(salesOnboardingProvider.notifier).loadActivePlans();
+                            ref
+                                .read(salesOnboardingProvider.notifier)
+                                .loadActivePlans();
                             if (dialogContext.mounted) {
                               Navigator.of(dialogContext).pop();
                             }

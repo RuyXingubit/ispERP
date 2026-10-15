@@ -66,3 +66,33 @@ O **ispERP** opera com sua arquitetura 100% implementada, testada e auditada nas
 - [x] **Onda G — Portal Público de Assinatura Forense pelo Cliente (`/sign/{token}`) e Completude da Central do Assinante (`frontend-customer/`) (`[CONCLUÍDO]`):**
   - Página pública de Assinatura Eletrônica Forense em [`frontend-customer/`](file:///Volumes/240/Code/ispERP/frontend-customer/src/main.ts) com leitura integral do contrato renderizado, hash SHA-256, checkbox obrigatório de aceite, liberação do PIX simbólico `R$ 1,00` (creditado na 1ª fatura), polling automático a cada 5s (`GET /public/signatures/{token}/status`), download do PDF Assinado + Certificado Forense (`/public/signatures/{token}/pdf`) e escolha de contingência MP 2.200-2 pelo próprio cliente.
   - Exibição no Dashboard logado do código/status do Contrato ativo, detalhamento de descontos/multa/juros e botão **2ª Via PDF / Nota Fiscal NFCom** nas faturas, e vitrine de Planos Disponíveis para Upgrade.
+
+---
+
+## 4. Evolução Estratégica ISP (Ondas H a M — Execução Faseada Sob Demanda)
+
+Conforme documentado em [`docs/brainstorming/evolucao_futura_isp_erp/`](file:///Volumes/240/Code/ispERP/docs/brainstorming/evolucao_futura_isp_erp/v4_consolidacao_onda_h.md), as 6 frentes de alta prioridade para operação de provedores de internet (ISPs) foram faseadas em ondas isoladas:
+
+- [x] **Onda H — Composição Multi-Item de Planos/Faturas (`SCM` + Múltiplos `SVA` / `Locação de Equipamento`) e Tributação Seletiva NFCom Modelo 62 (`[CONCLUÍDO]`):**
+  - **Contrato OpenAPI (`contracts/openapi/`):** Adição de `PlanCompositionCategory` (`SCM`, `EQUIPMENT_RENTAL`, `SVA_DIGITAL_CONTENT`, `SVA_STREAMING_APP`, `SVA_OTHER`), `PlanCompositionItemDto`, `InvoiceCompositionItemDto`, `scmAmount`, `svaAmount`, `compositionItems` em `plans` e `billing`, além de `scmTaxableAmount` e `svaExemptAmount` em `NfcomRecordResponse` (`fiscal`).
+  - **Backend Java 25 + Flyway `V37` (`backend/`):** Criação das tabelas `plan_composition_items` e `invoice_composition_items` ([`V37__add_plan_and_invoice_multi_item_composition.sql`](file:///Volumes/240/Code/ispERP/backend/src/main/resources/db/migration/V37__add_plan_and_invoice_multi_item_composition.sql)), validação em [`PlanService`](file:///Volumes/240/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/service/PlanService.java) garantindo que a soma dos itens em `R$` corresponda ao preço total do plano, snapshot de itens na emissão de faturas ([`InvoiceService`](file:///Volumes/240/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/service/InvoiceService.java)) e tributação seletiva em [`FiscalService`](file:///Volumes/240/Code/ispERP/backend/src/main/java/br/dev/xb/isperp/service/FiscalService.java) (a NFCom Modelo 62 transmitida via `pay.xingubit.com.br` tributa exclusivamente a soma dos itens `SCM` para ICMS, FUST, FUNTTEL, PIS e COFINS, registrando a parcela `SVA / Locação` em `svaExemptAmount`).
+  - **Frontends (`frontend-flutter/` e `frontend-customer/`):** Editor dinâmico multi-item de composição fiscal em [`catalog_and_templates_screen.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/admin/presentation/catalog_and_templates_screen.dart), exibição de `Base SCM (NFCom)` vs `Isento SVA/Locação` em [`fiscal_and_nfcom_tab.dart`](file:///Volumes/240/Code/ispERP/frontend-flutter/lib/features/financial/presentation/fiscal_and_nfcom_tab.dart) e detalhamento itemizado nas faturas da Central do Assinante ([`main.ts`](file:///Volumes/240/Code/ispERP/frontend-customer/src/main.ts)).
+
+- [ ] **Onda I — Ciclo de Vida Pós-Venda de Contratos (`[PLANEJADO]`):**
+  - Upgrade / Downgrade de Plano com cálculo *Pro-Rata Die* automático na próxima fatura e atualização imediata de banda (`Rate-Limit` no FreeRADIUS + CoA/PoD).
+  - Mudança de Endereço vinculada à abertura automática de O.S. de transferência de endereço e reserva de nova porta CTO.
+  - Troca de Titularidade preservando histórico técnico e exigindo nova Assinatura Eletrônica Forense pelo novo titular.
+
+- [ ] **Onda J — Régua de Notificação Ativa Omnichannel & Aviso Proativo de Rompimento PON (`[PLANEJADO]`):**
+  - Disparo agendado automático (WhatsApp / E-mail) em `D-3` (lembrete + PIX Copia-e-Cola), `D0` (vencimento hoje), `D+5` (aviso prévio legal Res. 632 Anatel) e confirmação imediata pós-pagamento.
+  - Banner proativo de Rompimento / Manutenção Massiva PON na Central do Assinante e no Hub de Atendimento 360 quando a CTO/Porta PON do cliente possuir incidente ativo no NOC.
+
+- [ ] **Onda K — Exportador Regulatório Anatel DICI / SICI (`[PLANEJADO]`):**
+  - Geração mensal automatizada do relatório oficial da Anatel agrupando acessos ativos por código IBGE do município, tipo de pessoa (`PF` / `PJ`), faixa de velocidade (`downloadSpeed` / `uploadSpeed`) e tecnologia (`FTTH`).
+
+- [ ] **Onda L — Viabilidade Técnica Comercial por CTO & Agenda Técnica por Turno/Capacidade (`[PLANEJADO]`):**
+  - Consulta automática no Onboarding Comercial da CTO mais próxima com portas livres (`freePorts > 0`) e distância estimada em metros.
+  - Agendamento de O.S. por janela de turno (`MANHÃ` / `TARDE`) respeitando o limite diário de instalações por técnico.
+
+- [ ] **Onda M — Gerência Remota de Wi-Fi via TR-069 / CWMP (ACS) (`[PLANEJADO]`):**
+  - Alteração remota de nome da rede Wi-Fi (`SSID`) e senha pelo próprio assinante na Central do Assinante e pelo atendente N1 no Hub 360, além de leitura de dispositivos conectados e reboot remoto da CPE.

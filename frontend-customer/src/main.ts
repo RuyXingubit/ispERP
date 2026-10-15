@@ -166,6 +166,10 @@ function renderInvoices() {
     const formattedDate = formatDate(inv.dueDate);
 
     const chips: string[] = [];
+    if (inv.scmAmount && inv.scmAmount > 0 && inv.svaAmount && inv.svaAmount > 0) {
+      chips.push(`<span class="invoice-breakdown-chip">SCM (NFCom): R$ ${formatCurrency(inv.scmAmount)}</span>`);
+      chips.push(`<span class="invoice-breakdown-chip">SVA/Locação: R$ ${formatCurrency(inv.svaAmount)}</span>`);
+    }
     if (inv.discountAmount && inv.discountAmount > 0) {
       chips.push(`<span class="invoice-breakdown-chip chip-discount">Desconto: -R$ ${formatCurrency(inv.discountAmount)}</span>`);
     }
@@ -175,6 +179,21 @@ function renderInvoices() {
     if (inv.interestAmount && inv.interestAmount > 0) {
       chips.push(`<span class="invoice-breakdown-chip chip-penalty">Juros: +R$ ${formatCurrency(inv.interestAmount)}</span>`);
     }
+
+    const compositionHtml =
+      inv.compositionItems && inv.compositionItems.length > 1
+        ? `<div class="invoice-composition-list" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.12); font-size: 0.78rem; color: var(--text-muted);">
+             ${inv.compositionItems
+               .map(
+                 (item) =>
+                   `<div style="display:flex; justify-content:space-between; gap:8px;">
+                      <span>• ${item.name}</span>
+                      <strong>R$ ${formatCurrency(item.amount)}</strong>
+                    </div>`
+               )
+               .join('')}
+           </div>`
+        : '';
 
     const pdfButtonHtml = inv.pdfUrl
       ? `<a href="${inv.pdfUrl}" target="_blank" rel="noopener noreferrer" class="btn-pdf-download">
@@ -196,6 +215,7 @@ function renderInvoices() {
         <div class="invoice-details">
           <div>Vencimento: <strong style="color: var(--text-main);">${formattedDate}</strong></div>
           ${inv.paidAt ? `<div>Pago em: ${formatDate(inv.paidAt.split('T')[0])}</div>` : ''}
+          ${compositionHtml}
         </div>
 
         <div class="invoice-actions">

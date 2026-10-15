@@ -888,12 +888,18 @@ components:
       $ref: './domains/radius/schemas.yaml#/RadiusLifecycleLogsPageResponse'
 
     # Plans
+    PlanCompositionCategory:
+      $ref: './domains/plans/schemas.yaml#/PlanCompositionCategory'
+    PlanCompositionItemDto:
+      $ref: './domains/plans/schemas.yaml#/PlanCompositionItemDto'
     PlanResponse:
       $ref: './domains/plans/schemas.yaml#/PlanResponse'
     PlanCreateRequest:
       $ref: './domains/plans/schemas.yaml#/PlanCreateRequest'
     PlanUpdateRequest:
       $ref: './domains/plans/schemas.yaml#/PlanUpdateRequest'
+    InvoiceCompositionItemDto:
+      $ref: './domains/billing/schemas.yaml#/InvoiceCompositionItemDto'
 
     # Companies
     CompanyResponse:

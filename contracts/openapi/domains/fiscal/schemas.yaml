@@ -432,7 +432,19 @@ NfcomRecordResponse:
     valorTotal:
       type: number
       format: double
-      example: 99.90
+      example: 59.90
+    scmTaxableAmount:
+      type: number
+      format: double
+      nullable: true
+      description: Base tributável de SCM efetivamente faturada na NFCom Modelo 62
+      example: 59.90
+    svaExemptAmount:
+      type: number
+      format: double
+      nullable: true
+      description: Soma dos itens de Locação e SVAs da fatura original que não integram a base ICMS da NFCom
+      example: 40.00
     valorIcms:
       type: number
       format: double

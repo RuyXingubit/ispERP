@@ -9,6 +9,30 @@ InvoiceStatus:
     - OVERDUE
   description: Situação cadastral e financeira da fatura.
 
+InvoiceCompositionItemDto:
+  type: object
+  description: Item individual da composição financeira e tributária da fatura (snapshot do plano no momento da emissão)
+  required:
+    - name
+    - category
+    - amount
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    name:
+      type: string
+      example: "Conectividade Fibra Óptica SCM"
+    category:
+      $ref: '../plans/schemas.yaml#/PlanCompositionCategory'
+    amount:
+      type: number
+      format: double
+      example: 59.90
+    fiscalCode:
+      type: string
+      nullable: true
+      example: "5307"
+
 InvoiceResponse:
   type: object
   required:
@@ -30,6 +54,23 @@ InvoiceResponse:
       format: double
       description: Valor principal da fatura em reais.
       example: 99.90
+    scmAmount:
+      type: number
+      format: double
+      nullable: true
+      description: Parcela SCM tributável na NFCom Modelo 62 em reais.
+      example: 59.90
+    svaAmount:
+      type: number
+      format: double
+      nullable: true
+      description: Parcela total de Locação e SVAs fora da base ICMS da NFCom em reais.
+      example: 40.00
+    compositionItems:
+      type: array
+      items:
+        $ref: '#/InvoiceCompositionItemDto'
+      description: Detalhamento de todos os itens (SCM, Locação, SVAs) que compõem a fatura.
     discountAmount:
       type: number
       format: double

@@ -1,11 +1,22 @@
 // SPDX-License-Identifier: MIT
 import { apiFetch } from './api';
 
+export interface InvoiceCompositionItem {
+  id?: string;
+  name: string;
+  category: 'SCM' | 'EQUIPMENT_RENTAL' | 'SVA_DIGITAL_CONTENT' | 'SVA_STREAMING_APP' | 'SVA_OTHER';
+  amount: number;
+  fiscalCode?: string;
+}
+
 export interface InvoiceItem {
   id: string;
   contractId: string;
   customerId: string;
   amount: number;
+  scmAmount?: number;
+  svaAmount?: number;
+  compositionItems?: InvoiceCompositionItem[];
   discountAmount?: number;
   penaltyAmount?: number;
   interestAmount?: number;

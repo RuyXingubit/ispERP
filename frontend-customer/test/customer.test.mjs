@@ -225,4 +225,35 @@ test('getSignedContractPdfUrl - resolve URL de PDF assinado com certificado fore
   );
 });
 
+function summarizeInvoiceComposition(items = []) {
+  let scmAmount = 0;
+  let svaAmount = 0;
+  for (const item of items) {
+    if (item.category === 'SCM') {
+      scmAmount += item.amount;
+    } else {
+      svaAmount += item.amount;
+    }
+  }
+  return {
+    scmAmount: Number(scmAmount.toFixed(2)),
+    svaAmount: Number(svaAmount.toFixed(2)),
+    totalAmount: Number((scmAmount + svaAmount).toFixed(2)),
+  };
+}
+
+test('summarizeInvoiceComposition - separa base tributável SCM (NFCom) de itens SVA/Locação', () => {
+  const summary = summarizeInvoiceComposition([
+    { name: 'Acesso SCM Fibra', category: 'SCM', amount: 39.9 },
+    { name: 'Locação ONT Wi-Fi 6', category: 'EQUIPMENT_RENTAL', amount: 30.0 },
+    { name: 'E-Books', category: 'SVA_DIGITAL_CONTENT', amount: 20.0 },
+    { name: 'Streaming TV', category: 'SVA_STREAMING_APP', amount: 10.0 },
+  ]);
+
+  assert.equal(summary.scmAmount, 39.9);
+  assert.equal(summary.svaAmount, 60.0);
+  assert.equal(summary.totalAmount, 99.9);
+});
+
+
 

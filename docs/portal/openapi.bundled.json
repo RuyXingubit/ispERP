@@ -12140,6 +12140,27 @@
             "description": "Valor principal da fatura em reais.",
             "example": 99.9
           },
+          "scmAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Parcela SCM tributável na NFCom Modelo 62 em reais.",
+            "example": 59.9
+          },
+          "svaAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Parcela total de Locação e SVAs fora da base ICMS da NFCom em reais.",
+            "example": 40
+          },
+          "compositionItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceCompositionItemDto"
+            },
+            "description": "Detalhamento de todos os itens (SCM, Locação, SVAs) que compõem a fatura."
+          },
           "discountAmount": {
             "type": "number",
             "format": "double",
@@ -15176,6 +15197,56 @@
           }
         }
       },
+      "PlanCompositionCategory": {
+        "type": "string",
+        "description": "Categoria fiscal/tributária do item que compõe o plano de assinatura",
+        "enum": [
+          "SCM",
+          "EQUIPMENT_RENTAL",
+          "SVA_DIGITAL_CONTENT",
+          "SVA_STREAMING_APP",
+          "SVA_OTHER"
+        ],
+        "example": "SCM"
+      },
+      "PlanCompositionItemDto": {
+        "type": "object",
+        "description": "Item individual da composição financeira e tributária do plano (SCM, Locação de Equipamento, SVA Digital, Streaming, Outros SVAs)",
+        "required": [
+          "name",
+          "category",
+          "amount"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "example": "019633f8-a4b0-7d8e-9f12-34567890abcd"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome descritivo do serviço ou equipamento na fatura",
+            "example": "Conectividade Fibra Óptica SCM"
+          },
+          "category": {
+            "$ref": "#/components/schemas/PlanCompositionCategory"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0.01,
+            "description": "Valor em Reais (BRL) correspondente a este item na mensalidade",
+            "example": 59.9
+          },
+          "fiscalCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Código CFOP / Classificação NFCom ou Código de Serviço SVA opcional",
+            "example": "5307"
+          }
+        }
+      },
       "PlanResponse": {
         "type": "object",
         "description": "Dados cadastrais do Plano de Acesso à Internet",
@@ -15213,6 +15284,27 @@
             "format": "double",
             "description": "Mensalidade em Reais (BRL)",
             "example": 99.9
+          },
+          "scmAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Soma em Reais (BRL) dos itens de categoria SCM (base tributável NFCom Mod. 62)",
+            "example": 59.9
+          },
+          "svaAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Soma em Reais (BRL) dos itens de Locação e SVA (fora da base ICMS da NFCom)",
+            "example": 40
+          },
+          "compositionItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanCompositionItemDto"
+            },
+            "description": "Lista detalhada dos itens que compõem o valor total do plano"
           },
           "description": {
             "type": "string",
@@ -15280,6 +15372,13 @@
             "minimum": 0.01,
             "example": 99.9
           },
+          "compositionItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanCompositionItemDto"
+            },
+            "description": "Itens que compõem o plano (soma deve ser igual a price; se omitido, 100% assume SCM)"
+          },
           "description": {
             "type": "string",
             "nullable": true,
@@ -15334,6 +15433,13 @@
             "minimum": 0.01,
             "example": 109.9
           },
+          "compositionItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanCompositionItemDto"
+            },
+            "description": "Itens que compõem o plano (soma deve ser igual a price; se omitido, 100% assume SCM)"
+          },
           "description": {
             "type": "string",
             "nullable": true
@@ -15353,6 +15459,37 @@
           "active": {
             "type": "boolean",
             "default": true
+          }
+        }
+      },
+      "InvoiceCompositionItemDto": {
+        "type": "object",
+        "description": "Item individual da composição financeira e tributária da fatura (snapshot do plano no momento da emissão)",
+        "required": [
+          "name",
+          "category",
+          "amount"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "name": {
+            "type": "string",
+            "example": "Conectividade Fibra Óptica SCM"
+          },
+          "category": {
+            "$ref": "#/components/schemas/PlanCompositionCategory"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double",
+            "example": 59.9
+          },
+          "fiscalCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "5307"
           }
         }
       },
@@ -17600,7 +17737,21 @@
           "valorTotal": {
             "type": "number",
             "format": "double",
-            "example": 99.9
+            "example": 59.9
+          },
+          "scmTaxableAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Base tributável de SCM efetivamente faturada na NFCom Modelo 62",
+            "example": 59.9
+          },
+          "svaExemptAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Soma dos itens de Locação e SVAs da fatura original que não integram a base ICMS da NFCom",
+            "example": 40
           },
           "valorIcms": {
             "type": "number",

@@ -3,6 +3,63 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/providers/app_providers.dart';
 
+/// Item individual da composição financeira do plano (SCM, SVA, Locação de Equipamento).
+class PlanCompositionItemModel {
+  final String? id;
+  final String name;
+  final String category;
+  final double amount;
+  final String? fiscalCode;
+
+  const PlanCompositionItemModel({
+    this.id,
+    required this.name,
+    required this.category,
+    required this.amount,
+    this.fiscalCode,
+  });
+
+  factory PlanCompositionItemModel.fromJson(Map<String, dynamic> json) {
+    return PlanCompositionItemModel(
+      id: json['id']?.toString(),
+      name: json['name']?.toString() ?? '',
+      category: json['category']?.toString() ?? 'SCM',
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+      fiscalCode: json['fiscalCode']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null && id!.isNotEmpty) 'id': id,
+      'name': name.trim(),
+      'category': category,
+      'amount': amount,
+      if (fiscalCode != null && fiscalCode!.trim().isNotEmpty)
+        'fiscalCode': fiscalCode!.trim(),
+    };
+  }
+
+  bool get isScm => category.toUpperCase() == 'SCM';
+
+  String get categoryLabel {
+    switch (category.toUpperCase()) {
+      case 'SCM':
+        return 'SCM (Conexão — Base NFCom Mod. 62)';
+      case 'EQUIPMENT_RENTAL':
+        return 'Locação / Comodato de Equipamento';
+      case 'SVA_DIGITAL_CONTENT':
+        return 'SVA — Conteúdo Digital / E-books';
+      case 'SVA_STREAMING_APP':
+        return 'SVA — Aplicativo / Streaming';
+      case 'SVA_OTHER':
+        return 'SVA — Outros Serviços de Valor Adicionado';
+      default:
+        return category;
+    }
+  }
+}
+
 /// Modelo completo de Plano de Acesso à Internet (GET/POST/PUT /plans).
 class AdminPlanModel {
   final String id;
@@ -10,6 +67,9 @@ class AdminPlanModel {
   final int downloadSpeed;
   final int uploadSpeed;
   final double price;
+  final double scmAmount;
+  final double svaAmount;
+  final List<PlanCompositionItemModel> compositionItems;
   final String? description;
   final String? svaIncluded;
   final int suspensionDays;
@@ -24,6 +84,9 @@ class AdminPlanModel {
     required this.downloadSpeed,
     required this.uploadSpeed,
     required this.price,
+    this.scmAmount = 0.0,
+    this.svaAmount = 0.0,
+    this.compositionItems = const [],
     this.description,
     this.svaIncluded,
     this.suspensionDays = 5,
@@ -34,12 +97,38 @@ class AdminPlanModel {
   });
 
   factory AdminPlanModel.fromJson(Map<String, dynamic> json) {
+    final priceVal = (json['price'] as num?)?.toDouble() ?? 0.0;
+    final itemsRaw = (json['compositionItems'] as List<dynamic>? ?? [])
+        .map(
+          (e) => PlanCompositionItemModel.fromJson(
+            Map<String, dynamic>.from(e as Map),
+          ),
+        )
+        .toList();
+    final scmVal =
+        (json['scmAmount'] as num?)?.toDouble() ??
+        (itemsRaw.isEmpty
+            ? priceVal
+            : itemsRaw
+                  .where((i) => i.isScm)
+                  .fold<double>(0.0, (sum, i) => sum + i.amount));
+    final svaVal =
+        (json['svaAmount'] as num?)?.toDouble() ??
+        (itemsRaw.isEmpty
+            ? 0.0
+            : itemsRaw
+                  .where((i) => !i.isScm)
+                  .fold<double>(0.0, (sum, i) => sum + i.amount));
+
     return AdminPlanModel(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       downloadSpeed: (json['downloadSpeed'] as num?)?.toInt() ?? 0,
       uploadSpeed: (json['uploadSpeed'] as num?)?.toInt() ?? 0,
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      price: priceVal,
+      scmAmount: scmVal,
+      svaAmount: svaVal,
+      compositionItems: itemsRaw,
       description: json['description']?.toString(),
       svaIncluded: json['svaIncluded']?.toString(),
       suspensionDays: (json['suspensionDays'] as num?)?.toInt() ?? 5,
@@ -66,6 +155,7 @@ class PlanSavePayload {
   final int suspensionDays;
   final bool alwaysIssueNfcom;
   final bool active;
+  final List<PlanCompositionItemModel> compositionItems;
 
   const PlanSavePayload({
     required this.name,
@@ -77,6 +167,7 @@ class PlanSavePayload {
     this.suspensionDays = 5,
     this.alwaysIssueNfcom = false,
     this.active = true,
+    this.compositionItems = const [],
   });
 
   Map<String, dynamic> toJson() {
@@ -92,6 +183,8 @@ class PlanSavePayload {
       'suspensionDays': suspensionDays,
       'alwaysIssueNfcom': alwaysIssueNfcom,
       'active': active,
+      if (compositionItems.isNotEmpty)
+        'compositionItems': compositionItems.map((i) => i.toJson()).toList(),
     };
   }
 }

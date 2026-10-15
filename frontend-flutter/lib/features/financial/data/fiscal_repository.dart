@@ -204,6 +204,8 @@ class NfcomRecordModel {
   final String? dataAutorizacao;
   final String? digestValue;
   final double valorTotal;
+  final double scmTaxableAmount;
+  final double svaExemptAmount;
   final double valorIcms;
   final double valorFust;
   final double valorFunttel;
@@ -230,6 +232,8 @@ class NfcomRecordModel {
     this.dataAutorizacao,
     this.digestValue,
     required this.valorTotal,
+    this.scmTaxableAmount = 0.0,
+    this.svaExemptAmount = 0.0,
     required this.valorIcms,
     required this.valorFust,
     required this.valorFunttel,
@@ -241,6 +245,7 @@ class NfcomRecordModel {
   });
 
   factory NfcomRecordModel.fromJson(Map<String, dynamic> json) {
+    final totalVal = (json['valorTotal'] as num?)?.toDouble() ?? 0.0;
     return NfcomRecordModel(
       id: (json['id'] ?? '').toString(),
       companyId: (json['companyId'] ?? '').toString(),
@@ -257,7 +262,10 @@ class NfcomRecordModel {
       protocoloAutorizacao: json['protocoloAutorizacao']?.toString(),
       dataAutorizacao: json['dataAutorizacao']?.toString(),
       digestValue: json['digestValue']?.toString(),
-      valorTotal: (json['valorTotal'] as num?)?.toDouble() ?? 0.0,
+      valorTotal: totalVal,
+      scmTaxableAmount:
+          (json['scmTaxableAmount'] as num?)?.toDouble() ?? totalVal,
+      svaExemptAmount: (json['svaExemptAmount'] as num?)?.toDouble() ?? 0.0,
       valorIcms: (json['valorIcms'] as num?)?.toDouble() ?? 0.0,
       valorFust: (json['valorFust'] as num?)?.toDouble() ?? 0.0,
       valorFunttel: (json['valorFunttel'] as num?)?.toDouble() ?? 0.0,

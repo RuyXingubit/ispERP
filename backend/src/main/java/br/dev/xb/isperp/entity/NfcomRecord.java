@@ -82,6 +82,14 @@ public class NfcomRecord {
     @Column(name = "valor_total", nullable = false, precision = 12, scale = 2)
     private BigDecimal valorTotal;
 
+    @Column(name = "scm_taxable_amount", precision = 12, scale = 2)
+    @Nullable
+    private BigDecimal scmTaxableAmount;
+
+    @Column(name = "sva_exempt_amount", precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal svaExemptAmount = BigDecimal.ZERO;
+
     @Column(name = "valor_icms", precision = 12, scale = 2)
     @Builder.Default
     private BigDecimal valorIcms = BigDecimal.ZERO;

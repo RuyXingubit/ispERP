@@ -240,4 +240,102 @@ class FiscalServiceTest {
         assertEquals("CANCELADA", record.getStatus());
         assertEquals(Invoice.NfcomStatus.CANCELLED, invoice.getNfcomStatus());
     }
+
+    @Test
+    @DisplayName("Deve tributar na NFCom Modelo 62 estritamente a soma dos itens SCM e isolar os itens de SVA/Locação")
+    void testIssueNfcomWithMultiItemScmAndSvaComposition() {
+        UUID invoiceId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        UUID contractId = UUID.randomUUID();
+        UUID planId = UUID.randomUUID();
+
+        Customer customer = Customer.builder()
+                .id(customerId)
+                .name("Carlos Eduardo")
+                .cpf("111.222.333-44")
+                .build();
+
+        Plan plan = Plan.builder()
+                .id(planId)
+                .name("Combo Fibra 800M + Wi-Fi 6 + E-books")
+                .price(new BigDecimal("139.90"))
+                .build();
+
+        Contract contract = Contract.builder()
+                .id(contractId)
+                .planId(planId)
+                .customerId(customerId)
+                .build();
+
+        Invoice invoice = Invoice.builder()
+                .id(invoiceId)
+                .customerId(customerId)
+                .contractId(contractId)
+                .amount(new BigDecimal("139.90"))
+                .dueDate(LocalDate.now().plusDays(5))
+                .status(Invoice.InvoiceStatus.PAID)
+                .compositionItems(java.util.List.of(
+                        InvoiceCompositionItem.builder()
+                                .name("Conectividade Fibra SCM")
+                                .category(PlanCompositionCategory.SCM)
+                                .amount(new BigDecimal("69.90"))
+                                .fiscalCode("5307")
+                                .build(),
+                        InvoiceCompositionItem.builder()
+                                .name("Locação ONT Wi-Fi 6")
+                                .category(PlanCompositionCategory.EQUIPMENT_RENTAL)
+                                .amount(new BigDecimal("40.00"))
+                                .build(),
+                        InvoiceCompositionItem.builder()
+                                .name("Acervo E-books Digital")
+                                .category(PlanCompositionCategory.SVA_DIGITAL_CONTENT)
+                                .amount(new BigDecimal("30.00"))
+                                .build()
+                ))
+                .build();
+
+        FiscalCompany company = FiscalCompany.builder()
+                .id(UUID.randomUUID())
+                .cnpj("12.345.678/0001-95")
+                .razaoSocial("Provedor Xingu")
+                .nfcomSerie("1")
+                .nfcomProximoNumero(25)
+                .build();
+
+        FiscalGatewayConfig config = FiscalGatewayConfig.builder().companyId(company.getId()).build();
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(contractRepository.findById(contractId)).thenReturn(Optional.of(contract));
+        when(planRepository.findById(planId)).thenReturn(Optional.of(plan));
+        when(gatewayResolver.resolve(any())).thenReturn(
+                new FiscalGatewayResolver.ResolvedFiscalGateway(mockGateway, config, company)
+        );
+
+        String accessKey = "15260812345678000195620010000000251112345678";
+        when(mockGateway.issueNfcom(any(), any(), any())).thenAnswer(inv -> {
+            br.dev.xb.isperp.fiscal.dto.NfcomIssueRequest req = inv.getArgument(0);
+            // Garante que apenas os R$ 69,90 de SCM foram enviados para tributação na NFCom Mod. 62
+            assertEquals(new BigDecimal("69.90"), req.getTotalAmount());
+            assertEquals(1, req.getItems().size());
+            assertEquals(new BigDecimal("69.90"), req.getItems().get(0).getTotalPrice());
+            return NfcomIssueResult.builder()
+                    .success(true)
+                    .chaveAcesso(accessKey)
+                    .numero(25)
+                    .serie("1")
+                    .status("AUTORIZADA")
+                    .protocoloAutorizacao("115260009876543")
+                    .build();
+        });
+        when(nfcomRecordRepository.save(any(NfcomRecord.class))).thenAnswer(i -> i.getArgument(0));
+
+        NfcomRecord record = fiscalService.issueNfcomForInvoice(invoiceId);
+
+        assertNotNull(record);
+        assertEquals(new BigDecimal("69.90"), record.getValorTotal());
+        assertEquals(new BigDecimal("69.90"), record.getScmTaxableAmount());
+        assertEquals(new BigDecimal("70.00"), record.getSvaExemptAmount());
+    }
 }
+

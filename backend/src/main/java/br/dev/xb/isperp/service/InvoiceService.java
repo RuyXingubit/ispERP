@@ -3,7 +3,11 @@ package br.dev.xb.isperp.service;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Customer;
 import br.dev.xb.isperp.entity.Invoice;
+import br.dev.xb.isperp.entity.InvoiceCompositionItem;
 import br.dev.xb.isperp.entity.PaymentTransaction;
+import br.dev.xb.isperp.entity.Plan;
+import br.dev.xb.isperp.entity.PlanCompositionCategory;
+import br.dev.xb.isperp.entity.PlanCompositionItem;
 import br.dev.xb.isperp.event.GenericDomainEvent;
 import br.dev.xb.isperp.gateway.PaymentGateway;
 import br.dev.xb.isperp.gateway.PaymentGatewayResolver;
@@ -13,9 +17,11 @@ import br.dev.xb.isperp.gateway.dto.CreateChargeResponse;
 import br.dev.xb.isperp.repository.CustomerRepository;
 import br.dev.xb.isperp.repository.InvoiceRepository;
 import br.dev.xb.isperp.repository.PaymentTransactionRepository;
+import br.dev.xb.isperp.repository.PlanRepository;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.jspecify.annotations.Nullable;
@@ -23,6 +29,7 @@ import org.jspecify.annotations.Nullable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +48,10 @@ public class InvoiceService {
     private final PaymentGatewayResolver gatewayResolver;
     private final DomainEventPublisher domainEventPublisher;
     private final AuditLogService auditLogService;
+
+    @Autowired(required = false)
+    @Nullable
+    private PlanRepository planRepository;
 
     public List<Invoice> getAllInvoices() {
         return invoiceRepository.findAll();
@@ -110,7 +121,37 @@ public class InvoiceService {
                 .barcode(chargeResponse.getBarcode())
                 .digitableLine(chargeResponse.getDigitableLine())
                 .pdfUrl(chargeResponse.getPdfUrl())
+                .compositionItems(new ArrayList<>())
                 .build();
+
+        Plan plan = (planRepository != null && contract.getPlanId() != null)
+                ? planRepository.findById(contract.getPlanId()).orElse(null)
+                : null;
+
+        if (plan != null && plan.getCompositionItems() != null && !plan.getCompositionItems().isEmpty()) {
+            for (PlanCompositionItem pItem : plan.getCompositionItems()) {
+                invoice.getCompositionItems().add(InvoiceCompositionItem.builder()
+                        .id(UuidCreatorUtils.generateUuidV7())
+                        .invoice(invoice)
+                        .name(pItem.getName())
+                        .category(pItem.getCategory() != null ? pItem.getCategory() : PlanCompositionCategory.SCM)
+                        .amount(pItem.getAmount())
+                        .fiscalCode(pItem.getFiscalCode())
+                        .createdAt(LocalDateTime.now())
+                        .build());
+            }
+        } else {
+            invoice.getCompositionItems().add(InvoiceCompositionItem.builder()
+                    .id(UuidCreatorUtils.generateUuidV7())
+                    .invoice(invoice)
+                    .name("Conectividade Fibra Óptica SCM - Contrato " + contract.getContractNumber())
+                    .category(PlanCompositionCategory.SCM)
+                    .amount(contract.getMonthlyFee())
+                    .fiscalCode("5307")
+                    .createdAt(LocalDateTime.now())
+                    .build());
+        }
+        invoice.recalculateCompositionTotals();
 
         Invoice saved = invoiceRepository.save(invoice);
 

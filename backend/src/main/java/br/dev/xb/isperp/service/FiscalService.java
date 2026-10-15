@@ -113,6 +113,74 @@ public class FiscalService {
                 ? "Acesso Internet Banda Larga - " + plan.getName()
                 : "Serviço de Comunicação Multimídia - Conexão Fibra Óptica";
 
+        String defaultCnae = company.getCnaePrincipal() != null
+                ? company.getCnaePrincipal().replaceAll("[^0-9]", "")
+                : "6110803";
+
+        java.util.List<NfcomIssueRequest.NfcomItemDTO> nfcomItems = new java.util.ArrayList<>();
+        BigDecimal scmGross = BigDecimal.ZERO;
+        BigDecimal svaTotal = BigDecimal.ZERO;
+
+        if (invoice.getCompositionItems() != null && !invoice.getCompositionItems().isEmpty()) {
+            for (InvoiceCompositionItem item : invoice.getCompositionItems()) {
+                BigDecimal itemAmt = item.getAmount() != null ? item.getAmount() : BigDecimal.ZERO;
+                if (item.getCategory() == null || item.getCategory() == PlanCompositionCategory.SCM) {
+                    scmGross = scmGross.add(itemAmt);
+                    nfcomItems.add(NfcomIssueRequest.NfcomItemDTO.builder()
+                            .description(item.getName() != null ? item.getName() : planDesc)
+                            .quantity(1)
+                            .unitPrice(itemAmt)
+                            .totalPrice(itemAmt)
+                            .cnae(defaultCnae)
+                            .cfop(item.getFiscalCode() != null && !item.getFiscalCode().isBlank() ? item.getFiscalCode() : "5307")
+                            .classificationCode("01.01.01")
+                            .build());
+                } else {
+                    svaTotal = svaTotal.add(itemAmt);
+                }
+            }
+        } else if (plan != null && plan.getCompositionItems() != null && !plan.getCompositionItems().isEmpty()) {
+            for (PlanCompositionItem item : plan.getCompositionItems()) {
+                BigDecimal itemAmt = item.getAmount() != null ? item.getAmount() : BigDecimal.ZERO;
+                if (item.getCategory() == null || item.getCategory() == PlanCompositionCategory.SCM) {
+                    scmGross = scmGross.add(itemAmt);
+                    nfcomItems.add(NfcomIssueRequest.NfcomItemDTO.builder()
+                            .description(item.getName() != null ? item.getName() : planDesc)
+                            .quantity(1)
+                            .unitPrice(itemAmt)
+                            .totalPrice(itemAmt)
+                            .cnae(defaultCnae)
+                            .cfop(item.getFiscalCode() != null && !item.getFiscalCode().isBlank() ? item.getFiscalCode() : "5307")
+                            .classificationCode("01.01.01")
+                            .build());
+                } else {
+                    svaTotal = svaTotal.add(itemAmt);
+                }
+            }
+        }
+
+        if (nfcomItems.isEmpty()) {
+            scmGross = invoice.getScmAmount() != null && invoice.getScmAmount().compareTo(BigDecimal.ZERO) > 0
+                    ? invoice.getScmAmount()
+                    : invoice.getAmount();
+            svaTotal = invoice.getSvaAmount() != null ? invoice.getSvaAmount() : BigDecimal.ZERO;
+            nfcomItems.add(NfcomIssueRequest.NfcomItemDTO.builder()
+                    .description(planDesc)
+                    .quantity(1)
+                    .unitPrice(scmGross)
+                    .totalPrice(scmGross)
+                    .cnae(defaultCnae)
+                    .cfop("5307")
+                    .classificationCode("01.01.01")
+                    .build());
+        }
+
+        BigDecimal discount = invoice.getDiscountAmount() != null ? invoice.getDiscountAmount() : BigDecimal.ZERO;
+        BigDecimal scmTaxableAmount = scmGross.subtract(discount);
+        if (scmTaxableAmount.compareTo(new BigDecimal("0.01")) < 0) {
+            scmTaxableAmount = scmGross;
+        }
+
         NfcomIssueRequest issueRequest = NfcomIssueRequest.builder()
                 .invoiceId(invoice.getId())
                 .contractId(contract != null ? contract.getId() : null)
@@ -128,20 +196,10 @@ public class FiscalService {
                 .customerState(customer.getState() != null ? customer.getState() : "PA")
                 .customerZipCode(customer.getZipCode() != null ? customer.getZipCode() : "68370000")
                 .customerIbgeCode("1500602")
-                .totalAmount(invoice.getAmount())
+                .totalAmount(scmTaxableAmount)
                 .dueDate(invoice.getDueDate())
                 .description(planDesc)
-                .items(List.of(
-                        NfcomIssueRequest.NfcomItemDTO.builder()
-                                .description(planDesc)
-                                .quantity(1)
-                                .unitPrice(invoice.getAmount())
-                                .totalPrice(invoice.getAmount())
-                                .cnae(company.getCnaePrincipal() != null ? company.getCnaePrincipal().replaceAll("[^0-9]", "") : "6110803")
-                                .cfop("5307")
-                                .classificationCode("01.01.01")
-                                .build()
-                ))
+                .items(nfcomItems)
                 .build();
 
         NfcomIssueResult issueResult = gateway.issueNfcom(issueRequest, company, config);
@@ -157,7 +215,7 @@ public class FiscalService {
         company.setNfcomProximoNumero(company.getNfcomProximoNumero() + 1);
         companyRepository.save(company);
 
-        // Salva Registro da NFCom
+        // Salva Registro da NFCom (tributando estritamente a parcela SCM)
         NfcomRecord record = NfcomRecord.builder()
                 .companyId(company.getId() != null ? company.getId() : UUID.randomUUID())
                 .invoiceId(invoice.getId())
@@ -171,10 +229,12 @@ public class FiscalService {
                 .protocoloAutorizacao(issueResult.getProtocoloAutorizacao())
                 .dataAutorizacao(issueResult.getDataAutorizacao() != null ? issueResult.getDataAutorizacao() : LocalDateTime.now())
                 .digestValue(issueResult.getDigestValue())
-                .valorTotal(invoice.getAmount())
+                .valorTotal(scmTaxableAmount)
+                .scmTaxableAmount(scmTaxableAmount)
+                .svaExemptAmount(svaTotal)
                 .valorIcms(BigDecimal.ZERO)
-                .valorFust(invoice.getAmount().multiply(new BigDecimal("0.0065")))
-                .valorFunttel(invoice.getAmount().multiply(new BigDecimal("0.0050")))
+                .valorFust(scmTaxableAmount.multiply(new BigDecimal("0.0065")))
+                .valorFunttel(scmTaxableAmount.multiply(new BigDecimal("0.0050")))
                 .danfePdfUrl(issueResult.getDanfePdfUrl())
                 .xmlAutorizado(issueResult.getXmlUrl())
                 .build();
@@ -191,8 +251,8 @@ public class FiscalService {
         invoice.setNfcomIssuedAt(LocalDateTime.now());
         invoiceRepository.save(invoice);
 
-        log.info("NFCom nº {} (Chave {}) emitida com sucesso para a Fatura {}",
-                savedRecord.getNumero(), savedRecord.getChaveAcesso(), invoice.getId());
+        log.info("NFCom nº {} (Chave {}) emitida com sucesso para a Fatura {} (SCM=R$ {}, SVA/Locação=R$ {})",
+                savedRecord.getNumero(), savedRecord.getChaveAcesso(), invoice.getId(), scmTaxableAmount, svaTotal);
 
         return savedRecord;
     }

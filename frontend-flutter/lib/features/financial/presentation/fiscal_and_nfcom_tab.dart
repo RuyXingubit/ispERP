@@ -726,7 +726,17 @@ class _FiscalAndNfcomTabState extends ConsumerState<FiscalAndNfcomTab> {
                   children: [
                     Chip(label: Text('Status: ${rec.status}')),
                     Chip(label: Text('Ambiente: ${rec.ambiente}')),
-                    Chip(label: Text('Total: ${_formatCurrency(rec.valorTotal)}')),
+                    Chip(
+                      label: Text(
+                        'Base SCM (NFCom): ${_formatCurrency(rec.scmTaxableAmount > 0 ? rec.scmTaxableAmount : rec.valorTotal)}',
+                      ),
+                    ),
+                    if (rec.svaExemptAmount > 0)
+                      Chip(
+                        label: Text(
+                          'Isento SVA/Locação: ${_formatCurrency(rec.svaExemptAmount)}',
+                        ),
+                      ),
                     Chip(
                         label: Text(
                             'ICMS: ${_formatCurrency(rec.valorIcms)} | FUST: ${_formatCurrency(rec.valorFust)} | FUNTTEL: ${_formatCurrency(rec.valorFunttel)}')),
@@ -1448,7 +1458,7 @@ class _FiscalAndNfcomTabState extends ConsumerState<FiscalAndNfcomTab> {
                   color: badgeColor,
                 ),
                 title: Text(
-                  'NFCom Nº ${rec.numero} (Série ${rec.serie} • Mod. ${rec.modelo}) — ${_formatCurrency(rec.valorTotal)}',
+                  'NFCom Nº ${rec.numero} (Série ${rec.serie} • Mod. ${rec.modelo}) — Base SCM: ${_formatCurrency(rec.scmTaxableAmount > 0 ? rec.scmTaxableAmount : rec.valorTotal)}${rec.svaExemptAmount > 0 ? " (+ SVA/Locação Isento: ${_formatCurrency(rec.svaExemptAmount)})" : ""}',
                   style: const TextStyle(
                       fontSize: 13, fontWeight: FontWeight.bold),
                 ),

@@ -14,6 +14,8 @@ import org.jspecify.annotations.Nullable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -52,6 +54,19 @@ public class Invoice {
     @Positive(message = "Valor da fatura deve ser positivo")
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
+
+    @Nullable
+    @Column(name = "scm_amount", precision = 10, scale = 2)
+    private BigDecimal scmAmount;
+
+    @Nullable
+    @Column(name = "sva_amount", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal svaAmount = BigDecimal.ZERO;
+
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<InvoiceCompositionItem> compositionItems = new ArrayList<>();
 
     @Column(name = "discount_amount", precision = 10, scale = 2)
     @Builder.Default
@@ -166,6 +181,38 @@ public class Invoice {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public void recalculateCompositionTotals() {
+        if (this.compositionItems == null || this.compositionItems.isEmpty()) {
+            if (this.scmAmount == null) {
+                this.scmAmount = this.amount != null ? this.amount : BigDecimal.ZERO;
+            }
+            if (this.svaAmount == null) {
+                this.svaAmount = BigDecimal.ZERO;
+            }
+            return;
+        }
+        BigDecimal scm = BigDecimal.ZERO;
+        BigDecimal sva = BigDecimal.ZERO;
+        for (InvoiceCompositionItem item : this.compositionItems) {
+            item.setInvoice(this);
+            if (item.getId() == null) {
+                item.setId(UuidCreatorUtils.generateUuidV7());
+            }
+            if (item.getCreatedAt() == null) {
+                item.setCreatedAt(LocalDateTime.now());
+            }
+            BigDecimal itemAmt = item.getAmount() != null ? item.getAmount() : BigDecimal.ZERO;
+            if (item.getCategory() == null || item.getCategory() == PlanCompositionCategory.SCM) {
+                item.setCategory(PlanCompositionCategory.SCM);
+                scm = scm.add(itemAmt);
+            } else {
+                sva = sva.add(itemAmt);
+            }
+        }
+        this.scmAmount = scm;
+        this.svaAmount = sva;
+    }
+
     @PrePersist
     protected void onCreate() {
         if (this.id == null) {
@@ -176,11 +223,13 @@ public class Invoice {
         if (this.status == null) {
             this.status = InvoiceStatus.PENDING;
         }
+        recalculateCompositionTotals();
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+        recalculateCompositionTotals();
     }
 
     public enum InvoiceStatus {
@@ -198,3 +247,4 @@ public class Invoice {
         CANCELLED
     }
 }
+

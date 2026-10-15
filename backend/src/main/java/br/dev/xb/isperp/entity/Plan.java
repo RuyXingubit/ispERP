@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -45,6 +47,17 @@ public class Plan {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "scm_amount", precision = 10, scale = 2)
+    private BigDecimal scmAmount;
+
+    @Column(name = "sva_amount", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal svaAmount = BigDecimal.ZERO;
+
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<PlanCompositionItem> compositionItems = new ArrayList<>();
+
     @Column(name = "description", columnDefinition = "text")
     private String description;
 
@@ -69,6 +82,34 @@ public class Plan {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public void recalculateCompositionTotals() {
+        if (this.compositionItems == null || this.compositionItems.isEmpty()) {
+            this.scmAmount = this.price != null ? this.price : BigDecimal.ZERO;
+            this.svaAmount = BigDecimal.ZERO;
+            return;
+        }
+        BigDecimal scm = BigDecimal.ZERO;
+        BigDecimal sva = BigDecimal.ZERO;
+        for (PlanCompositionItem item : this.compositionItems) {
+            item.setPlan(this);
+            if (item.getId() == null) {
+                item.setId(UuidCreatorUtils.generateUuidV7());
+            }
+            if (item.getCreatedAt() == null) {
+                item.setCreatedAt(LocalDateTime.now());
+            }
+            BigDecimal itemAmt = item.getAmount() != null ? item.getAmount() : BigDecimal.ZERO;
+            if (item.getCategory() == null || item.getCategory() == PlanCompositionCategory.SCM) {
+                item.setCategory(PlanCompositionCategory.SCM);
+                scm = scm.add(itemAmt);
+            } else {
+                sva = sva.add(itemAmt);
+            }
+        }
+        this.scmAmount = scm;
+        this.svaAmount = sva;
+    }
+
     @PrePersist
     protected void onCreate() {
         if (this.id == null) {
@@ -79,10 +120,13 @@ public class Plan {
         if (this.active == null) {
             this.active = true;
         }
+        recalculateCompositionTotals();
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+        recalculateCompositionTotals();
     }
 }
+

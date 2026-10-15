@@ -1,3 +1,45 @@
+PlanCompositionCategory:
+  type: string
+  description: Categoria fiscal/tributária do item que compõe o plano de assinatura
+  enum:
+    - SCM
+    - EQUIPMENT_RENTAL
+    - SVA_DIGITAL_CONTENT
+    - SVA_STREAMING_APP
+    - SVA_OTHER
+  example: "SCM"
+
+PlanCompositionItemDto:
+  type: object
+  description: Item individual da composição financeira e tributária do plano (SCM, Locação de Equipamento, SVA Digital, Streaming, Outros SVAs)
+  required:
+    - name
+    - category
+    - amount
+  properties:
+    id:
+      type: string
+      format: uuid
+      nullable: true
+      example: "019633f8-a4b0-7d8e-9f12-34567890abcd"
+    name:
+      type: string
+      description: Nome descritivo do serviço ou equipamento na fatura
+      example: "Conectividade Fibra Óptica SCM"
+    category:
+      $ref: '#/PlanCompositionCategory'
+    amount:
+      type: number
+      format: double
+      minimum: 0.01
+      description: Valor em Reais (BRL) correspondente a este item na mensalidade
+      example: 59.90
+    fiscalCode:
+      type: string
+      nullable: true
+      description: Código CFOP / Classificação NFCom ou Código de Serviço SVA opcional
+      example: "5307"
+
 PlanResponse:
   type: object
   description: Dados cadastrais do Plano de Acesso à Internet
@@ -30,6 +72,23 @@ PlanResponse:
       format: double
       description: Mensalidade em Reais (BRL)
       example: 99.90
+    scmAmount:
+      type: number
+      format: double
+      nullable: true
+      description: Soma em Reais (BRL) dos itens de categoria SCM (base tributável NFCom Mod. 62)
+      example: 59.90
+    svaAmount:
+      type: number
+      format: double
+      nullable: true
+      description: Soma em Reais (BRL) dos itens de Locação e SVA (fora da base ICMS da NFCom)
+      example: 40.00
+    compositionItems:
+      type: array
+      items:
+        $ref: '#/PlanCompositionItemDto'
+      description: Lista detalhada dos itens que compõem o valor total do plano
     description:
       type: string
       nullable: true
@@ -83,6 +142,11 @@ PlanCreateRequest:
       format: double
       minimum: 0.01
       example: 99.90
+    compositionItems:
+      type: array
+      items:
+        $ref: '#/PlanCompositionItemDto'
+      description: Itens que compõem o plano (soma deve ser igual a price; se omitido, 100% assume SCM)
     description:
       type: string
       nullable: true
@@ -126,6 +190,11 @@ PlanUpdateRequest:
       format: double
       minimum: 0.01
       example: 109.90
+    compositionItems:
+      type: array
+      items:
+        $ref: '#/PlanCompositionItemDto'
+      description: Itens que compõem o plano (soma deve ser igual a price; se omitido, 100% assume SCM)
     description:
       type: string
       nullable: true
@@ -141,3 +210,4 @@ PlanUpdateRequest:
     active:
       type: boolean
       default: true
+
