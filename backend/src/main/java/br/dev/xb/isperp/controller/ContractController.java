@@ -1,12 +1,9 @@
 package br.dev.xb.isperp.controller;
 
 import br.dev.xb.isperp.api.contract.ContractsApi;
-import br.dev.xb.isperp.api.dto.ContractCreateRequest;
-import br.dev.xb.isperp.api.dto.ContractResponse;
-import br.dev.xb.isperp.api.dto.ContractStatus;
-import br.dev.xb.isperp.api.dto.ContractUpdateRequest;
-import br.dev.xb.isperp.api.dto.UpdateContractStatusRequest;
+import br.dev.xb.isperp.api.dto.*;
 import br.dev.xb.isperp.entity.Contract;
+import br.dev.xb.isperp.entity.ContractLifecycleEvent;
 import br.dev.xb.isperp.mapper.ContractMapper;
 import br.dev.xb.isperp.service.ContractService;
 import lombok.RequiredArgsConstructor;
@@ -96,5 +93,59 @@ public class ContractController implements ContractsApi {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @Override
+    public ResponseEntity<ContractLifecycleActionResponse> changeContractPlan(
+            UUID id,
+            ContractPlanChangeRequest contractPlanChangeRequest) {
+        try {
+            ContractService.LifecycleActionResult result = contractService.changePlan(id, contractPlanChangeRequest);
+            ContractLifecycleActionResponse response = new ContractLifecycleActionResponse()
+                    .contract(contractMapper.toResponse(result.contract()))
+                    .event(contractMapper.toLifecycleEventResponse(result.event()));
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<ContractLifecycleActionResponse> changeContractAddress(
+            UUID id,
+            ContractAddressChangeRequest contractAddressChangeRequest) {
+        try {
+            ContractService.LifecycleActionResult result = contractService.changeAddress(id, contractAddressChangeRequest);
+            ContractLifecycleActionResponse response = new ContractLifecycleActionResponse()
+                    .contract(contractMapper.toResponse(result.contract()))
+                    .event(contractMapper.toLifecycleEventResponse(result.event()));
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<ContractLifecycleActionResponse> transferContractOwnership(
+            UUID id,
+            ContractOwnershipTransferRequest contractOwnershipTransferRequest) {
+        try {
+            ContractService.LifecycleActionResult result = contractService.transferOwnership(id, contractOwnershipTransferRequest);
+            ContractLifecycleActionResponse response = new ContractLifecycleActionResponse()
+                    .contract(contractMapper.toResponse(result.contract()))
+                    .event(contractMapper.toLifecycleEventResponse(result.event()));
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<List<ContractLifecycleEventResponse>> getContractLifecycleEvents(UUID id) {
+        if (contractService.getContractById(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<ContractLifecycleEvent> events = contractService.getLifecycleEvents(id);
+        return ResponseEntity.ok(contractMapper.toLifecycleEventResponseList(events));
     }
 }

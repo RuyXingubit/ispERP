@@ -92,6 +92,10 @@ public class Contract {
     @Builder.Default
     private BigDecimal pendingOnboardingCredit = BigDecimal.ZERO;
 
+    @Column(name = "pending_pro_rata_adjustment", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal pendingProRataAdjustment = BigDecimal.ZERO;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -111,6 +115,9 @@ public class Contract {
         }
         if (this.pendingOnboardingCredit == null) {
             this.pendingOnboardingCredit = BigDecimal.ZERO;
+        }
+        if (this.pendingProRataAdjustment == null) {
+            this.pendingProRataAdjustment = BigDecimal.ZERO;
         }
     }
 

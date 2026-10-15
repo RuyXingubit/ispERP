@@ -73,6 +73,12 @@ ContractResponse:
       format: double
       nullable: true
       example: 0.0
+    pendingProRataAdjustment:
+      type: number
+      format: double
+      nullable: true
+      description: Ajuste proporcional (Pro-Rata Die) pendente para ser somado/abatido na próxima fatura gerada.
+      example: 0.0
     createdAt:
       type: string
       format: date-time
@@ -523,3 +529,164 @@ TemplatePreviewResponse:
   properties:
     rendered:
       type: string
+
+ContractLifecycleEventType:
+  type: string
+  enum:
+    - PLAN_CHANGE
+    - ADDRESS_CHANGE
+    - OWNERSHIP_TRANSFER
+  description: Tipo de evento de pós-venda do contrato.
+
+ContractPlanChangeRequest:
+  type: object
+  required:
+    - newPlanId
+  properties:
+    newPlanId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    applyProRata:
+      type: boolean
+      nullable: true
+      default: true
+      description: Se verdadeiro, calcula e aplica o ajuste proporcional (Pro-Rata Die base 30 dias) na próxima fatura PENDING ou no contrato.
+    reason:
+      type: string
+      nullable: true
+      example: "Upgrade solicitado pelo cliente para plano Fibra 600 Mega"
+
+ContractAddressChangeRequest:
+  type: object
+  required:
+    - newInstallationAddress
+  properties:
+    newInstallationAddress:
+      type: string
+      example: "Rua das Palmeiras, 450, Bairro Jardim"
+    newCity:
+      type: string
+      nullable: true
+      example: "Altamira"
+    newState:
+      type: string
+      nullable: true
+      example: "PA"
+    newZipCode:
+      type: string
+      nullable: true
+      example: "68371-000"
+    newCtoId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    newCtoPortNumber:
+      type: integer
+      nullable: true
+      example: 8
+    serviceFee:
+      type: number
+      format: double
+      nullable: true
+      example: 150.00
+    requestWaiver:
+      type: boolean
+      nullable: true
+      default: false
+    waiverReason:
+      type: string
+      nullable: true
+      example: "Isenção por renovação de fidelidade 12 meses"
+    notes:
+      type: string
+      nullable: true
+
+ContractOwnershipTransferRequest:
+  type: object
+  required:
+    - newCustomerId
+  properties:
+    newCustomerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    generateForensicSignature:
+      type: boolean
+      nullable: true
+      default: true
+    reason:
+      type: string
+      nullable: true
+      example: "Transferência de titularidade com assunção integral de contrato e faturas"
+
+ContractLifecycleEventResponse:
+  type: object
+  required:
+    - id
+    - contractId
+    - eventType
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    eventType:
+      $ref: '#/ContractLifecycleEventType'
+    previousCustomerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    newCustomerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    previousPlanId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    newPlanId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    previousAddress:
+      type: string
+      nullable: true
+    newAddress:
+      type: string
+      nullable: true
+    oldMonthlyFee:
+      type: number
+      format: double
+      nullable: true
+    newMonthlyFee:
+      type: number
+      format: double
+      nullable: true
+    remainingDaysInCycle:
+      type: integer
+      nullable: true
+    proRataAdjustmentAmount:
+      type: number
+      format: double
+      nullable: true
+    adjustedInvoiceId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    migratedInvoicesCount:
+      type: integer
+      nullable: true
+    workOrderId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    signatureSessionId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    signatureUrl:
+      type: string
+      nullable: true
+    radiusRateLimitApplied:
+      type: string
+      nullable: true
+    notes:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+
+ContractLifecycleActionResponse:
+  type: object
+  required:
+    - contract
+    - event
+  properties:
+    contract:
+      $ref: '#/ContractResponse'
+    event:
+      $ref: '#/ContractLifecycleEventResponse'
+

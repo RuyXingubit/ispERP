@@ -1,10 +1,13 @@
 package br.dev.xb.isperp.mapper;
 
 import br.dev.xb.isperp.api.dto.ContractCreateRequest;
+import br.dev.xb.isperp.api.dto.ContractLifecycleEventResponse;
+import br.dev.xb.isperp.api.dto.ContractLifecycleEventType;
 import br.dev.xb.isperp.api.dto.ContractResponse;
 import br.dev.xb.isperp.api.dto.ContractUpdateRequest;
 import br.dev.xb.isperp.dto.ContractDTO;
 import br.dev.xb.isperp.entity.Contract;
+import br.dev.xb.isperp.entity.ContractLifecycleEvent;
 import org.mapstruct.*;
 
 import java.math.BigDecimal;
@@ -23,7 +26,16 @@ public interface ContractMapper {
 
     List<ContractResponse> toResponseList(List<Contract> contracts);
 
+    ContractLifecycleEventResponse toLifecycleEventResponse(ContractLifecycleEvent event);
+
+    List<ContractLifecycleEventResponse> toLifecycleEventResponseList(List<ContractLifecycleEvent> events);
+
+    default ContractLifecycleEventType toEventTypeDto(ContractLifecycleEvent.EventType type) {
+        return type != null ? ContractLifecycleEventType.fromValue(type.name()) : null;
+    }
+
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "pendingProRataAdjustment", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Contract toEntity(ContractCreateRequest request);
@@ -33,6 +45,7 @@ public interface ContractMapper {
     @Mapping(target = "saleId", ignore = true)
     @Mapping(target = "contractNumber", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "pendingProRataAdjustment", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntityFromRequest(ContractUpdateRequest request, @MappingTarget Contract contract);
@@ -47,6 +60,7 @@ public interface ContractMapper {
     @Mapping(target = "ctoPortNumber", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "pendingOnboardingCredit", ignore = true)
+    @Mapping(target = "pendingProRataAdjustment", ignore = true)
     Contract toEntity(ContractDTO dto);
 
     List<ContractDTO> toDtoList(List<Contract> contracts);
@@ -62,6 +76,9 @@ public interface ContractMapper {
     default void setDefaults(@MappingTarget Contract contract) {
         if (contract.getPendingOnboardingCredit() == null) {
             contract.setPendingOnboardingCredit(BigDecimal.ZERO);
+        }
+        if (contract.getPendingProRataAdjustment() == null) {
+            contract.setPendingProRataAdjustment(BigDecimal.ZERO);
         }
     }
 

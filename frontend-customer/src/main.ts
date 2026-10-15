@@ -4,6 +4,7 @@ import { loginClient, getCurrentSession, logoutClient } from './services/authSer
 import {
   fetchDashboard,
   requestTrustUnblock,
+  requestPlanUpgrade,
   fetchThemeSettings,
   fetchCompanyData,
   setCustomerPin,
@@ -35,6 +36,7 @@ import {
   extractSignatureToken,
   formatContractStatus,
   formatFallbackMethodLabel,
+  calculatePortalProRataPreview,
 } from './utils/formatters';
 export {
   formatDocument,
@@ -44,6 +46,7 @@ export {
   extractSignatureToken,
   formatContractStatus,
   formatFallbackMethodLabel,
+  calculatePortalProRataPreview,
 };
 
 /**
@@ -97,7 +100,7 @@ function hideLoginAlert() {
 }
 
 /**
- * Renderiza os planos disponíveis para upgrade quando retornados pela API
+ * Renderiza os planos disponíveis para upgrade quando retornados pela API (com prévia Pro-Rata e CoA imediato Onda I)
  */
 function renderUpgradePlans() {
   const section = document.getElementById('upgrade-plans-section');
@@ -111,25 +114,70 @@ function renderUpgradePlans() {
     return;
   }
 
+  const currentFee =
+    currentDashboard.contract?.monthlyFee ??
+    currentDashboard.currentPlan?.price ??
+    currentDashboard.currentPlan?.monthlyPrice ??
+    0;
+  const dueDay = currentDashboard.contract?.dueDay ?? 10;
+
   section.style.display = 'block';
   grid.innerHTML = plans
-    .map(
-      (plan) => `
+    .map((plan) => {
+      const planPrice = plan.price ?? plan.monthlyPrice ?? 0;
+      const preview = calculatePortalProRataPreview(currentFee, planPrice, dueDay);
+      return `
       <div class="upgrade-plan-card">
         <div>
           <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-main);">${plan.name}</div>
           <div class="upgrade-plan-speeds">
             ⬇ ${plan.downloadSpeed} Mbps • ⬆ ${plan.uploadSpeed} Mbps
           </div>
+          <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+            Ajuste Pro-Rata (${preview.remainingDays}d): ${preview.proRataDelta >= 0 ? '+' : ''}R$ ${formatCurrency(preview.proRataDelta)} na próxima fatura
+          </div>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;">
-          <span class="upgrade-plan-price">R$ ${formatCurrency(plan.price ?? plan.monthlyPrice ?? 0)}<small style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">/mês</small></span>
-          <span style="font-size: 0.75rem; color: var(--success-color); font-weight: 700;">Disponível</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+          <span class="upgrade-plan-price">R$ ${formatCurrency(planPrice)}<small style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">/mês</small></span>
+          ${
+            currentDashboard?.contract?.id
+              ? `<button type="button" class="btn-upgrade-plan" data-plan-id="${plan.id}" data-plan-name="${plan.name}" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--primary-color); background: rgba(56, 189, 248, 0.14); color: var(--text-main); font-size: 0.76rem; font-weight: 700; cursor: pointer;">
+                   ⚡ Upgrade Imediato
+                 </button>`
+              : `<span style="font-size: 0.75rem; color: var(--success-color); font-weight: 700;">Disponível</span>`
+          }
         </div>
       </div>
-    `
-    )
+    `;
+    })
     .join('');
+
+  grid.querySelectorAll<HTMLButtonElement>('.btn-upgrade-plan').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const planId = btn.getAttribute('data-plan-id');
+      const planName = btn.getAttribute('data-plan-name') || 'novo plano';
+      const contractId = currentDashboard?.contract?.id;
+      const customerId = currentDashboard?.customer?.id;
+      if (!planId || !contractId || !customerId) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Aplicando CoA...';
+      try {
+        const res = await requestPlanUpgrade(
+          contractId,
+          planId,
+          `Upgrade para ${planName} via Central do Assinante`
+        );
+        alert(res.message || `Upgrade para ${planName} aplicado com sucesso!`);
+        await loadDashboard(customerId);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Não foi possível concluir o upgrade agora.';
+        alert(msg);
+        btn.disabled = false;
+        btn.textContent = '⚡ Upgrade Imediato';
+      }
+    });
+  });
 }
 
 /**

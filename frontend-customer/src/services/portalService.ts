@@ -43,6 +43,8 @@ export interface PlanItem {
 export interface ContractItem {
   id: string;
   status: string;
+  dueDay?: number;
+  monthlyFee?: number;
 }
 
 export interface CustomerData {
@@ -92,6 +94,20 @@ export async function requestTrustUnblock(contractId: string, customerId: string
   return await apiFetch(`/portal/client/trust-unblock?customerId=${customerId}`, {
     method: 'POST',
     body: JSON.stringify({ contractId }),
+  });
+}
+
+export async function requestPlanUpgrade(
+  contractId: string,
+  newPlanId: string,
+  notes?: string
+): Promise<{ message: string }> {
+  return await apiFetch<{ message: string }>(`/contracts/${contractId}/change-plan`, {
+    method: 'POST',
+    body: JSON.stringify({
+      newPlanId,
+      notes: notes || 'Upgrade solicitado pelo assinante na Central do Assinante',
+    }),
   });
 }
 

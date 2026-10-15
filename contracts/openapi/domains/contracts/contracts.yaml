@@ -208,3 +208,145 @@
           application/json:
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/contracts/{id}/change-plan:
+  post:
+    tags:
+      - Contracts
+    summary: Alterar plano do contrato (Upgrade / Downgrade com cálculo Pro-Rata Die e CoA RADIUS)
+    operationId: changeContractPlan
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ContractPlanChangeRequest'
+    responses:
+      '200':
+        description: Plano alterado com cálculo Pro-Rata Die e atualização imediata no FreeRADIUS.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractLifecycleActionResponse'
+      '400':
+        description: Dados inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Contrato ou plano não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/contracts/{id}/change-address:
+  post:
+    tags:
+      - Contracts
+    summary: Mudança de endereço do contrato com abertura automática de Ordem de Serviço
+    operationId: changeContractAddress
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ContractAddressChangeRequest'
+    responses:
+      '200':
+        description: Endereço atualizado e Ordem de Serviço gerada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractLifecycleActionResponse'
+      '400':
+        description: Dados inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Contrato não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/contracts/{id}/transfer-ownership:
+  post:
+    tags:
+      - Contracts
+    summary: Troca de titularidade do contrato com migração de faturas abertas/vencidas e nova Assinatura Forense
+    operationId: transferContractOwnership
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/ContractOwnershipTransferRequest'
+    responses:
+      '200':
+        description: Titularidade transferida, faturas migradas e sessão de assinatura forense gerada.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ContractLifecycleActionResponse'
+      '400':
+        description: Dados inválidos.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+      '404':
+        description: Contrato ou novo cliente não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/contracts/{id}/lifecycle-events:
+  get:
+    tags:
+      - Contracts
+    summary: Listar histórico de eventos de pós-venda do contrato (Troca de Plano, Mudança de Endereço, Troca de Titularidade)
+    operationId: getContractLifecycleEvents
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Histórico de pós-venda retornado com sucesso.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/ContractLifecycleEventResponse'
+      '404':
+        description: Contrato não encontrado.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'

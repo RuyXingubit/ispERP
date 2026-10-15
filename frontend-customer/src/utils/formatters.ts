@@ -113,3 +113,34 @@ export function formatFallbackMethodLabel(method?: string): string {
   }
 }
 
+/**
+ * Calcula a prévia Pro-Rata Die (base comercial 30 dias) para Upgrade/Downgrade na Central do Assinante (Onda I).
+ */
+export function calculatePortalProRataPreview(
+  currentMonthlyFee: number,
+  newMonthlyFee: number,
+  dueDay: number = 10,
+  referenceDate: Date = new Date()
+): { remainingDays: number; proRataDelta: number } {
+  const safeDueDay = Math.min(28, Math.max(1, dueDay || 10));
+  const today = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    referenceDate.getDate()
+  );
+  let nextDue = new Date(today.getFullYear(), today.getMonth(), safeDueDay);
+  if (nextDue <= today) {
+    nextDue = new Date(today.getFullYear(), today.getMonth() + 1, safeDueDay);
+  }
+  const diffMs = nextDue.getTime() - today.getTime();
+  const remainingDays = Math.min(
+    30,
+    Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)))
+  );
+  const proRataDelta = Number(
+    (((newMonthlyFee - currentMonthlyFee) / 30) * remainingDays).toFixed(2)
+  );
+  return { remainingDays, proRataDelta };
+}
+
+

@@ -255,5 +255,40 @@ test('summarizeInvoiceComposition - separa base tributável SCM (NFCom) de itens
   assert.equal(summary.totalAmount, 99.9);
 });
 
+function calculatePortalProRataPreview(
+  currentMonthlyFee,
+  newMonthlyFee,
+  dueDay = 10,
+  referenceDate = new Date()
+) {
+  const safeDueDay = Math.min(28, Math.max(1, dueDay || 10));
+  const today = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    referenceDate.getDate()
+  );
+  let nextDue = new Date(today.getFullYear(), today.getMonth(), safeDueDay);
+  if (nextDue <= today) {
+    nextDue = new Date(today.getFullYear(), today.getMonth() + 1, safeDueDay);
+  }
+  const diffMs = nextDue.getTime() - today.getTime();
+  const remainingDays = Math.min(
+    30,
+    Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)))
+  );
+  const proRataDelta = Number(
+    (((newMonthlyFee - currentMonthlyFee) / 30) * remainingDays).toFixed(2)
+  );
+  return { remainingDays, proRataDelta };
+}
 
+test('calculatePortalProRataPreview - calcula diferença proporcional Pro-Rata Die (base 30 dias) no upgrade de plano (Onda I)', () => {
+  const refDate = new Date(2026, 3, 10); // 10/04/2026
+  const upgradePreview = calculatePortalProRataPreview(100, 160, 25, refDate);
+  assert.equal(upgradePreview.remainingDays, 15);
+  assert.equal(upgradePreview.proRataDelta, 30.0);
 
+  const downgradePreview = calculatePortalProRataPreview(190, 100, 20, refDate);
+  assert.equal(downgradePreview.remainingDays, 10);
+  assert.equal(downgradePreview.proRataDelta, -30.0);
+});

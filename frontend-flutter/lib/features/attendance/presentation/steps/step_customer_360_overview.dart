@@ -6,6 +6,7 @@ import '../../../sales/presentation/contract_forensic_signature_modal.dart';
 import '../../../sales/presentation/sales_onboarding_modal.dart';
 import '../../data/attendance_models.dart';
 import '../../data/attendance_notifier.dart';
+import '../contract_post_sale_lifecycle_modal.dart';
 
 /// Passo 2 do Hub de Atendimento: Raio-X Contextual do Assinante, Linha do Tempo Viva e Escolha de Trilha.
 class StepCustomer360Overview extends ConsumerWidget {
@@ -76,7 +77,7 @@ class StepCustomer360Overview extends ConsumerWidget {
           ),
           const SizedBox(height: 14),
 
-          // 1.5. Contratos do Assinante & Assinatura Eletrônica Forense
+          // 1.5. Contratos do Assinante & Assinatura Eletrônica Forense + Pós-Venda (Onda I)
           if (state.contracts.isNotEmpty) ...[
             ...state.contracts.map((contract) {
               return Container(
@@ -107,7 +108,8 @@ class StepCustomer360Overview extends ConsumerWidget {
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                               ),
                               Text(
-                                'R\$ ${contract.monthlyFee.toStringAsFixed(2)}/mês • Venc. dia ${contract.dueDay}',
+                                'R\$ ${contract.monthlyFee.toStringAsFixed(2)}/mês • Venc. dia ${contract.dueDay}'
+                                '${contract.pendingProRataAdjustment != 0 ? " • Ajuste Pro-Rata: R\$ ${contract.pendingProRataAdjustment.toStringAsFixed(2)}" : ""}',
                                 style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
                               ),
                             ],
@@ -115,18 +117,38 @@ class StepCustomer360Overview extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    OutlinedButton.icon(
-                      onPressed: () => ContractForensicSignatureModal.show(
-                        context,
-                        contractId: contract.id,
-                        contractNumber: contract.contractNumber,
-                        customerName: customer.name,
-                      ),
-                      icon: const Icon(Icons.verified_user_outlined, size: 15),
-                      label: const Text(
-                        'Assinatura Forense (PIX R\$ 1,00)',
-                        style: TextStyle(fontSize: 11),
-                      ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => ContractPostSaleLifecycleModal.show(
+                            context,
+                            contract: contract,
+                            currentCustomerId: customer.id,
+                            currentCustomerName: customer.name,
+                            onSuccess: () => notifier.selectCustomer(customer),
+                          ),
+                          icon: const Icon(Icons.published_with_changes, size: 15),
+                          label: const Text(
+                            'Pós-Venda (Plano / Endereço / Titularidade)',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => ContractForensicSignatureModal.show(
+                            context,
+                            contractId: contract.id,
+                            contractNumber: contract.contractNumber,
+                            customerName: customer.name,
+                          ),
+                          icon: const Icon(Icons.verified_user_outlined, size: 15),
+                          label: const Text(
+                            'Assinatura Forense (PIX R\$ 1,00)',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

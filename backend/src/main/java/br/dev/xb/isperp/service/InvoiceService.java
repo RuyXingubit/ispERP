@@ -14,6 +14,7 @@ import br.dev.xb.isperp.gateway.PaymentGatewayResolver;
 import br.dev.xb.isperp.gateway.PaymentGatewayType;
 import br.dev.xb.isperp.gateway.dto.CreateChargeRequest;
 import br.dev.xb.isperp.gateway.dto.CreateChargeResponse;
+import br.dev.xb.isperp.repository.ContractRepository;
 import br.dev.xb.isperp.repository.CustomerRepository;
 import br.dev.xb.isperp.repository.InvoiceRepository;
 import br.dev.xb.isperp.repository.PaymentTransactionRepository;
@@ -53,6 +54,10 @@ public class InvoiceService {
     @Nullable
     private PlanRepository planRepository;
 
+    @Autowired(required = false)
+    @Nullable
+    private ContractRepository contractRepository;
+
     public List<Invoice> getAllInvoices() {
         return invoiceRepository.findAll();
     }
@@ -87,6 +92,14 @@ public class InvoiceService {
 
         UUID invoiceId = UuidCreatorUtils.generateUuidV7();
 
+        BigDecimal proRataDelta = contract.getPendingProRataAdjustment() != null
+                ? contract.getPendingProRataAdjustment()
+                : BigDecimal.ZERO;
+        BigDecimal effectiveAmount = contract.getMonthlyFee().add(proRataDelta);
+        if (effectiveAmount.compareTo(BigDecimal.valueOf(0.01)) < 0) {
+            effectiveAmount = BigDecimal.valueOf(0.01);
+        }
+
         // Resolve gateway de pagamento (padrão: Xingubit Pay)
         PaymentGatewayResolver.ResolvedGateway resolved = gatewayResolver.resolve(PaymentGatewayType.XINGUBIT_PAY);
         PaymentGateway gateway = resolved.gateway();
@@ -99,7 +112,7 @@ public class InvoiceService {
                 .customerCpf(customer.getCpf())
                 .customerEmail(customer.getEmail())
                 .customerPhone(customer.getPhone())
-                .amount(contract.getMonthlyFee())
+                .amount(effectiveAmount)
                 .dueDate(dueDate)
                 .description("Mensalidade de Internet - Contrato " + contract.getContractNumber())
                 .build();
@@ -113,7 +126,7 @@ public class InvoiceService {
                 .gatewayConfigId(resolved.config().getId())
                 .gatewayType(chargeResponse.getGatewayType())
                 .externalTransactionId(chargeResponse.getExternalTransactionId())
-                .amount(contract.getMonthlyFee())
+                .amount(effectiveAmount)
                 .dueDate(dueDate)
                 .status(Invoice.InvoiceStatus.PENDING)
                 .pixCopiaECola(chargeResponse.getPixCopiaECola())
@@ -151,6 +164,23 @@ public class InvoiceService {
                     .createdAt(LocalDateTime.now())
                     .build());
         }
+
+        if (proRataDelta.compareTo(BigDecimal.ZERO) != 0) {
+            invoice.getCompositionItems().add(InvoiceCompositionItem.builder()
+                    .id(UuidCreatorUtils.generateUuidV7())
+                    .invoice(invoice)
+                    .name("Ajuste Pro-Rata Die de Mudança de Plano")
+                    .category(PlanCompositionCategory.SCM)
+                    .amount(proRataDelta)
+                    .fiscalCode("5307")
+                    .createdAt(LocalDateTime.now())
+                    .build());
+            contract.setPendingProRataAdjustment(BigDecimal.ZERO);
+            if (contractRepository != null) {
+                contractRepository.save(contract);
+            }
+        }
+
         invoice.recalculateCompositionTotals();
 
         Invoice saved = invoiceRepository.save(invoice);

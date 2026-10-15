@@ -98,6 +98,106 @@ class AttendanceRepository {
       return false;
     }
   }
+
+  /// Executa Upgrade/Downgrade de plano com cálculo Pro-Rata e CoA imediato no FreeRADIUS (Onda I).
+  Future<ContractLifecycleActionResultModel> changeContractPlan({
+    required String contractId,
+    required String newPlanId,
+    String? notes,
+  }) async {
+    final response = await _dio.post(
+      '/contracts/$contractId/change-plan',
+      data: {
+        'newPlanId': newPlanId,
+        if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+      },
+    );
+    return ContractLifecycleActionResultModel.fromJson(
+      response.data as Map<String, dynamic>,
+    );
+  }
+
+  /// Executa Mudança de Endereço com geração automática de O.S. de Instalação e taxa/isenção (Onda I).
+  Future<ContractLifecycleActionResultModel> changeContractAddress({
+    required String contractId,
+    required String newInstallationAddress,
+    required String newCity,
+    required String newState,
+    required String newZipCode,
+    String? newCtoId,
+    int? newCtoPortNumber,
+    double serviceFee = 0.0,
+    bool requestWaiver = false,
+    String? waiverReason,
+    String? notes,
+  }) async {
+    final response = await _dio.post(
+      '/contracts/$contractId/change-address',
+      data: {
+        'newInstallationAddress': newInstallationAddress.trim(),
+        'newCity': newCity.trim(),
+        'newState': newState.trim(),
+        'newZipCode': newZipCode.trim(),
+        if (newCtoId != null && newCtoId.trim().isNotEmpty) 'newCtoId': newCtoId.trim(),
+        'newCtoPortNumber': ?newCtoPortNumber,
+        'serviceFee': serviceFee,
+        'requestWaiver': requestWaiver,
+        if (waiverReason != null && waiverReason.trim().isNotEmpty) 'waiverReason': waiverReason.trim(),
+        if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+      },
+    );
+    return ContractLifecycleActionResultModel.fromJson(
+      response.data as Map<String, dynamic>,
+    );
+  }
+
+  /// Executa Troca de Titularidade migrando faturas em aberto/vencidas e gerando Assinatura Forense (Onda I).
+  Future<ContractLifecycleActionResultModel> transferContractOwnership({
+    required String contractId,
+    required String newCustomerId,
+    String? notes,
+  }) async {
+    final response = await _dio.post(
+      '/contracts/$contractId/transfer-ownership',
+      data: {
+        'newCustomerId': newCustomerId.trim(),
+        if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+      },
+    );
+    return ContractLifecycleActionResultModel.fromJson(
+      response.data as Map<String, dynamic>,
+    );
+  }
+
+  /// Lista os planos ativos para Upgrade/Downgrade (Onda I).
+  Future<List<PlanOptionModel>> getActivePlans() async {
+    try {
+      final response = await _dio.get('/plans/active');
+      if (response.statusCode == 200 && response.data is List) {
+        return (response.data as List)
+            .map((item) => PlanOptionModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Lista o histórico auditado de eventos pós-venda do contrato (Onda I).
+  Future<List<ContractLifecycleEventModel>> getContractLifecycleEvents(String contractId) async {
+    try {
+      final response = await _dio.get('/contracts/$contractId/lifecycle-events');
+      if (response.statusCode == 200 && response.data is List) {
+        return (response.data as List)
+            .map((item) => ContractLifecycleEventModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
 }
 
 /// Provider do repositório de atendimento.

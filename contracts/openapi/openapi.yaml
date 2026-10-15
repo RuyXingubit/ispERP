@@ -192,6 +192,14 @@ paths:
     $ref: './domains/contracts/contracts.yaml#/~1contracts~1status~1{status}'
   /contracts/{id}/status:
     $ref: './domains/contracts/contracts.yaml#/~1contracts~1{id}~1status'
+  /contracts/{id}/change-plan:
+    $ref: './domains/contracts/contracts.yaml#/~1contracts~1{id}~1change-plan'
+  /contracts/{id}/change-address:
+    $ref: './domains/contracts/contracts.yaml#/~1contracts~1{id}~1change-address'
+  /contracts/{id}/transfer-ownership:
+    $ref: './domains/contracts/contracts.yaml#/~1contracts~1{id}~1transfer-ownership'
+  /contracts/{id}/lifecycle-events:
+    $ref: './domains/contracts/contracts.yaml#/~1contracts~1{id}~1lifecycle-events'
   /contracts/signatures:
     $ref: './domains/contracts/signatures.yaml#/~1contracts~1signatures'
   /contracts/{contractId}/signatures:
@@ -754,6 +762,18 @@ components:
       $ref: './domains/contracts/schemas.yaml#/TemplatePreviewRequest'
     TemplatePreviewResponse:
       $ref: './domains/contracts/schemas.yaml#/TemplatePreviewResponse'
+    ContractLifecycleEventType:
+      $ref: './domains/contracts/schemas.yaml#/ContractLifecycleEventType'
+    ContractPlanChangeRequest:
+      $ref: './domains/contracts/schemas.yaml#/ContractPlanChangeRequest'
+    ContractAddressChangeRequest:
+      $ref: './domains/contracts/schemas.yaml#/ContractAddressChangeRequest'
+    ContractOwnershipTransferRequest:
+      $ref: './domains/contracts/schemas.yaml#/ContractOwnershipTransferRequest'
+    ContractLifecycleEventResponse:
+      $ref: './domains/contracts/schemas.yaml#/ContractLifecycleEventResponse'
+    ContractLifecycleActionResponse:
+      $ref: './domains/contracts/schemas.yaml#/ContractLifecycleActionResponse'
 
 
     # Customers

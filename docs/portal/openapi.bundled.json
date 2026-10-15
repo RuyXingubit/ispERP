@@ -1716,6 +1716,233 @@
         }
       }
     },
+    "/contracts/{id}/change-plan": {
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Alterar plano do contrato (Upgrade / Downgrade com cálculo Pro-Rata Die e CoA RADIUS)",
+        "operationId": "changeContractPlan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractPlanChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Plano alterado com cálculo Pro-Rata Die e atualização imediata no FreeRADIUS.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLifecycleActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contrato ou plano não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/{id}/change-address": {
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Mudança de endereço do contrato com abertura automática de Ordem de Serviço",
+        "operationId": "changeContractAddress",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractAddressChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Endereço atualizado e Ordem de Serviço gerada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLifecycleActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contrato não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/{id}/transfer-ownership": {
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Troca de titularidade do contrato com migração de faturas abertas/vencidas e nova Assinatura Forense",
+        "operationId": "transferContractOwnership",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractOwnershipTransferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Titularidade transferida, faturas migradas e sessão de assinatura forense gerada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLifecycleActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contrato ou novo cliente não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contracts/{id}/lifecycle-events": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Listar histórico de eventos de pós-venda do contrato (Troca de Plano, Mudança de Endereço, Troca de Titularidade)",
+        "operationId": "getContractLifecycleEvents",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Histórico de pós-venda retornado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractLifecycleEventResponse"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contrato não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/contracts/signatures": {
       "post": {
         "tags": [
@@ -12359,6 +12586,13 @@
             "nullable": true,
             "example": 0
           },
+          "pendingProRataAdjustment": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Ajuste proporcional (Pro-Rata Die) pendente para ser somado/abatido na próxima fatura gerada.",
+            "example": 0
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -12814,6 +13048,216 @@
         "properties": {
           "rendered": {
             "type": "string"
+          }
+        }
+      },
+      "ContractLifecycleEventType": {
+        "type": "string",
+        "enum": [
+          "PLAN_CHANGE",
+          "ADDRESS_CHANGE",
+          "OWNERSHIP_TRANSFER"
+        ],
+        "description": "Tipo de evento de pós-venda do contrato."
+      },
+      "ContractPlanChangeRequest": {
+        "type": "object",
+        "required": [
+          "newPlanId"
+        ],
+        "properties": {
+          "newPlanId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "applyProRata": {
+            "type": "boolean",
+            "nullable": true,
+            "default": true,
+            "description": "Se verdadeiro, calcula e aplica o ajuste proporcional (Pro-Rata Die base 30 dias) na próxima fatura PENDING ou no contrato."
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Upgrade solicitado pelo cliente para plano Fibra 600 Mega"
+          }
+        }
+      },
+      "ContractAddressChangeRequest": {
+        "type": "object",
+        "required": [
+          "newInstallationAddress"
+        ],
+        "properties": {
+          "newInstallationAddress": {
+            "type": "string",
+            "example": "Rua das Palmeiras, 450, Bairro Jardim"
+          },
+          "newCity": {
+            "type": "string",
+            "nullable": true,
+            "example": "Altamira"
+          },
+          "newState": {
+            "type": "string",
+            "nullable": true,
+            "example": "PA"
+          },
+          "newZipCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "68371-000"
+          },
+          "newCtoId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "newCtoPortNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 8
+          },
+          "serviceFee": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": 150
+          },
+          "requestWaiver": {
+            "type": "boolean",
+            "nullable": true,
+            "default": false
+          },
+          "waiverReason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Isenção por renovação de fidelidade 12 meses"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ContractOwnershipTransferRequest": {
+        "type": "object",
+        "required": [
+          "newCustomerId"
+        ],
+        "properties": {
+          "newCustomerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "generateForensicSignature": {
+            "type": "boolean",
+            "nullable": true,
+            "default": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Transferência de titularidade com assunção integral de contrato e faturas"
+          }
+        }
+      },
+      "ContractLifecycleEventResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "contractId",
+          "eventType"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/ContractLifecycleEventType"
+          },
+          "previousCustomerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "newCustomerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "previousPlanId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "newPlanId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "previousAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "newAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "oldMonthlyFee": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "newMonthlyFee": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "remainingDaysInCycle": {
+            "type": "integer",
+            "nullable": true
+          },
+          "proRataAdjustmentAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "adjustedInvoiceId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "migratedInvoicesCount": {
+            "type": "integer",
+            "nullable": true
+          },
+          "workOrderId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "signatureSessionId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "signatureUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "radiusRateLimitApplied": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ContractLifecycleActionResponse": {
+        "type": "object",
+        "required": [
+          "contract",
+          "event"
+        ],
+        "properties": {
+          "contract": {
+            "$ref": "#/components/schemas/ContractResponse"
+          },
+          "event": {
+            "$ref": "#/components/schemas/ContractLifecycleEventResponse"
           }
         }
       },
