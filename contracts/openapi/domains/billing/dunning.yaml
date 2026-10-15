@@ -130,3 +130,66 @@
           application/json:
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/billing/dunning/notifications/run:
+  post:
+    tags:
+      - BillingDunning
+    summary: Executar varredura da Régua de Notificação Ativa Omnichannel (D-3, D0 e D+5 Aviso Prévio RGC Anatel)
+    operationId: runOmnichannelDunningNotifications
+    responses:
+      '200':
+        description: Varredura de notificações executada com idempotência.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/BillingNotificationSweepResponse'
+
+/billing/dunning/notifications:
+  get:
+    tags:
+      - BillingDunning
+    summary: Listar trilha auditável de disparos da Régua Omnichannel (WhatsApp, SMS, E-mail)
+    operationId: listOmnichannelDunningNotifications
+    responses:
+      '200':
+        description: Lista de disparos realizados.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './schemas.yaml#/BillingNotificationDispatchResponse'
+
+/billing/dunning/notifications/invoice/{invoiceId}/send:
+  post:
+    tags:
+      - BillingDunning
+    summary: Disparar ou reenviar notificação ativa de cobrança (PIX Copia-e-Cola) para uma fatura específica
+    operationId: sendInvoiceDunningNotification
+    parameters:
+      - name: invoiceId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: channel
+        in: query
+        required: false
+        schema:
+          type: string
+          default: "WHATSAPP"
+    responses:
+      '200':
+        description: Notificação enviada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/BillingNotificationDispatchResponse'
+      '404':
+        description: Fatura não encontrada.
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+

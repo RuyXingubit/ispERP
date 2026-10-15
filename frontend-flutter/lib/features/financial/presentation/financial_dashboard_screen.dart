@@ -369,11 +369,12 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
 
                 // Ações Operacionais da Cobrança
                 Wrap(
-                  spacing: 10,
-                  runSpacing: 8,
+                  spacing: 8,
+                  runSpacing: 6,
                   alignment: WrapAlignment.end,
                   children: [
                     OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: _selectedInvoice!.id));
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -383,8 +384,35 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
                           ),
                         );
                       },
-                      icon: const Icon(Icons.copy_rounded, size: 16),
-                      label: const Text('Copiar ID da Fatura'),
+                      icon: const Icon(Icons.copy_rounded, size: 15),
+                      label: const Text('Copiar ID da Fatura', style: TextStyle(fontSize: 12)),
+                    ),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                      onPressed: () async {
+                        final invId = _selectedInvoice!.id;
+                        final dispatch = await ref
+                            .read(cashCustodyRepositoryProvider)
+                            .sendInvoiceDunningNotification(invoiceId: invId);
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor:
+                                dispatch != null ? AppTheme.accentGreen : AppTheme.accentError,
+                            content: Text(
+                              dispatch != null
+                                  ? 'Notificação ${dispatch.stageLabel} disparada via ${dispatch.channel} para ${dispatch.customerName}!'
+                                  : 'Não foi possível disparar a notificação para a fatura selecionada.',
+                            ),
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                        if (dispatch != null) {
+                          ref.invalidate(omnichannelDunningDispatchesProvider);
+                        }
+                      },
+                      icon: const Icon(Icons.send_to_mobile_rounded, size: 15),
+                      label: const Text('Enviar Notificação PIX', style: TextStyle(fontSize: 12)),
                     ),
                     if (currentUserRole == 'ADMIN' || currentUserRole == 'FINANCIAL') ...[
                       ElevatedButton.icon(
@@ -410,9 +438,12 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
                             ref.invalidate(dashboardBiProvider);
                           }
                         },
-                        style: ElevatedButton.styleFrom(backgroundColor: AppTheme.accentGreen),
-                        icon: const Icon(Icons.lock_open_rounded, size: 16, color: Color(0xFF0A0F1D)),
-                        label: const Text('Desbloqueio em Confiança (48h)', style: TextStyle(color: Color(0xFF0A0F1D), fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentGreen,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        icon: const Icon(Icons.lock_open_rounded, size: 15, color: Color(0xFF0A0F1D)),
+                        label: const Text('Desbloqueio em Confiança (48h)', style: TextStyle(color: Color(0xFF0A0F1D), fontWeight: FontWeight.bold, fontSize: 12)),
                       ),
                     ],
                   ],
@@ -610,6 +641,126 @@ class _FinancialDashboardScreenState extends ConsumerState<FinancialDashboardScr
                       }).toList(),
                     ),
                   ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Card da Régua de Notificação Ativa Omnichannel (D-3, D0, D+5 Anatel) — Onda J
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Régua de Notificação Ativa Omnichannel (D-3 / D0 PIX / D+5 Anatel)',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Trilha auditável e idempotente de avisos prévios e PIX Copia-e-Cola (RGC Anatel Res. 632/765)',
+                          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ],
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        final sweep = await ref
+                            .read(cashCustodyRepositoryProvider)
+                            .runOmnichannelDunningNotifications();
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor:
+                                sweep != null ? AppTheme.primaryBlue : AppTheme.accentError,
+                            content: Text(
+                              sweep != null
+                                  ? 'Varredura Omnichannel concluída: ${sweep.evaluatedInvoicesCount} avaliada(s) • D-3: ${sweep.dMinus3SentCount} • D0: ${sweep.dZeroSentCount} • D+5 Anatel: ${sweep.dPlus5AnatelSentCount}'
+                                  : 'Falha ao executar varredura da régua omnichannel.',
+                            ),
+                            duration: const Duration(seconds: 4),
+                          ),
+                        );
+                        if (sweep != null) {
+                          ref.invalidate(omnichannelDunningDispatchesProvider);
+                        }
+                      },
+                      icon: const Icon(Icons.campaign_rounded, size: 16),
+                      label: const Text('Disparar Varredura Omnichannel'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final dispatchesAsync = ref.watch(omnichannelDunningDispatchesProvider);
+                    return dispatchesAsync.when(
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: LinearProgressIndicator(),
+                      ),
+                      error: (_, _) => const Text(
+                        'Nenhum disparo registrado na trilha omnichannel.',
+                        style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                      ),
+                      data: (dispatches) {
+                        if (dispatches.isEmpty) {
+                          return const Text(
+                            'Nenhum disparo registrado ainda. Clique em "Disparar Varredura Omnichannel" ou selecione uma fatura para enviar.',
+                            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                          );
+                        }
+                        return Column(
+                          children: dispatches.take(5).map((d) {
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.darkBg,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppTheme.darkBorder),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.mark_chat_read_outlined,
+                                      size: 16, color: AppTheme.accentGreen),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      '${d.stageLabel} • ${d.customerName} (${d.channel}: ${d.recipient})',
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    d.status,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.accentGreen,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    );
+                  },
+                ),
               ],
             ),
           ),

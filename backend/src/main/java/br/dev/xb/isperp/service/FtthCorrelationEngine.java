@@ -34,6 +34,10 @@ public class FtthCorrelationEngine {
     private final FtthMonitoringMapper mapper;
     private final ObjectMapper objectMapper;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    @org.jspecify.annotations.Nullable
+    private ContractRepository contractRepository;
+
     /**
      * Analisa todas as portas PON e CTOs para correlacionar falhas em massa.
      */
@@ -157,6 +161,48 @@ public class FtthCorrelationEngine {
         return incidentRepository.findByStatusInOrderByDetectedAtDesc(
                 List.of(IncidentStatus.ACTIVE, IncidentStatus.INVESTIGATING, IncidentStatus.DISPATCHED)
         ).stream().map(this::enrichIncidentResponse).toList();
+    }
+
+    /**
+     * Verifica se um contrato específico está afetado por algum incidente massivo FTTH ativo
+     * correlacionando CTO (contract.ctoId) ou OLT/Porta PON da ONU do contrato (Onda J).
+     */
+    @Transactional(readOnly = true)
+    public Optional<FtthIncidentResponse> findActiveIncidentForContract(UUID contractId) {
+        if (contractId == null || contractRepository == null) {
+            return Optional.empty();
+        }
+        return contractRepository.findById(contractId)
+                .flatMap(this::findActiveIncidentForContractEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<FtthIncidentResponse> findActiveIncidentForContractEntity(Contract contract) {
+        if (contract == null) {
+            return Optional.empty();
+        }
+        List<FtthIncident> active = incidentRepository.findByStatusInOrderByDetectedAtDesc(
+                List.of(IncidentStatus.ACTIVE, IncidentStatus.INVESTIGATING, IncidentStatus.DISPATCHED)
+        );
+        if (active.isEmpty()) {
+            return Optional.empty();
+        }
+
+        UUID ctoId = contract.getCtoId();
+        UUID onuDeviceId = onuProvisioningRepository.findByContractId(contract.getId())
+                .map(OnuProvisioning::getNetworkDeviceId)
+                .orElse(null);
+
+        for (FtthIncident incident : active) {
+            if (ctoId != null && incident.getAffectedCtosIds() != null
+                    && incident.getAffectedCtosIds().contains(ctoId.toString())) {
+                return Optional.of(enrichIncidentResponse(incident));
+            }
+            if (onuDeviceId != null && onuDeviceId.equals(incident.getNetworkDeviceId())) {
+                return Optional.of(enrichIncidentResponse(incident));
+            }
+        }
+        return Optional.empty();
     }
 
     @Transactional(readOnly = true)

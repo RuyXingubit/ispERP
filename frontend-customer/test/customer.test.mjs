@@ -292,3 +292,35 @@ test('calculatePortalProRataPreview - calcula diferença proporcional Pro-Rata D
   assert.equal(downgradePreview.remainingDays, 10);
   assert.equal(downgradePreview.proRataDelta, -30.0);
 });
+
+function formatActiveNetworkIncidentBanner(incident) {
+  if (!incident || !incident.id || incident.status === 'RESOLVED') {
+    return { visible: false, badge: '', meta: '' };
+  }
+  return {
+    visible: true,
+    badge: `${incident.incidentType || 'MASS_OUTAGE'} • ${incident.status || 'OPEN'}`,
+    meta: `Porta PON: ${incident.ponPort || 'N/A'} • Assinantes na célula: ${incident.affectedCount ?? 0} • Não é necessário abrir chamado individual.`,
+  };
+}
+
+test('formatActiveNetworkIncidentBanner - exibe aviso proativo de rompimento PON apenas quando incidente FTTH estiver ativo (Onda J)', () => {
+  const active = formatActiveNetworkIncidentBanner({
+    id: 'inc-01',
+    ponPort: '0/1/4',
+    incidentType: 'FIBER_CUT',
+    status: 'IN_REPAIR',
+    affectedCount: 32,
+  });
+  assert.equal(active.visible, true);
+  assert.equal(active.badge, 'FIBER_CUT • IN_REPAIR');
+  assert.match(active.meta, /Porta PON: 0\/1\/4/);
+
+  const resolved = formatActiveNetworkIncidentBanner({
+    id: 'inc-01',
+    status: 'RESOLVED',
+  });
+  assert.equal(resolved.visible, false);
+  assert.equal(formatActiveNetworkIncidentBanner(null).visible, false);
+});
+

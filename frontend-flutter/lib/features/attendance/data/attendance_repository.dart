@@ -198,6 +198,22 @@ class AttendanceRepository {
       return [];
     }
   }
+
+  /// Consulta se há incidente massivo de rede óptica FTTH ativo afetando a CTO/PON do contrato (Onda J).
+  Future<ActiveNetworkIncidentModel?> getActiveIncidentForContract(String contractId) async {
+    try {
+      final response = await _dio.get('/ftth/monitoring/incidents/active/contract/$contractId');
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        final data = response.data as Map<String, dynamic>;
+        if (data['id'] != null && data['id'].toString().isNotEmpty) {
+          return ActiveNetworkIncidentModel.fromJson(data);
+        }
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 /// Provider do repositório de atendimento.

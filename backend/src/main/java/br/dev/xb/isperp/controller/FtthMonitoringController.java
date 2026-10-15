@@ -80,6 +80,15 @@ public class FtthMonitoringController implements FtthMonitoringApi {
     }
 
     @Override
+    @GetMapping({"/incidents/active/contract/{contractId}", "/api/ftth/monitoring/incidents/active/contract/{contractId}"})
+    public ResponseEntity<FtthIncidentResponse> getActiveIncidentForContract(@PathVariable UUID contractId) {
+        return correlationEngine.findActiveIncidentForContract(contractId)
+                .map(this::toApiIncidentResponse)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    @Override
     @PostMapping({"/incidents/{id}/dispatch", "/api/ftth/monitoring/incidents/{id}/dispatch"})
     public ResponseEntity<FtthIncidentResponse> dispatchIncident(
             @PathVariable UUID id,

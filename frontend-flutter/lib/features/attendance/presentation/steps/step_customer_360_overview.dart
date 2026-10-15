@@ -77,6 +77,73 @@ class StepCustomer360Overview extends ConsumerWidget {
           ),
           const SizedBox(height: 14),
 
+          // 1.2. Banner Proativo de Rompimento / Manutenção Massiva PON (Onda J)
+          if (state.activeNetworkIncident != null) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppTheme.accentWarning.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.accentWarning.withValues(alpha: 0.5)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.router_rounded, color: AppTheme.accentWarning, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Flexible(
+                              child: Text(
+                                'AVISO PROATIVO DE REDE: Rompimento / Manutenção Massiva PON',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.accentWarning,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentWarning.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '${state.activeNetworkIncident!.incidentType} • ${state.activeNetworkIncident!.status}',
+                                style: const TextStyle(
+                                  color: AppTheme.accentWarning,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          state.activeNetworkIncident!.description,
+                          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 12),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Porta PON: ${state.activeNetworkIncident!.ponPort} • ONUs afetadas: ${state.activeNetworkIncident!.affectedCount} (Evite abrir O.S. individual de reparo redundante)',
+                          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+
           // 1.5. Contratos do Assinante & Assinatura Eletrônica Forense + Pós-Venda (Onda I)
           if (state.contracts.isNotEmpty) ...[
             ...state.contracts.map((contract) {

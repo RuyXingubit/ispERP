@@ -26,6 +26,7 @@ class AttendanceState {
   final List<PendingInvoice> invoices;
   final PendingInvoice? selectedInvoice;
   final LiveWorkOrder? liveWorkOrder;
+  final ActiveNetworkIncidentModel? activeNetworkIncident;
   final String paymentMethod;
   final bool isProcessingPayment;
   final bool paymentSuccess;
@@ -45,6 +46,7 @@ class AttendanceState {
     this.invoices = const [],
     this.selectedInvoice,
     this.liveWorkOrder,
+    this.activeNetworkIncident,
     this.paymentMethod = 'DEBIT_CARD',
     this.isProcessingPayment = false,
     this.paymentSuccess = false,
@@ -65,6 +67,8 @@ class AttendanceState {
     List<PendingInvoice>? invoices,
     PendingInvoice? selectedInvoice,
     LiveWorkOrder? liveWorkOrder,
+    ActiveNetworkIncidentModel? activeNetworkIncident,
+    bool clearActiveNetworkIncident = false,
     String? paymentMethod,
     bool? isProcessingPayment,
     bool? paymentSuccess,
@@ -84,6 +88,9 @@ class AttendanceState {
       invoices: invoices ?? this.invoices,
       selectedInvoice: selectedInvoice ?? this.selectedInvoice,
       liveWorkOrder: liveWorkOrder ?? this.liveWorkOrder,
+      activeNetworkIncident: clearActiveNetworkIncident
+          ? null
+          : (activeNetworkIncident ?? this.activeNetworkIncident),
       paymentMethod: paymentMethod ?? this.paymentMethod,
       isProcessingPayment: isProcessingPayment ?? this.isProcessingPayment,
       paymentSuccess: paymentSuccess ?? this.paymentSuccess,
@@ -120,7 +127,7 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
     );
   }
 
-  /// Seleciona o cliente e carrega automaticamente seu raio-x (contratos, faturas e O.S. ativa).
+  /// Seleciona o cliente e carrega automaticamente seu raio-x (contratos, faturas, O.S. ativa e incidente PON).
   Future<void> selectCustomer(CustomerSearchModel customer) async {
     state = state.copyWith(
       selectedCustomer: customer,
@@ -133,8 +140,10 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
     final selectedContract = contracts.isNotEmpty ? contracts.first : null;
 
     LiveWorkOrder? liveWo;
+    ActiveNetworkIncidentModel? activeIncident;
     if (selectedContract != null) {
       liveWo = await _repository.getContractWorkOrder(selectedContract.id);
+      activeIncident = await _repository.getActiveIncidentForContract(selectedContract.id);
     }
 
     final pendingInvoices = invoices.where((i) => i.status.toUpperCase() != 'PAID').toList();
@@ -148,6 +157,8 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
       invoices: pendingInvoices,
       selectedInvoice: selectedInvoice,
       liveWorkOrder: liveWo,
+      activeNetworkIncident: activeIncident,
+      clearActiveNetworkIncident: activeIncident == null,
     );
   }
 

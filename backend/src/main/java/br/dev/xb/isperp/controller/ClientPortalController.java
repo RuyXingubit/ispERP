@@ -111,6 +111,40 @@ public class ClientPortalController implements ClientPortalApi {
         resp.setIsConnectionBlocked(dto.isConnectionBlocked());
         resp.setCanRequestTrustUnblock(dto.isCanRequestTrustUnblock());
         resp.setConnectionStatusMessage(dto.getConnectionStatusMessage());
+        if (dto.getActiveNetworkIncident() != null) {
+            br.dev.xb.isperp.dto.FtthIncidentResponse inc = dto.getActiveNetworkIncident();
+            FtthIncidentResponse apiInc = new FtthIncidentResponse();
+            apiInc.setId(inc.getId());
+            apiInc.setCompanyId(inc.getCompanyId());
+            apiInc.setNetworkDeviceId(inc.getNetworkDeviceId());
+            apiInc.setOltName(inc.getOltName());
+            apiInc.setOltPonPortId(inc.getOltPonPortId());
+            apiInc.setPonName(inc.getPonName());
+            if (inc.getIncidentType() != null) {
+                apiInc.setIncidentType(IncidentType.fromValue(inc.getIncidentType().name()));
+            }
+            apiInc.setIncidentTypeDescription(inc.getIncidentTypeDescription());
+            if (inc.getSeverity() != null) {
+                apiInc.setSeverity(IncidentSeverity.fromValue(inc.getSeverity().name()));
+            }
+            if (inc.getStatus() != null) {
+                apiInc.setStatus(IncidentStatus.fromValue(inc.getStatus().name()));
+            }
+            apiInc.setTitle(inc.getTitle());
+            apiInc.setDescription(inc.getDescription());
+            apiInc.setAffectedCustomersCount(inc.getAffectedCustomersCount());
+            apiInc.setAffectedCtosIds(inc.getAffectedCtosIds());
+            apiInc.setAffectedCtoNames(inc.getAffectedCtoNames());
+            apiInc.setWorkOrderId(inc.getWorkOrderId());
+            apiInc.setWorkOrderProtocol(inc.getWorkOrderProtocol());
+            if (inc.getDetectedAt() != null) {
+                apiInc.setDetectedAt(inc.getDetectedAt().atZoneSameInstant(java.time.ZoneOffset.UTC).toOffsetDateTime());
+            }
+            if (inc.getDispatchedAt() != null) {
+                apiInc.setDispatchedAt(inc.getDispatchedAt().atZoneSameInstant(java.time.ZoneOffset.UTC).toOffsetDateTime());
+            }
+            resp.setActiveNetworkIncident(apiInc);
+        }
 
         return ResponseEntity.ok(resp);
     }

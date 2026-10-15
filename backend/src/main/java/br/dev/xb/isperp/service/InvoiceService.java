@@ -58,6 +58,10 @@ public class InvoiceService {
     @Nullable
     private ContractRepository contractRepository;
 
+    @Autowired(required = false)
+    @Nullable
+    private BillingNotificationDunningService billingNotificationDunningService;
+
     public List<Invoice> getAllInvoices() {
         return invoiceRepository.findAll();
     }
@@ -261,6 +265,10 @@ public class InvoiceService {
 
         auditLogService.logAction("INVOICE_PAID", "INVOICE", saved.getId().toString(),
                 Map.of("paidAmount", saved.getPaidAmount().toString(), "paymentMethod", saved.getPaymentMethod()));
+
+        if (billingNotificationDunningService != null) {
+            billingNotificationDunningService.dispatchPaymentConfirmed(saved);
+        }
 
         return saved;
     }

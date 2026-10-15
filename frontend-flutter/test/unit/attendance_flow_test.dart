@@ -71,6 +71,11 @@ class FakeAttendanceRepository implements AttendanceRepository {
   }) async {
     return true;
   }
+
+  @override
+  Future<ActiveNetworkIncidentModel?> getActiveIncidentForContract(String contractId) async {
+    return null;
+  }
 }
 
 void main() {

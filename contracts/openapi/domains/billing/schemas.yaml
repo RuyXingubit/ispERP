@@ -208,3 +208,87 @@ UnblockEvaluationResultResponse:
       type: string
       format: date-time
       nullable: true
+
+NotificationDunningStage:
+  type: string
+  enum:
+    - D_MINUS_3
+    - D_ZERO
+    - D_PLUS_5_ANATEL_NOTICE
+    - PAYMENT_CONFIRMED
+  description: Marco da régua ativa de notificação omnichannel (D-3, D0, D+5 Aviso Prévio RGC Anatel e Confirmação de Pagamento).
+
+BillingNotificationDispatchResponse:
+  type: object
+  required:
+    - id
+    - invoiceId
+    - contractId
+    - customerId
+    - stage
+    - channel
+    - recipient
+    - messagePreview
+    - deliveryStatus
+    - dispatchedAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    invoiceId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    customerId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    customerName:
+      type: string
+      nullable: true
+      example: "Maria Oliveira"
+    stage:
+      $ref: '#/NotificationDunningStage'
+    channel:
+      type: string
+      example: "WHATSAPP"
+    recipient:
+      type: string
+      example: "5593991234567"
+    messagePreview:
+      type: string
+      example: "Olá Maria Oliveira! Sua fatura no valor de R$ 99,90 vence em 3 dias. Pague via PIX Copia-e-Cola: 000201..."
+    deliveryStatus:
+      type: string
+      example: "SENT"
+    dispatchedAt:
+      type: string
+      format: date-time
+
+BillingNotificationSweepResponse:
+  type: object
+  required:
+    - totalDispatched
+    - dMinus3Count
+    - dZeroCount
+    - dPlus5AnatelCount
+    - processedAt
+    - dispatches
+  properties:
+    totalDispatched:
+      type: integer
+      example: 18
+    dMinus3Count:
+      type: integer
+      example: 9
+    dZeroCount:
+      type: integer
+      example: 6
+    dPlus5AnatelCount:
+      type: integer
+      example: 3
+    processedAt:
+      type: string
+      format: date-time
+    dispatches:
+      type: array
+      items:
+        $ref: '#/BillingNotificationDispatchResponse'
+

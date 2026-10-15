@@ -59,6 +59,18 @@ export interface CustomerData {
   portalPin?: string;
 }
 
+export interface ActiveNetworkIncidentItem {
+  id: string;
+  oltId: string;
+  ponPort: string;
+  ctoId?: string;
+  incidentType: string;
+  status: string;
+  affectedCount: number;
+  description: string;
+  detectedAt?: string;
+}
+
 export interface ClientPortalDashboard {
   customer: CustomerData;
   contract?: ContractItem;
@@ -71,6 +83,7 @@ export interface ClientPortalDashboard {
   isConnectionBlocked?: boolean;
   canRequestTrustUnblock: boolean;
   connectionStatusMessage?: string;
+  activeNetworkIncident?: ActiveNetworkIncidentItem | null;
 }
 
 export interface SiteSettings {

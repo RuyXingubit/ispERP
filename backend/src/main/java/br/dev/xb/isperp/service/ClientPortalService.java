@@ -34,6 +34,10 @@ public class ClientPortalService {
     private final OutboxEventRepository outboxEventRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    @Nullable
+    private FtthCorrelationEngine ftthCorrelationEngine;
+
     /**
      * Retorna a visão completa do painel do assinante.
      */
@@ -84,6 +88,10 @@ public class ClientPortalService {
                 ? "Sua conexão está temporariamente suspensa por pendência financeira."
                 : "Sua conexão está ativa e operando normalmente.";
 
+        FtthIncidentResponse activeIncident = (contract != null && ftthCorrelationEngine != null)
+                ? ftthCorrelationEngine.findActiveIncidentForContractEntity(contract).orElse(null)
+                : null;
+
         return ClientPortalDashboardDTO.builder()
                 .customer(customer)
                 .contract(contract)
@@ -95,6 +103,7 @@ public class ClientPortalService {
                 .isConnectionBlocked(isBlocked)
                 .canRequestTrustUnblock(canRequestTrustUnblock)
                 .connectionStatusMessage(statusMsg)
+                .activeNetworkIncident(activeIncident)
                 .build();
     }
 

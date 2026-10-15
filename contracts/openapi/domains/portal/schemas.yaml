@@ -210,6 +210,9 @@ ClientPortalDashboardResponse:
       type: string
       nullable: true
       example: "Conexão ativa e em pleno funcionamento"
+    activeNetworkIncident:
+      $ref: '../ftth/schemas.yaml#/FtthIncidentResponse'
+
 
 PortalMessageResponse:
   type: object

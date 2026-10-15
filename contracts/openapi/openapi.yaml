@@ -180,6 +180,12 @@ paths:
     $ref: './domains/billing/dunning.yaml#/~1billing~1dunning~1trust-unblock~1bot'
   /billing/dunning/trust-unblock/attendant:
     $ref: './domains/billing/dunning.yaml#/~1billing~1dunning~1trust-unblock~1attendant'
+  /billing/dunning/notifications/run:
+    $ref: './domains/billing/dunning.yaml#/~1billing~1dunning~1notifications~1run'
+  /billing/dunning/notifications:
+    $ref: './domains/billing/dunning.yaml#/~1billing~1dunning~1notifications'
+  /billing/dunning/notifications/invoice/{invoiceId}/send:
+    $ref: './domains/billing/dunning.yaml#/~1billing~1dunning~1notifications~1invoice~1{invoiceId}~1send'
 
   # Contratos
   /contracts:
@@ -520,6 +526,8 @@ paths:
     $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1incidents'
   /ftth/monitoring/incidents/active:
     $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1incidents~1active'
+  /ftth/monitoring/incidents/active/contract/{contractId}:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1incidents~1active~1contract~1{contractId}'
   /ftth/monitoring/incidents/{id}/dispatch:
     $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1incidents~1{id}~1dispatch'
   /ftth/monitoring/incidents/{id}/resolve:
@@ -728,6 +736,12 @@ components:
       $ref: './domains/billing/schemas.yaml#/PayInvoiceRequest'
     TriggerRecurringBillingResponse:
       $ref: './domains/billing/schemas.yaml#/TriggerRecurringBillingResponse'
+    NotificationDunningStage:
+      $ref: './domains/billing/schemas.yaml#/NotificationDunningStage'
+    BillingNotificationDispatchResponse:
+      $ref: './domains/billing/schemas.yaml#/BillingNotificationDispatchResponse'
+    BillingNotificationSweepResponse:
+      $ref: './domains/billing/schemas.yaml#/BillingNotificationSweepResponse'
 
     # Contracts
     ContractStatus:

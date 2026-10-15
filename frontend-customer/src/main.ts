@@ -545,6 +545,31 @@ async function loadDashboard(customerId: string) {
       if (planSpeeds) planSpeeds.textContent = 'Consulte o suporte para detalhes';
     }
 
+    // Banner Proativo de Rompimento / Manutenção Massiva PON (Onda J)
+    const ponBanner = document.getElementById('pon-outage-banner');
+    const ponBadge = document.getElementById('pon-outage-badge');
+    const ponDesc = document.getElementById('pon-outage-description');
+    const ponMeta = document.getElementById('pon-outage-meta');
+    const activeIncident = currentDashboard.activeNetworkIncident;
+    if (ponBanner) {
+      if (activeIncident && activeIncident.id) {
+        ponBanner.style.display = 'block';
+        if (ponBadge) {
+          ponBadge.textContent = `${activeIncident.incidentType || 'MASS_OUTAGE'} • ${activeIncident.status || 'OPEN'}`;
+        }
+        if (ponDesc) {
+          ponDesc.textContent =
+            activeIncident.description ||
+            'Nossa equipe técnica já identificou um rompimento óptico na sua região e está atuando no reparo.';
+        }
+        if (ponMeta) {
+          ponMeta.textContent = `Porta PON: ${activeIncident.ponPort || 'N/A'} • Assinantes na célula: ${activeIncident.affectedCount ?? 0} • Não é necessário abrir chamado individual.`;
+        }
+      } else {
+        ponBanner.style.display = 'none';
+      }
+    }
+
     renderUpgradePlans();
     renderInvoices();
   } catch (err: unknown) {

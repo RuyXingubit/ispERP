@@ -465,11 +465,171 @@ class CashCustodyRepository {
       return false;
     }
   }
+
+  /// Executa a varredura da Régua de Notificação Ativa Omnichannel (D-3, D0, D+5 Anatel) (Onda J).
+  Future<BillingNotificationSweepResultModel?> runOmnichannelDunningNotifications() async {
+    try {
+      final response = await _dio.post('/billing/dunning/notifications/run');
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        return BillingNotificationSweepResultModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Lista o histórico auditado de disparos da Régua Omnichannel (Onda J).
+  Future<List<BillingNotificationDispatchModel>> listOmnichannelDunningNotifications({
+    String? invoiceId,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/billing/dunning/notifications',
+        queryParameters: {
+          if (invoiceId != null && invoiceId.isNotEmpty) 'invoiceId': invoiceId,
+        },
+      );
+      if (response.statusCode == 200 && response.data is List) {
+        return (response.data as List)
+            .map((e) => BillingNotificationDispatchModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Dispara manualmente notificação omnichannel de cobrança (PIX Copia-e-Cola) para uma fatura (Onda J).
+  Future<BillingNotificationDispatchModel?> sendInvoiceDunningNotification({
+    required String invoiceId,
+    String? stage,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/billing/dunning/notifications/invoice/$invoiceId/send',
+        queryParameters: {
+          if (stage != null && stage.isNotEmpty) 'stage': stage,
+        },
+      );
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        return BillingNotificationDispatchModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+/// Modelo de disparo individual auditado da Régua de Notificação Ativa Omnichannel (Onda J).
+class BillingNotificationDispatchModel {
+  final String id;
+  final String invoiceId;
+  final String contractId;
+  final String customerId;
+  final String customerName;
+  final String stage;
+  final String channel;
+  final String recipient;
+  final String status;
+  final String? messagePreview;
+  final String dispatchedAt;
+
+  const BillingNotificationDispatchModel({
+    required this.id,
+    required this.invoiceId,
+    required this.contractId,
+    required this.customerId,
+    required this.customerName,
+    required this.stage,
+    required this.channel,
+    required this.recipient,
+    required this.status,
+    this.messagePreview,
+    required this.dispatchedAt,
+  });
+
+  factory BillingNotificationDispatchModel.fromJson(Map<String, dynamic> json) {
+    return BillingNotificationDispatchModel(
+      id: json['id']?.toString() ?? '',
+      invoiceId: json['invoiceId']?.toString() ?? '',
+      contractId: json['contractId']?.toString() ?? '',
+      customerId: json['customerId']?.toString() ?? '',
+      customerName: json['customerName']?.toString() ?? 'Assinante',
+      stage: json['stage']?.toString() ?? 'D_ZERO',
+      channel: json['channel']?.toString() ?? 'WHATSAPP',
+      recipient: json['recipient']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'SENT',
+      messagePreview: json['messagePreview']?.toString(),
+      dispatchedAt: json['dispatchedAt']?.toString() ?? '',
+    );
+  }
+
+  String get stageLabel {
+    switch (stage.toUpperCase()) {
+      case 'D_MINUS_3':
+        return 'Lembrete D-3 (Pré-Vencimento)';
+      case 'D_ZERO':
+        return 'Vencimento Hoje (D0 + PIX)';
+      case 'D_PLUS_5_ANATEL_NOTICE':
+        return 'Notificação Prévia Anatel (D+5)';
+      case 'PAYMENT_CONFIRMED':
+        return 'Confirmação de Baixa + Desbloqueio';
+      default:
+        return stage;
+    }
+  }
+}
+
+/// Resumo de execução em lote da Régua de Notificação Ativa Omnichannel (Onda J).
+class BillingNotificationSweepResultModel {
+  final int evaluatedInvoicesCount;
+  final int dMinus3SentCount;
+  final int dZeroSentCount;
+  final int dPlus5AnatelSentCount;
+  final int skippedDuplicateCount;
+  final List<BillingNotificationDispatchModel> dispatches;
+
+  const BillingNotificationSweepResultModel({
+    required this.evaluatedInvoicesCount,
+    required this.dMinus3SentCount,
+    required this.dZeroSentCount,
+    required this.dPlus5AnatelSentCount,
+    required this.skippedDuplicateCount,
+    required this.dispatches,
+  });
+
+  factory BillingNotificationSweepResultModel.fromJson(Map<String, dynamic> json) {
+    return BillingNotificationSweepResultModel(
+      evaluatedInvoicesCount: (json['evaluatedInvoicesCount'] as num?)?.toInt() ?? 0,
+      dMinus3SentCount: (json['dMinus3SentCount'] as num?)?.toInt() ?? 0,
+      dZeroSentCount: (json['dZeroSentCount'] as num?)?.toInt() ?? 0,
+      dPlus5AnatelSentCount: (json['dPlus5AnatelSentCount'] as num?)?.toInt() ?? 0,
+      skippedDuplicateCount: (json['skippedDuplicateCount'] as num?)?.toInt() ?? 0,
+      dispatches: (json['dispatches'] is List)
+          ? (json['dispatches'] as List)
+              .map((e) => BillingNotificationDispatchModel.fromJson(e as Map<String, dynamic>))
+              .toList()
+          : const [],
+    );
+  }
 }
 
 final cashCustodyRepositoryProvider = Provider<CashCustodyRepository>((ref) {
   final api = ref.watch(apiClientProvider);
   return CashCustodyRepository(api);
+});
+
+final omnichannelDunningDispatchesProvider =
+    FutureProvider.autoDispose<List<BillingNotificationDispatchModel>>((ref) async {
+  final repo = ref.watch(cashCustodyRepositoryProvider);
+  return repo.listOmnichannelDunningNotifications();
 });
 
 final allCashCustodiesProvider = FutureProvider.autoDispose<List<CashCustodyModel>>((ref) async {
@@ -493,3 +653,4 @@ final pendingCashTransfersProvider =
   final repo = ref.watch(cashCustodyRepositoryProvider);
   return repo.getPendingCashTransfers(userId);
 });
+

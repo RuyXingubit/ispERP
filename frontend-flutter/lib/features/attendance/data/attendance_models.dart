@@ -321,3 +321,44 @@ class LiveWorkOrder {
     }
   }
 }
+
+/// Incidente massivo de rede óptica FTTH ativo correlacionado à CTO/PON do contrato (Onda J).
+class ActiveNetworkIncidentModel {
+  final String id;
+  final String oltId;
+  final String ponPort;
+  final String? ctoId;
+  final String incidentType;
+  final String status;
+  final int affectedCount;
+  final String description;
+  final String? detectedAt;
+
+  const ActiveNetworkIncidentModel({
+    required this.id,
+    required this.oltId,
+    required this.ponPort,
+    this.ctoId,
+    required this.incidentType,
+    required this.status,
+    required this.affectedCount,
+    required this.description,
+    this.detectedAt,
+  });
+
+  factory ActiveNetworkIncidentModel.fromJson(Map<String, dynamic> json) {
+    return ActiveNetworkIncidentModel(
+      id: json['id']?.toString() ?? '',
+      oltId: json['oltId']?.toString() ?? '',
+      ponPort: json['ponPort']?.toString() ?? '',
+      ctoId: json['ctoId']?.toString(),
+      incidentType: json['incidentType']?.toString() ?? 'MASS_OUTAGE',
+      status: json['status']?.toString() ?? 'OPEN',
+      affectedCount: (json['affectedCount'] as num?)?.toInt() ?? 0,
+      description: json['description']?.toString() ??
+          'Manutenção emergencial / rompimento óptico em andamento na sua região.',
+      detectedAt: json['detectedAt']?.toString(),
+    );
+  }
+}
+

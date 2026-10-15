@@ -1384,6 +1384,101 @@
         }
       }
     },
+    "/billing/dunning/notifications/run": {
+      "post": {
+        "tags": [
+          "BillingDunning"
+        ],
+        "summary": "Executar varredura da Régua de Notificação Ativa Omnichannel (D-3, D0 e D+5 Aviso Prévio RGC Anatel)",
+        "operationId": "runOmnichannelDunningNotifications",
+        "responses": {
+          "200": {
+            "description": "Varredura de notificações executada com idempotência.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingNotificationSweepResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/billing/dunning/notifications": {
+      "get": {
+        "tags": [
+          "BillingDunning"
+        ],
+        "summary": "Listar trilha auditável de disparos da Régua Omnichannel (WhatsApp, SMS, E-mail)",
+        "operationId": "listOmnichannelDunningNotifications",
+        "responses": {
+          "200": {
+            "description": "Lista de disparos realizados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BillingNotificationDispatchResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/billing/dunning/notifications/invoice/{invoiceId}/send": {
+      "post": {
+        "tags": [
+          "BillingDunning"
+        ],
+        "summary": "Disparar ou reenviar notificação ativa de cobrança (PIX Copia-e-Cola) para uma fatura específica",
+        "operationId": "sendInvoiceDunningNotification",
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "WHATSAPP"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notificação enviada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingNotificationDispatchResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Fatura não encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/contracts": {
       "get": {
         "tags": [
@@ -9306,6 +9401,40 @@
         }
       }
     },
+    "/ftth/monitoring/incidents/active/contract/{contractId}": {
+      "get": {
+        "tags": [
+          "FtthMonitoring"
+        ],
+        "summary": "Consultar incidente massivo FTTH ativo que afeta a CTO ou Porta PON de um contrato específico (Onda J)",
+        "operationId": "getActiveIncidentForContract",
+        "parameters": [
+          {
+            "name": "contractId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUIDv7"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Incidente massivo ativo encontrado para o contrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FtthIncidentResponse"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Nenhum incidente massivo ativo afeta este contrato"
+          }
+        }
+      }
+    },
     "/ftth/monitoring/incidents/{id}/dispatch": {
       "post": {
         "tags": [
@@ -12492,6 +12621,112 @@
           "message": {
             "type": "string",
             "example": "Rotina de faturamento recorrente executada com sucesso"
+          }
+        }
+      },
+      "NotificationDunningStage": {
+        "type": "string",
+        "enum": [
+          "D_MINUS_3",
+          "D_ZERO",
+          "D_PLUS_5_ANATEL_NOTICE",
+          "PAYMENT_CONFIRMED"
+        ],
+        "description": "Marco da régua ativa de notificação omnichannel (D-3, D0, D+5 Aviso Prévio RGC Anatel e Confirmação de Pagamento)."
+      },
+      "BillingNotificationDispatchResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "invoiceId",
+          "contractId",
+          "customerId",
+          "stage",
+          "channel",
+          "recipient",
+          "messagePreview",
+          "deliveryStatus",
+          "dispatchedAt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "invoiceId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "contractId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "customerName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Maria Oliveira"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/NotificationDunningStage"
+          },
+          "channel": {
+            "type": "string",
+            "example": "WHATSAPP"
+          },
+          "recipient": {
+            "type": "string",
+            "example": "5593991234567"
+          },
+          "messagePreview": {
+            "type": "string",
+            "example": "Olá Maria Oliveira! Sua fatura no valor de R$ 99,90 vence em 3 dias. Pague via PIX Copia-e-Cola: 000201..."
+          },
+          "deliveryStatus": {
+            "type": "string",
+            "example": "SENT"
+          },
+          "dispatchedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BillingNotificationSweepResponse": {
+        "type": "object",
+        "required": [
+          "totalDispatched",
+          "dMinus3Count",
+          "dZeroCount",
+          "dPlus5AnatelCount",
+          "processedAt",
+          "dispatches"
+        ],
+        "properties": {
+          "totalDispatched": {
+            "type": "integer",
+            "example": 18
+          },
+          "dMinus3Count": {
+            "type": "integer",
+            "example": 9
+          },
+          "dZeroCount": {
+            "type": "integer",
+            "example": 6
+          },
+          "dPlus5AnatelCount": {
+            "type": "integer",
+            "example": 3
+          },
+          "processedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dispatches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BillingNotificationDispatchResponse"
+            }
           }
         }
       },
@@ -18766,6 +19001,9 @@
             "type": "string",
             "nullable": true,
             "example": "Conexão ativa e em pleno funcionamento"
+          },
+          "activeNetworkIncident": {
+            "$ref": "#/components/schemas/FtthIncidentResponse"
           }
         }
       },

@@ -27,4 +27,5 @@ public class ClientPortalDashboardDTO {
     private boolean isConnectionBlocked;
     private boolean canRequestTrustUnblock;
     private String connectionStatusMessage;
+    private FtthIncidentResponse activeNetworkIncident;
 }
