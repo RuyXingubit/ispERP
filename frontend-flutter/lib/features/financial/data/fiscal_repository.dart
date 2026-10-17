@@ -660,6 +660,146 @@ class FiscalRepository {
     }
     return int.tryParse(response.data.toString()) ?? 0;
   }
+
+  Future<AnatelDiciReportModel> getAnatelDiciReport({String? yearMonth}) async {
+    final response = await _dio.get(
+      '/fiscal/anatel/dici/report',
+      queryParameters: {
+        if (yearMonth != null && yearMonth.trim().isNotEmpty)
+          'yearMonth': yearMonth.trim(),
+      },
+    );
+    return AnatelDiciReportModel.fromJson(
+      Map<String, dynamic>.from(response.data as Map),
+    );
+  }
+
+  Future<String> exportAnatelDiciCsv({String? yearMonth}) async {
+    final response = await _dio.get<String>(
+      '/fiscal/anatel/dici/export-csv',
+      queryParameters: {
+        if (yearMonth != null && yearMonth.trim().isNotEmpty)
+          'yearMonth': yearMonth.trim(),
+      },
+      options: Options(responseType: ResponseType.plain),
+    );
+    return response.data ?? '';
+  }
+}
+
+// ============================================================================
+// 4. ANATEL DICI / SICI (COLETA MENSAL DE ACESSOS SCM EM SERVIÇO)
+// ============================================================================
+
+class AnatelDiciAccessGroupModel {
+  final String ibgeCode;
+  final String municipalityName;
+  final String uf;
+  final String customerType;
+  final String planName;
+  final int downloadSpeedMbps;
+  final int uploadSpeedMbps;
+  final String technology;
+  final String transmissionMedium;
+  final int activeCount;
+  final int suspendedCount;
+  final int totalInServiceCount;
+  final String ibgeResolutionSource;
+
+  const AnatelDiciAccessGroupModel({
+    required this.ibgeCode,
+    required this.municipalityName,
+    required this.uf,
+    required this.customerType,
+    required this.planName,
+    required this.downloadSpeedMbps,
+    required this.uploadSpeedMbps,
+    required this.technology,
+    required this.transmissionMedium,
+    required this.activeCount,
+    required this.suspendedCount,
+    required this.totalInServiceCount,
+    this.ibgeResolutionSource = 'GEOCEP_API',
+  });
+
+  factory AnatelDiciAccessGroupModel.fromJson(Map<String, dynamic> json) {
+    final active = (json['activeCount'] as num?)?.toInt() ?? 0;
+    final suspended = (json['suspendedCount'] as num?)?.toInt() ?? 0;
+    return AnatelDiciAccessGroupModel(
+      ibgeCode: (json['ibgeCode'] ?? '').toString(),
+      municipalityName: (json['municipalityName'] ?? '').toString(),
+      uf: (json['uf'] ?? '').toString(),
+      customerType: (json['customerType'] ?? 'PF').toString(),
+      planName: (json['planName'] ?? '').toString(),
+      downloadSpeedMbps: (json['downloadSpeedMbps'] as num?)?.toInt() ?? 0,
+      uploadSpeedMbps: (json['uploadSpeedMbps'] as num?)?.toInt() ?? 0,
+      technology: (json['technology'] ?? 'FTTH').toString(),
+      transmissionMedium: (json['transmissionMedium'] ?? 'FIBRA').toString(),
+      activeCount: active,
+      suspendedCount: suspended,
+      totalInServiceCount:
+          (json['totalInServiceCount'] as num?)?.toInt() ?? (active + suspended),
+      ibgeResolutionSource:
+          (json['ibgeResolutionSource'] ?? 'GEOCEP_API').toString(),
+    );
+  }
+}
+
+class AnatelDiciReportModel {
+  final String yearMonth;
+  final String companyCnpj;
+  final String companyName;
+  final int totalAccessesInService;
+  final int activeAccessesCount;
+  final int suspendedAccessesCount;
+  final int pfAccessesCount;
+  final int pjAccessesCount;
+  final int governmentAccessesCount;
+  final int municipalitiesCount;
+  final List<AnatelDiciAccessGroupModel> rows;
+  final String csvPreviewContent;
+
+  const AnatelDiciReportModel({
+    required this.yearMonth,
+    required this.companyCnpj,
+    required this.companyName,
+    required this.totalAccessesInService,
+    required this.activeAccessesCount,
+    required this.suspendedAccessesCount,
+    required this.pfAccessesCount,
+    required this.pjAccessesCount,
+    required this.governmentAccessesCount,
+    required this.municipalitiesCount,
+    required this.rows,
+    required this.csvPreviewContent,
+  });
+
+  factory AnatelDiciReportModel.fromJson(Map<String, dynamic> json) {
+    final rawRows = (json['rows'] as List<dynamic>? ?? [])
+        .map((e) => AnatelDiciAccessGroupModel.fromJson(
+              Map<String, dynamic>.from(e as Map),
+            ))
+        .toList();
+    final active = (json['activeAccessesCount'] as num?)?.toInt() ?? 0;
+    final suspended = (json['suspendedAccessesCount'] as num?)?.toInt() ?? 0;
+    return AnatelDiciReportModel(
+      yearMonth: (json['yearMonth'] ?? '').toString(),
+      companyCnpj: (json['companyCnpj'] ?? '').toString(),
+      companyName: (json['companyName'] ?? '').toString(),
+      totalAccessesInService:
+          (json['totalAccessesInService'] as num?)?.toInt() ??
+              (active + suspended),
+      activeAccessesCount: active,
+      suspendedAccessesCount: suspended,
+      pfAccessesCount: (json['pfAccessesCount'] as num?)?.toInt() ?? 0,
+      pjAccessesCount: (json['pjAccessesCount'] as num?)?.toInt() ?? 0,
+      governmentAccessesCount:
+          (json['governmentAccessesCount'] as num?)?.toInt() ?? 0,
+      municipalitiesCount: (json['municipalitiesCount'] as num?)?.toInt() ?? 0,
+      rows: rawRows,
+      csvPreviewContent: (json['csvPreviewContent'] ?? '').toString(),
+    );
+  }
 }
 
 final fiscalRepositoryProvider = Provider<FiscalRepository>((ref) {
@@ -688,4 +828,11 @@ final nfcomRecordsPageProvider =
 final fiscalRegimeTransitionsProvider =
     FutureProvider<List<FiscalRegimeTransitionModel>>((ref) async {
   return ref.watch(fiscalRepositoryProvider).getTransitionHistory();
+});
+
+final anatelDiciReportProvider =
+    FutureProvider.family<AnatelDiciReportModel, String?>((ref, yearMonth) async {
+  return ref
+      .watch(fiscalRepositoryProvider)
+      .getAnatelDiciReport(yearMonth: yearMonth);
 });

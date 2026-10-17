@@ -484,6 +484,10 @@ paths:
     $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1regimes~1transitions~1{id}'
   /fiscal/regimes/transitions/process-pending:
     $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1regimes~1transitions~1process-pending'
+  /fiscal/anatel/dici/report:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1anatel~1dici~1report'
+  /fiscal/anatel/dici/export-csv:
+    $ref: './domains/fiscal/fiscal.yaml#/~1fiscal~1anatel~1dici~1export-csv'
 
   # Topologia FTTH (POPs, Postes, Cabos, CEOs, Fusões, CTOs, Viabilidade e Rastreamento Óptico)
   /ftth/pops:
@@ -1056,6 +1060,10 @@ components:
       $ref: './domains/fiscal/schemas.yaml#/FiscalRegimeTransitionRequest'
     FiscalRegimeTransitionResponse:
       $ref: './domains/fiscal/schemas.yaml#/FiscalRegimeTransitionResponse'
+    AnatelDiciAccessGroupDto:
+      $ref: './domains/fiscal/schemas.yaml#/AnatelDiciAccessGroupDto'
+    AnatelDiciReportResponse:
+      $ref: './domains/fiscal/schemas.yaml#/AnatelDiciReportResponse'
 
     # Central do Assinante (ClientPortal)
     ClientAuthStatus:

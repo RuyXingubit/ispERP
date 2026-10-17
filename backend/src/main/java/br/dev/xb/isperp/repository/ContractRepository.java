@@ -21,5 +21,7 @@ public interface ContractRepository extends JpaRepository<Contract, UUID> {
 
     List<Contract> findByStatusOrderByCreatedAtDesc(Contract.ContractStatus status);
 
+    List<Contract> findByStatusIn(List<Contract.ContractStatus> statuses);
+
     long countByStatus(Contract.ContractStatus status);
 }

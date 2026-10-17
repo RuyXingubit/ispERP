@@ -81,6 +81,10 @@ public class Contract {
     private String zipCode;
 
     @Nullable
+    @Column(name = "ibge_code", length = 7)
+    private String ibgeCode;
+
+    @Nullable
     @Column(name = "cto_id")
     private UUID ctoId;
 

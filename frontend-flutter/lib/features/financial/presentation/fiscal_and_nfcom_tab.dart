@@ -23,11 +23,18 @@ class _FiscalAndNfcomTabState extends ConsumerState<FiscalAndNfcomTab> {
       TextEditingController(text: DateTime.now().year.toString());
   final _convMonthCtrl =
       TextEditingController(text: DateTime.now().month.toString());
+  final _diciYearMonthCtrl = TextEditingController(
+    text:
+        '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}',
+  );
+  String _selectedDiciYearMonth =
+      '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}';
 
   bool _emittingNfcom = false;
   bool _exportingConvenio = false;
   bool _sendingAccounting = false;
   bool _processingTransitions = false;
+  bool _exportingDiciCsv = false;
   String? _convenioExportFeedback;
 
   @override
@@ -35,6 +42,7 @@ class _FiscalAndNfcomTabState extends ConsumerState<FiscalAndNfcomTab> {
     _invoiceIdCtrl.dispose();
     _convYearCtrl.dispose();
     _convMonthCtrl.dispose();
+    _diciYearMonthCtrl.dispose();
     super.dispose();
   }
 
@@ -1073,6 +1081,8 @@ class _FiscalAndNfcomTabState extends ConsumerState<FiscalAndNfcomTab> {
     final gatewayAsync = ref.watch(activeFiscalGatewayConfigProvider);
     final recordsPageAsync = ref.watch(nfcomRecordsPageProvider(_currentPage));
     final transitionsAsync = ref.watch(fiscalRegimeTransitionsProvider);
+    final diciReportAsync =
+        ref.watch(anatelDiciReportProvider(_selectedDiciYearMonth));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -1123,7 +1133,11 @@ class _FiscalAndNfcomTabState extends ConsumerState<FiscalAndNfcomTab> {
           ),
           const SizedBox(height: 24),
 
-          // 3. Painel Paginado de Notas Fiscais NFCom Modelo 62
+          // 3. Relatório Regulatório Anatel DICI / SICI (Onda K)
+          _buildAnatelDiciSection(diciReportAsync),
+          const SizedBox(height: 24),
+
+          // 4. Painel Paginado de Notas Fiscais NFCom Modelo 62
           const Text(
             'Notas Fiscais Emitidas — NFCom (Modelo 62 SEFAZ)',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -1139,12 +1153,306 @@ class _FiscalAndNfcomTabState extends ConsumerState<FiscalAndNfcomTab> {
           ),
           const SizedBox(height: 24),
 
-          // 4. Transições de Regime Tributário
+          // 5. Transições de Regime Tributário
           _buildRegimeTransitionsSection(
             companyAsync.valueOrNull,
             transitionsAsync,
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _handleExportAnatelDiciCsv(AnatelDiciReportModel? loadedReport) async {
+    setState(() => _exportingDiciCsv = true);
+    try {
+      final csvText = (loadedReport != null &&
+              loadedReport.csvPreviewContent.trim().isNotEmpty)
+          ? loadedReport.csvPreviewContent
+          : await ref
+              .read(fiscalRepositoryProvider)
+              .exportAnatelDiciCsv(yearMonth: _selectedDiciYearMonth);
+      Clipboard.setData(ClipboardData(text: csvText)).ignore();
+      if (mounted) {
+        _showAnatelDiciCsvModal(_selectedDiciYearMonth, csvText);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: AppTheme.accentError,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _exportingDiciCsv = false);
+    }
+  }
+
+  void _showAnatelDiciCsvModal(String yearMonth, String csvText) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.darkSurface,
+        title: Text(
+          'Arquivo Oficial Anatel DICI / SICI — Competência $yearMonth',
+        ),
+        content: SizedBox(
+          width: 680,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Conteúdo CSV separado por ponto-e-vírgula (UTF-8) copiado para a área de transferência e pronto para importação no Coleta de Dados Anatel (DICI):',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.darkBg,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.darkCard),
+                  ),
+                  child: SelectableText(
+                    csvText,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: csvText));
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                const SnackBar(
+                  content: Text('CSV DICI Anatel copiado novamente.'),
+                  backgroundColor: AppTheme.accentGreen,
+                ),
+              );
+            },
+            icon: const Icon(Icons.copy, size: 16),
+            label: const Text('Copiar CSV'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnatelDiciSection(
+    AsyncValue<AnatelDiciReportModel> diciReportAsync,
+  ) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 12,
+              runSpacing: 10,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Exportador Regulatório Anatel DICI / SICI — Coleta Mensal de Acessos SCM',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Consolida contratos em serviço (ACTIVE + SUSPENDED) por Código IBGE (GeoCEP API + Fallback Local), PF/PJ/Governo e Velocidade',
+                      style: TextStyle(
+                          fontSize: 12, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 130,
+                      child: TextField(
+                        controller: _diciYearMonthCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Competência (YYYY-MM)',
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        final ym = _diciYearMonthCtrl.text.trim();
+                        if (ym.isNotEmpty) {
+                          setState(() => _selectedDiciYearMonth = ym);
+                          ref.invalidate(anatelDiciReportProvider(ym));
+                        }
+                      },
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: const Text('Recalcular Base'),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _exportingDiciCsv
+                          ? null
+                          : () => _handleExportAnatelDiciCsv(
+                                diciReportAsync.valueOrNull,
+                              ),
+                      icon: const Icon(Icons.download_outlined, size: 18),
+                      label: Text(_exportingDiciCsv
+                          ? 'Exportando CSV...'
+                          : 'Exportar CSV Anatel DICI (;)'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            diciReportAsync.when(
+              loading: () => const LinearProgressIndicator(),
+              error: (err, _) => Text(
+                err.toString().replaceFirst('Exception: ', ''),
+                style: const TextStyle(color: AppTheme.accentError),
+              ),
+              data: (report) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      children: [
+                        Chip(
+                          avatar: const Icon(Icons.router_outlined,
+                              size: 16, color: AppTheme.primaryBlue),
+                          label: Text(
+                            'Total em Serviço: ${report.totalAccessesInService} (Ativos: ${report.activeAccessesCount} • Suspensos: ${report.suspendedAccessesCount})',
+                          ),
+                        ),
+                        Chip(
+                          avatar: const Icon(Icons.people_outline,
+                              size: 16, color: AppTheme.accentGreen),
+                          label: Text(
+                            'PF: ${report.pfAccessesCount} • PJ: ${report.pjAccessesCount} • Governo: ${report.governmentAccessesCount}',
+                          ),
+                        ),
+                        Chip(
+                          avatar: const Icon(Icons.location_city_outlined,
+                              size: 16, color: AppTheme.accentWarning),
+                          label: Text(
+                            'Municípios IBGE: ${report.municipalitiesCount}',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (report.rows.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'Nenhum contrato em serviço (ACTIVE ou SUSPENDED) localizado para consolidação DICI/SICI.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      )
+                    else
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          headingRowHeight: 38,
+                          dataRowMinHeight: 36,
+                          dataRowMaxHeight: 44,
+                          columns: const [
+                            DataColumn(label: Text('Código IBGE')),
+                            DataColumn(label: Text('Município / UF')),
+                            DataColumn(label: Text('Tipo Cliente')),
+                            DataColumn(label: Text('Plano / Velocidade')),
+                            DataColumn(label: Text('Tecnologia')),
+                            DataColumn(label: Text('Ativos')),
+                            DataColumn(label: Text('Suspensos')),
+                            DataColumn(label: Text('Total Serviço')),
+                            DataColumn(label: Text('Origem IBGE')),
+                          ],
+                          rows: report.rows.map((row) {
+                            final isGeocep =
+                                row.ibgeResolutionSource == 'GEOCEP_API';
+                            return DataRow(
+                              cells: [
+                                DataCell(
+                                  Text(
+                                    row.ibgeCode,
+                                    style: const TextStyle(
+                                      fontFamily: 'monospace',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                    Text('${row.municipalityName}/${row.uf}')),
+                                DataCell(Text(row.customerType)),
+                                DataCell(
+                                  Text(
+                                    '${row.planName} (${row.downloadSpeedMbps}/${row.uploadSpeedMbps} Mbps)',
+                                  ),
+                                ),
+                                DataCell(Text(
+                                    '${row.technology} (${row.transmissionMedium})')),
+                                DataCell(Text('${row.activeCount}')),
+                                DataCell(Text('${row.suspendedCount}')),
+                                DataCell(
+                                  Text(
+                                    '${row.totalInServiceCount}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.accentGreen,
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    isGeocep
+                                        ? 'GeoCEP API'
+                                        : 'Fallback Local',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isGeocep
+                                          ? AppTheme.primaryBlue
+                                          : AppTheme.accentWarning,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

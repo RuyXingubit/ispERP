@@ -8688,6 +8688,95 @@
         }
       }
     },
+    "/fiscal/anatel/dici/report": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "summary": "Consultar relatório mensal de Acessos em Serviço para o DICI / SICI da Anatel (Onda K)",
+        "description": "Consolida os contratos em serviço (ACTIVE e SUSPENDED) agrupados por Código IBGE do Município (resolvido via GeoCEP https://geocep.api.br com fallback local próprio), Tipo de Pessoa (PF, PJ, GOVERNO) e faixa de velocidade FTTH.\n",
+        "operationId": "getAnatelDiciReport",
+        "parameters": [
+          {
+            "name": "yearMonth",
+            "in": "query",
+            "required": false,
+            "description": "Competência no formato YYYY-MM (padrão = mês atual)",
+            "schema": {
+              "type": "string",
+              "example": "2026-10"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Relatório DICI / SICI Anatel consolidado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnatelDiciReportResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fiscal/anatel/dici/export-csv": {
+      "get": {
+        "tags": [
+          "Fiscal"
+        ],
+        "summary": "Exportar arquivo CSV oficial Anatel DICI / SICI (separado por ponto e vírgula, UTF-8)",
+        "description": "Gera o arquivo CSV padrão para importação no sistema Coleta de Dados (DICI/SICI) da Anatel.",
+        "operationId": "exportAnatelDiciCsv",
+        "parameters": [
+          {
+            "name": "yearMonth",
+            "in": "query",
+            "required": false,
+            "description": "Competência no formato YYYY-MM (padrão = mês atual)",
+            "schema": {
+              "type": "string",
+              "example": "2026-10"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arquivo CSV DICI Anatel gerado com sucesso",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ftth/pops": {
       "get": {
         "tags": [
@@ -18725,6 +18814,151 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          }
+        }
+      },
+      "AnatelDiciAccessGroupDto": {
+        "type": "object",
+        "description": "Agrupamento de acessos em serviço por município IBGE, tipo de pessoa e faixa de velocidade para o DICI/SICI da Anatel",
+        "required": [
+          "ibgeCode",
+          "municipalityName",
+          "uf",
+          "customerType",
+          "planName",
+          "downloadSpeedMbps",
+          "uploadSpeedMbps",
+          "technology",
+          "transmissionMedium",
+          "activeCount",
+          "suspendedCount",
+          "totalInServiceCount"
+        ],
+        "properties": {
+          "ibgeCode": {
+            "type": "string",
+            "description": "Código IBGE do município com 7 dígitos (resolvido via GeoCEP / fallback local)",
+            "example": "1500602"
+          },
+          "municipalityName": {
+            "type": "string",
+            "example": "Altamira"
+          },
+          "uf": {
+            "type": "string",
+            "example": "PA"
+          },
+          "customerType": {
+            "type": "string",
+            "description": "Classificação DICI Anatel (PF, PJ ou GOVERNO)",
+            "example": "PF"
+          },
+          "planName": {
+            "type": "string",
+            "example": "Fibra 600 Mega"
+          },
+          "downloadSpeedMbps": {
+            "type": "integer",
+            "example": 600
+          },
+          "uploadSpeedMbps": {
+            "type": "integer",
+            "example": 300
+          },
+          "technology": {
+            "type": "string",
+            "example": "FTTH"
+          },
+          "transmissionMedium": {
+            "type": "string",
+            "example": "FIBRA"
+          },
+          "activeCount": {
+            "type": "integer",
+            "example": 420
+          },
+          "suspendedCount": {
+            "type": "integer",
+            "example": 12
+          },
+          "totalInServiceCount": {
+            "type": "integer",
+            "example": 432
+          },
+          "ibgeResolutionSource": {
+            "type": "string",
+            "description": "Origem da resolução do código IBGE (CONTRACT_CACHE, GEOCEP_API, LOCAL_FALLBACK)",
+            "example": "GEOCEP_API"
+          }
+        }
+      },
+      "AnatelDiciReportResponse": {
+        "type": "object",
+        "description": "Relatório consolidado mensal DICI / SICI Anatel (Acessos SCM em Serviço)",
+        "required": [
+          "yearMonth",
+          "companyCnpj",
+          "companyName",
+          "totalAccessesInService",
+          "activeAccessesCount",
+          "suspendedAccessesCount",
+          "pfAccessesCount",
+          "pjAccessesCount",
+          "governmentAccessesCount",
+          "municipalitiesCount",
+          "rows",
+          "csvPreviewContent"
+        ],
+        "properties": {
+          "yearMonth": {
+            "type": "string",
+            "example": "2026-10"
+          },
+          "companyCnpj": {
+            "type": "string",
+            "example": "12.345.678/0001-90"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Nexus Fibra Telecomunicações LTDA"
+          },
+          "totalAccessesInService": {
+            "type": "integer",
+            "example": 450
+          },
+          "activeAccessesCount": {
+            "type": "integer",
+            "example": 435
+          },
+          "suspendedAccessesCount": {
+            "type": "integer",
+            "example": 15
+          },
+          "pfAccessesCount": {
+            "type": "integer",
+            "example": 410
+          },
+          "pjAccessesCount": {
+            "type": "integer",
+            "example": 35
+          },
+          "governmentAccessesCount": {
+            "type": "integer",
+            "example": 5
+          },
+          "municipalitiesCount": {
+            "type": "integer",
+            "example": 2
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnatelDiciAccessGroupDto"
+            }
+          },
+          "csvPreviewContent": {
+            "type": "string",
+            "description": "Conteúdo CSV oficial DICI separado por ponto e vírgula (UTF-8) pronto para importação no Coleta de Dados Anatel"
           }
         }
       },

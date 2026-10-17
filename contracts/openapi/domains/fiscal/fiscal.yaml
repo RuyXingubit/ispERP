@@ -473,3 +473,66 @@
           application/json:
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/anatel/dici/report:
+  get:
+    tags:
+      - Fiscal
+    summary: Consultar relatório mensal de Acessos em Serviço para o DICI / SICI da Anatel (Onda K)
+    description: >
+      Consolida os contratos em serviço (ACTIVE e SUSPENDED) agrupados por Código IBGE do Município
+      (resolvido via GeoCEP https://geocep.api.br com fallback local próprio), Tipo de Pessoa (PF, PJ, GOVERNO)
+      e faixa de velocidade FTTH.
+    operationId: getAnatelDiciReport
+    parameters:
+      - name: yearMonth
+        in: query
+        required: false
+        description: Competência no formato YYYY-MM (padrão = mês atual)
+        schema:
+          type: string
+          example: "2026-10"
+    responses:
+      '200':
+        description: Relatório DICI / SICI Anatel consolidado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/AnatelDiciReportResponse'
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/fiscal/anatel/dici/export-csv:
+  get:
+    tags:
+      - Fiscal
+    summary: Exportar arquivo CSV oficial Anatel DICI / SICI (separado por ponto e vírgula, UTF-8)
+    description: Gera o arquivo CSV padrão para importação no sistema Coleta de Dados (DICI/SICI) da Anatel.
+    operationId: exportAnatelDiciCsv
+    parameters:
+      - name: yearMonth
+        in: query
+        required: false
+        description: Competência no formato YYYY-MM (padrão = mês atual)
+        schema:
+          type: string
+          example: "2026-10"
+    responses:
+      '200':
+        description: Arquivo CSV DICI Anatel gerado com sucesso
+        content:
+          text/csv:
+            schema:
+              type: string
+              format: binary
+      '401':
+        description: Não autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/errors.yaml#/ProblemDetails'
+

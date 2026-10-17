@@ -13,10 +13,13 @@ import org.springframework.web.client.RestClient;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
@@ -25,6 +28,55 @@ public class GeoCepClient {
 
     private final RestClient restClient;
     private final RestClient publicSearchClient;
+    private final Map<String, IbgeResolutionResult> ibgeCache = new ConcurrentHashMap<>();
+
+    private record LocalMunicipalityEntry(String ibgeCode, String municipalityName, String uf) {}
+
+    private static final Map<String, LocalMunicipalityEntry> LOCAL_MUNICIPALITY_BY_NAME = Map.ofEntries(
+            Map.entry("altamira", new LocalMunicipalityEntry("1500602", "Altamira", "PA")),
+            Map.entry("vitoria do xingu", new LocalMunicipalityEntry("1508357", "Vitória do Xingu", "PA")),
+            Map.entry("brasil novo", new LocalMunicipalityEntry("1501725", "Brasil Novo", "PA")),
+            Map.entry("medicilandia", new LocalMunicipalityEntry("1504455", "Medicilândia", "PA")),
+            Map.entry("uruara", new LocalMunicipalityEntry("1508159", "Uruará", "PA")),
+            Map.entry("senador jose porfirio", new LocalMunicipalityEntry("1507805", "Senador José Porfírio", "PA")),
+            Map.entry("anapu", new LocalMunicipalityEntry("1500859", "Anapu", "PA")),
+            Map.entry("pacaja", new LocalMunicipalityEntry("1505486", "Pacajá", "PA")),
+            Map.entry("porto de moz", new LocalMunicipalityEntry("1505908", "Porto de Moz", "PA")),
+            Map.entry("placas", new LocalMunicipalityEntry("1505650", "Placas", "PA")),
+            Map.entry("ruropolis", new LocalMunicipalityEntry("1506195", "Rurópolis", "PA")),
+            Map.entry("itaituba", new LocalMunicipalityEntry("1503606", "Itaituba", "PA")),
+            Map.entry("santarem", new LocalMunicipalityEntry("1506807", "Santarém", "PA")),
+            Map.entry("belem", new LocalMunicipalityEntry("1501402", "Belém", "PA")),
+            Map.entry("ananindeua", new LocalMunicipalityEntry("1500800", "Ananindeua", "PA")),
+            Map.entry("maraba", new LocalMunicipalityEntry("1504208", "Marabá", "PA")),
+            Map.entry("parauapebas", new LocalMunicipalityEntry("1505536", "Parauapebas", "PA")),
+            Map.entry("castanhal", new LocalMunicipalityEntry("1502400", "Castanhal", "PA")),
+            Map.entry("tucurui", new LocalMunicipalityEntry("1508100", "Tucuruí", "PA")),
+            Map.entry("novo repartimento", new LocalMunicipalityEntry("1505064", "Novo Repartimento", "PA"))
+    );
+
+    private static final Map<String, LocalMunicipalityEntry> LOCAL_MUNICIPALITY_BY_IBGE = Map.ofEntries(
+            Map.entry("1500602", new LocalMunicipalityEntry("1500602", "Altamira", "PA")),
+            Map.entry("1508357", new LocalMunicipalityEntry("1508357", "Vitória do Xingu", "PA")),
+            Map.entry("1501725", new LocalMunicipalityEntry("1501725", "Brasil Novo", "PA")),
+            Map.entry("1504455", new LocalMunicipalityEntry("1504455", "Medicilândia", "PA")),
+            Map.entry("1508159", new LocalMunicipalityEntry("1508159", "Uruará", "PA")),
+            Map.entry("1507805", new LocalMunicipalityEntry("1507805", "Senador José Porfírio", "PA")),
+            Map.entry("1500859", new LocalMunicipalityEntry("1500859", "Anapu", "PA")),
+            Map.entry("1505486", new LocalMunicipalityEntry("1505486", "Pacajá", "PA")),
+            Map.entry("1505908", new LocalMunicipalityEntry("1505908", "Porto de Moz", "PA")),
+            Map.entry("1505650", new LocalMunicipalityEntry("1505650", "Placas", "PA")),
+            Map.entry("1506195", new LocalMunicipalityEntry("1506195", "Rurópolis", "PA")),
+            Map.entry("1503606", new LocalMunicipalityEntry("1503606", "Itaituba", "PA")),
+            Map.entry("1506807", new LocalMunicipalityEntry("1506807", "Santarém", "PA")),
+            Map.entry("1501402", new LocalMunicipalityEntry("1501402", "Belém", "PA")),
+            Map.entry("1500800", new LocalMunicipalityEntry("1500800", "Ananindeua", "PA")),
+            Map.entry("1504208", new LocalMunicipalityEntry("1504208", "Marabá", "PA")),
+            Map.entry("1505536", new LocalMunicipalityEntry("1505536", "Parauapebas", "PA")),
+            Map.entry("1502400", new LocalMunicipalityEntry("1502400", "Castanhal", "PA")),
+            Map.entry("1508100", new LocalMunicipalityEntry("1508100", "Tucuruí", "PA")),
+            Map.entry("1505064", new LocalMunicipalityEntry("1505064", "Novo Repartimento", "PA"))
+    );
 
     public GeoCepClient(
             @Value("${geocep.api.url:https://geocep.api.br}") String baseUrl,
@@ -523,5 +575,207 @@ public class GeoCepClient {
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class IbgeResolutionResult {
+        private String ibgeCode;
+        private String municipalityName;
+        private String uf;
+        private String resolutionSource; // GEOCEP_API, LOCAL_FALLBACK, COMPANY_FALLBACK
+    }
+
+    /**
+     * Resolve o código IBGE oficial do município de atendimento para relatórios Anatel DICI / SICI.
+     * 1. Tenta consultar a API oficial https://geocep.api.br (/v1/cep/{cep} ou /v1/search).
+     * 2. Em caso de indisponibilidade do GeoCEP ou CEP ausente, utiliza dicionário municipal local próprio.
+     * 3. Em último caso, aplica o código IBGE da empresa fiscal ativa (COMPANY_FALLBACK).
+     */
+    public IbgeResolutionResult resolveIbgeWithFallback(
+            String cachedIbge,
+            String cep,
+            String city,
+            String state,
+            String companyFallbackIbge,
+            String companyFallbackCity,
+            String companyFallbackUf) {
+
+        String cleanCachedIbge = cachedIbge != null ? cachedIbge.replaceAll("\\D", "") : "";
+        if (cleanCachedIbge.length() == 7) {
+            LocalMunicipalityEntry localEntry = LOCAL_MUNICIPALITY_BY_IBGE.get(cleanCachedIbge);
+            String resolvedCity = (city != null && !city.isBlank())
+                    ? city.trim()
+                    : (localEntry != null ? localEntry.municipalityName() : (companyFallbackCity != null ? companyFallbackCity : "Altamira"));
+            String resolvedUf = (state != null && !state.isBlank())
+                    ? state.trim().toUpperCase(Locale.ROOT)
+                    : (localEntry != null ? localEntry.uf() : (companyFallbackUf != null ? companyFallbackUf : "PA"));
+            return IbgeResolutionResult.builder()
+                    .ibgeCode(cleanCachedIbge)
+                    .municipalityName(resolvedCity)
+                    .uf(resolvedUf)
+                    .resolutionSource("GEOCEP_API")
+                    .build();
+        }
+
+        String cleanCep = cep != null ? cep.replaceAll("\\D", "") : "";
+        String normalizedCity = normalizeMunicipalityKey(city);
+        String cacheKey = cleanCep.length() == 8 ? "CEP:" + cleanCep : "CITY:" + normalizedCity;
+
+        if (!cacheKey.equals("CITY:") && ibgeCache.containsKey(cacheKey)) {
+            return ibgeCache.get(cacheKey);
+        }
+
+        // 1. Consulta direta ao https://geocep.api.br/v1/cep/{cep}
+        if (cleanCep.length() == 8) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> response = restClient.get()
+                        .uri("/v1/cep/{cep}", cleanCep)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .retrieve()
+                        .body(Map.class);
+
+                if (response != null) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> data = response.containsKey("data") && response.get("data") instanceof Map
+                            ? (Map<String, Object>) response.get("data")
+                            : response;
+                    CepLookupResult parsed = parseCepResult(data, cleanCep);
+                    if (parsed.getIbge() != null && parsed.getIbge().replaceAll("\\D", "").length() == 7) {
+                        IbgeResolutionResult result = IbgeResolutionResult.builder()
+                                .ibgeCode(parsed.getIbge().replaceAll("\\D", ""))
+                                .municipalityName(parsed.getLocalidade() != null && !parsed.getLocalidade().isBlank()
+                                        ? parsed.getLocalidade()
+                                        : (city != null && !city.isBlank() ? city : "Altamira"))
+                                .uf(parsed.getUf() != null && !parsed.getUf().isBlank()
+                                        ? parsed.getUf().toUpperCase(Locale.ROOT)
+                                        : (state != null && !state.isBlank() ? state.toUpperCase(Locale.ROOT) : "PA"))
+                                .resolutionSource("GEOCEP_API")
+                                .build();
+                        ibgeCache.put(cacheKey, result);
+                        return result;
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("GeoCEP /v1/cep/{} indisponível para resolução IBGE DICI: {}. Acionando fallback local.", cleanCep, e.getMessage());
+            }
+        }
+
+        // 2. Consulta textual ao https://geocep.api.br/v1/search se não houver CEP mas houver cidade
+        if (!normalizedCity.isBlank() && cleanCep.length() != 8) {
+            try {
+                String searchQ = city.trim() + (state != null && !state.isBlank() ? " " + state.trim() : " PA");
+                @SuppressWarnings("unchecked")
+                Map<String, Object> response = restClient.get()
+                        .uri(uriBuilder -> uriBuilder.path("/v1/search")
+                                .queryParam("q", searchQ)
+                                .queryParam("limite", 1)
+                                .build())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .retrieve()
+                        .body(Map.class);
+
+                if (response != null && response.get("data") instanceof List<?> list && !list.isEmpty()) {
+                    Object first = list.get(0);
+                    if (first instanceof Map<?, ?> map) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> dataMap = (Map<String, Object>) map;
+                        CepLookupResult parsed = parseCepResult(dataMap, null);
+                        if (parsed.getIbge() != null && parsed.getIbge().replaceAll("\\D", "").length() == 7) {
+                            IbgeResolutionResult result = IbgeResolutionResult.builder()
+                                    .ibgeCode(parsed.getIbge().replaceAll("\\D", ""))
+                                    .municipalityName(parsed.getLocalidade() != null && !parsed.getLocalidade().isBlank()
+                                            ? parsed.getLocalidade()
+                                            : city.trim())
+                                    .uf(parsed.getUf() != null && !parsed.getUf().isBlank()
+                                            ? parsed.getUf().toUpperCase(Locale.ROOT)
+                                            : (state != null && !state.isBlank() ? state.toUpperCase(Locale.ROOT) : "PA"))
+                                    .resolutionSource("GEOCEP_API")
+                                    .build();
+                            ibgeCache.put(cacheKey, result);
+                            return result;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("GeoCEP /v1/search indisponível para cidade '{}': {}. Acionando fallback local.", city, e.getMessage());
+            }
+        }
+
+        // 3. Fallback Próprio Local (Dicionário Municipal IBGE + Faixas de CEP do Pará/Xingu)
+        LocalMunicipalityEntry localMatch = resolveFromLocalDictionary(cleanCep, normalizedCity);
+        if (localMatch != null) {
+            IbgeResolutionResult result = IbgeResolutionResult.builder()
+                    .ibgeCode(localMatch.ibgeCode())
+                    .municipalityName(localMatch.municipalityName())
+                    .uf(localMatch.uf())
+                    .resolutionSource("LOCAL_FALLBACK")
+                    .build();
+            if (!cacheKey.equals("CITY:")) {
+                ibgeCache.put(cacheKey, result);
+            }
+            return result;
+        }
+
+        // 4. Fallback da Empresa Fiscal Ativa
+        String finalIbge = (companyFallbackIbge != null && companyFallbackIbge.replaceAll("\\D", "").length() == 7)
+                ? companyFallbackIbge.replaceAll("\\D", "")
+                : "1500602";
+        String finalCity = (companyFallbackCity != null && !companyFallbackCity.isBlank())
+                ? companyFallbackCity
+                : "Altamira";
+        String finalUf = (companyFallbackUf != null && !companyFallbackUf.isBlank())
+                ? companyFallbackUf.toUpperCase(Locale.ROOT)
+                : "PA";
+
+        return IbgeResolutionResult.builder()
+                .ibgeCode(finalIbge)
+                .municipalityName(finalCity)
+                .uf(finalUf)
+                .resolutionSource("COMPANY_FALLBACK")
+                .build();
+    }
+
+    private LocalMunicipalityEntry resolveFromLocalDictionary(String cleanCep, String normalizedCity) {
+        if (!normalizedCity.isBlank()) {
+            LocalMunicipalityEntry byName = LOCAL_MUNICIPALITY_BY_NAME.get(normalizedCity);
+            if (byName != null) {
+                return byName;
+            }
+            for (Map.Entry<String, LocalMunicipalityEntry> entry : LOCAL_MUNICIPALITY_BY_NAME.entrySet()) {
+                if (normalizedCity.contains(entry.getKey())) {
+                    return entry.getValue();
+                }
+            }
+        }
+        if (cleanCep.length() == 8) {
+            if (cleanCep.startsWith("6837")) return LOCAL_MUNICIPALITY_BY_NAME.get("altamira");
+            if (cleanCep.startsWith("68383")) return LOCAL_MUNICIPALITY_BY_NAME.get("vitoria do xingu");
+            if (cleanCep.startsWith("68148")) return LOCAL_MUNICIPALITY_BY_NAME.get("brasil novo");
+            if (cleanCep.startsWith("68145")) return LOCAL_MUNICIPALITY_BY_NAME.get("medicilandia");
+            if (cleanCep.startsWith("68140")) return LOCAL_MUNICIPALITY_BY_NAME.get("uruara");
+            if (cleanCep.startsWith("68360")) return LOCAL_MUNICIPALITY_BY_NAME.get("senador jose porfirio");
+            if (cleanCep.startsWith("68365")) return LOCAL_MUNICIPALITY_BY_NAME.get("anapu");
+            if (cleanCep.startsWith("68485")) return LOCAL_MUNICIPALITY_BY_NAME.get("pacaja");
+            if (cleanCep.startsWith("680")) return LOCAL_MUNICIPALITY_BY_NAME.get("santarem");
+            if (cleanCep.startsWith("660") || cleanCep.startsWith("661") || cleanCep.startsWith("666")) return LOCAL_MUNICIPALITY_BY_NAME.get("belem");
+            if (cleanCep.startsWith("6850") || cleanCep.startsWith("6851")) return LOCAL_MUNICIPALITY_BY_NAME.get("maraba");
+        }
+        return null;
+    }
+
+    private static String normalizeMunicipalityKey(String input) {
+        if (input == null || input.isBlank()) {
+            return "";
+        }
+        String decomposed = Normalizer.normalize(input.trim(), Normalizer.Form.NFD);
+        return decomposed.replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 }

@@ -11,6 +11,7 @@ import br.dev.xb.isperp.mapper.FiscalMapper;
 import br.dev.xb.isperp.repository.FiscalCompanyRepository;
 import br.dev.xb.isperp.repository.FiscalGatewayConfigRepository;
 import br.dev.xb.isperp.scheduler.FiscalAccountingScheduler;
+import br.dev.xb.isperp.service.AnatelDiciService;
 import br.dev.xb.isperp.service.ConvenioIcms115Service;
 import br.dev.xb.isperp.service.FiscalService;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
@@ -44,6 +45,7 @@ public class FiscalController implements FiscalApi {
 
     private final FiscalService fiscalService;
     private final ConvenioIcms115Service convenio115Service;
+    private final AnatelDiciService anatelDiciService;
     private final FiscalCompanyRepository companyRepository;
     private final FiscalGatewayConfigRepository configRepository;
     private final FiscalAccountingScheduler fiscalAccountingScheduler;
@@ -153,5 +155,23 @@ public class FiscalController implements FiscalApi {
                 OffsetDateTime.now()
         );
         return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<AnatelDiciReportResponse> getAnatelDiciReport(String yearMonth) {
+        return ResponseEntity.ok(anatelDiciService.generateReport(yearMonth));
+    }
+
+    @Override
+    public ResponseEntity<Resource> exportAnatelDiciCsv(String yearMonth) {
+        String normalizedYm = anatelDiciService.normalizeYearMonth(yearMonth);
+        byte[] csvBytes = anatelDiciService.exportCsvBytes(normalizedYm);
+        String filename = String.format("ANATEL_DICI_SICI_%s.csv", normalizedYm.replace("-", "_"));
+        ByteArrayResource resource = new ByteArrayResource(csvBytes);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
+                .body(resource);
     }
 }

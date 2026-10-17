@@ -35,6 +35,7 @@ public interface ContractMapper {
     }
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "ibgeCode", ignore = true)
     @Mapping(target = "pendingProRataAdjustment", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -45,6 +46,7 @@ public interface ContractMapper {
     @Mapping(target = "saleId", ignore = true)
     @Mapping(target = "contractNumber", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "ibgeCode", ignore = true)
     @Mapping(target = "pendingProRataAdjustment", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -56,6 +58,7 @@ public interface ContractMapper {
     ContractDTO toDto(Contract contract);
 
     @Mapping(target = "customSuspensionDays", ignore = true)
+    @Mapping(target = "ibgeCode", ignore = true)
     @Mapping(target = "ctoId", ignore = true)
     @Mapping(target = "ctoPortNumber", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
