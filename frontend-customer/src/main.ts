@@ -8,8 +8,11 @@ import {
   fetchThemeSettings,
   fetchCompanyData,
   setCustomerPin,
+  updateSubscriberWifi,
+  rebootSubscriberCpe,
   type ClientPortalDashboard,
   type InvoiceItem,
+  type Tr069CpeWifiStatus,
 } from './services/portalService';
 import {
   fetchPublicSignatureView,
@@ -570,6 +573,7 @@ async function loadDashboard(customerId: string) {
       }
     }
 
+    renderTr069WifiSection(currentDashboard.cpeWifiStatus);
     renderUpgradePlans();
     renderInvoices();
   } catch (err: unknown) {
@@ -578,6 +582,34 @@ async function loadDashboard(customerId: string) {
     handleLogout();
   }
 }
+
+/**
+ * Renderiza o Card de Autoatendimento Wi-Fi Dual-Band & Equipamento ONU via TR-069 / CWMP (Onda M)
+ */
+function renderTr069WifiSection(cpe?: Tr069CpeWifiStatus | null) {
+  const section = document.getElementById('tr069-wifi-section');
+  const metaEl = document.getElementById('tr069-cpe-meta');
+  const input24 = document.getElementById('input-ssid-24') as HTMLInputElement | null;
+  const input5 = document.getElementById('input-ssid-5') as HTMLInputElement | null;
+  const inputPass = document.getElementById('input-wifi-password') as HTMLInputElement | null;
+  if (!section) return;
+
+  if (!cpe || !cpe.deviceId) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'flex';
+  const uptimeHours = Math.floor((cpe.uptimeSeconds || 0) / 3600);
+  const hostsCount = cpe.connectedHosts?.length ?? 0;
+  if (metaEl) {
+    metaEl.textContent = `${cpe.modelName} (${cpe.firmwareVersion}) • Serial ${cpe.serialNumber} • Uptime ${uptimeHours}h • ${hostsCount} dispositivo(s) conectado(s)`;
+  }
+  if (input24) input24.value = cpe.ssid24ghz || '';
+  if (input5) input5.value = cpe.ssid5ghz || '';
+  if (inputPass) inputPass.value = '';
+}
+
 
 /**
  * Exibe alerta na tela pública de assinatura eletrônica
@@ -1071,6 +1103,95 @@ function setupEventListeners() {
   if (btnOpenPin) btnOpenPin.addEventListener('click', () => openPinModal(false));
   if (btnClosePin) btnClosePin.addEventListener('click', closePinModal);
   if (formPin) formPin.addEventListener('submit', handlePinSubmit);
+
+  // Autoatendimento Wi-Fi Dual-Band & Reboot ONU via TR-069 (Onda M)
+  const formTr069Wifi = document.getElementById('form-tr069-wifi') as HTMLFormElement | null;
+  const btnTr069Reboot = document.getElementById('btn-tr069-reboot') as HTMLButtonElement | null;
+  const tr069Feedback = document.getElementById('tr069-wifi-feedback');
+
+  const showTr069Feedback = (msg: string, isError: boolean = false) => {
+    if (!tr069Feedback) return;
+    tr069Feedback.textContent = msg;
+    tr069Feedback.className = `alert-message ${isError ? 'alert-error' : 'alert-success'}`;
+    tr069Feedback.style.display = 'block';
+  };
+
+  if (formTr069Wifi) {
+    formTr069Wifi.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const customerId = currentDashboard?.customer?.id;
+      if (!customerId) return;
+
+      const input24 = document.getElementById('input-ssid-24') as HTMLInputElement | null;
+      const input5 = document.getElementById('input-ssid-5') as HTMLInputElement | null;
+      const inputPass = document.getElementById('input-wifi-password') as HTMLInputElement | null;
+      const btnSave = document.getElementById('btn-tr069-save-wifi') as HTMLButtonElement | null;
+
+      const ssid24ghz = input24?.value.trim() || '';
+      const ssid5ghz = input5?.value.trim() || '';
+      const password = inputPass?.value.trim() || '';
+
+      if (!ssid24ghz || !ssid5ghz) {
+        showTr069Feedback('Informe o nome das redes 2.4 GHz e 5 GHz (SSID).', true);
+        return;
+      }
+      if (password && password.length < 8) {
+        showTr069Feedback('A nova senha Wi-Fi deve ter no mínimo 8 caracteres.', true);
+        return;
+      }
+
+      if (btnSave) {
+        btnSave.disabled = true;
+        btnSave.textContent = 'Sincronizando ONU...';
+      }
+      try {
+        const updated = await updateSubscriberWifi(customerId, {
+          ssid24ghz,
+          ssid5ghz,
+          ...(password ? { password } : {}),
+          channel24ghz: currentDashboard?.cpeWifiStatus?.channel24ghz || 'AUTO',
+          channel5ghz: currentDashboard?.cpeWifiStatus?.channel5ghz || 'AUTO',
+          bandSteeringEnabled: currentDashboard?.cpeWifiStatus?.bandSteeringEnabled ?? true,
+        });
+        if (currentDashboard) {
+          currentDashboard.cpeWifiStatus = updated;
+        }
+        renderTr069WifiSection(updated);
+        showTr069Feedback(
+          `✓ Wi-Fi atualizado remotamente na ONU (${updated.ssid24ghz} / ${updated.ssid5ghz})!`,
+          false
+        );
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Falha ao atualizar Wi-Fi via TR-069.';
+        showTr069Feedback(msg, true);
+      } finally {
+        if (btnSave) {
+          btnSave.disabled = false;
+          btnSave.textContent = '💾 Salvar Wi-Fi na ONU';
+        }
+      }
+    });
+  }
+
+  if (btnTr069Reboot) {
+    btnTr069Reboot.addEventListener('click', async () => {
+      const customerId = currentDashboard?.customer?.id;
+      if (!customerId) return;
+
+      btnTr069Reboot.disabled = true;
+      btnTr069Reboot.textContent = 'Reiniciando...';
+      try {
+        const log = await rebootSubscriberCpe(customerId);
+        showTr069Feedback(`✓ Comando de reinicialização enviado (${log.summary}). Aguarde ~60s.`, false);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Não foi possível reiniciar a ONU agora.';
+        showTr069Feedback(msg, true);
+      } finally {
+        btnTr069Reboot.disabled = false;
+        btnTr069Reboot.textContent = '🔄 Reiniciar Roteador / ONU';
+      }
+    });
+  }
 
   // Eventos da Página Pública de Assinatura Eletrônica Forense
   const chkSigConsent = document.getElementById('chk-signature-consent') as HTMLInputElement | null;

@@ -305,3 +305,86 @@
           application/json:
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/portal/client/wifi:
+  get:
+    tags:
+      - ClientPortal
+    summary: Consulta as configurações Wi-Fi Dual-Band e estado TR-069 da ONU do assinante (Onda M)
+    operationId: getClientPortalWifi
+    security: []
+    parameters:
+      - name: customerId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: X-Customer-Id
+        in: header
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Estado Wi-Fi TR-069 retornado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: '../ftth/schemas.yaml#/Tr069CpeStatusResponse'
+  put:
+    tags:
+      - ClientPortal
+    summary: Atualiza SSID e senha do Wi-Fi 2.4 GHz e 5 GHz da ONU do assinante via TR-069 (Onda M)
+    operationId: updateClientPortalWifi
+    security: []
+    parameters:
+      - name: customerId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: X-Customer-Id
+        in: header
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../ftth/schemas.yaml#/UpdateTr069WifiRequest'
+    responses:
+      '200':
+        description: Wi-Fi atualizado via TR-069 com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: '../ftth/schemas.yaml#/Tr069CpeStatusResponse'
+
+/portal/client/wifi/reboot:
+  post:
+    tags:
+      - ClientPortal
+    summary: Reinicia remotamente a ONU/Roteador do assinante via comando TR-069 Reboot (Onda M)
+    operationId: rebootClientPortalWifiCpe
+    security: []
+    parameters:
+      - name: customerId
+        in: query
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+      - name: X-Customer-Id
+        in: header
+        required: false
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Comando de Reboot TR-069 enviado com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: '../ftth/schemas.yaml#/Tr069CommandLogResponse'
+

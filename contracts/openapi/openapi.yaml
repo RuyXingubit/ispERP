@@ -271,6 +271,10 @@ paths:
     $ref: './domains/portal/portal.yaml#/~1portal~1client~1upgrade-plan'
   /portal/client/trust-unblock:
     $ref: './domains/portal/portal.yaml#/~1portal~1client~1trust-unblock'
+  /portal/client/wifi:
+    $ref: './domains/portal/portal.yaml#/~1portal~1client~1wifi'
+  /portal/client/wifi/reboot:
+    $ref: './domains/portal/portal.yaml#/~1portal~1client~1wifi~1reboot'
 
   # Configurações Institucionais e do Site
   /site-settings:
@@ -540,6 +544,12 @@ paths:
     $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1incidents~1{id}~1resolve'
   /ftth/monitoring/poll-now:
     $ref: './domains/ftth/monitoring.yaml#/~1ftth~1monitoring~1poll-now'
+  /ftth/tr069/contracts/{contractId}:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1tr069~1contracts~1{contractId}'
+  /ftth/tr069/contracts/{contractId}/wifi:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1tr069~1contracts~1{contractId}~1wifi'
+  /ftth/tr069/contracts/{contractId}/reboot:
+    $ref: './domains/ftth/monitoring.yaml#/~1ftth~1tr069~1contracts~1{contractId}~1reboot'
 
   # Triagem de Materiais FTTH & Despacho Técnico
   /dispatch/installations/demands:
@@ -1196,6 +1206,14 @@ components:
       $ref: './domains/ftth/schemas.yaml#/InstallationMaterialDemandResponse'
     TechnicianDispatchCandidateResponse:
       $ref: './domains/ftth/schemas.yaml#/TechnicianDispatchCandidateResponse'
+    Tr069ConnectedHostDto:
+      $ref: './domains/ftth/schemas.yaml#/Tr069ConnectedHostDto'
+    Tr069CommandLogResponse:
+      $ref: './domains/ftth/schemas.yaml#/Tr069CommandLogResponse'
+    UpdateTr069WifiRequest:
+      $ref: './domains/ftth/schemas.yaml#/UpdateTr069WifiRequest'
+    Tr069CpeStatusResponse:
+      $ref: './domains/ftth/schemas.yaml#/Tr069CpeStatusResponse'
 
     # Geocodificação & Rotas
     RouteStatus:

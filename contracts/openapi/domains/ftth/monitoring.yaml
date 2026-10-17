@@ -190,3 +190,70 @@
       '204':
         description: Nenhum incidente massivo ativo afeta este contrato
 
+/ftth/tr069/contracts/{contractId}:
+  get:
+    tags:
+      - FtthMonitoring
+    summary: Consultar parâmetros TR-069 / CWMP (Wi-Fi Dual-Band, Firmware, Uptime, Hosts e Log de Comandos) da ONU/CPE do contrato (Onda M)
+    operationId: getTr069CpeStatusByContract
+    parameters:
+      - name: contractId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Estado TR-069 da CPE retornado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/Tr069CpeStatusResponse'
+
+/ftth/tr069/contracts/{contractId}/wifi:
+  put:
+    tags:
+      - FtthMonitoring
+    summary: Atualizar SSID, senha WPA2/WPA3 e canais 2.4 GHz / 5 GHz da ONU/CPE via TR-069 SetParameterValues (Onda M)
+    operationId: updateTr069WifiByContract
+    parameters:
+      - name: contractId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/UpdateTr069WifiRequest'
+    responses:
+      '200':
+        description: Configuração Wi-Fi Dual-Band aplicada com sucesso via TR-069
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/Tr069CpeStatusResponse'
+
+/ftth/tr069/contracts/{contractId}/reboot:
+  post:
+    tags:
+      - FtthMonitoring
+    summary: Disparar comando remoto TR-069 Reboot na ONU/CPE do contrato (Onda M)
+    operationId: rebootTr069CpeByContract
+    parameters:
+      - name: contractId
+        in: path
+        required: true
+        schema:
+          $ref: '../../components/common.yaml#/UUIDv7'
+    responses:
+      '200':
+        description: Comando de Reboot TR-069 despachado com sucesso
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/Tr069CommandLogResponse'
+
+

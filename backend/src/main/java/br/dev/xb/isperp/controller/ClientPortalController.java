@@ -37,6 +37,9 @@ public class ClientPortalController implements ClientPortalApi {
     private final PlanMapper planMapper;
     private final InvoiceMapper invoiceMapper;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private br.dev.xb.isperp.service.Tr069CpeService tr069CpeService;
+
     /**
      * Autenticação do cliente por CPF/CNPJ com validação de PIN de 4 dígitos.
      */
@@ -144,6 +147,12 @@ public class ClientPortalController implements ClientPortalApi {
                 apiInc.setDispatchedAt(inc.getDispatchedAt().atZoneSameInstant(java.time.ZoneOffset.UTC).toOffsetDateTime());
             }
             resp.setActiveNetworkIncident(apiInc);
+        }
+        if (dto.getContract() != null && tr069CpeService != null) {
+            try {
+                resp.setCpeWifiStatus(tr069CpeService.getCpeStatusByContract(dto.getContract().getId()));
+            } catch (Exception ignored) {
+            }
         }
 
         return ResponseEntity.ok(resp);
@@ -266,6 +275,34 @@ public class ClientPortalController implements ClientPortalApi {
         UUID contractId = payload.get("contractId");
         TrustUnblock trustUnblock = clientPortalService.requestTrustUnblock(targetId, contractId);
         return ResponseEntity.ok(trustUnblock);
+    }
+
+    @Override
+    public ResponseEntity<Tr069CpeStatusResponse> getClientPortalWifi(
+            @Nullable UUID customerId,
+            @Nullable UUID xCustomerId
+    ) {
+        UUID targetId = resolveCustomerId(customerId, xCustomerId);
+        return ResponseEntity.ok(tr069CpeService.getCpeStatusByCustomer(targetId));
+    }
+
+    @Override
+    public ResponseEntity<Tr069CpeStatusResponse> updateClientPortalWifi(
+            UpdateTr069WifiRequest request,
+            @Nullable UUID customerId,
+            @Nullable UUID xCustomerId
+    ) {
+        UUID targetId = resolveCustomerId(customerId, xCustomerId);
+        return ResponseEntity.ok(tr069CpeService.updateWifiByCustomer(targetId, request));
+    }
+
+    @Override
+    public ResponseEntity<Tr069CommandLogResponse> rebootClientPortalWifiCpe(
+            @Nullable UUID customerId,
+            @Nullable UUID xCustomerId
+    ) {
+        UUID targetId = resolveCustomerId(customerId, xCustomerId);
+        return ResponseEntity.ok(tr069CpeService.rebootCpeByCustomer(targetId));
     }
 
     private UUID resolveCustomerId(@Nullable UUID queryId, @Nullable UUID headerId) {

@@ -118,6 +118,41 @@
           </div>
         </div>
 
+        <!-- Seção de Autoatendimento Wi-Fi Dual-Band & Equipamento ONU (TR-069 / Onda M) -->
+        <div id="tr069-wifi-section" class="status-card" style="display: none; margin-bottom: 18px; flex-direction: column; align-items: stretch; gap: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+            <div>
+              <h3 style="font-size: 1.02rem; font-weight: 800; color: var(--text-main); margin: 0;">📶 Meu Wi-Fi Dual-Band & Equipamento (TR-069)</h3>
+              <p id="tr069-cpe-meta" style="font-size: 0.78rem; color: var(--text-muted); margin: 4px 0 0 0;">Sincronizando parâmetros da ONU...</p>
+            </div>
+            <button type="button" id="btn-tr069-reboot" style="padding: 7px 12px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.55); background: rgba(245, 158, 11, 0.14); color: #fbbf24; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+              🔄 Reiniciar Roteador / ONU
+            </button>
+          </div>
+
+          <div id="tr069-wifi-feedback" class="alert-message" style="display: none; margin: 0;"></div>
+
+          <form id="form-tr069-wifi" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; align-items: end;">
+            <div>
+              <label for="input-ssid-24" class="form-label" style="font-size: 0.75rem;">Nome da Rede 2.4 GHz (SSID)</label>
+              <input type="text" id="input-ssid-24" class="form-input" maxlength="32" required placeholder="Ex: MinhaCasa_2G">
+            </div>
+            <div>
+              <label for="input-ssid-5" class="form-label" style="font-size: 0.75rem;">Nome da Rede 5 GHz (SSID)</label>
+              <input type="text" id="input-ssid-5" class="form-input" maxlength="32" required placeholder="Ex: MinhaCasa_5G">
+            </div>
+            <div>
+              <label for="input-wifi-password" class="form-label" style="font-size: 0.75rem;">Nova Senha Wi-Fi (mín. 8 dígitos)</label>
+              <input type="password" id="input-wifi-password" class="form-input" minlength="8" maxlength="63" placeholder="Em branco mantém a atual">
+            </div>
+            <div>
+              <button type="submit" id="btn-tr069-save-wifi" class="btn-submit" style="margin: 0; padding: 10px 14px; font-size: 0.82rem;">
+                💾 Salvar Wi-Fi na ONU
+              </button>
+            </div>
+          </form>
+        </div>
+
         <!-- Seção de Planos Disponíveis para Upgrade -->
         <div id="upgrade-plans-section" class="upgrade-plans-section" style="display: none;">
           <div class="invoices-header" style="margin-bottom: 12px;">

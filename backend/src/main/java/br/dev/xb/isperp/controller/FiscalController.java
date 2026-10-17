@@ -45,11 +45,13 @@ public class FiscalController implements FiscalApi {
 
     private final FiscalService fiscalService;
     private final ConvenioIcms115Service convenio115Service;
-    private final AnatelDiciService anatelDiciService;
     private final FiscalCompanyRepository companyRepository;
     private final FiscalGatewayConfigRepository configRepository;
     private final FiscalAccountingScheduler fiscalAccountingScheduler;
     private final FiscalMapper fiscalMapper;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private AnatelDiciService anatelDiciService;
 
     @Override
     public ResponseEntity<FiscalCompanyResponse> getActiveFiscalCompany() {

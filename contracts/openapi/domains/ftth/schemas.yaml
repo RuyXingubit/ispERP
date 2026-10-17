@@ -1397,3 +1397,208 @@ TechnicianDispatchCandidateResponse:
       type: integer
       nullable: true
       example: 4
+
+Tr069ConnectedHostDto:
+  type: object
+  required:
+    - hostName
+    - ipAddress
+    - macAddress
+    - interfaceType
+    - active
+  properties:
+    hostName:
+      type: string
+      example: "iPhone-de-Maria"
+    ipAddress:
+      type: string
+      example: "192.168.1.102"
+    macAddress:
+      type: string
+      example: "A4:83:E7:11:22:33"
+    interfaceType:
+      type: string
+      description: "WIFI_2_4GHZ, WIFI_5GHZ ou LAN_ETHERNET"
+      example: "WIFI_5GHZ"
+    rssiDbm:
+      type: integer
+      nullable: true
+      example: -54
+    active:
+      type: boolean
+      example: true
+
+Tr069CommandLogResponse:
+  type: object
+  required:
+    - id
+    - contractId
+    - commandType
+    - originChannel
+    - status
+    - createdAt
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    onuSerial:
+      type: string
+      nullable: true
+      example: "HWTC12345678"
+    commandType:
+      type: string
+      description: "SET_WIFI_PARAMS, REBOOT_CPE ou REFRESH_DIAGNOSTICS"
+      example: "SET_WIFI_PARAMS"
+    originChannel:
+      type: string
+      description: "SUBSCRIBER_PORTAL ou SUPPORT_AGENT"
+      example: "SUPPORT_AGENT"
+    requestedBy:
+      type: string
+      nullable: true
+      example: "Analista N1 - Carlos"
+    status:
+      type: string
+      description: "APPLIED_ACS, APPLIED_LOCAL_SYNC ou FAILED"
+      example: "APPLIED_LOCAL_SYNC"
+    summaryMessage:
+      type: string
+      nullable: true
+      example: "SSID Dual-Band 2.4G/5G atualizado via TR-069 CWMP SetParameterValues"
+    createdAt:
+      type: string
+      format: date-time
+
+UpdateTr069WifiRequest:
+  type: object
+  required:
+    - ssid24Ghz
+    - ssid5Ghz
+  properties:
+    ssid24Ghz:
+      type: string
+      minLength: 2
+      maxLength: 32
+      example: "XinguFibra_Casa_2G"
+    password24Ghz:
+      type: string
+      nullable: true
+      minLength: 8
+      maxLength: 63
+      description: "Senha WPA2/WPA3 2.4 GHz (mínimo 8 caracteres; se omitida, mantém a senha atual)"
+      example: "fibra2026segura"
+    channel24Ghz:
+      type: string
+      nullable: true
+      example: "AUTO"
+    ssid5Ghz:
+      type: string
+      minLength: 2
+      maxLength: 32
+      example: "XinguFibra_Casa_5G"
+    password5Ghz:
+      type: string
+      nullable: true
+      minLength: 8
+      maxLength: 63
+      description: "Senha WPA2/WPA3 5 GHz (mínimo 8 caracteres; se omitida, mantém a senha atual)"
+      example: "fibra2026segura"
+    channel5Ghz:
+      type: string
+      nullable: true
+      example: "AUTO"
+    bandSteeringEnabled:
+      type: boolean
+      nullable: true
+      example: true
+    requestedBy:
+      type: string
+      nullable: true
+      example: "Suporte N1"
+
+Tr069CpeStatusResponse:
+  type: object
+  required:
+    - id
+    - contractId
+    - ssid24Ghz
+    - channel24Ghz
+    - ssid5Ghz
+    - channel5Ghz
+    - bandSteeringEnabled
+    - securityMode
+    - acsSyncStatus
+    - connectedHosts
+    - recentCommands
+  properties:
+    id:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    contractId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    onuId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    onuSerial:
+      type: string
+      nullable: true
+      example: "HWTC12345678"
+    cpeModel:
+      type: string
+      nullable: true
+      example: "Huawei EG8145V5 Dual-Band"
+    firmwareVersion:
+      type: string
+      nullable: true
+      example: "V5R020C00S280"
+    uptimeSeconds:
+      type: integer
+      format: int64
+      nullable: true
+      example: 432100
+    ssid24Ghz:
+      type: string
+      example: "XinguFibra_2G"
+    password24GhzMasked:
+      type: string
+      nullable: true
+      example: "••••••••"
+    channel24Ghz:
+      type: string
+      example: "AUTO"
+    ssid5Ghz:
+      type: string
+      example: "XinguFibra_5G"
+    password5GhzMasked:
+      type: string
+      nullable: true
+      example: "••••••••"
+    channel5Ghz:
+      type: string
+      example: "AUTO"
+    bandSteeringEnabled:
+      type: boolean
+      example: true
+    securityMode:
+      type: string
+      example: "WPA2-PSK/WPA3-SAE"
+    acsSyncStatus:
+      type: string
+      description: "ONLINE_GENIEACS, SYNCED_EMBEDDED_ACS ou OFFLINE"
+      example: "SYNCED_EMBEDDED_ACS"
+    lastInformAt:
+      type: string
+      format: date-time
+      nullable: true
+    lastRebootAt:
+      type: string
+      format: date-time
+      nullable: true
+    connectedHosts:
+      type: array
+      items:
+        $ref: '#/Tr069ConnectedHostDto'
+    recentCommands:
+      type: array
+      items:
+        $ref: '#/Tr069CommandLogResponse'
+

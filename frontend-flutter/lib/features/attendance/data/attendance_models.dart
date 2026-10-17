@@ -362,3 +362,159 @@ class ActiveNetworkIncidentModel {
   }
 }
 
+/// Dispositivo conectado na LAN/WLAN da ONU/CPE reportado via TR-069 (Onda M).
+class Tr069ConnectedHostModel {
+  final String hostName;
+  final String ipAddress;
+  final String macAddress;
+  final String band;
+  final int? rssiDbm;
+
+  const Tr069ConnectedHostModel({
+    required this.hostName,
+    required this.ipAddress,
+    required this.macAddress,
+    required this.band,
+    this.rssiDbm,
+  });
+
+  factory Tr069ConnectedHostModel.fromJson(Map<String, dynamic> json) {
+    return Tr069ConnectedHostModel(
+      hostName: json['hostName']?.toString() ?? 'Host LAN/Wi-Fi',
+      ipAddress: json['ipAddress']?.toString() ?? '-',
+      macAddress: json['macAddress']?.toString() ?? '-',
+      band: json['band']?.toString() ?? '2.4GHz',
+      rssiDbm: (json['rssiDbm'] as num?)?.toInt(),
+    );
+  }
+}
+
+/// Registro de auditoria de comando TR-069 / CWMP despachado para a CPE (Onda M).
+class Tr069CommandLogModel {
+  final String id;
+  final String contractId;
+  final String? deviceId;
+  final String commandType;
+  final String triggeredByRole;
+  final String? triggeredByName;
+  final String status;
+  final String summary;
+  final String createdAt;
+
+  const Tr069CommandLogModel({
+    required this.id,
+    required this.contractId,
+    this.deviceId,
+    required this.commandType,
+    required this.triggeredByRole,
+    this.triggeredByName,
+    required this.status,
+    required this.summary,
+    required this.createdAt,
+  });
+
+  factory Tr069CommandLogModel.fromJson(Map<String, dynamic> json) {
+    return Tr069CommandLogModel(
+      id: json['id']?.toString() ?? '',
+      contractId: json['contractId']?.toString() ?? '',
+      deviceId: json['deviceId']?.toString(),
+      commandType: json['commandType']?.toString() ?? 'SET_WIFI_CONFIG',
+      triggeredByRole: json['triggeredByRole']?.toString() ?? 'SUPPORT_AGENT',
+      triggeredByName: json['triggeredByName']?.toString(),
+      status: json['status']?.toString() ?? 'APPLIED',
+      summary: json['summary']?.toString() ?? '',
+      createdAt: json['createdAt']?.toString() ?? '',
+    );
+  }
+}
+
+/// Estado completo Dual-Band Wi-Fi, telemetria e logs de auditoria TR-069 / CWMP da CPE (Onda M).
+class Tr069CpeStatusModel {
+  final String id;
+  final String contractId;
+  final String deviceId;
+  final String serialNumber;
+  final String modelName;
+  final String firmwareVersion;
+  final String ssid24ghz;
+  final String channel24ghz;
+  final String ssid5ghz;
+  final String channel5ghz;
+  final bool bandSteeringEnabled;
+  final String securityMode;
+  final int uptimeSeconds;
+  final String acsSyncStatus;
+  final String? lastInformAt;
+  final String? lastRebootAt;
+  final List<Tr069ConnectedHostModel> connectedHosts;
+  final List<Tr069CommandLogModel> recentCommands;
+
+  const Tr069CpeStatusModel({
+    required this.id,
+    required this.contractId,
+    required this.deviceId,
+    required this.serialNumber,
+    required this.modelName,
+    required this.firmwareVersion,
+    required this.ssid24ghz,
+    required this.channel24ghz,
+    required this.ssid5ghz,
+    required this.channel5ghz,
+    required this.bandSteeringEnabled,
+    required this.securityMode,
+    required this.uptimeSeconds,
+    required this.acsSyncStatus,
+    this.lastInformAt,
+    this.lastRebootAt,
+    this.connectedHosts = const [],
+    this.recentCommands = const [],
+  });
+
+  factory Tr069CpeStatusModel.fromJson(Map<String, dynamic> json) {
+    final rawHosts = json['connectedHosts'];
+    final rawCommands = json['recentCommands'];
+    return Tr069CpeStatusModel(
+      id: json['id']?.toString() ?? '',
+      contractId: json['contractId']?.toString() ?? '',
+      deviceId: json['deviceId']?.toString() ?? '',
+      serialNumber: json['serialNumber']?.toString() ?? '',
+      modelName: json['modelName']?.toString() ?? 'ONU Wi-Fi Dual-Band',
+      firmwareVersion: json['firmwareVersion']?.toString() ?? '-',
+      ssid24ghz: json['ssid24ghz']?.toString() ?? '',
+      channel24ghz: json['channel24ghz']?.toString() ?? 'AUTO',
+      ssid5ghz: json['ssid5ghz']?.toString() ?? '',
+      channel5ghz: json['channel5ghz']?.toString() ?? 'AUTO',
+      bandSteeringEnabled: json['bandSteeringEnabled'] == true,
+      securityMode: json['securityMode']?.toString() ?? 'WPA2_WPA3_PSK',
+      uptimeSeconds: (json['uptimeSeconds'] as num?)?.toInt() ?? 0,
+      acsSyncStatus: json['acsSyncStatus']?.toString() ?? 'SYNCED',
+      lastInformAt: json['lastInformAt']?.toString(),
+      lastRebootAt: json['lastRebootAt']?.toString(),
+      connectedHosts: rawHosts is List
+          ? rawHosts
+              .whereType<Map<String, dynamic>>()
+              .map(Tr069ConnectedHostModel.fromJson)
+              .toList()
+          : const [],
+      recentCommands: rawCommands is List
+          ? rawCommands
+              .whereType<Map<String, dynamic>>()
+              .map(Tr069CommandLogModel.fromJson)
+              .toList()
+          : const [],
+    );
+  }
+
+  String get formattedUptime {
+    final hours = uptimeSeconds ~/ 3600;
+    final mins = (uptimeSeconds % 3600) ~/ 60;
+    if (hours >= 24) {
+      final days = hours ~/ 24;
+      final remHours = hours % 24;
+      return '${days}d ${remHours}h';
+    }
+    return '${hours}h ${mins}m';
+  }
+}
+
+

@@ -214,6 +214,42 @@ class AttendanceRepository {
       return null;
     }
   }
+
+  /// Consulta o estado TR-069 / CWMP Dual-Band Wi-Fi e diagnóstico da ONU/CPE do contrato (Onda M).
+  Future<Tr069CpeStatusModel> getTr069CpeStatus(String contractId) async {
+    final response = await _dio.get('/ftth/tr069/contracts/$contractId');
+    return Tr069CpeStatusModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  /// Atualiza SSID, senha WPA2/WPA3, canais 2.4GHz/5GHz e Band Steering via TR-069 SetParameterValues (Onda M).
+  Future<Tr069CpeStatusModel> updateTr069Wifi({
+    required String contractId,
+    required String ssid24ghz,
+    required String ssid5ghz,
+    String? password,
+    String channel24ghz = 'AUTO',
+    String channel5ghz = 'AUTO',
+    bool bandSteeringEnabled = true,
+  }) async {
+    final response = await _dio.put(
+      '/ftth/tr069/contracts/$contractId/wifi',
+      data: {
+        'ssid24ghz': ssid24ghz.trim(),
+        'ssid5ghz': ssid5ghz.trim(),
+        if (password != null && password.trim().isNotEmpty) 'password': password.trim(),
+        'channel24ghz': channel24ghz,
+        'channel5ghz': channel5ghz,
+        'bandSteeringEnabled': bandSteeringEnabled,
+      },
+    );
+    return Tr069CpeStatusModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  /// Despacha comando TR-069 Reboot remoto para a ONU/CPE do contrato (Onda M).
+  Future<Tr069CommandLogModel> rebootTr069Cpe(String contractId) async {
+    final response = await _dio.post('/ftth/tr069/contracts/$contractId/reboot');
+    return Tr069CommandLogModel.fromJson(response.data as Map<String, dynamic>);
+  }
 }
 
 /// Provider do repositório de atendimento.
@@ -221,3 +257,4 @@ final attendanceRepositoryProvider = Provider<AttendanceRepository>((ref) {
   final api = ref.watch(apiClientProvider);
   return AttendanceRepository(api);
 });
+

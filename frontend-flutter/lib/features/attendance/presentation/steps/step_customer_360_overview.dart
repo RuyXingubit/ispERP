@@ -7,6 +7,7 @@ import '../../../sales/presentation/sales_onboarding_modal.dart';
 import '../../data/attendance_models.dart';
 import '../../data/attendance_notifier.dart';
 import '../contract_post_sale_lifecycle_modal.dart';
+import '../tr069_wifi_management_modal.dart';
 
 /// Passo 2 do Hub de Atendimento: Raio-X Contextual do Assinante, Linha do Tempo Viva e Escolha de Trilha.
 class StepCustomer360Overview extends ConsumerWidget {
@@ -188,6 +189,18 @@ class StepCustomer360Overview extends ConsumerWidget {
                       spacing: 8,
                       runSpacing: 6,
                       children: [
+                        OutlinedButton.icon(
+                          onPressed: () => Tr069WifiManagementModal.show(
+                            context,
+                            contract: contract,
+                            customerName: customer.name,
+                          ),
+                          icon: const Icon(Icons.wifi_tethering_rounded, size: 15),
+                          label: const Text(
+                            'Wi-Fi & ONU (TR-069)',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                        ),
                         OutlinedButton.icon(
                           onPressed: () => ContractPostSaleLifecycleModal.show(
                             context,

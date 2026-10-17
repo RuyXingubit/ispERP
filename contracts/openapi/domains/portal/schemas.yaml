@@ -212,6 +212,8 @@ ClientPortalDashboardResponse:
       example: "Conexão ativa e em pleno funcionamento"
     activeNetworkIncident:
       $ref: '../ftth/schemas.yaml#/FtthIncidentResponse'
+    cpeWifiStatus:
+      $ref: '../ftth/schemas.yaml#/Tr069CpeStatusResponse'
 
 
 PortalMessageResponse:

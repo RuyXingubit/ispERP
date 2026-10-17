@@ -71,6 +71,47 @@ export interface ActiveNetworkIncidentItem {
   detectedAt?: string;
 }
 
+export interface Tr069ConnectedHostItem {
+  hostName: string;
+  ipAddress: string;
+  macAddress: string;
+  band: string;
+  rssiDbm?: number;
+}
+
+export interface Tr069CommandLogItem {
+  id: string;
+  contractId: string;
+  deviceId?: string;
+  commandType: string;
+  triggeredByRole: string;
+  triggeredByName?: string;
+  status: string;
+  summary: string;
+  createdAt: string;
+}
+
+export interface Tr069CpeWifiStatus {
+  id: string;
+  contractId: string;
+  deviceId: string;
+  serialNumber: string;
+  modelName: string;
+  firmwareVersion: string;
+  ssid24ghz: string;
+  channel24ghz: string;
+  ssid5ghz: string;
+  channel5ghz: string;
+  bandSteeringEnabled: boolean;
+  securityMode: string;
+  uptimeSeconds: number;
+  acsSyncStatus: string;
+  lastInformAt?: string;
+  lastRebootAt?: string;
+  connectedHosts?: Tr069ConnectedHostItem[];
+  recentCommands?: Tr069CommandLogItem[];
+}
+
 export interface ClientPortalDashboard {
   customer: CustomerData;
   contract?: ContractItem;
@@ -84,6 +125,7 @@ export interface ClientPortalDashboard {
   canRequestTrustUnblock: boolean;
   connectionStatusMessage?: string;
   activeNetworkIncident?: ActiveNetworkIncidentItem | null;
+  cpeWifiStatus?: Tr069CpeWifiStatus | null;
 }
 
 export interface SiteSettings {
@@ -101,6 +143,33 @@ export interface CompanyData {
 
 export async function fetchDashboard(customerId: string): Promise<ClientPortalDashboard> {
   return await apiFetch<ClientPortalDashboard>(`/portal/client/dashboard?customerId=${customerId}`);
+}
+
+export async function fetchSubscriberWifi(customerId: string): Promise<Tr069CpeWifiStatus> {
+  return await apiFetch<Tr069CpeWifiStatus>(`/portal/client/wifi?customerId=${customerId}`);
+}
+
+export async function updateSubscriberWifi(
+  customerId: string,
+  payload: {
+    ssid24ghz: string;
+    ssid5ghz: string;
+    password?: string;
+    channel24ghz?: string;
+    channel5ghz?: string;
+    bandSteeringEnabled?: boolean;
+  }
+): Promise<Tr069CpeWifiStatus> {
+  return await apiFetch<Tr069CpeWifiStatus>(`/portal/client/wifi?customerId=${customerId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function rebootSubscriberCpe(customerId: string): Promise<Tr069CommandLogItem> {
+  return await apiFetch<Tr069CommandLogItem>(`/portal/client/wifi/reboot?customerId=${customerId}`, {
+    method: 'POST',
+  });
 }
 
 export async function requestTrustUnblock(contractId: string, customerId: string): Promise<unknown> {
@@ -154,3 +223,4 @@ export async function fetchCompanyData(): Promise<CompanyData | null> {
     return null;
   }
 }
+
