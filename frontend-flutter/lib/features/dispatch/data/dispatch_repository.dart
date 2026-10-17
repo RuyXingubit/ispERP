@@ -57,12 +57,24 @@ class DispatchRepository {
     }
   }
 
-  /// Despacha a O.S. para o técnico selecionado, alocando os materiais no veículo.
-  Future<bool> dispatchWorkOrder(String workOrderId, String technicianId) async {
+  /// Despacha a O.S. para o técnico selecionado, alocando os materiais no veículo e agendando o turno.
+  Future<bool> dispatchWorkOrder(
+    String workOrderId,
+    String technicianId, {
+    String? scheduledDate,
+    String? scheduledPeriod,
+  }) async {
     try {
+      final queryParams = <String, dynamic>{'technicianId': technicianId};
+      if (scheduledDate != null && scheduledDate.isNotEmpty) {
+        queryParams['scheduledDate'] = scheduledDate;
+      }
+      if (scheduledPeriod != null && scheduledPeriod.isNotEmpty) {
+        queryParams['scheduledPeriod'] = scheduledPeriod;
+      }
       final response = await _dio.post(
         '/dispatch/installations/$workOrderId/dispatch',
-        queryParameters: {'technicianId': technicianId},
+        queryParameters: queryParams,
       );
       return response.statusCode == 200;
     } catch (e) {

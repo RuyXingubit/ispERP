@@ -32,6 +32,9 @@ public class InstallationDemandService {
     private final InventoryService inventoryService;
     private final DomainEventPublisher domainEventPublisher;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private @Nullable FtthCtoPortRepository ctoPortRepository;
+
     /**
      * Gera a demanda de materiais FTTH e metragem do drop para uma Ordem de Serviço de Instalação.
      */
@@ -77,15 +80,16 @@ public class InstallationDemandService {
             onuModel = "ONT Wi-Fi 6 AX3000 XGS-PON / GPON 2.5G";
         }
 
-        // Atualiza vínculo no contrato e na O.S.
+        // Atualiza vínculo no contrato e na O.S. com reserva real de porta LIVRE
         if (cto != null) {
             contract.setCtoId(cto.getId());
             workOrder.setCtoId(cto.getId());
             if (contract.getCtoPortNumber() != null) {
                 workOrder.setCtoPortNumber(contract.getCtoPortNumber());
             } else {
-                contract.setCtoPortNumber(1);
-                workOrder.setCtoPortNumber(1);
+                Integer reservedPort = reserveFirstFreePort(cto.getId(), customer.getId(), customer.getName());
+                contract.setCtoPortNumber(reservedPort);
+                workOrder.setCtoPortNumber(reservedPort);
             }
             contractRepository.save(contract);
             workOrderRepository.save(workOrder);
@@ -229,12 +233,29 @@ public class InstallationDemandService {
 
         workOrderRepository.findById(demand.getWorkOrderId()).ifPresent(wo -> {
             resp.setWorkOrderType(wo.getType() != null ? wo.getType().name() : "INSTALACAO");
+            resp.setScheduledDate(wo.getScheduledDate());
+            resp.setScheduledPeriod(wo.getScheduledPeriod());
             if (resp.getAllocatedTechnicianName() == null && wo.getTechnicianName() != null) {
                 resp.setAllocatedTechnicianName(wo.getTechnicianName());
             }
         });
 
         return resp;
+    }
+
+    private Integer reserveFirstFreePort(UUID ctoId, UUID customerId, String customerName) {
+        if (ctoPortRepository == null) return 1;
+        List<FtthCtoPort> ports = ctoPortRepository.findByCtoIdOrderByPortNumberAsc(ctoId);
+        for (FtthCtoPort port : ports) {
+            if (port.getStatus() == br.dev.xb.isperp.ftth.FtthPortStatus.LIVRE) {
+                port.setStatus(br.dev.xb.isperp.ftth.FtthPortStatus.RESERVADA);
+                port.setCustomerId(customerId);
+                port.setNotes("Reservada automaticamente para O.S. de " + customerName);
+                ctoPortRepository.save(port);
+                return port.getPortNumber();
+            }
+        }
+        return 1;
     }
 
     private @Nullable FtthCto findNearestCto(double lat, double lon) {

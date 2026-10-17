@@ -87,6 +87,12 @@ WorkOrderResponse:
       format: double
       nullable: true
       example: -48.49020000
+    ctoId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    ctoPortNumber:
+      type: integer
+      nullable: true
+      example: 2
     installationPhotoUrl:
       type: string
       format: uri
@@ -411,4 +417,86 @@ TechnicianExecutionCompleteRequest:
       nullable: true
     warehouseId:
       $ref: '../../components/common.yaml#/UUIDv7'
+
+TechnicianShiftSlotDto:
+  type: object
+  required:
+    - technicianId
+    - technicianName
+    - period
+    - maxCapacity
+    - occupiedSlots
+    - availableSlots
+    - available
+  properties:
+    technicianId:
+      $ref: '../../components/common.yaml#/UUIDv7'
+    technicianName:
+      type: string
+      example: "Carlos Silva"
+    period:
+      type: string
+      example: "MANHA"
+    maxCapacity:
+      type: integer
+      example: 4
+    occupiedSlots:
+      type: integer
+      example: 2
+    availableSlots:
+      type: integer
+      example: 2
+    available:
+      type: boolean
+      example: true
+
+ShiftPeriodSummaryDto:
+  type: object
+  required:
+    - period
+    - totalCapacity
+    - occupiedSlots
+    - availableSlots
+    - available
+    - technicians
+  properties:
+    period:
+      type: string
+      example: "MANHA"
+    totalCapacity:
+      type: integer
+      example: 8
+    occupiedSlots:
+      type: integer
+      example: 3
+    availableSlots:
+      type: integer
+      example: 5
+    available:
+      type: boolean
+      example: true
+    technicians:
+      type: array
+      items:
+        $ref: '#/TechnicianShiftSlotDto'
+
+ScheduleAvailabilityResponse:
+  type: object
+  required:
+    - date
+    - maxCapacityPerTechnicianPerShift
+    - shifts
+  properties:
+    date:
+      type: string
+      format: date
+      example: "2026-10-18"
+    maxCapacityPerTechnicianPerShift:
+      type: integer
+      example: 4
+    shifts:
+      type: array
+      items:
+        $ref: '#/ShiftPeriodSummaryDto'
+
 

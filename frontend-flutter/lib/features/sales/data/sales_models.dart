@@ -65,29 +65,39 @@ class CepLookupModel {
 
 /// Item de CTO viável próxima ao endereço.
 class FeasibleCtoItem {
+  final String ctoId;
   final String ctoName;
   final double distanceMeters;
   final int freePorts;
+  final int totalPorts;
   final bool hasCapacity;
 
   const FeasibleCtoItem({
+    this.ctoId = '',
     required this.ctoName,
     required this.distanceMeters,
     required this.freePorts,
+    this.totalPorts = 16,
     required this.hasCapacity,
   });
 
   factory FeasibleCtoItem.fromJson(Map<String, dynamic> json) {
     final ctoObj = json['cto'];
+    String id = json['ctoId']?.toString() ?? '';
     String name = 'CTO Desconhecida';
+    int total = 16;
     if (ctoObj is Map<String, dynamic>) {
+      id = ctoObj['id']?.toString() ?? id;
       name = ctoObj['name']?.toString() ?? ctoObj['code']?.toString() ?? name;
+      total = (ctoObj['totalPorts'] as num?)?.toInt() ?? 16;
     }
 
     return FeasibleCtoItem(
+      ctoId: id,
       ctoName: name,
       distanceMeters: (json['distanceMeters'] as num?)?.toDouble() ?? 0.0,
       freePorts: (json['freePorts'] as num?)?.toInt() ?? 0,
+      totalPorts: total,
       hasCapacity: json['hasCapacity'] == true,
     );
   }
@@ -120,6 +130,71 @@ class FtthFeasibilityModel {
       viable: json['viable'] == true,
       viableCtosCount: (json['viableCtosCount'] as num?)?.toInt() ?? 0,
       nearbyCtos: items,
+    );
+  }
+}
+
+/// Resumo de capacidade de um turno técnico (MANHA ou TARDE).
+class ShiftPeriodSummaryModel {
+  final String period;
+  final int totalCapacity;
+  final int occupiedSlots;
+  final int availableSlots;
+  final bool available;
+
+  const ShiftPeriodSummaryModel({
+    required this.period,
+    required this.totalCapacity,
+    required this.occupiedSlots,
+    required this.availableSlots,
+    required this.available,
+  });
+
+  factory ShiftPeriodSummaryModel.fromJson(Map<String, dynamic> json) {
+    return ShiftPeriodSummaryModel(
+      period: json['period']?.toString() ?? 'MANHA',
+      totalCapacity: (json['totalCapacity'] as num?)?.toInt() ?? 4,
+      occupiedSlots: (json['occupiedSlots'] as num?)?.toInt() ?? 0,
+      availableSlots: (json['availableSlots'] as num?)?.toInt() ?? 4,
+      available: json['available'] != false,
+    );
+  }
+}
+
+/// Matriz de disponibilidade da agenda técnica por data e turno.
+class ScheduleAvailabilityModel {
+  final String date;
+  final int maxCapacityPerTechnicianPerShift;
+  final List<ShiftPeriodSummaryModel> shifts;
+
+  const ScheduleAvailabilityModel({
+    required this.date,
+    this.maxCapacityPerTechnicianPerShift = 4,
+    this.shifts = const [],
+  });
+
+  ShiftPeriodSummaryModel? getShift(String period) {
+    for (final s in shifts) {
+      if (s.period.toUpperCase() == period.toUpperCase()) return s;
+    }
+    return null;
+  }
+
+  factory ScheduleAvailabilityModel.fromJson(Map<String, dynamic> json) {
+    final rawShifts = json['shifts'];
+    final parsedShifts = <ShiftPeriodSummaryModel>[];
+    if (rawShifts is List) {
+      for (final item in rawShifts) {
+        if (item is Map<String, dynamic>) {
+          parsedShifts.add(ShiftPeriodSummaryModel.fromJson(item));
+        }
+      }
+    }
+    return ScheduleAvailabilityModel(
+      date: json['date']?.toString() ?? '',
+      maxCapacityPerTechnicianPerShift:
+          (json['maxCapacityPerTechnicianPerShift'] as num?)?.toInt() ?? 4,
+      shifts: parsedShifts,
     );
   }
 }
@@ -171,6 +246,12 @@ class CreateSalePayload {
   final int preferredDueDate;
   final String notificationChannel;
   final String? sellerName;
+  final String? ctoId;
+  final int? ctoPortNumber;
+  final double? latitude;
+  final double? longitude;
+  final String? preferredScheduleDate;
+  final String? preferredSchedulePeriod;
 
   const CreateSalePayload({
     required this.planId,
@@ -185,6 +266,12 @@ class CreateSalePayload {
     this.preferredDueDate = 10,
     this.notificationChannel = 'WHATSAPP',
     this.sellerName,
+    this.ctoId,
+    this.ctoPortNumber,
+    this.latitude,
+    this.longitude,
+    this.preferredScheduleDate,
+    this.preferredSchedulePeriod,
   });
 
   Map<String, dynamic> toJson() {
@@ -201,6 +288,14 @@ class CreateSalePayload {
       'preferredDueDate': preferredDueDate,
       'notificationChannel': notificationChannel,
       if (sellerName != null && sellerName!.isNotEmpty) 'sellerName': sellerName,
+      if (ctoId != null && ctoId!.isNotEmpty) 'ctoId': ctoId,
+      if (ctoPortNumber != null) 'ctoPortNumber': ctoPortNumber,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (preferredScheduleDate != null && preferredScheduleDate!.isNotEmpty)
+        'preferredScheduleDate': preferredScheduleDate,
+      if (preferredSchedulePeriod != null && preferredSchedulePeriod!.isNotEmpty)
+        'preferredSchedulePeriod': preferredSchedulePeriod,
     };
   }
 }
@@ -211,12 +306,20 @@ class SaleResult {
   final String status;
   final String customerName;
   final String customerCpf;
+  final String? ctoId;
+  final int? ctoPortNumber;
+  final String? preferredScheduleDate;
+  final String? preferredSchedulePeriod;
 
   const SaleResult({
     required this.id,
     required this.status,
     required this.customerName,
     required this.customerCpf,
+    this.ctoId,
+    this.ctoPortNumber,
+    this.preferredScheduleDate,
+    this.preferredSchedulePeriod,
   });
 
   factory SaleResult.fromJson(Map<String, dynamic> json) {
@@ -225,6 +328,10 @@ class SaleResult {
       status: json['status']?.toString() ?? 'SUBMITTED',
       customerName: json['customerName']?.toString() ?? '',
       customerCpf: json['customerCpf']?.toString() ?? '',
+      ctoId: json['ctoId']?.toString(),
+      ctoPortNumber: (json['ctoPortNumber'] as num?)?.toInt(),
+      preferredScheduleDate: json['preferredScheduleDate']?.toString(),
+      preferredSchedulePeriod: json['preferredSchedulePeriod']?.toString(),
     );
   }
 }

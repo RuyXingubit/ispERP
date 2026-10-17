@@ -27,4 +27,7 @@ public class TechnicianDispatchCandidateResponse {
     private @Nullable Double distanceKmToCustomer;
     private @Nullable String lastServiceAddress;
     private Double recommendedScore; // Pontuação combinada (Estoque + Proximidade)
+    private @Nullable Integer morningOccupiedSlots;
+    private @Nullable Integer afternoonOccupiedSlots;
+    private @Nullable Integer maxSlotsPerShift;
 }

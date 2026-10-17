@@ -49,6 +49,11 @@ public class WorkOrderController implements WorkOrdersApi {
     }
 
     @Override
+    public ResponseEntity<ScheduleAvailabilityResponse> getScheduleAvailability(java.time.LocalDate date) {
+        return ResponseEntity.ok(workOrderService.getScheduleAvailability(date));
+    }
+
+    @Override
     public ResponseEntity<WorkOrderResponse> completeWorkOrder(UUID id, CompleteWorkOrderRequest request) {
         WorkOrder completed = workOrderService.completeWorkOrder(id, workOrderMapper.toCompleteRequest(request));
         return ResponseEntity.ok(workOrderMapper.toResponse(completed));

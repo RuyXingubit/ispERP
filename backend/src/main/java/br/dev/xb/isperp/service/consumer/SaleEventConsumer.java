@@ -80,9 +80,18 @@ public class SaleEventConsumer {
                 customer.setCity(city);
                 customer.setState(state);
                 customer.setZipCode(zipCode);
+                if (data.get("latitude") != null) {
+                    customer.setLatitude(new BigDecimal(data.get("latitude").toString()));
+                }
+                if (data.get("longitude") != null) {
+                    customer.setLongitude(new BigDecimal(data.get("longitude").toString()));
+                }
                 customer.setActive(true);
 
                 Customer savedCustomer = customerRepository.save(customer);
+
+                UUID ctoId = data.get("ctoId") != null ? UUID.fromString(data.get("ctoId").toString()) : null;
+                Integer ctoPortNumber = data.get("ctoPortNumber") != null ? Integer.parseInt(data.get("ctoPortNumber").toString()) : null;
 
                 // 2. Criar contrato em PENDING_INSTALLATION
                 String contractNumber = "CTR-" + System.currentTimeMillis();
@@ -99,6 +108,8 @@ public class SaleEventConsumer {
                         .city(city)
                         .state(state)
                         .zipCode(zipCode)
+                        .ctoId(ctoId)
+                        .ctoPortNumber(ctoPortNumber)
                         .build();
 
                 Contract savedContract = contractRepository.save(contract);

@@ -98,4 +98,76 @@ class WorkOrderServiceTest {
 
         verify(domainEventPublisher, times(1)).publish(any(DomainEvent.class));
     }
+
+    @Test
+    @DisplayName("Onda L: Deve bloquear overbooking quando técnico já possuir 4 O.S. agendadas no mesmo turno (MANHA/TARDE)")
+    void shouldRejectOverbookingWhenTechnicianShiftReachesFourWorkOrders() {
+        LocalDate targetDate = LocalDate.of(2026, 10, 22);
+        ScheduleWorkOrderRequest req = ScheduleWorkOrderRequest.builder()
+                .scheduledDate(targetDate)
+                .scheduledPeriod("MANHA")
+                .technicianName("Carlos Técnico")
+                .build();
+
+        when(workOrderRepository.findById(workOrderId)).thenReturn(Optional.of(sampleWorkOrder));
+
+        java.util.List<WorkOrder> existingFour = java.util.List.of(
+                WorkOrder.builder().id(UuidCreatorUtils.generateUuidV7()).status(WorkOrder.WorkOrderStatus.SCHEDULED).scheduledDate(targetDate).scheduledPeriod("MANHA").technicianName("Carlos Técnico").build(),
+                WorkOrder.builder().id(UuidCreatorUtils.generateUuidV7()).status(WorkOrder.WorkOrderStatus.SCHEDULED).scheduledDate(targetDate).scheduledPeriod("MANHA").technicianName("Carlos Técnico").build(),
+                WorkOrder.builder().id(UuidCreatorUtils.generateUuidV7()).status(WorkOrder.WorkOrderStatus.IN_PROGRESS).scheduledDate(targetDate).scheduledPeriod("MANHA").technicianName("Carlos Técnico").build(),
+                WorkOrder.builder().id(UuidCreatorUtils.generateUuidV7()).status(WorkOrder.WorkOrderStatus.SCHEDULED).scheduledDate(targetDate).scheduledPeriod("MANHA").technicianName("Carlos Técnico").build()
+        );
+        when(workOrderRepository.findByScheduledDateAndScheduledPeriodIgnoreCaseAndTechnicianNameIgnoreCase(
+                targetDate, "MANHA", "Carlos Técnico"
+        )).thenReturn(existingFour);
+
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> workOrderService.scheduleWorkOrder(workOrderId, req)
+        );
+        assertTrue(ex.getMessage().contains("4/4 O.S."));
+        verify(workOrderRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Onda L: Deve calcular disponibilidade de vagas por turno (MANHA e TARDE) respeitando 4 vagas por técnico")
+    void shouldCalculateScheduleAvailabilityByShift() {
+        LocalDate targetDate = LocalDate.of(2026, 10, 22);
+        br.dev.xb.isperp.repository.UserRepository userRepo = mock(br.dev.xb.isperp.repository.UserRepository.class);
+        workOrderService.setUserRepository(userRepo);
+
+        br.dev.xb.isperp.entity.User tech1 = br.dev.xb.isperp.entity.User.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .name("Carlos Técnico")
+                .role(br.dev.xb.isperp.entity.UserRole.TECHNICIAN)
+                .build();
+        when(userRepo.findByRole(br.dev.xb.isperp.entity.UserRole.TECHNICIAN)).thenReturn(java.util.List.of(tech1));
+
+        WorkOrder morningWo1 = WorkOrder.builder()
+                .id(UuidCreatorUtils.generateUuidV7())
+                .status(WorkOrder.WorkOrderStatus.SCHEDULED)
+                .scheduledDate(targetDate)
+                .scheduledPeriod("MANHA")
+                .technicianName("Carlos Técnico")
+                .build();
+        when(workOrderRepository.findByScheduledDate(targetDate)).thenReturn(java.util.List.of(morningWo1));
+
+        var availability = workOrderService.getScheduleAvailability(targetDate);
+
+        assertEquals(4, availability.getMaxCapacityPerTechnicianPerShift());
+        assertEquals(2, availability.getShifts().size());
+
+        var manha = availability.getShifts().get(0);
+        assertEquals("MANHA", manha.getPeriod());
+        assertEquals(4, manha.getTotalCapacity());
+        assertEquals(1, manha.getOccupiedSlots());
+        assertEquals(3, manha.getAvailableSlots());
+        assertTrue(manha.getAvailable());
+
+        var tarde = availability.getShifts().get(1);
+        assertEquals("TARDE", tarde.getPeriod());
+        assertEquals(4, tarde.getTotalCapacity());
+        assertEquals(0, tarde.getOccupiedSlots());
+        assertEquals(4, tarde.getAvailableSlots());
+    }
 }

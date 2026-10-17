@@ -126,6 +126,22 @@ class SalesRepository {
     }
   }
 
+  /// Consulta disponibilidade da agenda técnica por data e turno (MANHA / TARDE).
+  Future<ScheduleAvailabilityModel?> getScheduleAvailability(String dateIso) async {
+    try {
+      final response = await _dio.get(
+        '/work-orders/schedule/availability',
+        queryParameters: {'date': dateIso},
+      );
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        return ScheduleAvailabilityModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Submete a nova venda no backend disparando o ZeroTouchOnboarding.
   Future<SaleResult?> submitSale(CreateSalePayload payload) async {
     try {

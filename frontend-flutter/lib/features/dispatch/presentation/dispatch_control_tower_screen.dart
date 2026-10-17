@@ -411,6 +411,18 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
+                    if (item.scheduledDate != null || item.scheduledPeriod != null)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.schedule_rounded, size: 14, color: AppTheme.accentWarning),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${item.scheduledDate ?? "Hoje"} • ${item.scheduledPeriod ?? "MANHA"}',
+                            style: const TextStyle(fontSize: 11, color: AppTheme.accentWarning, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
                 if (item.allocatedTechnicianName != null) ...[
@@ -545,15 +557,20 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: const [
-                        Icon(Icons.inventory_2_outlined, color: AppTheme.primaryBlue, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          '1. Kit de Materiais & Triagem de Estoque',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Expanded(
+                      child: Row(
+                        children: const [
+                          Icon(Icons.inventory_2_outlined, color: AppTheme.primaryBlue, size: 20),
+                          SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '1. Kit de Materiais & Triagem de Estoque',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -596,7 +613,7 @@ class DispatchControlTowerScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
 
-          // Card 2: Candidatos Técnicos & Auditoria de Estoque Veicular
+          // Card 2: Candidatos Técnicos, Turno & Auditoria de Estoque Veicular
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -610,15 +627,20 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: const [
-                        Icon(Icons.badge_outlined, color: AppTheme.primaryBlue, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          '2. Técnicos Candidatos & Kit no Veículo',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Expanded(
+                      child: Row(
+                        children: const [
+                          Icon(Icons.badge_outlined, color: AppTheme.primaryBlue, size: 20),
+                          SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '2. Técnicos Candidatos, Turno & Kit no Veículo',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     if (state.isLoadingCandidates)
                       const SizedBox(
@@ -630,8 +652,35 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'O sistema audita em tempo real a custódia de materiais em cada veículo e prioriza quem possui o kit completo.',
+                  'O sistema audita em tempo real a custódia de materiais em cada veículo e a lotação por turno (máx. 4 O.S./turno).',
                   style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 12),
+
+                // Seletor de Turno Operacional (MANHA / TARDE)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    const Icon(Icons.wb_sunny_outlined, size: 15, color: AppTheme.primaryBlue),
+                    const Text(
+                      'Turno de Agendamento:',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    ChoiceChip(
+                      label: const Text('Manhã (08h-12h)', style: TextStyle(fontSize: 11)),
+                      selected: state.selectedScheduledPeriod == 'MANHA',
+                      selectedColor: AppTheme.primaryBlue.withValues(alpha: 0.25),
+                      onSelected: (_) => notifier.setScheduledPeriod('MANHA'),
+                    ),
+                    ChoiceChip(
+                      label: const Text('Tarde (13h-18h)', style: TextStyle(fontSize: 11)),
+                      selected: state.selectedScheduledPeriod == 'TARDE',
+                      selectedColor: AppTheme.primaryBlue.withValues(alpha: 0.25),
+                      onSelected: (_) => notifier.setScheduledPeriod('TARDE'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 14),
 
@@ -653,7 +702,14 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                     separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final tech = state.candidates[index];
-                      return _buildCandidateCard(context, tech, demand, state.isDispatching, notifier);
+                      return _buildCandidateCard(
+                        context,
+                        tech,
+                        demand,
+                        state.isDispatching,
+                        state.selectedScheduledPeriod,
+                        notifier,
+                      );
                     },
                   ),
               ],
@@ -696,6 +752,7 @@ class DispatchControlTowerScreen extends ConsumerWidget {
     TechnicianCandidateModel tech,
     InstallationDemandModel demand,
     bool isDispatching,
+    String selectedPeriod,
     DispatchNotifier notifier,
   ) {
     final isAssigned = demand.allocatedTechnicianName != null &&
@@ -703,6 +760,9 @@ class DispatchControlTowerScreen extends ConsumerWidget {
             demand.allocatedTechnicianName!.toLowerCase() == tech.technicianName.toLowerCase());
     final isDemandDispatched = demand.status == MaterialDemandStatus.allocatedVehicle ||
         demand.status == MaterialDemandStatus.allocatedCentral;
+    final occupiedSlots = tech.occupiedForPeriod(selectedPeriod);
+    final isShiftFull = tech.isShiftFull(selectedPeriod);
+    final periodLabel = selectedPeriod == 'TARDE' ? 'Tarde' : 'Manhã';
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -807,11 +867,31 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                     ],
                   ),
                 )
+              else if (isShiftFull)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentError.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.accentError.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.block_rounded, size: 14, color: AppTheme.accentError),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Turno Lotado ($occupiedSlots/${tech.maxSlotsPerShift})',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.accentError),
+                      ),
+                    ],
+                  ),
+                )
               else if (isDemandDispatched)
                 OutlinedButton.icon(
                   onPressed: isDispatching
                       ? null
-                      : () => _confirmDispatch(context, tech, demand, notifier, isReassignment: true),
+                      : () => _confirmDispatch(context, tech, demand, selectedPeriod, notifier, isReassignment: true),
                   icon: const Icon(Icons.swap_horiz_rounded, size: 14),
                   label: const Text('Reatribuir', style: TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(
@@ -824,7 +904,7 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                 ElevatedButton.icon(
                   onPressed: isDispatching
                       ? null
-                      : () => _confirmDispatch(context, tech, demand, notifier),
+                      : () => _confirmDispatch(context, tech, demand, selectedPeriod, notifier),
                   icon: const Icon(Icons.send_rounded, size: 14),
                   label: const Text('Despachar', style: TextStyle(fontSize: 12)),
                   style: ElevatedButton.styleFrom(
@@ -844,6 +924,11 @@ class DispatchControlTowerScreen extends ConsumerWidget {
                 label: tech.hasCompleteKit ? 'Kit Completo no Veículo' : 'Falta Insumos no Veículo',
                 color: tech.hasCompleteKit ? AppTheme.accentGreen : AppTheme.accentWarning,
                 icon: tech.hasCompleteKit ? Icons.check_circle : Icons.warning_amber,
+              ),
+              _buildBadge(
+                label: 'Turno $periodLabel: $occupiedSlots/${tech.maxSlotsPerShift} O.S.',
+                color: isShiftFull ? AppTheme.accentError : AppTheme.primaryBlue,
+                icon: Icons.event_available_rounded,
               ),
               _buildBadge(
                 label: 'Drop: ${tech.dropCableBalanceMeters}m',
@@ -893,9 +978,11 @@ class DispatchControlTowerScreen extends ConsumerWidget {
     BuildContext context,
     TechnicianCandidateModel tech,
     InstallationDemandModel demand,
+    String selectedPeriod,
     DispatchNotifier notifier, {
     bool isReassignment = false,
   }) {
+    final periodLabel = selectedPeriod == 'TARDE' ? 'Tarde (13h-18h)' : 'Manhã (08h-12h)';
     showDialog(
       context: context,
       builder: (ctx) {
@@ -915,13 +1002,14 @@ class DispatchControlTowerScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               Text('Cliente: ${demand.customerName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
               Text('Endereço: ${demand.customerAddress}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+              Text('Turno Selecionado: $periodLabel', style: const TextStyle(fontSize: 12, color: AppTheme.primaryBlue, fontWeight: FontWeight.bold)),
               Text('Insumo ONU: ${demand.onuModelRequired}', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
               Text('Cabo Drop: ${demand.estimatedDropMeters}m', style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
               const SizedBox(height: 12),
               Text(
                 isReassignment
                     ? 'Ao confirmar, a O.S. será transferida e os materiais serão realocados no veículo de ${tech.technicianName}.'
-                    : 'Ao confirmar, a O.S. será agendada e os materiais serão alocados no estoque do veículo.',
+                    : 'Ao confirmar, a O.S. será agendada no turno selecionado e os materiais serão alocados no estoque do veículo.',
                 style: const TextStyle(fontSize: 11, color: AppTheme.accentGreen),
               ),
             ],

@@ -1311,6 +1311,15 @@ InstallationMaterialDemandResponse:
       type: string
       nullable: true
       example: "INSTALACAO"
+    scheduledDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-10-18"
+    scheduledPeriod:
+      type: string
+      nullable: true
+      example: "MANHA"
     createdAt:
       type: string
       format: date-time
@@ -1376,3 +1385,15 @@ TechnicianDispatchCandidateResponse:
       type: number
       format: double
       example: 94.5
+    morningOccupiedSlots:
+      type: integer
+      nullable: true
+      example: 2
+    afternoonOccupiedSlots:
+      type: integer
+      nullable: true
+      example: 1
+    maxSlotsPerShift:
+      type: integer
+      nullable: true
+      example: 4

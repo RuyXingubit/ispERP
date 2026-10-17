@@ -410,11 +410,45 @@
             }
           },
           "400": {
-            "description": "Dados de agendamento inválidos.",
+            "description": "Dados de agendamento inválidos ou turno sem capacidade.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/work-orders/schedule/availability": {
+      "get": {
+        "tags": [
+          "WorkOrders"
+        ],
+        "summary": "Consultar disponibilidade da agenda técnica por data e turno (MANHA / TARDE)",
+        "operationId": "getScheduleAvailability",
+        "description": "Retorna a capacidade total, vagas ocupadas e vagas livres por turno (MANHA e TARDE) e por técnico para a data informada (limite de 4 O.S. por turno por técnico).",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Data da agenda (YYYY-MM-DD). Se omitida, utiliza a data atual."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Disponibilidade da agenda por turno retornada com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleAvailabilityResponse"
                 }
               }
             }
@@ -9739,6 +9773,25 @@
             "schema": {
               "$ref": "#/components/schemas/UUIDv7"
             }
+          },
+          {
+            "name": "scheduledDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Data do agendamento da instalação (padrão hoje)"
+          },
+          {
+            "name": "scheduledPeriod",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Turno do agendamento (MANHA ou TARDE)"
           }
         ],
         "responses": {
@@ -12238,6 +12291,14 @@
             "nullable": true,
             "example": -48.4902
           },
+          "ctoId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "ctoPortNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 2
+          },
           "installationPhotoUrl": {
             "type": "string",
             "format": "uri",
@@ -12546,6 +12607,111 @@
             "type": "integer",
             "nullable": true,
             "example": 120
+          }
+        }
+      },
+      "TechnicianShiftSlotDto": {
+        "type": "object",
+        "required": [
+          "technicianId",
+          "technicianName",
+          "period",
+          "maxCapacity",
+          "occupiedSlots",
+          "availableSlots",
+          "available"
+        ],
+        "properties": {
+          "technicianId": {
+            "$ref": "#/components/schemas/UUIDv7"
+          },
+          "technicianName": {
+            "type": "string",
+            "example": "Carlos Silva"
+          },
+          "period": {
+            "type": "string",
+            "example": "MANHA"
+          },
+          "maxCapacity": {
+            "type": "integer",
+            "example": 4
+          },
+          "occupiedSlots": {
+            "type": "integer",
+            "example": 2
+          },
+          "availableSlots": {
+            "type": "integer",
+            "example": 2
+          },
+          "available": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "ShiftPeriodSummaryDto": {
+        "type": "object",
+        "required": [
+          "period",
+          "totalCapacity",
+          "occupiedSlots",
+          "availableSlots",
+          "available",
+          "technicians"
+        ],
+        "properties": {
+          "period": {
+            "type": "string",
+            "example": "MANHA"
+          },
+          "totalCapacity": {
+            "type": "integer",
+            "example": 8
+          },
+          "occupiedSlots": {
+            "type": "integer",
+            "example": 3
+          },
+          "availableSlots": {
+            "type": "integer",
+            "example": 5
+          },
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
+          "technicians": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TechnicianShiftSlotDto"
+            }
+          }
+        }
+      },
+      "ScheduleAvailabilityResponse": {
+        "type": "object",
+        "required": [
+          "date",
+          "maxCapacityPerTechnicianPerShift",
+          "shifts"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-10-18"
+          },
+          "maxCapacityPerTechnicianPerShift": {
+            "type": "integer",
+            "example": 4
+          },
+          "shifts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShiftPeriodSummaryDto"
+            }
           }
         }
       },
@@ -16495,6 +16661,41 @@
             "nullable": true,
             "example": "Vendedor Roberto"
           },
+          "ctoId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "ID da CTO vinculada/reservada na viabilidade comercial"
+          },
+          "ctoPortNumber": {
+            "type": "integer",
+            "nullable": true,
+            "example": 3,
+            "description": "Número da porta reservada na CTO"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -3.2041
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "example": -52.2098
+          },
+          "preferredScheduleDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2026-10-18"
+          },
+          "preferredSchedulePeriod": {
+            "type": "string",
+            "nullable": true,
+            "example": "MANHA"
+          },
           "status": {
             "$ref": "#/components/schemas/SaleStatusEnum"
           },
@@ -16576,6 +16777,41 @@
             "type": "string",
             "nullable": true,
             "example": "Vendedor Roberto"
+          },
+          "ctoId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "ID da CTO selecionada na análise de viabilidade FTTH"
+          },
+          "ctoPortNumber": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Número da porta pré-selecionada na CTO (se omitido, reserva a primeira porta LIVRE)"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Latitude GPS do imóvel do assinante"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Longitude GPS do imóvel do assinante"
+          },
+          "preferredScheduleDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Data preferencial de instalação selecionada na venda"
+          },
+          "preferredSchedulePeriod": {
+            "type": "string",
+            "nullable": true,
+            "example": "MANHA",
+            "description": "Turno preferencial de instalação (MANHA ou TARDE)"
           }
         }
       },
@@ -21151,6 +21387,17 @@
             "nullable": true,
             "example": "INSTALACAO"
           },
+          "scheduledDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2026-10-18"
+          },
+          "scheduledPeriod": {
+            "type": "string",
+            "nullable": true,
+            "example": "MANHA"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -21232,6 +21479,21 @@
             "type": "number",
             "format": "double",
             "example": 94.5
+          },
+          "morningOccupiedSlots": {
+            "type": "integer",
+            "nullable": true,
+            "example": 2
+          },
+          "afternoonOccupiedSlots": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "maxSlotsPerShift": {
+            "type": "integer",
+            "nullable": true,
+            "example": 4
           }
         }
       },

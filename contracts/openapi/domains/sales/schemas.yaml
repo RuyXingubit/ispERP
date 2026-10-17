@@ -69,6 +69,35 @@ SaleResponse:
       type: string
       nullable: true
       example: "Vendedor Roberto"
+    ctoId:
+      type: string
+      format: uuid
+      nullable: true
+      description: ID da CTO vinculada/reservada na viabilidade comercial
+    ctoPortNumber:
+      type: integer
+      nullable: true
+      example: 3
+      description: Número da porta reservada na CTO
+    latitude:
+      type: number
+      format: double
+      nullable: true
+      example: -3.2041
+    longitude:
+      type: number
+      format: double
+      nullable: true
+      example: -52.2098
+    preferredScheduleDate:
+      type: string
+      format: date
+      nullable: true
+      example: "2026-10-18"
+    preferredSchedulePeriod:
+      type: string
+      nullable: true
+      example: "MANHA"
     status:
       $ref: '#/SaleStatusEnum'
     createdAt:
@@ -134,3 +163,32 @@ CreateSaleRequest:
       type: string
       nullable: true
       example: "Vendedor Roberto"
+    ctoId:
+      type: string
+      format: uuid
+      nullable: true
+      description: ID da CTO selecionada na análise de viabilidade FTTH
+    ctoPortNumber:
+      type: integer
+      nullable: true
+      description: Número da porta pré-selecionada na CTO (se omitido, reserva a primeira porta LIVRE)
+    latitude:
+      type: number
+      format: double
+      nullable: true
+      description: Latitude GPS do imóvel do assinante
+    longitude:
+      type: number
+      format: double
+      nullable: true
+      description: Longitude GPS do imóvel do assinante
+    preferredScheduleDate:
+      type: string
+      format: date
+      nullable: true
+      description: Data preferencial de instalação selecionada na venda
+    preferredSchedulePeriod:
+      type: string
+      nullable: true
+      example: "MANHA"
+      description: Turno preferencial de instalação (MANHA ou TARDE)

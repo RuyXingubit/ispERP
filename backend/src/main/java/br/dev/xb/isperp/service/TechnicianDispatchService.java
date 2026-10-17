@@ -86,6 +86,10 @@ public class TechnicianDispatchService {
             // Cálculo do score (Kit completo + Proximidade real se houver coordenadas)
             double score = (hasCompleteKit ? 60.0 : 20.0) + (distKm != null ? Math.max(0.0, 40.0 - (distKm * 2.5)) : 0.0);
 
+            LocalDate targetDate = workOrder.getScheduledDate() != null ? workOrder.getScheduledDate() : LocalDate.now();
+            int morningOccupied = countActiveShiftOrders(targetDate, "MANHA", tech.getName(), workOrder.getId());
+            int afternoonOccupied = countActiveShiftOrders(targetDate, "TARDE", tech.getName(), workOrder.getId());
+
             candidates.add(TechnicianDispatchCandidateResponse.builder()
                     .technicianId(tech.getId())
                     .technicianName(tech.getName())
@@ -101,6 +105,9 @@ public class TechnicianDispatchService {
                     .distanceKmToCustomer(distKm)
                     .lastServiceAddress(lastServiceAddress)
                     .recommendedScore(Math.round(score * 10.0) / 10.0)
+                    .morningOccupiedSlots(morningOccupied)
+                    .afternoonOccupiedSlots(afternoonOccupied)
+                    .maxSlotsPerShift(WorkOrderService.MAX_WORK_ORDERS_PER_TECHNICIAN_SHIFT)
                     .build());
         }
 
@@ -110,18 +117,47 @@ public class TechnicianDispatchService {
 
     @Transactional
     public WorkOrder dispatchWorkOrder(UUID workOrderId, UUID technicianId) {
+        return dispatchWorkOrder(workOrderId, technicianId, null, null);
+    }
+
+    @Transactional
+    public WorkOrder dispatchWorkOrder(
+            UUID workOrderId,
+            UUID technicianId,
+            @org.jspecify.annotations.Nullable LocalDate scheduledDate,
+            @org.jspecify.annotations.Nullable String scheduledPeriod
+    ) {
         WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                 .orElseThrow(() -> new NoSuchElementException("O.S. não encontrada: " + workOrderId));
 
         User technician = userRepository.findById(technicianId)
                 .orElseThrow(() -> new NoSuchElementException("Técnico não encontrado: " + technicianId));
 
+        LocalDate targetDate = scheduledDate != null
+                ? scheduledDate
+                : (workOrder.getScheduledDate() != null ? workOrder.getScheduledDate() : LocalDate.now());
+        String targetPeriod = scheduledPeriod != null && !scheduledPeriod.isBlank()
+                ? scheduledPeriod.trim().toUpperCase()
+                : (workOrder.getScheduledPeriod() != null && !workOrder.getScheduledPeriod().isBlank()
+                        ? workOrder.getScheduledPeriod().trim().toUpperCase()
+                        : "MANHA");
+
+        if ("MANHA".equalsIgnoreCase(targetPeriod) || "TARDE".equalsIgnoreCase(targetPeriod)) {
+            int occupied = countActiveShiftOrders(targetDate, targetPeriod, technician.getName(), workOrderId);
+            if (occupied >= WorkOrderService.MAX_WORK_ORDERS_PER_TECHNICIAN_SHIFT) {
+                throw new IllegalStateException(String.format(
+                        "Capacidade máxima atingida para o técnico %s no turno %s em %s (%d/%d O.S.).",
+                        technician.getName(), targetPeriod, targetDate, occupied, WorkOrderService.MAX_WORK_ORDERS_PER_TECHNICIAN_SHIFT
+                ));
+            }
+        }
+
         Optional<Warehouse> vehicleWarehouse = warehouseRepository.findByResponsibleUserId(technicianId);
 
         workOrder.setTechnicianName(technician.getName());
         workOrder.setStatus(WorkOrder.WorkOrderStatus.SCHEDULED);
-        workOrder.setScheduledDate(LocalDate.now());
-        workOrder.setScheduledPeriod("IMEDIATO");
+        workOrder.setScheduledDate(targetDate);
+        workOrder.setScheduledPeriod(targetPeriod);
         if (vehicleWarehouse.isPresent()) {
             workOrder.setAllocatedWarehouseId(vehicleWarehouse.get().getId());
         }
@@ -146,6 +182,8 @@ public class TechnicianDispatchService {
         payload.put("customerId", savedWo.getCustomerId().toString());
         payload.put("technicianId", technician.getId().toString());
         payload.put("technicianName", technician.getName());
+        payload.put("scheduledDate", targetDate.toString());
+        payload.put("scheduledPeriod", targetPeriod);
         payload.put("allocatedWarehouseId", demand.getAllocatedWarehouseId() != null ? demand.getAllocatedWarehouseId().toString() : null);
         payload.put("estimatedDropMeters", demand.getEstimatedDropMeters());
 
@@ -158,8 +196,21 @@ public class TechnicianDispatchService {
                 .build();
 
         domainEventPublisher.publish(event);
-        log.info("O.S. {} despachada com sucesso para o técnico {}", savedWo.getId(), technician.getName());
+        log.info("O.S. {} despachada com sucesso para o técnico {} (Data={}, Turno={})",
+                savedWo.getId(), technician.getName(), targetDate, targetPeriod);
         return savedWo;
+    }
+
+    private int countActiveShiftOrders(LocalDate date, String period, String technicianName, UUID excludeWorkOrderId) {
+        if (technicianName == null || technicianName.isBlank()) return 0;
+        List<WorkOrder> list = workOrderRepository
+                .findByScheduledDateAndScheduledPeriodIgnoreCaseAndTechnicianNameIgnoreCase(date, period, technicianName);
+        if (list == null) return 0;
+        return (int) list.stream()
+                .filter(wo -> !wo.getId().equals(excludeWorkOrderId))
+                .filter(wo -> wo.getStatus() == WorkOrder.WorkOrderStatus.SCHEDULED
+                        || wo.getStatus() == WorkOrder.WorkOrderStatus.IN_PROGRESS)
+                .count();
     }
 
     private double calculateHaversineDistanceMeters(double lat1, double lon1, double lat2, double lon2) {

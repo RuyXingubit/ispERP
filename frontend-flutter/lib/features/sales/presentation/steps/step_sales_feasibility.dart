@@ -355,12 +355,83 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
                     ],
                   ),
                   if (state.feasibility!.nearbyCtos.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Selecione a CTO para Pré-Reserva de Porta no Contrato:',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                    ),
                     const SizedBox(height: 6),
-                    Text(
-                      'CTO mais próxima: ${state.feasibility!.nearbyCtos.first.ctoName} '
-                      '(${state.feasibility!.nearbyCtos.first.distanceMeters.toStringAsFixed(1)}m de distância) '
-                      '- ${state.feasibility!.nearbyCtos.first.freePorts} portas livres',
-                      style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: state.feasibility!.nearbyCtos.map((cto) {
+                        final isSelected = state.selectedCto?.ctoName == cto.ctoName &&
+                            state.selectedCto?.ctoId == cto.ctoId;
+                        final hasFree = cto.freePorts > 0;
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: hasFree ? () => notifier.selectCto(cto) : null,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppTheme.accentGreen.withValues(alpha: 0.18)
+                                  : AppTheme.darkSurface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppTheme.accentGreen
+                                    : (hasFree ? AppTheme.darkBorder : AppTheme.accentError.withValues(alpha: 0.4)),
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isSelected
+                                      ? Icons.radio_button_checked
+                                      : (hasFree ? Icons.settings_input_hdmi_outlined : Icons.block),
+                                  size: 15,
+                                  color: isSelected
+                                      ? AppTheme.accentGreen
+                                      : (hasFree ? AppTheme.primaryBlue : AppTheme.accentError),
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    '${cto.ctoName} (${cto.distanceMeters.toStringAsFixed(0)}m) • ${cto.freePorts} livres',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                      color: hasFree ? AppTheme.textPrimary : AppTheme.textSecondary,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (isSelected) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.accentGreen.withValues(alpha: 0.25),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'PRÉ-RESERVA',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.accentGreen,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ],
@@ -580,6 +651,108 @@ class _StepSalesFeasibilityState extends ConsumerState<StepSalesFeasibility> {
               ),
             ),
           ],
+
+          const SizedBox(height: 16),
+
+          // Seletor de Janela Técnica por Turno/Capacidade (Onda L: MANHA / TARDE)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.darkSurface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.darkBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.calendar_month_outlined, size: 16, color: AppTheme.primaryBlue),
+                        SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Agenda Técnica por Turno & Capacidade (Máx. 4 O.S./Turno/Técnico)',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final now = DateTime.now();
+                        final initial = DateTime.tryParse(state.preferredScheduleDate) ??
+                            now.add(const Duration(days: 1));
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: initial,
+                          firstDate: now,
+                          lastDate: now.add(const Duration(days: 60)),
+                        );
+                        if (picked != null) {
+                          final iso =
+                              '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                          notifier.loadScheduleAvailability(iso);
+                        }
+                      },
+                      icon: const Icon(Icons.event, size: 14),
+                      label: Text(
+                        state.preferredScheduleDate.isNotEmpty
+                            ? 'Data: ${state.preferredScheduleDate}'
+                            : 'Escolher Data',
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                if (state.isLoadingScheduleAvailability)
+                  const LinearProgressIndicator(minHeight: 2)
+                else
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 8,
+                    children: ['MANHA', 'TARDE'].map((period) {
+                      final shiftInfo = state.scheduleAvailability?.getShift(period);
+                      final availSlots = shiftInfo?.availableSlots ?? 4;
+                      final totalSlots = shiftInfo?.totalCapacity ?? 4;
+                      final isShiftAvailable = shiftInfo == null ? true : shiftInfo.available;
+                      final isSelected = state.preferredSchedulePeriod.toUpperCase() == period;
+                      final label = period == 'MANHA' ? 'Turno Manhã (08h-12h)' : 'Turno Tarde (14h-18h)';
+
+                      return ChoiceChip(
+                        label: Text(
+                          '$label • ${isShiftAvailable ? "$availSlots/$totalSlots vagas livres" : "LOTADO (0/$totalSlots)"}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            color: !isShiftAvailable
+                                ? AppTheme.accentError
+                                : (isSelected ? const Color(0xFF0A0F1D) : AppTheme.textPrimary),
+                          ),
+                        ),
+                        selected: isSelected,
+                        selectedColor: AppTheme.accentGreen,
+                        backgroundColor: AppTheme.darkCard,
+                        onSelected: isShiftAvailable
+                            ? (_) => notifier.setPreferredSchedulePeriod(period)
+                            : null,
+                      );
+                    }).toList(),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );

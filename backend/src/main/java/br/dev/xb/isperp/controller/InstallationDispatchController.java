@@ -67,8 +67,12 @@ public class InstallationDispatchController implements InstallationDispatchApi {
     @Operation(summary = "Despachar O.S. para um técnico com alocação automática de estoque do veículo")
     public ResponseEntity<WorkOrderResponse> dispatchInstallationWorkOrder(
             @PathVariable UUID workOrderId,
-            @RequestParam UUID technicianId) {
-        WorkOrder wo = dispatchService.dispatchWorkOrder(workOrderId, technicianId);
+            @RequestParam UUID technicianId,
+            @RequestParam(required = false) java.time.LocalDate scheduledDate,
+            @RequestParam(required = false) String scheduledPeriod) {
+        WorkOrder wo = (scheduledDate == null && scheduledPeriod == null)
+                ? dispatchService.dispatchWorkOrder(workOrderId, technicianId)
+                : dispatchService.dispatchWorkOrder(workOrderId, technicianId, scheduledDate, scheduledPeriod);
         return ResponseEntity.ok(workOrderMapper.toResponse(wo));
     }
 
@@ -110,6 +114,8 @@ public class InstallationDispatchController implements InstallationDispatchApi {
         api.setAllocatedWarehouseName(res.getAllocatedWarehouseName());
         api.setAllocatedTechnicianName(res.getAllocatedTechnicianName());
         api.setWorkOrderType(res.getWorkOrderType());
+        api.setScheduledDate(res.getScheduledDate());
+        api.setScheduledPeriod(res.getScheduledPeriod());
         if (res.getCreatedAt() != null) {
             api.setCreatedAt(res.getCreatedAt().atZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime());
         }
@@ -133,6 +139,9 @@ public class InstallationDispatchController implements InstallationDispatchApi {
         api.setDistanceKmToCustomer(res.getDistanceKmToCustomer());
         api.setLastServiceAddress(res.getLastServiceAddress());
         api.setRecommendedScore(res.getRecommendedScore());
+        api.setMorningOccupiedSlots(res.getMorningOccupiedSlots());
+        api.setAfternoonOccupiedSlots(res.getAfternoonOccupiedSlots());
+        api.setMaxSlotsPerShift(res.getMaxSlotsPerShift());
         return api;
     }
 }

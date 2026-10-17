@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +24,14 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, UUID>, Jpa
     List<WorkOrder> findByTypeAndStatus(WorkOrder.WorkOrderType type, WorkOrder.WorkOrderStatus status);
 
     List<WorkOrder> findByTechnicianNameOrderByScheduledDateAsc(String technicianName);
+
+    List<WorkOrder> findByScheduledDate(LocalDate scheduledDate);
+
+    List<WorkOrder> findByScheduledDateAndScheduledPeriodIgnoreCaseAndTechnicianNameIgnoreCase(
+            LocalDate scheduledDate,
+            String scheduledPeriod,
+            String technicianName
+    );
 
     long countByStatus(WorkOrder.WorkOrderStatus status);
 }

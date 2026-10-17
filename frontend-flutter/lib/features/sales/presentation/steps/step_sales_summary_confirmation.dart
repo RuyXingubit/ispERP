@@ -111,14 +111,36 @@ class StepSalesSummaryConfirmation extends ConsumerWidget {
                     const Divider(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('Ordem de Serviço:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                        Text(
-                          'Encaminhada para Despacho Técnico',
-                          style: TextStyle(color: AppTheme.accentGreen, fontWeight: FontWeight.bold, fontSize: 11),
+                      children: [
+                        const Text('Ordem de Serviço:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                        Flexible(
+                          child: Text(
+                            res.preferredSchedulePeriod != null && res.preferredSchedulePeriod!.isNotEmpty
+                                ? 'Agendada (${res.preferredScheduleDate ?? state.preferredScheduleDate} • Turno ${res.preferredSchedulePeriod})'
+                                : 'Encaminhada para Despacho Técnico',
+                            style: const TextStyle(color: AppTheme.accentGreen, fontWeight: FontWeight.bold, fontSize: 11),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
+                    if (res.ctoPortNumber != null || state.selectedCto != null) ...[
+                      const Divider(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Reserva Óptica CTO:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                          Flexible(
+                            child: Text(
+                              '${state.selectedCto?.ctoName ?? "CTO Vinculada"}'
+                              '${res.ctoPortNumber != null ? " • Porta #${res.ctoPortNumber} (RESERVADA)" : " (Porta Pré-Reservada)"}',
+                              style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold, fontSize: 11),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -202,7 +224,7 @@ class StepSalesSummaryConfirmation extends ConsumerWidget {
 
           // Card de Endereço de Instalação
           _buildSectionCard(
-            title: 'Endereço de Instalação',
+            title: 'Endereço de Instalação & Reserva FTTH',
             icon: Icons.location_on_outlined,
             children: [
               _buildInfoRow(
@@ -211,10 +233,21 @@ class StepSalesSummaryConfirmation extends ConsumerWidget {
               ),
               _buildInfoRow('Bairro / Cidade', '${state.neighborhood}, ${state.city} - ${state.state}'),
               _buildInfoRow('CEP', CpfUtils.formatCep(state.cep)),
-              if (state.feasibility != null && state.feasibility!.nearbyCtos.isNotEmpty)
+              if (state.selectedCto != null)
+                _buildInfoRow(
+                  'CTO Selecionada (Pré-Reserva)',
+                  '${state.selectedCto!.ctoName} (${state.selectedCto!.distanceMeters.toStringAsFixed(1)}m • ${state.selectedCto!.freePorts} portas livres)',
+                  isHighlighted: true,
+                )
+              else if (state.feasibility != null && state.feasibility!.nearbyCtos.isNotEmpty)
                 _buildInfoRow(
                   'CTO Prevista',
                   '${state.feasibility!.nearbyCtos.first.ctoName} (${state.feasibility!.nearbyCtos.first.distanceMeters.toStringAsFixed(1)}m)',
+                ),
+              if (state.preferredScheduleDate.isNotEmpty)
+                _buildInfoRow(
+                  'Janela de Instalação',
+                  '${state.preferredScheduleDate} • Turno ${state.preferredSchedulePeriod}',
                 ),
             ],
           ),

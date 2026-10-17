@@ -15,6 +15,8 @@ class DispatchState {
   final String? errorMessage;
   final int selectedFilterTab; // 0: Todas / Pendentes, 1: Alocadas / Agendadas, 2: Concluídas
   final String selectedTypeFilter; // 'ALL', 'INSTALACAO', 'MANUTENCAO', 'RETIRADA'
+  final String selectedScheduledPeriod; // 'MANHA' ou 'TARDE'
+  final String? selectedScheduledDate;
 
   const DispatchState({
     this.isLoadingDemands = false,
@@ -27,6 +29,8 @@ class DispatchState {
     this.errorMessage,
     this.selectedFilterTab = 0,
     this.selectedTypeFilter = 'ALL',
+    this.selectedScheduledPeriod = 'MANHA',
+    this.selectedScheduledDate,
   });
 
   DispatchState copyWith({
@@ -42,6 +46,8 @@ class DispatchState {
     bool clearMessages = false,
     int? selectedFilterTab,
     String? selectedTypeFilter,
+    String? selectedScheduledPeriod,
+    String? selectedScheduledDate,
   }) {
     return DispatchState(
       isLoadingDemands: isLoadingDemands ?? this.isLoadingDemands,
@@ -54,6 +60,8 @@ class DispatchState {
       errorMessage: clearMessages ? null : (errorMessage ?? this.errorMessage),
       selectedFilterTab: selectedFilterTab ?? this.selectedFilterTab,
       selectedTypeFilter: selectedTypeFilter ?? this.selectedTypeFilter,
+      selectedScheduledPeriod: selectedScheduledPeriod ?? this.selectedScheduledPeriod,
+      selectedScheduledDate: selectedScheduledDate ?? this.selectedScheduledDate,
     );
   }
 
@@ -103,6 +111,8 @@ class DispatchNotifier extends StateNotifier<DispatchState> {
         isLoadingDemands: false,
         demands: demands,
         selectedDemand: currentSelected,
+        selectedScheduledPeriod: currentSelected?.scheduledPeriod ?? state.selectedScheduledPeriod,
+        selectedScheduledDate: currentSelected?.scheduledDate ?? state.selectedScheduledDate,
       );
 
       if (currentSelected != null && currentSelected.workOrderId.isNotEmpty) {
@@ -122,10 +132,16 @@ class DispatchNotifier extends StateNotifier<DispatchState> {
 
     state = state.copyWith(
       selectedDemand: demand,
+      selectedScheduledPeriod: demand.scheduledPeriod ?? 'MANHA',
+      selectedScheduledDate: demand.scheduledDate,
       candidates: const [],
       clearMessages: true,
     );
     await loadCandidates(demand.workOrderId);
+  }
+
+  void setScheduledPeriod(String period) {
+    state = state.copyWith(selectedScheduledPeriod: period);
   }
 
   /// Carrega os técnicos candidatos para a O.S. selecionada.
@@ -157,16 +173,22 @@ class DispatchNotifier extends StateNotifier<DispatchState> {
 
     state = state.copyWith(isDispatching: true, clearMessages: true);
     try {
-      final success = await _repository.dispatchWorkOrder(demand.workOrderId, technicianId);
+      final success = await _repository.dispatchWorkOrder(
+        demand.workOrderId,
+        technicianId,
+        scheduledDate: state.selectedScheduledDate ?? demand.scheduledDate,
+        scheduledPeriod: state.selectedScheduledPeriod,
+      );
       if (success) {
         final tech = state.candidates.where((c) => c.technicianId == technicianId).toList();
         final techName = tech.isNotEmpty ? tech.first.technicianName : 'Técnico';
+        final periodLabel = state.selectedScheduledPeriod == 'TARDE' ? 'Tarde' : 'Manhã';
 
         // Transiciona a aba para "Alocadas / Em Campo" (Tab 1) para que o usuário veja a O.S. despachada imediatamente
         state = state.copyWith(
           isDispatching: false,
           selectedFilterTab: 1,
-          dispatchSuccessMessage: 'O.S. despachada com sucesso para $techName! Estoque veicular alocado.',
+          dispatchSuccessMessage: 'O.S. despachada com sucesso para $techName (Turno: $periodLabel)! Estoque veicular alocado.',
         );
         await loadDemands(clearMessages: false);
         return true;

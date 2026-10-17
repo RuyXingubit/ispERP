@@ -45,4 +45,12 @@ public interface SaleMapper {
         if (offsetDateTime == null) return null;
         return offsetDateTime.toLocalDateTime();
     }
+
+    default Double bigDecimalToDouble(java.math.BigDecimal value) {
+        return value != null ? value.doubleValue() : null;
+    }
+
+    default java.math.BigDecimal doubleToBigDecimal(Double value) {
+        return value != null ? java.math.BigDecimal.valueOf(value) : null;
+    }
 }

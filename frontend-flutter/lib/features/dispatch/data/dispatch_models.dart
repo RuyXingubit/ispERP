@@ -68,6 +68,8 @@ class InstallationDemandModel {
   final String? allocatedTechnicianName;
   final String workOrderType;
   final String? maintenanceReason;
+  final String? scheduledDate;
+  final String? scheduledPeriod;
   final DateTime? createdAt;
 
   bool get isMaintenance => workOrderType.toUpperCase() == 'MANUTENCAO';
@@ -99,6 +101,8 @@ class InstallationDemandModel {
     this.allocatedTechnicianName,
     this.workOrderType = 'INSTALACAO',
     this.maintenanceReason,
+    this.scheduledDate,
+    this.scheduledPeriod,
     this.createdAt,
   });
 
@@ -149,6 +153,8 @@ class InstallationDemandModel {
       allocatedTechnicianName: json['allocatedTechnicianName']?.toString(),
       workOrderType: json['workOrderType']?.toString() ?? json['type']?.toString() ?? 'INSTALACAO',
       maintenanceReason: json['maintenanceReason']?.toString(),
+      scheduledDate: json['scheduledDate']?.toString(),
+      scheduledPeriod: json['scheduledPeriod']?.toString(),
       createdAt: parseDate(json['createdAt']),
     );
   }
@@ -171,6 +177,9 @@ class TechnicianCandidateModel {
   final double? distanceKmToCustomer;
   final String? lastServiceAddress;
   final double recommendedScore;
+  final int morningOccupiedSlots;
+  final int afternoonOccupiedSlots;
+  final int maxSlotsPerShift;
 
   const TechnicianCandidateModel({
     required this.technicianId,
@@ -187,7 +196,18 @@ class TechnicianCandidateModel {
     this.distanceKmToCustomer,
     this.lastServiceAddress,
     required this.recommendedScore,
+    this.morningOccupiedSlots = 0,
+    this.afternoonOccupiedSlots = 0,
+    this.maxSlotsPerShift = 4,
   });
+
+  int occupiedForPeriod(String period) {
+    return period.toUpperCase() == 'TARDE' ? afternoonOccupiedSlots : morningOccupiedSlots;
+  }
+
+  bool isShiftFull(String period) {
+    return occupiedForPeriod(period) >= maxSlotsPerShift;
+  }
 
   factory TechnicianCandidateModel.fromJson(Map<String, dynamic> json) {
     double? parseDouble(dynamic v) {
@@ -223,6 +243,9 @@ class TechnicianCandidateModel {
       distanceKmToCustomer: parseDouble(json['distanceKmToCustomer']),
       lastServiceAddress: json['lastServiceAddress']?.toString(),
       recommendedScore: parseDouble(json['recommendedScore']) ?? 0.0,
+      morningOccupiedSlots: parseInt(json['morningOccupiedSlots'], 0),
+      afternoonOccupiedSlots: parseInt(json['afternoonOccupiedSlots'], 0),
+      maxSlotsPerShift: parseInt(json['maxSlotsPerShift'], 4),
     );
   }
 }

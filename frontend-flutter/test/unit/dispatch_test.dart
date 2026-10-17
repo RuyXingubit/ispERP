@@ -80,7 +80,12 @@ class FakeDispatchRepository implements DispatchRepository {
   }
 
   @override
-  Future<bool> dispatchWorkOrder(String workOrderId, String technicianId) async {
+  Future<bool> dispatchWorkOrder(
+    String workOrderId,
+    String technicianId, {
+    String? scheduledDate,
+    String? scheduledPeriod,
+  }) async {
     return true;
   }
 }

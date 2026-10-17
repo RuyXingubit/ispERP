@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -48,4 +49,16 @@ public class CreateSaleRequest {
     private String notificationChannel = "WHATSAPP";
 
     private String sellerName;
+
+    private UUID ctoId;
+
+    private Integer ctoPortNumber;
+
+    private Double latitude;
+
+    private Double longitude;
+
+    private LocalDate preferredScheduleDate;
+
+    private String preferredSchedulePeriod;
 }

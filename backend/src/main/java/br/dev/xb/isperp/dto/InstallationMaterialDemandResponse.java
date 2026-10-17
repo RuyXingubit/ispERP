@@ -5,6 +5,7 @@ import lombok.*;
 import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -38,5 +39,7 @@ public class InstallationMaterialDemandResponse {
     private @Nullable String allocatedWarehouseName;
     private @Nullable String allocatedTechnicianName;
     private @Nullable String workOrderType;
+    private @Nullable LocalDate scheduledDate;
+    private @Nullable String scheduledPeriod;
     private OffsetDateTime createdAt;
 }

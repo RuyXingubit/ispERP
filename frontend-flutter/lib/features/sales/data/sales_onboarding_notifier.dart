@@ -39,6 +39,13 @@ class SalesOnboardingState {
   final String? coordinateContributionMessage;
   final bool hasContributedCoordinate;
 
+  // 1.2 Seleção de CTO e Janela de Agendamento por Turno (Onda L)
+  final FeasibleCtoItem? selectedCto;
+  final String preferredScheduleDate;
+  final String preferredSchedulePeriod; // 'MANHA' ou 'TARDE'
+  final bool isLoadingScheduleAvailability;
+  final ScheduleAvailabilityModel? scheduleAvailability;
+
   // 2. Plano e Vencimento
   final List<CommercialPlan> plans;
   final bool isLoadingPlans;
@@ -80,6 +87,11 @@ class SalesOnboardingState {
     this.isContributingCoordinate = false,
     this.coordinateContributionMessage,
     this.hasContributedCoordinate = false,
+    this.selectedCto,
+    this.preferredScheduleDate = '',
+    this.preferredSchedulePeriod = 'MANHA',
+    this.isLoadingScheduleAvailability = false,
+    this.scheduleAvailability,
     this.plans = const [],
     this.isLoadingPlans = false,
     this.selectedPlan,
@@ -117,6 +129,11 @@ class SalesOnboardingState {
     bool? isContributingCoordinate,
     String? coordinateContributionMessage,
     bool? hasContributedCoordinate,
+    FeasibleCtoItem? selectedCto,
+    String? preferredScheduleDate,
+    String? preferredSchedulePeriod,
+    bool? isLoadingScheduleAvailability,
+    ScheduleAvailabilityModel? scheduleAvailability,
     List<CommercialPlan>? plans,
     bool? isLoadingPlans,
     CommercialPlan? selectedPlan,
@@ -154,6 +171,12 @@ class SalesOnboardingState {
       isContributingCoordinate: isContributingCoordinate ?? this.isContributingCoordinate,
       coordinateContributionMessage: coordinateContributionMessage ?? this.coordinateContributionMessage,
       hasContributedCoordinate: hasContributedCoordinate ?? this.hasContributedCoordinate,
+      selectedCto: selectedCto ?? this.selectedCto,
+      preferredScheduleDate: preferredScheduleDate ?? this.preferredScheduleDate,
+      preferredSchedulePeriod: preferredSchedulePeriod ?? this.preferredSchedulePeriod,
+      isLoadingScheduleAvailability:
+          isLoadingScheduleAvailability ?? this.isLoadingScheduleAvailability,
+      scheduleAvailability: scheduleAvailability ?? this.scheduleAvailability,
       plans: plans ?? this.plans,
       isLoadingPlans: isLoadingPlans ?? this.isLoadingPlans,
       selectedPlan: selectedPlan ?? this.selectedPlan,
@@ -177,6 +200,11 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
 
   SalesOnboardingNotifier(this._repository) : super(const SalesOnboardingState()) {
     loadActivePlans();
+    final tomorrow = DateTime.now().add(const Duration(days: 1));
+    final isoDate =
+        '${tomorrow.year.toString().padLeft(4, '0')}-${tomorrow.month.toString().padLeft(2, '0')}-${tomorrow.day.toString().padLeft(2, '0')}';
+    state = state.copyWith(preferredScheduleDate: isoDate);
+    loadScheduleAvailability(isoDate);
   }
 
   /// Carrega catálogo de planos comerciais ativos.
@@ -443,15 +471,59 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
     state = state.copyWith(isCheckingFeasibility: true, clearError: true);
     try {
       final res = await _repository.checkFeasibility(lat, lng);
+      FeasibleCtoItem? autoSelectedCto;
+      if (res != null && res.nearbyCtos.isNotEmpty) {
+        final withCapacity = res.nearbyCtos.where((c) => c.freePorts > 0).toList();
+        autoSelectedCto = withCapacity.isNotEmpty ? withCapacity.first : res.nearbyCtos.first;
+      }
       state = state.copyWith(
         isCheckingFeasibility: false,
         feasibility: res,
+        selectedCto: autoSelectedCto,
       );
     } catch (_) {
       state = state.copyWith(
         isCheckingFeasibility: false,
       );
     }
+  }
+
+  /// Seleciona manualmente uma CTO viável próxima ao cliente.
+  void selectCto(FeasibleCtoItem cto) {
+    state = state.copyWith(selectedCto: cto, clearError: true);
+  }
+
+  /// Carrega disponibilidade da agenda técnica por turno (MANHA / TARDE) para a data.
+  Future<void> loadScheduleAvailability(String dateIso) async {
+    state = state.copyWith(
+      preferredScheduleDate: dateIso,
+      isLoadingScheduleAvailability: true,
+      clearError: true,
+    );
+    try {
+      final avail = await _repository.getScheduleAvailability(dateIso);
+      String selectedPeriod = state.preferredSchedulePeriod;
+      if (avail != null) {
+        final currentShift = avail.getShift(selectedPeriod);
+        if (currentShift != null && !currentShift.available) {
+          final alternative = avail.shifts.where((s) => s.available).toList();
+          if (alternative.isNotEmpty) {
+            selectedPeriod = alternative.first.period;
+          }
+        }
+      }
+      state = state.copyWith(
+        isLoadingScheduleAvailability: false,
+        scheduleAvailability: avail,
+        preferredSchedulePeriod: selectedPeriod,
+      );
+    } catch (_) {
+      state = state.copyWith(isLoadingScheduleAvailability: false);
+    }
+  }
+
+  void setPreferredSchedulePeriod(String period) {
+    state = state.copyWith(preferredSchedulePeriod: period, clearError: true);
   }
 
   // Atualização manual de campos de endereço
@@ -585,6 +657,8 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
         '${state.complement.trim().isNotEmpty ? " - ${state.complement.trim()}" : ""}'
         ' - ${state.neighborhood.trim()}';
 
+    final selectedCtoId = state.selectedCto?.ctoId;
+
     final payload = CreateSalePayload(
       planId: state.selectedPlan!.id,
       customerName: state.customerName.trim(),
@@ -598,6 +672,11 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
       preferredDueDate: state.preferredDueDate,
       notificationChannel: state.notificationChannel,
       sellerName: sellerName,
+      ctoId: (selectedCtoId != null && selectedCtoId.isNotEmpty) ? selectedCtoId : null,
+      latitude: state.latitude,
+      longitude: state.longitude,
+      preferredScheduleDate: state.preferredScheduleDate.isNotEmpty ? state.preferredScheduleDate : null,
+      preferredSchedulePeriod: state.preferredSchedulePeriod,
     );
 
     try {
@@ -616,8 +695,12 @@ class SalesOnboardingNotifier extends StateNotifier<SalesOnboardingState> {
 
   /// Reinicia o wizard para nova venda.
   void reset() {
-    state = const SalesOnboardingState();
+    final tomorrow = DateTime.now().add(const Duration(days: 1));
+    final isoDate =
+        '${tomorrow.year.toString().padLeft(4, '0')}-${tomorrow.month.toString().padLeft(2, '0')}-${tomorrow.day.toString().padLeft(2, '0')}';
+    state = SalesOnboardingState(preferredScheduleDate: isoDate);
     loadActivePlans();
+    loadScheduleAvailability(isoDate);
   }
 }
 

@@ -138,6 +138,8 @@ paths:
     $ref: './domains/workorders/workorders.yaml#/~1work-orders~1contract~1{contractId}'
   /work-orders/{id}/schedule:
     $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}~1schedule'
+  /work-orders/schedule/availability:
+    $ref: './domains/workorders/workorders.yaml#/~1work-orders~1schedule~1availability'
   /work-orders/{id}/complete:
     $ref: './domains/workorders/workorders.yaml#/~1work-orders~1{id}~1complete'
   /work-orders/{id}/complete-removal:
@@ -730,6 +732,12 @@ components:
       $ref: './domains/workorders/schemas.yaml#/ProvisionOnuRequest'
     RadiusStatusResponse:
       $ref: './domains/workorders/schemas.yaml#/RadiusStatusResponse'
+    TechnicianShiftSlotDto:
+      $ref: './domains/workorders/schemas.yaml#/TechnicianShiftSlotDto'
+    ShiftPeriodSummaryDto:
+      $ref: './domains/workorders/schemas.yaml#/ShiftPeriodSummaryDto'
+    ScheduleAvailabilityResponse:
+      $ref: './domains/workorders/schemas.yaml#/ScheduleAvailabilityResponse'
 
     # Billing
     InvoiceStatus:

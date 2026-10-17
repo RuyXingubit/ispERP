@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 
 import org.jspecify.annotations.Nullable;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -74,6 +76,30 @@ public class Sale {
     @Nullable
     @Column(name = "seller_name", length = 150)
     private String sellerName;
+
+    @Nullable
+    @Column(name = "cto_id")
+    private UUID ctoId;
+
+    @Nullable
+    @Column(name = "cto_port_number")
+    private Integer ctoPortNumber;
+
+    @Nullable
+    @Column(name = "latitude", precision = 10, scale = 8)
+    private BigDecimal latitude;
+
+    @Nullable
+    @Column(name = "longitude", precision = 11, scale = 8)
+    private BigDecimal longitude;
+
+    @Nullable
+    @Column(name = "preferred_schedule_date")
+    private LocalDate preferredScheduleDate;
+
+    @Nullable
+    @Column(name = "preferred_schedule_period", length = 30)
+    private String preferredSchedulePeriod;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)

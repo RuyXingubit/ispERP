@@ -92,7 +92,16 @@ public class ZeroTouchOnboardingOrchestrator {
                 customer.setCity(city);
                 customer.setState(state);
                 customer.setZipCode(zipCode);
+                if (data.get("latitude") != null) {
+                    customer.setLatitude(new BigDecimal(data.get("latitude").toString()));
+                }
+                if (data.get("longitude") != null) {
+                    customer.setLongitude(new BigDecimal(data.get("longitude").toString()));
+                }
                 Customer savedCustomer = customerRepository.save(customer);
+
+                UUID ctoId = data.get("ctoId") != null ? UUID.fromString(data.get("ctoId").toString()) : null;
+                Integer ctoPortNumber = data.get("ctoPortNumber") != null ? Integer.parseInt(data.get("ctoPortNumber").toString()) : null;
 
                 // 3. Cria contrato em status PENDING_SIGNATURE (ou PENDING_INSTALLATION se já assinado)
                 String contractNumber = "CTR-" + System.currentTimeMillis();
@@ -109,6 +118,8 @@ public class ZeroTouchOnboardingOrchestrator {
                         .city(city)
                         .state(state)
                         .zipCode(zipCode)
+                        .ctoId(ctoId)
+                        .ctoPortNumber(ctoPortNumber)
                         .build();
 
                 Contract savedContract = contractRepository.save(contract);
@@ -144,10 +155,19 @@ public class ZeroTouchOnboardingOrchestrator {
                 contract.setStatus(Contract.ContractStatus.PENDING_INSTALLATION);
                 contractRepository.save(contract);
 
-                // 2. Se houver venda vinculada, marca como PROCESSED
+                // 2. Se houver venda vinculada, marca como PROCESSED e recupera agendamento preferencial
+                final java.time.LocalDate[] preferredDate = {null};
+                final String[] preferredPeriod = {null};
                 if (contract.getSaleId() != null) {
                     saleRepository.findById(contract.getSaleId()).ifPresent(sale -> {
                         sale.setStatus(Sale.SaleStatus.PROCESSED);
+                        preferredDate[0] = sale.getPreferredScheduleDate();
+                        preferredPeriod[0] = sale.getPreferredSchedulePeriod();
+                        if (contract.getCtoId() == null && sale.getCtoId() != null) {
+                            contract.setCtoId(sale.getCtoId());
+                            contract.setCtoPortNumber(sale.getCtoPortNumber());
+                            contractRepository.save(contract);
+                        }
                         saleRepository.save(sale);
                     });
                 }
@@ -160,6 +180,10 @@ public class ZeroTouchOnboardingOrchestrator {
                             .customerId(contract.getCustomerId())
                             .type(WorkOrder.WorkOrderType.INSTALACAO)
                             .status(WorkOrder.WorkOrderStatus.PENDING_SCHEDULE)
+                            .ctoId(contract.getCtoId())
+                            .ctoPortNumber(contract.getCtoPortNumber())
+                            .scheduledDate(preferredDate[0])
+                            .scheduledPeriod(preferredPeriod[0])
                             .notes("O.S. de Instalação gerada automaticamente pelo Zero-Touch Onboarding após confirmação Pix R$ 1,00.")
                             .build();
                     return workOrderRepository.save(newWo);

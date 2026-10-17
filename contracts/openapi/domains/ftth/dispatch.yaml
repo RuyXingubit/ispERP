@@ -75,6 +75,19 @@
         required: true
         schema:
           $ref: '../../components/common.yaml#/UUIDv7'
+      - name: scheduledDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Data do agendamento da instalação (padrão hoje)
+      - name: scheduledPeriod
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Turno do agendamento (MANHA ou TARDE)
     responses:
       '200':
         description: O.S. despachada com sucesso

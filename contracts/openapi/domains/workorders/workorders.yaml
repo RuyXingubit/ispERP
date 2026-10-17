@@ -82,11 +82,35 @@
             schema:
               $ref: './schemas.yaml#/WorkOrderResponse'
       '400':
-        description: Dados de agendamento inválidos.
+        description: Dados de agendamento inválidos ou turno sem capacidade.
         content:
           application/json:
             schema:
               $ref: '../../components/errors.yaml#/ProblemDetails'
+
+/work-orders/schedule/availability:
+  get:
+    tags:
+      - WorkOrders
+    summary: Consultar disponibilidade da agenda técnica por data e turno (MANHA / TARDE)
+    operationId: getScheduleAvailability
+    description: Retorna a capacidade total, vagas ocupadas e vagas livres por turno (MANHA e TARDE) e por técnico para a data informada (limite de 4 O.S. por turno por técnico).
+    parameters:
+      - name: date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Data da agenda (YYYY-MM-DD). Se omitida, utiliza a data atual.
+    responses:
+      '200':
+        description: Disponibilidade da agenda por turno retornada com sucesso.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/ScheduleAvailabilityResponse'
+
 
 /work-orders/{id}/complete:
   post:
