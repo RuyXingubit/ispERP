@@ -5,6 +5,7 @@ plugins {
     id 'org.springframework.boot' version '4.1.1'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.openapi.generator' version '7.11.0'
+    id 'org.sonarqube' version '7.5.0.8588'
 }
 
 group = 'br.dev.xb'
@@ -137,5 +138,12 @@ tasks.named('test') {
     if (macSocket.exists()) {
         environment 'DOCKER_HOST', 'unix://' + macSocket.absolutePath
         environment 'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE', '/var/run/docker.sock'
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "RuyXingubit_ispERP"
+        property "sonar.organization", "ruyxb-atm1199"
     }
 }
