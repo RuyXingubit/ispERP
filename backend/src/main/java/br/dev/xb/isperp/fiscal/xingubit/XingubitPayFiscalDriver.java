@@ -28,11 +28,11 @@ public class XingubitPayFiscalDriver implements FiscalGateway {
 
     private final RestClient.Builder restClientBuilder;
 
-    @Autowired
     public XingubitPayFiscalDriver(RestClient.Builder restClientBuilder) {
         this.restClientBuilder = restClientBuilder != null ? restClientBuilder : RestClient.builder();
     }
 
+    @Autowired
     public XingubitPayFiscalDriver() {
         this(RestClient.builder());
     }
