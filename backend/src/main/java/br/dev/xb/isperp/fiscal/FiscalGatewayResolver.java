@@ -16,7 +16,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class FiscalGatewayResolver {
 
     private final List<FiscalGateway> fiscalGateways;

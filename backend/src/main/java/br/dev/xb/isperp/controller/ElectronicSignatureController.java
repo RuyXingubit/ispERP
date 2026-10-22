@@ -23,8 +23,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class ElectronicSignatureController implements SignaturesApi {
 
     private final ElectronicSignatureService signatureService;

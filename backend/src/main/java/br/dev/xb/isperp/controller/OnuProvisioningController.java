@@ -8,7 +8,6 @@ import br.dev.xb.isperp.mapper.OnuMapper;
 import br.dev.xb.isperp.service.NetworkProvisioningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -16,9 +15,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class OnuProvisioningController implements OnusApi {
 
     private final NetworkProvisioningService provisioningService;

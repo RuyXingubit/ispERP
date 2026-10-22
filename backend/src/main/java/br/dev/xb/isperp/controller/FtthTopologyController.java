@@ -20,8 +20,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping({"/ftth", "/api/ftth"})
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class FtthTopologyController implements FtthTopologyApi {
 
     private final FtthTopologyService topologyService;

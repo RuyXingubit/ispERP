@@ -22,9 +22,8 @@ import java.util.stream.Collectors;
 @RequestMapping({"/notifications/configs", "/api/notifications/configs"})
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 @PreAuthorize("hasRole('ADMIN')")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class NotificationConfigController implements NotificationConfigsApi {
 
     private final NotificationConfigRepository configRepository;

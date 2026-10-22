@@ -12,7 +12,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class WhatsAppProviderResolver {
 
     private final List<WhatsAppProvider> providers;

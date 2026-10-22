@@ -27,8 +27,7 @@ import java.util.UUID;
 @RequestMapping({"", "/api"})
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class ClientPortalController implements ClientPortalApi {
 
     private final ClientPortalService clientPortalService;
@@ -37,8 +36,12 @@ public class ClientPortalController implements ClientPortalApi {
     private final PlanMapper planMapper;
     private final InvoiceMapper invoiceMapper;
 
+    private br.dev.xb.isperp.service.@Nullable Tr069CpeService tr069CpeService;
+
     @org.springframework.beans.factory.annotation.Autowired(required = false)
-    private br.dev.xb.isperp.service.Tr069CpeService tr069CpeService;
+    public void setTr069CpeService(br.dev.xb.isperp.service.@Nullable Tr069CpeService tr069CpeService) {
+        this.tr069CpeService = tr069CpeService;
+    }
 
     /**
      * Autenticação do cliente por CPF/CNPJ com validação de PIN de 4 dígitos.

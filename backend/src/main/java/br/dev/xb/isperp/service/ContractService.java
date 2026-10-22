@@ -32,31 +32,24 @@ public class ContractService {
 
     private final ContractRepository contractRepository;
 
-    @Autowired(required = false)
     @Nullable
     private PlanRepository planRepository;
 
-    @Autowired(required = false)
     @Nullable
     private CustomerRepository customerRepository;
 
-    @Autowired(required = false)
     @Nullable
     private InvoiceRepository invoiceRepository;
 
-    @Autowired(required = false)
     @Nullable
     private WorkOrderRepository workOrderRepository;
 
-    @Autowired(required = false)
     @Nullable
     private ContractLifecycleEventRepository lifecycleEventRepository;
 
-    @Autowired(required = false)
     @Nullable
     private RadiusLifecycleService radiusLifecycleService;
 
-    @Autowired(required = false)
     @Nullable
     private ElectronicSignatureService electronicSignatureService;
 

@@ -22,7 +22,6 @@ import java.util.UUID;
 @RequestMapping({"/helpdesk/tickets", "/api/helpdesk/tickets"})
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 @SuppressWarnings("null")
 public class HelpdeskController implements HelpdeskApi {
 

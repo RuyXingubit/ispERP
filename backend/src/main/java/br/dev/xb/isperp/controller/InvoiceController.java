@@ -14,7 +14,6 @@ import br.dev.xb.isperp.service.InvoiceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
@@ -24,9 +23,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class InvoiceController implements InvoicesApi {
 
     private final InvoiceService invoiceService;

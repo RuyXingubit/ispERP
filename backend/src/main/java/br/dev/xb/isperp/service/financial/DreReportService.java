@@ -24,6 +24,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("java:S2583")
 public class DreReportService {
 
     private final InvoiceRepository invoiceRepository;

@@ -22,6 +22,7 @@ import java.util.Base64;
 
 @Service
 @Slf4j
+@SuppressWarnings("java:S5542") // AES/CBC/PKCS5Padding exigido para interoperabilidade CLI com 'openssl enc -d -aes-256-cbc -pbkdf2' no Kit de Resgate
 public class BackupCryptoService {
 
     private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";

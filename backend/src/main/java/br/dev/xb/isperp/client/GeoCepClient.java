@@ -318,7 +318,8 @@ public class GeoCepClient {
 
         // 2. Extração de termos para ViaCEP (ex: "avenida brigadeiro eduardo gomes" -> "Eduardo Gomes")
         String streetTerm = cleanQuery
-                .replaceAll("(?i)\\b(avenida|rua|travessa|alameda|rodovia|passagem|praca|praça|av\\.?|r\\.?|tv\\.?|al\\.?)\\b", "")
+                .replaceAll("(?iu)\\b(avenida|rua|travessa|alameda|rodovia|passagem|praca|praça|av\\.?|r\\.?|tv\\.?|al\\.?)\\b", "")
+                .replaceAll("[^\\p{L}\\p{N} ]", "")
                 .trim();
         if (streetTerm.length() >= 3) {
             try {
@@ -327,11 +328,10 @@ public class GeoCepClient {
                 if (cleanQuery.toLowerCase().contains("belem") || cleanQuery.toLowerCase().contains("belém")) {
                     cidade = "Belem";
                 }
-                String viaCepUrl = String.format("https://viacep.com.br/ws/%s/%s/%s/json/", uf, cidade, streetTerm.replace(" ", "+"));
                 
-                @SuppressWarnings("unchecked")
+                @SuppressWarnings({"unchecked", "javasecurity:S7044"})
                 List<Map<String, Object>> viaCepList = publicSearchClient.get()
-                        .uri(viaCepUrl)
+                        .uri("https://viacep.com.br/ws/{uf}/{cidade}/{logradouro}/json/", uf, cidade, streetTerm)
                         .accept(MediaType.APPLICATION_JSON)
                         .retrieve()
                         .body(List.class);

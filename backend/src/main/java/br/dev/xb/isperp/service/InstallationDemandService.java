@@ -32,8 +32,12 @@ public class InstallationDemandService {
     private final InventoryService inventoryService;
     private final DomainEventPublisher domainEventPublisher;
 
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
     private @Nullable FtthCtoPortRepository ctoPortRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setCtoPortRepository(@Nullable FtthCtoPortRepository ctoPortRepository) {
+        this.ctoPortRepository = ctoPortRepository;
+    }
 
     /**
      * Gera a demanda de materiais FTTH e metragem do drop para uma Ordem de Serviço de Instalação.

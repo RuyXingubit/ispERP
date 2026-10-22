@@ -21,7 +21,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class FtthCorrelationEngine {
 
     private final FtthIncidentRepository incidentRepository;
@@ -34,9 +34,13 @@ public class FtthCorrelationEngine {
     private final FtthMonitoringMapper mapper;
     private final ObjectMapper objectMapper;
 
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
     @org.jspecify.annotations.Nullable
     private ContractRepository contractRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setContractRepository(@org.jspecify.annotations.Nullable ContractRepository contractRepository) {
+        this.contractRepository = contractRepository;
+    }
 
     /**
      * Analisa todas as portas PON e CTOs para correlacionar falhas em massa.

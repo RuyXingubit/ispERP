@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 @SuppressWarnings("null")
 public class ElectronicSignatureWebhookController implements SignatureWebhooksApi {
 

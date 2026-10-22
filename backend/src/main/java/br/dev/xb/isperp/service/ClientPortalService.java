@@ -34,9 +34,13 @@ public class ClientPortalService {
     private final OutboxEventRepository outboxEventRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
     @Nullable
     private FtthCorrelationEngine ftthCorrelationEngine;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setFtthCorrelationEngine(@Nullable FtthCorrelationEngine ftthCorrelationEngine) {
+        this.ftthCorrelationEngine = ftthCorrelationEngine;
+    }
 
     /**
      * Retorna a visão completa do painel do assinante.

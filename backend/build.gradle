@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id 'eclipse'
     id 'idea'
     id 'org.springframework.boot' version '4.1.1'
@@ -139,11 +140,26 @@ tasks.named('test') {
         environment 'DOCKER_HOST', 'unix://' + macSocket.absolutePath
         environment 'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE', '/var/run/docker.sock'
     }
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 sonar {
     properties {
         property "sonar.projectKey", "RuyXingubit_ispERP"
         property "sonar.organization", "ruyxb-atm1199"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml"
+        property "sonar.coverage.exclusions", "**/api/contract/**,**/api/dto/**,**/seeder/**"
     }
+}
+
+tasks.named('sonar') {
+    dependsOn jacocoTestReport
 }

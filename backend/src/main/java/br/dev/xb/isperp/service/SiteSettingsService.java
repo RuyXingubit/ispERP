@@ -2,18 +2,18 @@ package br.dev.xb.isperp.service;
 
 import br.dev.xb.isperp.entity.SiteSettings;
 import br.dev.xb.isperp.repository.SiteSettingsRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 @SuppressWarnings("null")
 public class SiteSettingsService {
 
-    @Autowired
-    private SiteSettingsRepository siteSettingsRepository;
+    private final SiteSettingsRepository siteSettingsRepository;
 
     public Optional<SiteSettings> getSiteSettings() {
         return siteSettingsRepository.findFirstByOrderByCreatedAtAsc();

@@ -29,6 +29,7 @@ import java.util.*;
 @Profile("dev")
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings({"java:S1313", "java:S2583"})
 public class DevDataSeederService implements ApplicationRunner {
 
     private final UserRepository userRepository;

@@ -38,11 +38,18 @@ public class SaleService {
     private final PlanRepository planRepository;
     private final DomainEventPublisher domainEventPublisher;
 
-    @Autowired(required = false)
     private @Nullable FtthCtoRepository ctoRepository;
+    private @Nullable FtthCtoPortRepository ctoPortRepository;
 
     @Autowired(required = false)
-    private @Nullable FtthCtoPortRepository ctoPortRepository;
+    public void setCtoRepository(@Nullable FtthCtoRepository ctoRepository) {
+        this.ctoRepository = ctoRepository;
+    }
+
+    @Autowired(required = false)
+    public void setCtoPortRepository(@Nullable FtthCtoPortRepository ctoPortRepository) {
+        this.ctoPortRepository = ctoPortRepository;
+    }
 
     public List<Sale> getAllSales() {
         return saleRepository.findAll();

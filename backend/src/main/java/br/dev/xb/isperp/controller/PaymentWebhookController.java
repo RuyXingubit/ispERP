@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping({"/webhooks/payments", "/api/webhooks/payments"})
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @Slf4j
 @SuppressWarnings("null")

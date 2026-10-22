@@ -93,7 +93,7 @@ public class DashboardBiService {
                     paidWithPix++;
                 }
                 if (inv.getPaidAt() != null &&
-                        inv.getPaidAt().getMonth() == today.getMonth() &&
+                        inv.getPaidAt().getMonth().equals(today.getMonth()) &&
                         inv.getPaidAt().getYear() == today.getYear()) {
                     totalReceivedMonth = totalReceivedMonth.add(amount);
                 }

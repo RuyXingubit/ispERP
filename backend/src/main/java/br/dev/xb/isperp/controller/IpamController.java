@@ -14,8 +14,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class IpamController implements IpamApi {
 
     private final IpamService ipamService;

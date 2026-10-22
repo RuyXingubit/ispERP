@@ -22,6 +22,8 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
@@ -86,7 +88,8 @@ public class BackupStreamingPipelineService {
 
         File tempEncryptedFile = null;
         try {
-            tempEncryptedFile = File.createTempFile("backup_stream_", ".tmp");
+            Path privateTempDir = Files.createDirectories(Path.of("uploads", ".tmp-backup"));
+            tempEncryptedFile = Files.createTempFile(privateTempDir, "backup_stream_", ".tmp").toFile();
 
             // Pipeline de Streaming:
             // Input (Dump) -> Compressor (ZSTD/GZIP) -> CipherStream (AES-256) -> DigestOutputStream (SHA-256) -> FileOutputStream
@@ -202,6 +205,11 @@ public class BackupStreamingPipelineService {
      */
     private InputStream openDatabaseDumpStream() {
         try {
+            Path pgDumpBinary = resolveFixedPgDumpBinary();
+            if (pgDumpBinary == null) {
+                return generateJdbcSchemaDump();
+            }
+
             String url = datasourceUrl != null ? datasourceUrl : "jdbc:postgresql://localhost:5432/isperp";
             String user = datasourceUser != null ? datasourceUser : "postgres";
             String password = datasourcePassword != null ? datasourcePassword : "postgres";
@@ -216,7 +224,7 @@ public class BackupStreamingPipelineService {
             String port = hostPort.contains(":") ? hostPort.substring(hostPort.indexOf(':') + 1) : "5432";
 
             ProcessBuilder pb = new ProcessBuilder(
-                    "pg_dump",
+                    pgDumpBinary.toAbsolutePath().toString(),
                     "-h", host,
                     "-p", port,
                     "-U", user,
@@ -240,9 +248,23 @@ public class BackupStreamingPipelineService {
             log.info("pg_dump não retornou dados (possível incompatibilidade de versão com o servidor), usando dump DDL via JDBC.");
             return generateJdbcSchemaDump();
         } catch (Exception ex) {
-            log.info("pg_dump binário não encontrado no host atual, usando dump DDL de schema via JDBC: {}", ex.getMessage());
+            log.info("pg_dump binário não disponível no host atual, usando dump DDL de schema via JDBC: {}", ex.getMessage());
             return generateJdbcSchemaDump();
         }
+    }
+
+    private @Nullable Path resolveFixedPgDumpBinary() {
+        List<Path> fixedPaths = List.of(
+                Path.of("/usr/bin/pg_dump"),
+                Path.of("/usr/local/bin/pg_dump"),
+                Path.of("/opt/homebrew/bin/pg_dump")
+        );
+        for (Path candidate : fixedPaths) {
+            if (Files.isExecutable(candidate)) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     /**

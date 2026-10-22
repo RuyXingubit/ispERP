@@ -69,11 +69,11 @@ public class HierarchicalBillingService {
         LocalDate adjusted = rawCutoffDate;
         DayOfWeek day = adjusted.getDayOfWeek();
 
-        if (day == DayOfWeek.FRIDAY) {
+        if (DayOfWeek.FRIDAY.equals(day)) {
             adjusted = adjusted.plusDays(3); // Pula para Segunda-feira
-        } else if (day == DayOfWeek.SATURDAY) {
+        } else if (DayOfWeek.SATURDAY.equals(day)) {
             adjusted = adjusted.plusDays(2); // Pula para Segunda-feira
-        } else if (day == DayOfWeek.SUNDAY) {
+        } else if (DayOfWeek.SUNDAY.equals(day)) {
             adjusted = adjusted.plusDays(1); // Pula para Segunda-feira
         }
 
@@ -85,7 +85,7 @@ public class HierarchicalBillingService {
      */
     public boolean isAllowedCutoffWindow(LocalDateTime now) {
         DayOfWeek day = now.getDayOfWeek();
-        if (day == DayOfWeek.FRIDAY || day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
+        if (DayOfWeek.FRIDAY.equals(day) || DayOfWeek.SATURDAY.equals(day) || DayOfWeek.SUNDAY.equals(day)) {
             return false;
         }
 

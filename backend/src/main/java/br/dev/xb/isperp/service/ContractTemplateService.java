@@ -19,7 +19,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class ContractTemplateService {
 
     private final ContractTemplateRepository templateRepository;

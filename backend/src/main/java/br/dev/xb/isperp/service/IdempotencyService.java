@@ -31,6 +31,10 @@ public class IdempotencyService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markAsProcessed(UUID eventId, String consumerName) {
+        saveProcessedEvent(eventId, consumerName);
+    }
+
+    private void saveProcessedEvent(UUID eventId, String consumerName) {
         log.debug("Marcando evento como processado: eventId={}, consumer={}", eventId, consumerName);
 
         ProcessedEvent processedEvent = ProcessedEvent.builder()
@@ -50,6 +54,7 @@ public class IdempotencyService {
      * @param action Ação a ser executada
      * @return true se foi executado agora, false se foi ignorado por duplicidade
      */
+    @Transactional
     public boolean executeIdempotent(UUID eventId, String consumerName, Runnable action) {
         if (isAlreadyProcessed(eventId, consumerName)) {
             log.info("Evento já processado anteriormente, ignorando: eventId={}, consumer={}", eventId, consumerName);
@@ -57,7 +62,7 @@ public class IdempotencyService {
         }
 
         action.run();
-        markAsProcessed(eventId, consumerName);
+        saveProcessedEvent(eventId, consumerName);
         return true;
     }
 }

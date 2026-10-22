@@ -12,6 +12,7 @@ import java.net.URI;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
+@SuppressWarnings("java:S2583")
 public interface WorkOrderMapper {
 
     @Mapping(target = "contractNumber", ignore = true)

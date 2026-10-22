@@ -18,7 +18,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/plans")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @SuppressWarnings("null")
 public class PlanController implements PlansApi {

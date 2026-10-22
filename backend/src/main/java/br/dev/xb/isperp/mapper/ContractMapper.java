@@ -20,6 +20,7 @@ import java.util.List;
         componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
+@SuppressWarnings("java:S2583")
 public interface ContractMapper {
 
     ContractResponse toResponse(Contract contract);

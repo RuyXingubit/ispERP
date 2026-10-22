@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class AnatelDiciService {
 
     private final ContractRepository contractRepository;

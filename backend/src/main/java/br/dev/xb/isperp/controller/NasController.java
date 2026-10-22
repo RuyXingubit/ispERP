@@ -20,9 +20,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping({"", "/api"})
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT_N2')")
 @Tag(name = "RADIUS - NAS / BNG", description = "Gestão de Servidores NAS e Roteadores BNG do FreeRADIUS")
+@SuppressWarnings("java:S2583")
 public class NasController implements NasApi {
 
     private final NasService nasService;

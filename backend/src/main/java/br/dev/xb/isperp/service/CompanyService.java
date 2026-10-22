@@ -2,7 +2,7 @@ package br.dev.xb.isperp.service;
 
 import br.dev.xb.isperp.entity.Company;
 import br.dev.xb.isperp.repository.CompanyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,11 +10,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 @SuppressWarnings("null")
 public class CompanyService {
 
-    @Autowired
-    private CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
 
     public List<Company> getAllCompanies() {
         return companyRepository.findAll();

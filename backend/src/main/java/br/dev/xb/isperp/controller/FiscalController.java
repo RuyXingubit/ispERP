@@ -27,7 +27,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,9 +37,8 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class FiscalController implements FiscalApi {
 
     private final FiscalService fiscalService;
@@ -50,8 +48,13 @@ public class FiscalController implements FiscalApi {
     private final FiscalAccountingScheduler fiscalAccountingScheduler;
     private final FiscalMapper fiscalMapper;
 
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    @org.jspecify.annotations.Nullable
     private AnatelDiciService anatelDiciService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setAnatelDiciService(@org.jspecify.annotations.Nullable AnatelDiciService anatelDiciService) {
+        this.anatelDiciService = anatelDiciService;
+    }
 
     @Override
     public ResponseEntity<FiscalCompanyResponse> getActiveFiscalCompany() {

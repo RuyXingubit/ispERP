@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S1313"})
 public class RadiusCoAProvisioner {
 
     @Data

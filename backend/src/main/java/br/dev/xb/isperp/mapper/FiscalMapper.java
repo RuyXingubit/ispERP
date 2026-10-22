@@ -17,6 +17,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
+@SuppressWarnings("java:S2583")
 public interface FiscalMapper {
 
     FiscalCompanyResponse toResponse(FiscalCompany entity);

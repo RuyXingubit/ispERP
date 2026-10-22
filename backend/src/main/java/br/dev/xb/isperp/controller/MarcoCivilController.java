@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @SuppressWarnings("null")
 public class MarcoCivilController implements MarcoCivilApi {
 

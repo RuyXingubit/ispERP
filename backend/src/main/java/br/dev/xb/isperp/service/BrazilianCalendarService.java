@@ -30,12 +30,12 @@ public class BrazilianCalendarService {
 
         // 2. Valida final de semana
         DayOfWeek dayOfWeek = date.getDayOfWeek();
-        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+        if (DayOfWeek.SATURDAY.equals(dayOfWeek) || DayOfWeek.SUNDAY.equals(dayOfWeek)) {
             return false;
         }
 
         // 3. Valida Sexta-feira (proibido por padrão por ser véspera de fim de semana)
-        if (dayOfWeek == DayOfWeek.FRIDAY && !config.isAllowBlockOnFriday()) {
+        if (DayOfWeek.FRIDAY.equals(dayOfWeek) && !config.isAllowBlockOnFriday()) {
             return false;
         }
 

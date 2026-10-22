@@ -24,9 +24,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping({"/dispatch/installations", "/api/dispatch/installations"})
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @Tag(name = "Despacho de Instalações", description = "Endpoints para triagem de demandas FTTH, estoque em veículos e despacho de O.S.")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class InstallationDispatchController implements InstallationDispatchApi {
 
     private final InstallationDemandService demandService;

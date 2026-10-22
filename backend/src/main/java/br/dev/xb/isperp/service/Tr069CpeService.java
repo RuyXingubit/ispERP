@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class Tr069CpeService {
 
     private final Tr069CpeConfigRepository cpeConfigRepository;
@@ -169,7 +169,7 @@ public class Tr069CpeService {
         return rebootCpeByContract(contract.getId(), "SUBSCRIBER_PORTAL", "Assinante (Central do Cliente)");
     }
 
-    private void validateWifiRequest(UpdateTr069WifiRequest request) {
+    private void validateWifiRequest(@org.jspecify.annotations.Nullable UpdateTr069WifiRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Payload de configuração Wi-Fi não informado.");
         }
@@ -256,12 +256,13 @@ public class Tr069CpeService {
     }
 
     private boolean dispatchSetParameterValuesToGenieAcs(Tr069CpeConfig config) {
-        if (!isGenieAcsConfigured() || config.getOnuSerial() == null || config.getOnuSerial().isBlank()) {
+        String serial = config.getOnuSerial();
+        if (!isGenieAcsConfigured() || serial == null || serial.isBlank()) {
             return false;
         }
         try {
-            String deviceId = URLEncoder.encode(config.getOnuSerial(), StandardCharsets.UTF_8);
-            String url = genieAcsUrl.replaceAll("/+$", "") + "/devices/" + deviceId + "/tasks?connection_request";
+            String deviceId = URLEncoder.encode(serial, StandardCharsets.UTF_8);
+            String url = stripTrailingSlashes(genieAcsUrl) + "/devices/" + deviceId + "/tasks?connection_request";
             String payload = String.format(
                     "{\"name\":\"setParameterValues\",\"parameterValues\":[" +
                     "[\"InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID\",\"%s\",\"xsd:string\"]," +
@@ -280,6 +281,10 @@ public class Tr069CpeService {
                     .build();
             HttpResponse<String> resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
             return resp.statusCode() >= 200 && resp.statusCode() < 300;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("GenieACS NBI interrompido ({}). Mantendo sincronização embarcada no PostgreSQL.", e.getMessage());
+            return false;
         } catch (Exception e) {
             log.warn("GenieACS NBI indisponível ({}). Mantendo sincronização embarcada no PostgreSQL.", e.getMessage());
             return false;
@@ -287,12 +292,13 @@ public class Tr069CpeService {
     }
 
     private boolean dispatchRebootToGenieAcs(Tr069CpeConfig config) {
-        if (!isGenieAcsConfigured() || config.getOnuSerial() == null || config.getOnuSerial().isBlank()) {
+        String serial = config.getOnuSerial();
+        if (!isGenieAcsConfigured() || serial == null || serial.isBlank()) {
             return false;
         }
         try {
-            String deviceId = URLEncoder.encode(config.getOnuSerial(), StandardCharsets.UTF_8);
-            String url = genieAcsUrl.replaceAll("/+$", "") + "/devices/" + deviceId + "/tasks?connection_request";
+            String deviceId = URLEncoder.encode(serial, StandardCharsets.UTF_8);
+            String url = stripTrailingSlashes(genieAcsUrl) + "/devices/" + deviceId + "/tasks?connection_request";
             String payload = "{\"name\":\"reboot\"}";
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -302,10 +308,22 @@ public class Tr069CpeService {
                     .build();
             HttpResponse<String> resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
             return resp.statusCode() >= 200 && resp.statusCode() < 300;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("GenieACS NBI interrompido no reboot ({}). Registrando reboot sincronizado localmente.", e.getMessage());
+            return false;
         } catch (Exception e) {
             log.warn("GenieACS NBI indisponível no reboot ({}). Registrando reboot sincronizado localmente.", e.getMessage());
             return false;
         }
+    }
+
+    private static String stripTrailingSlashes(String input) {
+        int end = input.length();
+        while (end > 0 && input.charAt(end - 1) == '/') {
+            end--;
+        }
+        return input.substring(0, end);
     }
 
     private Tr069CpeStatusResponse toStatusResponse(Tr069CpeConfig config) {

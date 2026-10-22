@@ -32,6 +32,7 @@ public class FiscalGatewayConfig {
     @Enumerated(EnumType.STRING)
     @Column(name = "gateway_type", nullable = false, length = 50)
     @Builder.Default
+    @Nullable
     private FiscalGatewayType gatewayType = FiscalGatewayType.XINGUBIT_PAY;
 
     @Column(name = "environment", nullable = false, length = 20)
@@ -52,6 +53,7 @@ public class FiscalGatewayConfig {
 
     @Column(name = "base_url")
     @Builder.Default
+    @Nullable
     private String baseUrl = "https://pay.xingubit.com.br";
 
     @Column(name = "webhook_secret")

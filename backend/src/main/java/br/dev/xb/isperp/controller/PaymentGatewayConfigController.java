@@ -20,10 +20,9 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping({"/payment-gateways", "/api/payment-gateways"})
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR', 'FINANCIAL')")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class PaymentGatewayConfigController implements PaymentGatewayConfigApi {
 
     private final PaymentGatewayConfigRepository configRepository;

@@ -40,7 +40,6 @@ public class WorkOrderService {
     private final WorkOrderRepository workOrderRepository;
     private final DomainEventPublisher domainEventPublisher;
 
-    @Autowired(required = false)
     private @Nullable UserRepository userRepository;
 
     public List<WorkOrder> getAllWorkOrders() {
@@ -191,6 +190,7 @@ public class WorkOrderService {
         return response;
     }
 
+    @Autowired(required = false)
     public void setUserRepository(@Nullable UserRepository userRepository) {
         this.userRepository = userRepository;
     }

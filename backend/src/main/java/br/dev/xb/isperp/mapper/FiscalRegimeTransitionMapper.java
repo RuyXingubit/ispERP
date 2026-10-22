@@ -13,6 +13,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
+@SuppressWarnings("java:S2583")
 public interface FiscalRegimeTransitionMapper {
 
     FiscalRegimeTransitionResponse toDto(FiscalRegimeTransition entity);

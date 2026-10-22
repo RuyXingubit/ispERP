@@ -6,6 +6,7 @@ import br.dev.xb.isperp.fiscal.FiscalGateway;
 import br.dev.xb.isperp.fiscal.FiscalGatewayType;
 import br.dev.xb.isperp.fiscal.dto.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,11 +23,12 @@ import java.util.Map;
 
 @Component
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class XingubitPayFiscalDriver implements FiscalGateway {
 
     private final RestClient.Builder restClientBuilder;
 
+    @Autowired
     public XingubitPayFiscalDriver(RestClient.Builder restClientBuilder) {
         this.restClientBuilder = restClientBuilder != null ? restClientBuilder : RestClient.builder();
     }

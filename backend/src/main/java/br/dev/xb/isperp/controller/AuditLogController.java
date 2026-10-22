@@ -11,7 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
@@ -22,10 +21,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ADMIN', 'CFO', 'DIRECTOR')")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class AuditLogController implements AuditLogsApi {
 
     private final AuditLogService auditLogService;

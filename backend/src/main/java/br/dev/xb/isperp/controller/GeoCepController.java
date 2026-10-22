@@ -29,8 +29,7 @@ import java.util.stream.Collectors;
 @RequestMapping({"/geocep", "/api/geocep"})
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class GeoCepController implements GeoCepApi {
 
     private final GeoCepClient geoCepClient;

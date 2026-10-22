@@ -7,15 +7,14 @@ import br.dev.xb.isperp.api.dto.StockMovementResponse;
 import br.dev.xb.isperp.mapper.InventoryMapper;
 import br.dev.xb.isperp.service.InventoryService;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @SuppressWarnings("null")
 public class InventoryController implements InventoryApi {
@@ -44,11 +43,18 @@ public class InventoryController implements InventoryApi {
 
     @Override
     public ResponseEntity<List<StockMovementResponse>> getItemMovements(String itemIdOrCode) {
+        UUID itemId = tryParseUuid(itemIdOrCode);
+        var movements = (itemId != null)
+                ? inventoryService.getItemMovements(itemId)
+                : inventoryService.getItemMovementsByCode(itemIdOrCode);
+        return ResponseEntity.ok(inventoryMapper.toStockMovementResponseList(movements));
+    }
+
+    private static @Nullable UUID tryParseUuid(String value) {
         try {
-            UUID itemId = UUID.fromString(itemIdOrCode);
-            return ResponseEntity.ok(inventoryMapper.toStockMovementResponseList(inventoryService.getItemMovements(itemId)));
+            return UUID.fromString(value);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.ok(inventoryMapper.toStockMovementResponseList(inventoryService.getItemMovementsByCode(itemIdOrCode)));
+            return null;
         }
     }
 }

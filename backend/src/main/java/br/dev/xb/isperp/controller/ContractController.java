@@ -9,7 +9,6 @@ import br.dev.xb.isperp.service.ContractService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -17,9 +16,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class ContractController implements ContractsApi {
 
     private final ContractService contractService;

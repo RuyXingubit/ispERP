@@ -50,17 +50,29 @@ public class InvoiceService {
     private final DomainEventPublisher domainEventPublisher;
     private final AuditLogService auditLogService;
 
-    @Autowired(required = false)
     @Nullable
     private PlanRepository planRepository;
 
-    @Autowired(required = false)
     @Nullable
     private ContractRepository contractRepository;
 
-    @Autowired(required = false)
     @Nullable
     private BillingNotificationDunningService billingNotificationDunningService;
+
+    @Autowired(required = false)
+    public void setPlanRepository(@Nullable PlanRepository planRepository) {
+        this.planRepository = planRepository;
+    }
+
+    @Autowired(required = false)
+    public void setContractRepository(@Nullable ContractRepository contractRepository) {
+        this.contractRepository = contractRepository;
+    }
+
+    @Autowired(required = false)
+    public void setBillingNotificationDunningService(@Nullable BillingNotificationDunningService billingNotificationDunningService) {
+        this.billingNotificationDunningService = billingNotificationDunningService;
+    }
 
     public List<Invoice> getAllInvoices() {
         return invoiceRepository.findAll();

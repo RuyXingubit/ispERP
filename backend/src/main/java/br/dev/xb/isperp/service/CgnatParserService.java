@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings({"java:S8786", "java:S1313"}) // Parsers de linhas curtas de CLI de roteadores CGNAT e bloco RFC 6598 100.64.0.0/10
 public class CgnatParserService {
 
     private final CgnatMappingRepository cgnatMappingRepository;

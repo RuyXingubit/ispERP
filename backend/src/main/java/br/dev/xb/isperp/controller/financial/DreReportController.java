@@ -8,7 +8,6 @@ import br.dev.xb.isperp.service.financial.DreReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,7 +16,6 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping({"", "/api"})
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class DreReportController implements DreReportsApi {
 
     private final DreReportService dreReportService;

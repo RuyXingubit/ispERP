@@ -17,7 +17,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/sales")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @SuppressWarnings("null")
 public class SaleController implements SalesApi {

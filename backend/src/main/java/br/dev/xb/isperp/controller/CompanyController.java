@@ -18,7 +18,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/companies")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @SuppressWarnings("null")
 public class CompanyController implements CompaniesApi {

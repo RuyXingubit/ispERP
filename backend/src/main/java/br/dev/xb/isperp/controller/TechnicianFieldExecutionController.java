@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @SuppressWarnings("null")
 public class TechnicianFieldExecutionController implements TechnicianExecutionApi {
 

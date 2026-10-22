@@ -17,7 +17,7 @@ import java.util.*;
 
 @Component
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class ContractTemplateEngine {
 
     private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
@@ -186,12 +186,12 @@ public class ContractTemplateEngine {
                 ContractTemplateVariableInfo.builder().tag("{{signature.pix_id}}").label("ID da Transação Pix (BACEN)").category("SIGNATURE").example("E12345678202608311015...").description("End-to-End ID do Banco Central").build(),
                 ContractTemplateVariableInfo.builder().tag("{{signature.payer_name}}").label("Nome do Pagador no Banco").category("SIGNATURE").example("João da Silva").description("Nome retornado pela instituição bancária").build(),
                 ContractTemplateVariableInfo.builder().tag("{{signature.bank_name}}").label("Banco do Pagador").category("SIGNATURE").example("Banco Nubank S.A.").description("Instituição de pagamento").build(),
-                ContractTemplateVariableInfo.builder().tag("{{signature.ip_address}}").label("Endereço IP do Assinante").category("SIGNATURE").example("177.18.29.40").description("IP de conexão no momento do aceite").build(),
+                ContractTemplateVariableInfo.builder().tag("{{signature.ip_address}}").label("Endereço IP do Assinante").category("SIGNATURE").example("192.0.2.10").description("IP de conexão no momento do aceite").build(),
                 ContractTemplateVariableInfo.builder().tag("{{signature.document_hash}}").label("Hash SHA-256 do Documento").category("SIGNATURE").example("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855").description("Criptografia para prova jurídica de integridade").build()
         );
     }
 
-    private String formatCurrency(BigDecimal value) {
+    private String formatCurrency(@Nullable BigDecimal value) {
         if (value == null) return "";
         return CURRENCY_FORMAT.format(value);
     }

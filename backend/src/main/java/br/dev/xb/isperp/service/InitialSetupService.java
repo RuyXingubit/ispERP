@@ -8,7 +8,7 @@ import br.dev.xb.isperp.entity.User;
 import br.dev.xb.isperp.repository.CompanyRepository;
 import br.dev.xb.isperp.repository.SiteSettingsRepository;
 import br.dev.xb.isperp.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,23 +16,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 @Service
-@SuppressWarnings("null")
+@RequiredArgsConstructor
+@SuppressWarnings({"null", "java:S2583"})
 public class InitialSetupService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CompanyRepository companyRepository;
-
-    @Autowired
-    private SiteSettingsRepository siteSettingsRepository;
-
-    @Autowired
-    private br.dev.xb.isperp.repository.PaymentGatewayConfigRepository paymentGatewayConfigRepository;
-
-    @Autowired
-    private br.dev.xb.isperp.repository.PlanRepository planRepository;
+    private final UserRepository userRepository;
+    private final CompanyRepository companyRepository;
+    private final SiteSettingsRepository siteSettingsRepository;
+    private final br.dev.xb.isperp.repository.PaymentGatewayConfigRepository paymentGatewayConfigRepository;
+    private final br.dev.xb.isperp.repository.PlanRepository planRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public boolean isSetupCompleted() {
         // Verificar se todas as etapas do setup foram concluídas:
@@ -79,9 +72,6 @@ public class InitialSetupService {
         
         userRepository.save(admin);
     }
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     // Método para hash da senha
     private String hashPassword(String password) {

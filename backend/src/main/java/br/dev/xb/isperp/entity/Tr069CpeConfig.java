@@ -3,6 +3,7 @@ package br.dev.xb.isperp.entity;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import lombok.*;
+import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -16,15 +17,18 @@ import java.util.UUID;
 public class Tr069CpeConfig {
 
     @Id
+    @Nullable
     private UUID id;
 
     @Column(name = "contract_id", nullable = false, unique = true)
     private UUID contractId;
 
     @Column(name = "onu_id")
+    @Nullable
     private UUID onuId;
 
     @Column(name = "onu_serial", length = 64)
+    @Nullable
     private String onuSerial;
 
     @Column(name = "cpe_model", nullable = false, length = 120)

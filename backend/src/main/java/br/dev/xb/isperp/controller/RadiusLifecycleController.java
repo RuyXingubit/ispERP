@@ -19,10 +19,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping({"", "/api"})
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @Tag(name = "RADIUS Lifecycle & Auto-Corte", description = "Endpoints para gestão de políticas de inadimplência, auto-corte, desbloqueio e auditoria de ações PoD")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class RadiusLifecycleController implements RadiusLifecycleApi {
 
     private final RadiusLifecycleService lifecycleService;

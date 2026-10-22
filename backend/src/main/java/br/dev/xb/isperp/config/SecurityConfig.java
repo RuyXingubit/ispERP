@@ -1,6 +1,7 @@
 package br.dev.xb.isperp.config;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,15 +18,19 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(proxyTargetClass = true)
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S4502"})
 public class SecurityConfig {
 
     private final ObjectProvider<JwtAuthenticationFilter> jwtAuthenticationFilterProvider;
+
+    @Value("${isperp.security.cors.allowed-origin-patterns:http://localhost:*,https://*.xb.dev.br}")
+    private String allowedOriginPatterns;
 
     public SecurityConfig(ObjectProvider<JwtAuthenticationFilter> jwtAuthenticationFilterProvider) {
         this.jwtAuthenticationFilterProvider = jwtAuthenticationFilterProvider;
@@ -39,7 +44,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        List<String> origins = Arrays.stream(
+                        (allowedOriginPatterns != null ? allowedOriginPatterns : "http://localhost:*").split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

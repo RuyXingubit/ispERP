@@ -55,11 +55,14 @@ public class InitialSetupRequest {
     private String siteTitle;
     
     @Size(max = 500, message = "Descrição do site deve ter no máximo 500 caracteres")
+    @org.jspecify.annotations.Nullable
     private String siteDescription;
     
     @Size(max = 7, message = "Cor primária deve ter no máximo 7 caracteres")
+    @org.jspecify.annotations.Nullable
     private String primaryColor;
     
     @Size(max = 7, message = "Cor secundária deve ter no máximo 7 caracteres")
+    @org.jspecify.annotations.Nullable
     private String secondaryColor;
 }

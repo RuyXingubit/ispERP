@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class JwtUtil {
     
     @Value("${JWT_SECRET:myVerySecureSecretKeyThatIsAtLeast256BitsLongForJWTSecurityAndMustBeAtLeast32CharactersLongToMeetTheRequirements}")

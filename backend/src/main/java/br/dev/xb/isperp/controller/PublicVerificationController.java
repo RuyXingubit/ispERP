@@ -5,15 +5,13 @@ import br.dev.xb.isperp.api.dto.PublicValidationResponse;
 import br.dev.xb.isperp.service.MarcoCivilInvestigationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class PublicVerificationController implements PublicVerificationApi {
 
     private final MarcoCivilInvestigationService marcoCivilInvestigationService;

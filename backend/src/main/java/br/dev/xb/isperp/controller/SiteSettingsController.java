@@ -7,13 +7,11 @@ import br.dev.xb.isperp.entity.SiteSettings;
 import br.dev.xb.isperp.service.SiteSettingsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.ZoneOffset;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @SuppressWarnings("null")
 public class SiteSettingsController implements SiteSettingsApi {

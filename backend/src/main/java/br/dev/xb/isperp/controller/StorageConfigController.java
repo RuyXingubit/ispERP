@@ -20,7 +20,7 @@ import java.time.ZoneOffset;
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Configuração de Armazenamento S3", description = "Endpoints para gerenciamento e teste de conectividade de S3 local (SeaweedFS) e provedores em nuvem")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class StorageConfigController implements StorageConfigApi {
 
     private final StorageConfigService storageConfigService;

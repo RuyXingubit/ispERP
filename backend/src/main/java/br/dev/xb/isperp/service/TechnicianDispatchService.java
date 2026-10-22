@@ -17,7 +17,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class TechnicianDispatchService {
 
     private final UserRepository userRepository;

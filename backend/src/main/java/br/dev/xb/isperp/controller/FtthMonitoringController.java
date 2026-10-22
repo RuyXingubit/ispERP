@@ -19,15 +19,18 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping({"", "/api"})
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class FtthMonitoringController implements FtthMonitoringApi {
 
     private final OltTelemetryService telemetryService;
     private final FtthCorrelationEngine correlationEngine;
 
+    private br.dev.xb.isperp.service.@org.jspecify.annotations.Nullable Tr069CpeService tr069CpeService;
+
     @org.springframework.beans.factory.annotation.Autowired(required = false)
-    private br.dev.xb.isperp.service.Tr069CpeService tr069CpeService;
+    public void setTr069CpeService(br.dev.xb.isperp.service.@org.jspecify.annotations.Nullable Tr069CpeService tr069CpeService) {
+        this.tr069CpeService = tr069CpeService;
+    }
 
     @Override
     @GetMapping({"/ftth/monitoring/summary", "/api/ftth/monitoring/summary"})

@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 import org.jspecify.annotations.Nullable;
 
@@ -29,7 +28,6 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 @SuppressWarnings("null")
 public class BillingDunningController implements BillingDunningApi {
 
@@ -37,9 +35,13 @@ public class BillingDunningController implements BillingDunningApi {
     private final InvoiceRebalanceService invoiceRebalanceService;
     private final TrustUnblockPolicyService trustUnblockPolicyService;
 
-    @Autowired(required = false)
     @Nullable
     private BillingNotificationDunningService billingNotificationDunningService;
+
+    @Autowired(required = false)
+    public void setBillingNotificationDunningService(@Nullable BillingNotificationDunningService billingNotificationDunningService) {
+        this.billingNotificationDunningService = billingNotificationDunningService;
+    }
 
     @Override
     public ResponseEntity<DunningProcessResponse> processDailyDunning() {

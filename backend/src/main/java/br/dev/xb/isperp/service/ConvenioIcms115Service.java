@@ -29,7 +29,7 @@ import java.util.zip.ZipOutputStream;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class ConvenioIcms115Service {
 
     private final FiscalCompanyRepository companyRepository;
@@ -230,6 +230,7 @@ public class ConvenioIcms115Service {
         return calculateMd5(content.getBytes(StandardCharsets.ISO_8859_1));
     }
 
+    @SuppressWarnings("java:S4790") // MD5 exigido por lei no layout SEFAZ Convênio ICMS 115/03
     private String calculateMd5(byte[] data) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -240,7 +241,7 @@ public class ConvenioIcms115Service {
         }
     }
 
-    private String padRight(String text, int length) {
+    private String padRight(@Nullable String text, int length) {
         if (text == null) text = "";
         if (text.length() > length) return text.substring(0, length);
         return String.format("%-" + length + "s", text);

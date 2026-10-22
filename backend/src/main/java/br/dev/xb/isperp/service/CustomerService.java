@@ -3,7 +3,7 @@ package br.dev.xb.isperp.service;
 import br.dev.xb.isperp.entity.Customer;
 import br.dev.xb.isperp.repository.CustomerRepository;
 import br.dev.xb.isperp.util.CpfValidator;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,11 +11,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 @SuppressWarnings("null")
 public class CustomerService {
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
 
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();

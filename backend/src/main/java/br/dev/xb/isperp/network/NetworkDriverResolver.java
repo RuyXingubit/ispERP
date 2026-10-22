@@ -12,7 +12,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S1313", "java:S2583"})
 public class NetworkDriverResolver {
 
     private final List<NetworkProvisioner> provisioners;
@@ -24,7 +24,7 @@ public class NetworkDriverResolver {
      * @param preferredType Tipo de driver preferido
      * @return Par contendo o Driver e o Dispositivo de Rede (OLT)
      */
-    public ResolvedNetworkDriver resolve(NetworkDriverType preferredType) {
+    public ResolvedNetworkDriver resolve(@ org.jspecify.annotations.Nullable NetworkDriverType preferredType) {
         NetworkDriverType targetType = (preferredType != null) ? preferredType : NetworkDriverType.SMARTOLT;
 
         NetworkProvisioner provisioner = provisioners.stream()

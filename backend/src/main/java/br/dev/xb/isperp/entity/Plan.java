@@ -22,6 +22,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SuppressWarnings("java:S2583")
 public class Plan {
 
     @Id

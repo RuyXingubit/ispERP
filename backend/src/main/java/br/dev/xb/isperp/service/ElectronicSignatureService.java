@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -24,6 +25,8 @@ import java.util.*;
 @Slf4j
 @SuppressWarnings("null")
 public class ElectronicSignatureService {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final ContractRepository contractRepository;
     private final ContractTemplateRepository templateRepository;
@@ -81,7 +84,7 @@ public class ElectronicSignatureService {
 
         // Gera token público único e txid para o Pix
         String token = UUID.randomUUID().toString().replace("-", "");
-        String pixTxid = "SIG" + System.currentTimeMillis() + (int) (Math.random() * 1000);
+        String pixTxid = "SIG" + System.currentTimeMillis() + SECURE_RANDOM.nextInt(1000);
         BigDecimal amount = request.getSymbolicAmount() != null ? request.getSymbolicAmount() : BigDecimal.valueOf(1.00);
 
         // Gera strings Pix simuladas

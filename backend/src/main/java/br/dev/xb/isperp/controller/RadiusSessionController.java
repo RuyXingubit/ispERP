@@ -19,8 +19,8 @@ import java.util.List;
 @RestController
 @RequestMapping({"", "/api"})
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @Tag(name = "RADIUS - Sessões & Accounting", description = "Monitoramento de Sessões Online e Desconexão PoD")
+@SuppressWarnings("java:S2583")
 public class RadiusSessionController implements RadiusSessionsApi {
 
     private final RadiusSessionService radiusSessionService;

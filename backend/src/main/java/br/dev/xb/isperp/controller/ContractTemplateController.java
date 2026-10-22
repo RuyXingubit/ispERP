@@ -20,8 +20,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public class ContractTemplateController implements ContractTemplatesApi {
 
     private final ContractTemplateService templateService;
