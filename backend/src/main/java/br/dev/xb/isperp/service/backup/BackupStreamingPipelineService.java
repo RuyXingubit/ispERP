@@ -197,15 +197,48 @@ public class BackupStreamingPipelineService {
     }
 
     /**
-     * Abre stream de dump do banco via pg_dump nativo se disponível, ou gera DDL SQL estruturado do schema via JDBC.
+     * Abre stream de dump do banco via pg_dump nativo se disponível e compatível,
+     * ou gera DDL SQL estruturado do schema via JDBC como fallback seguro.
      */
     private InputStream openDatabaseDumpStream() {
         try {
-            // Tenta disparar pg_dump via ProcessBuilder
-            ProcessBuilder pb = new ProcessBuilder("pg_dump", "--format=plain", "--no-owner", "--no-privileges");
-            pb.environment().put("PGPASSWORD", datasourcePassword);
+            String url = datasourceUrl != null ? datasourceUrl : "jdbc:postgresql://localhost:5432/isperp";
+            String user = datasourceUser != null ? datasourceUser : "postgres";
+            String password = datasourcePassword != null ? datasourcePassword : "postgres";
+
+            String cleanUrl = url.replace("jdbc:postgresql://", "");
+            String hostPort = cleanUrl.contains("/") ? cleanUrl.substring(0, cleanUrl.indexOf('/')) : "localhost:5432";
+            String dbName = cleanUrl.contains("/") ? cleanUrl.substring(cleanUrl.indexOf('/') + 1) : "isperp";
+            if (dbName.contains("?")) {
+                dbName = dbName.substring(0, dbName.indexOf('?'));
+            }
+            String host = hostPort.contains(":") ? hostPort.substring(0, hostPort.indexOf(':')) : hostPort;
+            String port = hostPort.contains(":") ? hostPort.substring(hostPort.indexOf(':') + 1) : "5432";
+
+            ProcessBuilder pb = new ProcessBuilder(
+                    "pg_dump",
+                    "-h", host,
+                    "-p", port,
+                    "-U", user,
+                    "-d", dbName,
+                    "--format=plain",
+                    "--no-owner",
+                    "--no-privileges"
+            );
+            pb.environment().put("PGPASSWORD", password);
             Process process = pb.start();
-            return process.getInputStream();
+
+            PushbackInputStream pbis = new PushbackInputStream(process.getInputStream(), 1);
+            int firstByte = pbis.read();
+            if (firstByte != -1) {
+                pbis.unread(firstByte);
+                return pbis;
+            }
+
+            pbis.close();
+            process.destroy();
+            log.info("pg_dump não retornou dados (possível incompatibilidade de versão com o servidor), usando dump DDL via JDBC.");
+            return generateJdbcSchemaDump();
         } catch (Exception ex) {
             log.info("pg_dump binário não encontrado no host atual, usando dump DDL de schema via JDBC: {}", ex.getMessage());
             return generateJdbcSchemaDump();
