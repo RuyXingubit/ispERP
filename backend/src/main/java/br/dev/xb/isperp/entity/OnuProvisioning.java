@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,12 +13,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "onu_provisionings")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OnuProvisioning {
+public class OnuProvisioning implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -84,30 +84,18 @@ public class OnuProvisioning {
 
     @Column(name = "last_sync_at")
     private LocalDateTime lastSyncAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+    @Override
+    public void initEntityDefaults() {
+        this.lastSyncAt = LocalDateTime.now();
         if (this.status == null) {
             this.status = OnuStatus.PROVISIONED;
         }
-        this.lastSyncAt = LocalDateTime.now();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public enum OnuStatus {
         PROVISIONED,

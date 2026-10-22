@@ -1,6 +1,7 @@
 package br.dev.xb.isperp.entity.financial;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
+import br.dev.xb.isperp.entity.EntityLifecycleListener;
+import br.dev.xb.isperp.entity.OffsetAuditableEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,12 +14,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "chart_of_accounts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChartOfAccount {
+public class ChartOfAccount implements OffsetAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -57,27 +59,14 @@ public class ChartOfAccount {
     @Column(name = "active", nullable = false)
     @Builder.Default
     private Boolean active = true;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = OffsetDateTime.now();
-        this.updatedAt = OffsetDateTime.now();
+    @Override
+    public void initEntityDefaults() {
         if (this.active == null) {
             this.active = true;
         }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = OffsetDateTime.now();
     }
 }

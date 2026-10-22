@@ -1,6 +1,7 @@
 package br.dev.xb.isperp.entity.financial;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
+import br.dev.xb.isperp.entity.EntityLifecycleListener;
+import br.dev.xb.isperp.entity.OffsetAuditableEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,12 +14,13 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "network_projects")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class NetworkProject {
+public class NetworkProject implements OffsetAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -51,30 +53,17 @@ public class NetworkProject {
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = OffsetDateTime.now();
-        this.updatedAt = OffsetDateTime.now();
-        if (this.status == null) {
-            this.status = ProjectStatus.ACTIVE;
-        }
+    @Override
+    public void initEntityDefaults() {
         if (this.startDate == null) {
             this.startDate = LocalDate.now();
         }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = OffsetDateTime.now();
+        if (this.status == null) {
+            this.status = ProjectStatus.ACTIVE;
+        }
     }
 }

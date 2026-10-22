@@ -2,9 +2,11 @@ package br.dev.xb.isperp.service.consumer;
 
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Customer;
+import br.dev.xb.isperp.event.DomainEvent;
 import br.dev.xb.isperp.event.GenericDomainEvent;
 import br.dev.xb.isperp.repository.ContractRepository;
 import br.dev.xb.isperp.repository.CustomerRepository;
+import br.dev.xb.isperp.service.IdempotencyService;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @SuppressWarnings({"null", "java:S2583"})
 public final class ConsumerPayloadUtils {
@@ -110,5 +113,22 @@ public final class ConsumerPayloadUtils {
                 .aggregateId(aggregateId)
                 .payload(payload)
                 .build();
+    }
+
+    public static void executeForEventType(
+            DomainEvent event,
+            String expectedEventType,
+            String consumerName,
+            IdempotencyService idempotencyService,
+            ObjectMapper objectMapper,
+            Consumer<Map<String, Object>> payloadConsumer
+    ) {
+        if (!expectedEventType.equals(event.getEventType())) {
+            return;
+        }
+        idempotencyService.executeIdempotent(event.getEventId(), consumerName, () -> {
+            Map<String, Object> data = extractPayload(objectMapper, event.getPayload());
+            payloadConsumer.accept(data);
+        });
     }
 }

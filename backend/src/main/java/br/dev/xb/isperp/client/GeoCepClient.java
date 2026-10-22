@@ -752,20 +752,31 @@ public class GeoCepClient {
             }
         }
         if (cleanCep.length() == 8) {
-            if (cleanCep.startsWith("6837")) return LOCAL_MUNICIPALITY_BY_NAME.get("altamira");
-            if (cleanCep.startsWith("68383")) return LOCAL_MUNICIPALITY_BY_NAME.get("vitoria do xingu");
-            if (cleanCep.startsWith("68148")) return LOCAL_MUNICIPALITY_BY_NAME.get("brasil novo");
-            if (cleanCep.startsWith("68145")) return LOCAL_MUNICIPALITY_BY_NAME.get("medicilandia");
-            if (cleanCep.startsWith("68140")) return LOCAL_MUNICIPALITY_BY_NAME.get("uruara");
-            if (cleanCep.startsWith("68360")) return LOCAL_MUNICIPALITY_BY_NAME.get("senador jose porfirio");
-            if (cleanCep.startsWith("68365")) return LOCAL_MUNICIPALITY_BY_NAME.get("anapu");
-            if (cleanCep.startsWith("68485")) return LOCAL_MUNICIPALITY_BY_NAME.get("pacaja");
-            if (cleanCep.startsWith("680")) return LOCAL_MUNICIPALITY_BY_NAME.get("santarem");
-            if (cleanCep.startsWith("660") || cleanCep.startsWith("661") || cleanCep.startsWith("666")) return LOCAL_MUNICIPALITY_BY_NAME.get("belem");
-            if (cleanCep.startsWith("6850") || cleanCep.startsWith("6851")) return LOCAL_MUNICIPALITY_BY_NAME.get("maraba");
+            for (String[] rule : CEP_PREFIX_RULES) {
+                if (cleanCep.startsWith(rule[0])) {
+                    return LOCAL_MUNICIPALITY_BY_NAME.get(rule[1]);
+                }
+            }
         }
         return null;
     }
+
+    private static final String[][] CEP_PREFIX_RULES = {
+            {"6837", "altamira"},
+            {"68383", "vitoria do xingu"},
+            {"68148", "brasil novo"},
+            {"68145", "medicilandia"},
+            {"68140", "uruara"},
+            {"68360", "senador jose porfirio"},
+            {"68365", "anapu"},
+            {"68485", "pacaja"},
+            {"680", "santarem"},
+            {"660", "belem"},
+            {"661", "belem"},
+            {"666", "belem"},
+            {"6850", "maraba"},
+            {"6851", "maraba"}
+    };
 
     private static String normalizeMunicipalityKey(String input) {
         if (input == null || input.isBlank()) {

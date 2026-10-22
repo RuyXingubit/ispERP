@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,13 +12,14 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "nfcom_records")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @SuppressWarnings("null")
-public class NfcomRecord {
+public class NfcomRecord implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -117,26 +117,8 @@ public class NfcomRecord {
     @Column(name = "data_cancelamento")
     @Nullable
     private LocalDateTime dataCancelamento;
-
     @Column(name = "created_at", nullable = false, updatable = false)
-    @Nullable
-    private LocalDateTime createdAt;
-
+    private @Nullable LocalDateTime createdAt;
     @Column(name = "updated_at")
-    @Nullable
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    private @Nullable LocalDateTime updatedAt;
 }

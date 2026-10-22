@@ -2,11 +2,8 @@ package br.dev.xb.isperp.entity;
 
 import br.dev.xb.isperp.ftth.FiberColorStandard;
 import br.dev.xb.isperp.ftth.FtthCableType;
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
@@ -14,6 +11,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "ftth_cables")
 @Getter
 @Setter
@@ -21,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class FtthCable {
+public class FtthCable implements OffsetAuditableEntity {
 
     @Id
     @EqualsAndHashCode.Include
@@ -71,19 +69,8 @@ public class FtthCable {
     @Builder.Default
     @Column(name = "attenuation_db_per_km", nullable = false, precision = 4, scale = 2)
     private BigDecimal attenuationDbPerKm = new BigDecimal("0.35");
-
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
-    }
 }

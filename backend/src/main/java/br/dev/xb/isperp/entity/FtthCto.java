@@ -1,10 +1,7 @@
 package br.dev.xb.isperp.entity;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
@@ -12,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "ftth_ctos")
 @Getter
 @Setter
@@ -19,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class FtthCto {
+public class FtthCto implements OffsetAuditableEntity {
 
     @Id
     @EqualsAndHashCode.Include
@@ -61,19 +59,8 @@ public class FtthCto {
 
     @Column(name = "project_id")
     private @Nullable UUID projectId;
-
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
-    }
 }

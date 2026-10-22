@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import org.jspecify.annotations.Nullable;
 import jakarta.validation.constraints.NotBlank;
@@ -13,12 +12,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "warehouses")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Warehouse {
+public class Warehouse implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -52,25 +52,8 @@ public class Warehouse {
     @Column(name = "active", nullable = false)
     @Builder.Default
     private Boolean active = true;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
     @Column(name = "updated_at")
-    @Nullable
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    private @Nullable LocalDateTime updatedAt;
 }

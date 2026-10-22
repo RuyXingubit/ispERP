@@ -1,6 +1,7 @@
 package br.dev.xb.isperp.entity.financial;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
+import br.dev.xb.isperp.entity.EntityLifecycleListener;
+import br.dev.xb.isperp.entity.OffsetAuditableEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,12 +12,13 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "sentinel_audit_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SentinelAuditLog {
+public class SentinelAuditLog implements OffsetAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -44,27 +46,14 @@ public class SentinelAuditLog {
     @Column(name = "resolved", nullable = false)
     @Builder.Default
     private Boolean resolved = false;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = OffsetDateTime.now();
-        this.updatedAt = OffsetDateTime.now();
+    @Override
+    public void initEntityDefaults() {
         if (this.resolved == null) {
             this.resolved = false;
         }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = OffsetDateTime.now();
     }
 }

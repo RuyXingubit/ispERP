@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import br.dev.xb.isperp.validation.ValidCpf;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -17,12 +16,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "customers")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Customer {
+public class Customer implements LocalAuditableEntity {
     
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -89,21 +89,9 @@ public class Customer {
     @Column(name = "active", nullable = false)
     @Builder.Default
     private Boolean active = true;
-    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    @PrePersist
-    protected void onCreate() {
-        this.id = UuidCreatorUtils.orGenerate(this.id);
-        this.createdAt = this.updatedAt = LocalDateTime.now();
-    }
-    
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }

@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,12 +14,13 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "olt_pon_ports")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OltPonPort {
+public class OltPonPort implements OffsetAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -86,25 +86,12 @@ public class OltPonPort {
 
     @Column(name = "last_polled_at")
     private @Nullable OffsetDateTime lastPolledAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = OffsetDateTime.now();
-        this.updatedAt = OffsetDateTime.now();
+    @Override
+    public void initEntityDefaults() {
         this.lastPolledAt = OffsetDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = OffsetDateTime.now();
     }
 }

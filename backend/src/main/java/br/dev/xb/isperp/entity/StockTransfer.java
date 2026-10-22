@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,12 +14,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "stock_transfers")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StockTransfer {
+public class StockTransfer implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -87,24 +87,12 @@ public class StockTransfer {
     @Nullable
     @Column(name = "received_at")
     private LocalDateTime receivedAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Nullable
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private @Nullable LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.id = UuidCreatorUtils.orGenerate(this.id);
-        this.createdAt = this.updatedAt = LocalDateTime.now();
-    }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public enum CarrierType {
         COLABORADOR,

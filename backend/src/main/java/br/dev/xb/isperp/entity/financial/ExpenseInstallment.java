@@ -1,6 +1,7 @@
 package br.dev.xb.isperp.entity.financial;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
+import br.dev.xb.isperp.entity.EntityLifecycleListener;
+import br.dev.xb.isperp.entity.OffsetAuditableEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,12 +14,13 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "expense_installments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ExpenseInstallment {
+public class ExpenseInstallment implements OffsetAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -62,30 +64,17 @@ public class ExpenseInstallment {
 
     @Column(name = "receipt_url", length = 500)
     private String receiptUrl;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = OffsetDateTime.now();
-        this.updatedAt = OffsetDateTime.now();
-        if (this.status == null) {
-            this.status = PayableStatus.PENDING;
-        }
+    @Override
+    public void initEntityDefaults() {
         if (this.interestAmount == null) {
             this.interestAmount = BigDecimal.ZERO;
         }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = OffsetDateTime.now();
+        if (this.status == null) {
+            this.status = PayableStatus.PENDING;
+        }
     }
 }

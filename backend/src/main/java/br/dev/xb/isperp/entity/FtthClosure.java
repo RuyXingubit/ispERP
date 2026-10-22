@@ -1,11 +1,8 @@
 package br.dev.xb.isperp.entity;
 
 import br.dev.xb.isperp.ftth.FtthClosureType;
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
@@ -13,6 +10,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "ftth_closures")
 @Getter
 @Setter
@@ -20,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class FtthClosure {
+public class FtthClosure implements OffsetAuditableEntity {
 
     @Id
     @EqualsAndHashCode.Include
@@ -58,19 +56,8 @@ public class FtthClosure {
     @Builder.Default
     @Column(nullable = false, length = 30)
     private String status = "ATIVA";
-
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
-    }
 }

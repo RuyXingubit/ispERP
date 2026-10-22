@@ -1,11 +1,8 @@
 package br.dev.xb.isperp.entity;
 
 import br.dev.xb.isperp.signature.SignatureStatus;
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
@@ -13,6 +10,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "contract_signatures")
 @Getter
 @Setter
@@ -20,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class ContractSignature {
+public class ContractSignature implements OffsetAuditableEntity {
 
     @Id
     @EqualsAndHashCode.Include
@@ -113,25 +111,17 @@ public class ContractSignature {
 
     @Column(name = "signed_at")
     private @Nullable OffsetDateTime signedAt;
-
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
+    @Override
+    public void initEntityDefaults() {
+        if (this.symbolicAmount == null) {
+            this.symbolicAmount = BigDecimal.valueOf(1.00);
         }
         if (this.status == null) {
             this.status = SignatureStatus.PENDING;
-        }
-        if (this.symbolicAmount == null) {
-            this.symbolicAmount = BigDecimal.valueOf(1.00);
         }
     }
 }

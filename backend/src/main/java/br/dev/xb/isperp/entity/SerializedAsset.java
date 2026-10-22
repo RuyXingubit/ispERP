@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -15,12 +14,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "serialized_assets")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SerializedAsset {
+public class SerializedAsset implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -70,28 +70,15 @@ public class SerializedAsset {
     @Nullable
     @Column(name = "last_movement_at")
     private LocalDateTime lastMovementAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Nullable
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+    private @Nullable LocalDateTime updatedAt;
+    @Override
+    public void initEntityDefaults() {
         this.lastMovementAt = LocalDateTime.now();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public enum AssetCategory {
         ONU_ONT,

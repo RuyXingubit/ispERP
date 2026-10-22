@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,12 +16,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "sales")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Sale {
+public class Sale implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -105,30 +105,17 @@ public class Sale {
     @Column(name = "status", nullable = false, length = 30)
     @Builder.Default
     private SaleStatus status = SaleStatus.SUBMITTED;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Nullable
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+    private @Nullable LocalDateTime updatedAt;
+    @Override
+    public void initEntityDefaults() {
         if (this.status == null) {
             this.status = SaleStatus.SUBMITTED;
         }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public enum SaleStatus {
         SUBMITTED,

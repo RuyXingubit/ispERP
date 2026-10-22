@@ -33,15 +33,10 @@ public class InventoryStockConsumer {
     @Async("eventTaskExecutor")
     @EventListener
     public void handleContractCreated(DomainEvent event) {
-        if (!"CONTRACT_CREATED".equals(event.getEventType())) {
-            return;
-        }
-
-        log.info("Verificando e reservando estoque para novo contrato: eventId={}", event.getEventId());
-
-        idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME, () -> {
+        ConsumerPayloadUtils.executeForEventType(
+                event, "CONTRACT_CREATED", CONSUMER_NAME, idempotencyService, objectMapper, data -> {
             try {
-                Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
+                log.info("Verificando e reservando estoque para novo contrato: eventId={}", event.getEventId());
                 UUID contractId = UUID.fromString(data.get("contractId").toString());
 
                 List<String> warnings = inventoryService.checkAndReserveInstallationMaterials(contractId);

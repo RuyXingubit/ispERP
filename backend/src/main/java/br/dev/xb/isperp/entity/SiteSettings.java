@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -13,12 +12,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "site_settings")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SiteSettings {
+public class SiteSettings implements LocalAuditableEntity {
     
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -42,24 +42,9 @@ public class SiteSettings {
     @Column(name = "secondary_color")
     @Builder.Default
     private String secondaryColor = "#dc004e";
-    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-    
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }

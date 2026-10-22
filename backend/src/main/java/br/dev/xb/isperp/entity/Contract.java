@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,12 +16,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "contracts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Contract {
+public class Contract implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -99,36 +99,23 @@ public class Contract {
     @Column(name = "pending_pro_rata_adjustment", nullable = false, precision = 10, scale = 2)
     @Builder.Default
     private BigDecimal pendingProRataAdjustment = BigDecimal.ZERO;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Nullable
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        if (this.status == null) {
-            this.status = ContractStatus.PENDING_INSTALLATION;
-        }
+    private @Nullable LocalDateTime updatedAt;
+    @Override
+    public void initEntityDefaults() {
         if (this.pendingOnboardingCredit == null) {
             this.pendingOnboardingCredit = BigDecimal.ZERO;
         }
         if (this.pendingProRataAdjustment == null) {
             this.pendingProRataAdjustment = BigDecimal.ZERO;
         }
+        if (this.status == null) {
+            this.status = ContractStatus.PENDING_INSTALLATION;
+        }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public enum ContractStatus {
         DRAFT,

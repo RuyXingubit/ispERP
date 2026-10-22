@@ -27,19 +27,22 @@ public class ExternalMicroserviceProvisioner implements NetworkProvisioner {
 
     @Override
     public boolean deprovisionOnu(String onuMac, NetworkDevice device) {
-        log.info("MicroserviceNetwork: Desprovisionando MAC={} via microserviço", onuMac);
+        log.info("MicroserviceNetwork: Desprovisionando MAC={} via microserviço em {}:{}",
+                onuMac, device.getIpAddress(), device.getApiPort());
         return true;
     }
 
     @Override
     public boolean blockInternetAccess(String onuMac, String reason, NetworkDevice device) {
-        log.info("MicroserviceNetwork: Enviando comando de bloqueio para MAC={}", onuMac);
+        log.info("MicroserviceNetwork: Enviando comando de bloqueio para MAC={} em {}:{} (motivo={})",
+                onuMac, device.getIpAddress(), device.getApiPort(), reason);
         return true;
     }
 
     @Override
     public boolean unblockInternetAccess(String onuMac, NetworkDevice device) {
-        log.info("MicroserviceNetwork: Enviando comando de desbloqueio para MAC={}", onuMac);
+        log.info("MicroserviceNetwork: Enviando comando de desbloqueio para MAC={} em {}:{}",
+                onuMac, device.getIpAddress(), device.getApiPort());
         return true;
     }
 

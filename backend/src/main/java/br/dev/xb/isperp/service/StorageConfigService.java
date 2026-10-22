@@ -8,6 +8,7 @@ import br.dev.xb.isperp.mapper.StorageConfigMapper;
 import br.dev.xb.isperp.repository.StorageConfigRepository;
 import br.dev.xb.isperp.storage.StorageProvider;
 import br.dev.xb.isperp.storage.StorageType;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Getter
 @Slf4j
 @SuppressWarnings("null")
 public class StorageConfigService {

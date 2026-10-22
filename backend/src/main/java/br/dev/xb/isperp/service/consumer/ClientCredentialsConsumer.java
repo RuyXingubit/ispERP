@@ -38,15 +38,10 @@ public class ClientCredentialsConsumer {
     @Async("eventTaskExecutor")
     @EventListener
     public void handleContractCreated(DomainEvent event) {
-        if (!"CONTRACT_CREATED".equals(event.getEventType())) {
-            return;
-        }
-
-        log.info("Gerando credenciais de acesso para novo contrato: eventId={}", event.getEventId());
-
-        idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME, () -> {
+        ConsumerPayloadUtils.executeForEventType(
+                event, "CONTRACT_CREATED", CONSUMER_NAME, idempotencyService, objectMapper, data -> {
             try {
-                Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
+                log.info("Gerando credenciais de acesso para novo contrato: eventId={}", event.getEventId());
 
                 String customerName = (String) data.get("customerName");
                 String customerEmail = (String) data.get("customerEmail");

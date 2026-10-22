@@ -1,7 +1,7 @@
 package br.dev.xb.isperp.entity.financial;
 
+import br.dev.xb.isperp.entity.EntityLifecycleListener;
 import br.dev.xb.isperp.entity.User;
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,12 +13,13 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "material_transfer_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MaterialTransferLog {
+public class MaterialTransferLog implements CustodyTransferLogEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -40,6 +41,9 @@ public class MaterialTransferLog {
     @Builder.Default
     private BigDecimal quantity = BigDecimal.ONE;
 
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     @Builder.Default
@@ -50,19 +54,10 @@ public class MaterialTransferLog {
 
     @Column(name = "responded_at")
     private OffsetDateTime respondedAt;
-
-    @Column(name = "notes", columnDefinition = "TEXT")
-    private String notes;
-
-    @PrePersist
-    protected void onCreate() {
-        this.id = UuidCreatorUtils.orGenerate(this.id);
+    @Override
+    public void initEntityDefaults() {
         if (this.quantity == null) {
             this.quantity = BigDecimal.ONE;
         }
-        if (this.status == null) {
-            this.status = CashTransferStatus.PENDING_ACCEPTANCE;
-        }
-        this.requestedAt = OffsetDateTime.now();
     }
 }

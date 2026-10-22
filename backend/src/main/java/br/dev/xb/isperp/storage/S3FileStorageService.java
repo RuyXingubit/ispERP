@@ -6,7 +6,6 @@ import br.dev.xb.isperp.repository.StorageConfigRepository;
 import br.dev.xb.isperp.service.StorageConfigService;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -29,27 +28,6 @@ public class S3FileStorageService implements FileStorageService {
     private final LocalFileStorageService localFileStorageService;
     private final StorageConfigRepository storageConfigRepository;
     private final StorageConfigService storageConfigService;
-
-    @Value("${app.storage.type:s3}")
-    private String defaultStorageType;
-
-    @Value("${app.storage.s3.endpoint:http://localhost:8333}")
-    private String defaultEndpointUrl;
-
-    @Value("${app.storage.s3.bucket:isperp-files}")
-    private String defaultBucketName;
-
-    @Value("${app.storage.s3.region:us-east-1}")
-    private String defaultRegion;
-
-    @Value("${app.storage.s3.access-key:}")
-    private String defaultAccessKey;
-
-    @Value("${app.storage.s3.secret-key:}")
-    private String defaultSecretKey;
-
-    @Value("${app.storage.s3.path-style-access:true}")
-    private boolean defaultPathStyleAccess;
 
     private volatile boolean bucketChecked = false;
 
@@ -205,6 +183,11 @@ public class S3FileStorageService implements FileStorageService {
     }
 
     private StorageConfigResolved resolveConfig() {
+        String fallbackBucket = storageConfigService.getDefaultBucketName() != null
+                ? storageConfigService.getDefaultBucketName() : "isperp-files";
+        String fallbackRegion = storageConfigService.getDefaultRegion() != null
+                ? storageConfigService.getDefaultRegion() : "us-east-1";
+        boolean fallbackPathStyle = storageConfigService.isDefaultPathStyleAccess();
         try {
             Optional<StorageConfig> dbConfig = storageConfigRepository.findFirstByIsActiveTrueOrderByCreatedAtDesc();
             if (dbConfig.isPresent()) {
@@ -213,11 +196,11 @@ public class S3FileStorageService implements FileStorageService {
                         cfg.getStorageType(),
                         cfg.getProvider(),
                         cfg.getEndpointUrl(),
-                        cfg.getBucketName() != null ? cfg.getBucketName() : defaultBucketName,
-                        cfg.getRegion() != null ? cfg.getRegion() : defaultRegion,
+                        cfg.getBucketName() != null ? cfg.getBucketName() : fallbackBucket,
+                        cfg.getRegion() != null ? cfg.getRegion() : fallbackRegion,
                         cfg.getAccessKey(),
                         cfg.getSecretKey(),
-                        cfg.getPathStyleAccess() != null ? cfg.getPathStyleAccess() : defaultPathStyleAccess
+                        cfg.getPathStyleAccess() != null ? cfg.getPathStyleAccess() : fallbackPathStyle
                 );
             }
         } catch (Exception e) {
@@ -225,14 +208,14 @@ public class S3FileStorageService implements FileStorageService {
         }
 
         return new StorageConfigResolved(
-                "local".equalsIgnoreCase(defaultStorageType) ? StorageType.LOCAL : StorageType.S3,
+                "local".equalsIgnoreCase(storageConfigService.getDefaultStorageType()) ? StorageType.LOCAL : StorageType.S3,
                 StorageProvider.SEAWEEDFS_LOCAL,
-                defaultEndpointUrl,
-                defaultBucketName,
-                defaultRegion,
-                defaultAccessKey,
-                defaultSecretKey,
-                defaultPathStyleAccess
+                storageConfigService.getDefaultEndpointUrl(),
+                fallbackBucket,
+                fallbackRegion,
+                storageConfigService.getDefaultAccessKey(),
+                storageConfigService.getDefaultSecretKey(),
+                fallbackPathStyle
         );
     }
 

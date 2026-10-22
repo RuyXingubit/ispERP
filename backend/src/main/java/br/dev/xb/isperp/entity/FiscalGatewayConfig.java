@@ -1,7 +1,6 @@
 package br.dev.xb.isperp.entity;
 
 import br.dev.xb.isperp.fiscal.FiscalGatewayType;
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,13 +12,14 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "fiscal_gateway_configs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @SuppressWarnings("null")
-public class FiscalGatewayConfig {
+public class FiscalGatewayConfig implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -63,23 +63,8 @@ public class FiscalGatewayConfig {
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
-
     @Column(name = "created_at", nullable = false, updatable = false)
-    @Nullable
-    private LocalDateTime createdAt;
-
+    private @Nullable LocalDateTime createdAt;
     @Column(name = "updated_at")
-    @Nullable
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.id = UuidCreatorUtils.orGenerate(this.id);
-        this.createdAt = this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    private @Nullable LocalDateTime updatedAt;
 }

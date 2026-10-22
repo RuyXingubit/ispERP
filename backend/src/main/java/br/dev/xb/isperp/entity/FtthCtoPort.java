@@ -1,17 +1,15 @@
 package br.dev.xb.isperp.entity;
 
 import br.dev.xb.isperp.ftth.FtthPortStatus;
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "ftth_cto_ports")
 @Getter
 @Setter
@@ -19,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class FtthCtoPort {
+public class FtthCtoPort implements OffsetAuditableEntity {
 
     @Id
     @EqualsAndHashCode.Include
@@ -45,19 +43,8 @@ public class FtthCtoPort {
 
     @Column(columnDefinition = "TEXT")
     private @Nullable String notes;
-
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
-    }
 }

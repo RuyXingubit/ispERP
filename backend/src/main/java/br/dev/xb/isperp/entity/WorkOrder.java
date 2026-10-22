@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -17,12 +16,13 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "work_orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WorkOrder {
+public class WorkOrder implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -156,21 +156,12 @@ public class WorkOrder {
     @Nullable
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Nullable
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+    private @Nullable LocalDateTime updatedAt;
+    @Override
+    public void initEntityDefaults() {
         if (this.type == null) {
             this.type = WorkOrderType.INSTALACAO;
         }
@@ -179,10 +170,6 @@ public class WorkOrder {
         }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public enum WorkOrderStatus {
         PENDING_SCHEDULE,

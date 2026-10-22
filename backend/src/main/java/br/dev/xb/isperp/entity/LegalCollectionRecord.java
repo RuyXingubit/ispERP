@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -14,12 +13,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "legal_collection_records")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LegalCollectionRecord {
+public class LegalCollectionRecord implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -60,35 +60,22 @@ public class LegalCollectionRecord {
     @Nullable
     @Column(name = "evidence_notes", columnDefinition = "text")
     private String evidenceNotes;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Nullable
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        if (this.status == null) {
-            this.status = LegalCollectionStatus.PENDING_BUREAU_SUBMISSION;
-        }
+    private @Nullable LocalDateTime updatedAt;
+    @Override
+    public void initEntityDefaults() {
         if (this.totalClaimAmount == null || this.totalClaimAmount.compareTo(BigDecimal.ZERO) == 0) {
             BigDecimal debt = this.totalDebtInvoices != null ? this.totalDebtInvoices : BigDecimal.ZERO;
             BigDecimal equip = this.equipmentIndemnityAmount != null ? this.equipmentIndemnityAmount : BigDecimal.ZERO;
             this.totalClaimAmount = debt.add(equip);
         }
+        if (this.status == null) {
+            this.status = LegalCollectionStatus.PENDING_BUREAU_SUBMISSION;
+        }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public enum LegalCollectionStatus {
         PENDING_BUREAU_SUBMISSION,

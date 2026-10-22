@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,12 +14,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "helpdesk_tickets")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HelpdeskTicket {
+public class HelpdeskTicket implements LocalAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -92,36 +92,23 @@ public class HelpdeskTicket {
     @Nullable
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Nullable
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        if (this.status == null) {
-            this.status = TicketStatus.OPEN;
-        }
+    private @Nullable LocalDateTime updatedAt;
+    @Override
+    public void initEntityDefaults() {
         if (this.priority == null) {
             this.priority = TicketPriority.NORMAL;
         }
         if (this.channel == null) {
             this.channel = TicketChannel.PHONE;
         }
+        if (this.status == null) {
+            this.status = TicketStatus.OPEN;
+        }
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public enum TicketCategory {
         FINANCIAL,

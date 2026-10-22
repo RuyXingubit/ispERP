@@ -5,6 +5,7 @@ import br.dev.xb.isperp.entity.Customer;
 import br.dev.xb.isperp.event.GenericDomainEvent;
 import br.dev.xb.isperp.repository.ContractRepository;
 import br.dev.xb.isperp.repository.CustomerRepository;
+import br.dev.xb.isperp.service.IdempotencyService;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +21,10 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -86,5 +91,30 @@ class ConsumerPayloadUtilsTest {
         GenericDomainEvent event = ConsumerPayloadUtils.buildEvent("TEST_EVENT", "Contract", "123", data);
         assertThat(event.getEventId()).isNotNull();
         assertThat(event.getEventType()).isEqualTo("TEST_EVENT");
+    }
+
+    @Test
+    @DisplayName("Deve executar ação idempotente apenas quando eventType coincidir")
+    void shouldExecuteForEventTypeWhenMatching() {
+        IdempotencyService idempotencyService = mock(IdempotencyService.class);
+        Map<String, Object> payload = Map.of("contractId", "abc-123");
+        GenericDomainEvent event = ConsumerPayloadUtils.buildEvent("CONTRACT_CREATED", "Contract", "abc-123", payload);
+
+        ConsumerPayloadUtils.executeForEventType(
+                event, "OTHER_EVENT", "TestConsumer", idempotencyService, objectMapper, data -> {}
+        );
+        verifyNoInteractions(idempotencyService);
+
+        doAnswer(inv -> {
+            Runnable action = inv.getArgument(2);
+            action.run();
+            return null;
+        }).when(idempotencyService).executeIdempotent(eq(event.getEventId()), eq("TestConsumer"), any(Runnable.class));
+
+        Map<String, Object> captured = new HashMap<>();
+        ConsumerPayloadUtils.executeForEventType(
+                event, "CONTRACT_CREATED", "TestConsumer", idempotencyService, objectMapper, captured::putAll
+        );
+        assertThat(captured).containsEntry("contractId", "abc-123");
     }
 }

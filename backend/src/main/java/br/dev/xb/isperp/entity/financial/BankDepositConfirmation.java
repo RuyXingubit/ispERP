@@ -1,7 +1,8 @@
 package br.dev.xb.isperp.entity.financial;
 
+import br.dev.xb.isperp.entity.EntityLifecycleListener;
+import br.dev.xb.isperp.entity.OffsetAuditableEntity;
 import br.dev.xb.isperp.entity.User;
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,12 +14,13 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "bank_deposit_confirmations")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BankDepositConfirmation {
+public class BankDepositConfirmation implements OffsetAuditableEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -64,30 +66,17 @@ public class BankDepositConfirmation {
 
     @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
-
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = OffsetDateTime.now();
-        this.updatedAt = OffsetDateTime.now();
+    @Override
+    public void initEntityDefaults() {
         if (this.depositDate == null) {
             this.depositDate = OffsetDateTime.now();
         }
         if (this.status == null) {
             this.status = BankDepositStatus.PENDING_AUDIT;
         }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = OffsetDateTime.now();
     }
 }

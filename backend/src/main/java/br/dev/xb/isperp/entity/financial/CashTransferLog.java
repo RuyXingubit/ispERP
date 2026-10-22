@@ -1,7 +1,7 @@
 package br.dev.xb.isperp.entity.financial;
 
+import br.dev.xb.isperp.entity.EntityLifecycleListener;
 import br.dev.xb.isperp.entity.User;
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,12 +13,13 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(EntityLifecycleListener.class)
 @Table(name = "cash_transfer_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CashTransferLog {
+public class CashTransferLog implements CustodyTransferLogEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -51,13 +52,4 @@ public class CashTransferLog {
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
-
-    @PrePersist
-    protected void onCreate() {
-        this.id = UuidCreatorUtils.orGenerate(this.id);
-        this.requestedAt = OffsetDateTime.now();
-        if (this.status == null) {
-            this.status = CashTransferStatus.PENDING_ACCEPTANCE;
-        }
-    }
 }
