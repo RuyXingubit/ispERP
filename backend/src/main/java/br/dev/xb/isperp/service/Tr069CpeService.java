@@ -255,7 +255,29 @@ public class Tr069CpeService {
         return genieAcsUrl != null && !genieAcsUrl.isBlank();
     }
 
+    void setGenieAcsUrl(String genieAcsUrl) {
+        this.genieAcsUrl = genieAcsUrl;
+    }
+
     private boolean dispatchSetParameterValuesToGenieAcs(Tr069CpeConfig config) {
+        String payload = String.format(
+                "{\"name\":\"setParameterValues\",\"parameterValues\":[" +
+                "[\"InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID\",\"%s\",\"xsd:string\"]," +
+                "[\"InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.KeyPassphrase\",\"%s\",\"xsd:string\"]," +
+                "[\"InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID\",\"%s\",\"xsd:string\"]," +
+                "[\"InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.KeyPassphrase\",\"%s\",\"xsd:string\"]" +
+                "]}",
+                config.getSsid24Ghz(), config.getPassword24Ghz(),
+                config.getSsid5Ghz(), config.getPassword5Ghz()
+        );
+        return dispatchTaskToGenieAcs(config, payload);
+    }
+
+    private boolean dispatchRebootToGenieAcs(Tr069CpeConfig config) {
+        return dispatchTaskToGenieAcs(config, "{\"name\":\"reboot\"}");
+    }
+
+    private boolean dispatchTaskToGenieAcs(Tr069CpeConfig config, String payload) {
         String serial = config.getOnuSerial();
         if (!isGenieAcsConfigured() || serial == null || serial.isBlank()) {
             return false;
@@ -263,16 +285,6 @@ public class Tr069CpeService {
         try {
             String deviceId = URLEncoder.encode(serial, StandardCharsets.UTF_8);
             String url = stripTrailingSlashes(genieAcsUrl) + "/devices/" + deviceId + "/tasks?connection_request";
-            String payload = String.format(
-                    "{\"name\":\"setParameterValues\",\"parameterValues\":[" +
-                    "[\"InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID\",\"%s\",\"xsd:string\"]," +
-                    "[\"InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.KeyPassphrase\",\"%s\",\"xsd:string\"]," +
-                    "[\"InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID\",\"%s\",\"xsd:string\"]," +
-                    "[\"InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.KeyPassphrase\",\"%s\",\"xsd:string\"]" +
-                    "]}",
-                    config.getSsid24Ghz(), config.getPassword24Ghz(),
-                    config.getSsid5Ghz(), config.getPassword5Ghz()
-            );
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(4))
@@ -291,34 +303,7 @@ public class Tr069CpeService {
         }
     }
 
-    private boolean dispatchRebootToGenieAcs(Tr069CpeConfig config) {
-        String serial = config.getOnuSerial();
-        if (!isGenieAcsConfigured() || serial == null || serial.isBlank()) {
-            return false;
-        }
-        try {
-            String deviceId = URLEncoder.encode(serial, StandardCharsets.UTF_8);
-            String url = stripTrailingSlashes(genieAcsUrl) + "/devices/" + deviceId + "/tasks?connection_request";
-            String payload = "{\"name\":\"reboot\"}";
-            HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(Duration.ofSeconds(4))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(payload))
-                    .build();
-            HttpResponse<String> resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
-            return resp.statusCode() >= 200 && resp.statusCode() < 300;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn("GenieACS NBI interrompido no reboot ({}). Registrando reboot sincronizado localmente.", e.getMessage());
-            return false;
-        } catch (Exception e) {
-            log.warn("GenieACS NBI indisponível no reboot ({}). Registrando reboot sincronizado localmente.", e.getMessage());
-            return false;
-        }
-    }
-
-    private static String stripTrailingSlashes(String input) {
+    static String stripTrailingSlashes(String input) {
         int end = input.length();
         while (end > 0 && input.charAt(end - 1) == '/') {
             end--;

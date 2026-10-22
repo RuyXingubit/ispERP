@@ -26,13 +26,18 @@ class GeoCepClientTest {
     }
 
     @Test
-    @DisplayName("Deve buscar endereço por avenida brigadeiro eduardo gomes com sucesso")
+    @DisplayName("Deve buscar endereço por avenida brigadeiro eduardo gomes com sucesso e fallback quando GeoCEP indisponível")
     void shouldSearchAddressesForEduardoGomes() {
         List<GeoCepClient.CepLookupResult> results = geoCepClient.searchAddresses("avenida brigadeiro eduardo gomes");
 
         assertNotNull(results);
         assertFalse(results.isEmpty());
         assertTrue(results.stream().anyMatch(r -> r.getLogradouro().toLowerCase().contains("eduardo gomes")));
+
+        GeoCepClient offlineClient = new GeoCepClient("http://127.0.0.1:1", "");
+        List<GeoCepClient.CepLookupResult> fallbackResults = offlineClient.searchAddresses("praça brigadeiro eduardo gomes");
+        assertNotNull(fallbackResults);
+        assertFalse(fallbackResults.isEmpty());
     }
 
     @Test

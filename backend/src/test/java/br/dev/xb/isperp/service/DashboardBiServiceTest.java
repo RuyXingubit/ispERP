@@ -92,6 +92,8 @@ class DashboardBiServiceTest {
                 .customerId(customerId)
                 .amount(new BigDecimal("100.00"))
                 .status(Invoice.InvoiceStatus.PAID)
+                .paymentMethod("PIX")
+                .paidAt(java.time.LocalDateTime.now())
                 .dueDate(LocalDate.now().minusDays(5))
                 .build();
 

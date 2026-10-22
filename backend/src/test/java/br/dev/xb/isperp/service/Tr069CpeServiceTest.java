@@ -180,9 +180,11 @@ class Tr069CpeServiceTest {
         when(cpeConfigRepository.save(any(Tr069CpeConfig.class))).thenAnswer(inv -> inv.getArgument(0));
         when(commandLogRepository.save(any(Tr069CommandLog.class))).thenAnswer(inv -> inv.getArgument(0));
 
+        service.setGenieAcsUrl("http://127.0.0.1:1///");
         Tr069CommandLogResponse rebootLog = service.rebootCpeByContract(contractId, "SUPPORT_AGENT", "Analista N1");
         assertThat(rebootLog.getCommandType()).isEqualTo("REBOOT_CPE");
         assertThat(rebootLog.getOriginChannel()).isEqualTo("SUPPORT_AGENT");
         assertThat(existing.getUptimeSeconds()).isZero();
+        assertThat(Tr069CpeService.stripTrailingSlashes("http://genieacs:7557///")).isEqualTo("http://genieacs:7557");
     }
 }
