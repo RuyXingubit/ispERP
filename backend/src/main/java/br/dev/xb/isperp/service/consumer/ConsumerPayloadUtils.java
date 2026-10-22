@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
 
-@SuppressWarnings("null")
+@SuppressWarnings({"null", "java:S2583"})
 public final class ConsumerPayloadUtils {
 
     private ConsumerPayloadUtils() {

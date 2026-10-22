@@ -1,10 +1,12 @@
 package br.dev.xb.isperp.util;
 
 import com.github.f4b6a3.uuid.UuidCreator;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
 
+@SuppressWarnings("java:S2583")
 public final class UuidCreatorUtils {
 
     private UuidCreatorUtils() {
@@ -20,7 +22,7 @@ public final class UuidCreatorUtils {
         return Objects.requireNonNull(UuidCreator.getTimeOrderedEpoch());
     }
 
-    public static UUID orGenerate(UUID id) {
+    public static UUID orGenerate(@Nullable UUID id) {
         return id != null ? id : generateUuidV7();
     }
 }

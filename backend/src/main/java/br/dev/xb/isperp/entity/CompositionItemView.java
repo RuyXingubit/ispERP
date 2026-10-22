@@ -1,26 +1,32 @@
 package br.dev.xb.isperp.entity;
 
 import br.dev.xb.isperp.util.UuidCreatorUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("java:S2583")
 public interface CompositionItemView {
 
+    @Nullable
     UUID getId();
 
     void setId(UUID id);
 
+    @Nullable
     LocalDateTime getCreatedAt();
 
     void setCreatedAt(LocalDateTime createdAt);
 
+    @Nullable
     PlanCompositionCategory getCategory();
 
     void setCategory(PlanCompositionCategory category);
 
+    @Nullable
     BigDecimal getAmount();
 
     default void initDefaults() {
