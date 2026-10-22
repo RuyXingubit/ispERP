@@ -61,11 +61,8 @@ public class Company {
     
     @PrePersist
     protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.id = UuidCreatorUtils.orGenerate(this.id);
+        this.createdAt = this.updatedAt = LocalDateTime.now();
     }
     
     @PreUpdate

@@ -35,4 +35,15 @@ public interface NetworkProvisioner {
      * Consulta sinal óptico (dBm) e status operacional da ONU na OLT.
      */
     OnuStatusResponse checkOnuStatus(String onuMac, NetworkDevice device);
+
+    static OnuStatusResponse buildOnlineStatus(String onuMac, String rxDbm, String txDbm, String oltName, String details) {
+        return OnuStatusResponse.builder()
+                .onuMac(onuMac)
+                .status("ONLINE")
+                .rxPowerDbm(new java.math.BigDecimal(rxDbm))
+                .txPowerDbm(new java.math.BigDecimal(txDbm))
+                .oltName(oltName)
+                .details(details)
+                .build();
+    }
 }

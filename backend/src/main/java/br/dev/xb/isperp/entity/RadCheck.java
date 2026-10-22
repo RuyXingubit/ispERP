@@ -1,10 +1,9 @@
 package br.dev.xb.isperp.entity;
 
-import com.github.f4b6a3.uuid.UuidCreator;
+import br.dev.xb.isperp.util.UuidCreatorUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -35,8 +34,6 @@ public class RadCheck {
 
     @PrePersist
     public void prePersist() {
-        if (this.id == null) {
-            this.id = Objects.requireNonNull(UuidCreator.getTimeOrderedEpoch());
-        }
+        this.id = UuidCreatorUtils.orGenerate(this.id);
     }
 }

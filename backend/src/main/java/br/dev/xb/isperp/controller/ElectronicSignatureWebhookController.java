@@ -1,10 +1,8 @@
 package br.dev.xb.isperp.controller;
 
 import br.dev.xb.isperp.api.contract.SignatureWebhooksApi;
-import br.dev.xb.isperp.api.dto.FallbackMethod;
 import br.dev.xb.isperp.api.dto.PixSignatureWebhookRequest;
 import br.dev.xb.isperp.api.dto.SignatureSessionResponse;
-import br.dev.xb.isperp.api.dto.SignatureStatus;
 import br.dev.xb.isperp.service.ElectronicSignatureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,44 +34,6 @@ public class ElectronicSignatureWebhookController implements SignatureWebhooksAp
                 .build();
 
         br.dev.xb.isperp.dto.SignatureSessionResponse internalRes = signatureService.processPixSignatureWebhook(internalReq);
-        return ResponseEntity.ok(toApiResponse(internalRes));
-    }
-
-    private SignatureSessionResponse toApiResponse(br.dev.xb.isperp.dto.SignatureSessionResponse internal) {
-        if (internal == null) return null;
-        SignatureSessionResponse res = new SignatureSessionResponse();
-        res.setId(internal.getId());
-        res.setContractId(internal.getContractId());
-        res.setTemplateId(internal.getTemplateId());
-        res.setToken(internal.getToken());
-        res.setSignatureUrl(internal.getSignatureUrl());
-        if (internal.getStatus() != null) {
-            res.setStatus(SignatureStatus.fromValue(internal.getStatus().name()));
-        }
-        if (internal.getSymbolicAmount() != null) {
-            res.setSymbolicAmount(internal.getSymbolicAmount().doubleValue());
-        }
-        res.setPixTxid(internal.getPixTxid());
-        res.setPixCopyPaste(internal.getPixCopyPaste());
-        res.setPixQrCodeBase64(internal.getPixQrCodeBase64());
-        res.setPixEndToEndId(internal.getPixEndToEndId());
-        res.setDocumentSha256Hash(internal.getDocumentSha256Hash());
-        res.setPayerName(internal.getPayerName());
-        res.setPayerCpfCnpj(internal.getPayerCpfCnpj());
-        res.setPayerBankName(internal.getPayerBankName());
-        res.setRejectionReason(internal.getRejectionReason());
-        res.setSignedPdfUrl(internal.getSignedPdfUrl());
-        if (internal.getFallbackMethod() != null) {
-            res.setFallbackMethod(FallbackMethod.fromValue(internal.getFallbackMethod().name()));
-        }
-        if (internal.getOnboardingCreditAmount() != null) {
-            res.setOnboardingCreditAmount(internal.getOnboardingCreditAmount().doubleValue());
-        }
-        res.setDiscountAppliedInvoiceId(internal.getDiscountAppliedInvoiceId());
-        res.setForensicCertificatePdfUrl(internal.getForensicCertificatePdfUrl());
-        res.setExpiresAt(internal.getExpiresAt());
-        res.setSignedAt(internal.getSignedAt());
-        res.setCreatedAt(internal.getCreatedAt());
-        return res;
+        return ResponseEntity.ok(ElectronicSignatureController.toApiResponse(internalRes));
     }
 }

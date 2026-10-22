@@ -79,13 +79,11 @@ public class StorageConfig {
 
     @PrePersist
     public void prePersist() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
+        this.id = UuidCreatorUtils.orGenerate(this.id);
         this.updatedAt = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = this.updatedAt;
+        }
     }
 
     @PreUpdate

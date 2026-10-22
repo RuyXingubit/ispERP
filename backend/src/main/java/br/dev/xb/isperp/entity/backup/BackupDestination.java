@@ -85,14 +85,13 @@ public class BackupDestination {
 
     @PrePersist
     public void prePersist() {
-        if (id == null) {
-            id = UuidCreatorUtils.generateUuidV7();
-        }
+        id = UuidCreatorUtils.orGenerate(id);
+        OffsetDateTime now = OffsetDateTime.now();
         if (createdAt == null) {
-            createdAt = OffsetDateTime.now();
+            createdAt = now;
         }
         if (updatedAt == null) {
-            updatedAt = OffsetDateTime.now();
+            updatedAt = now;
         }
     }
 

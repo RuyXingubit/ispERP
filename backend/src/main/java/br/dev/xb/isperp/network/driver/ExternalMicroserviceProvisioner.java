@@ -8,8 +8,6 @@ import br.dev.xb.isperp.network.dto.OnuStatusResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-
 @Component
 @Slf4j
 @SuppressWarnings("null")
@@ -48,13 +46,8 @@ public class ExternalMicroserviceProvisioner implements NetworkProvisioner {
     @Override
     public OnuStatusResponse checkOnuStatus(String onuMac, NetworkDevice device) {
         log.info("MicroserviceNetwork: Consultando status de MAC={} via microserviço", onuMac);
-        return OnuStatusResponse.builder()
-                .onuMac(onuMac)
-                .status("ONLINE")
-                .rxPowerDbm(new BigDecimal("-18.80"))
-                .txPowerDbm(new BigDecimal("2.30"))
-                .oltName(device.getName())
-                .details("Conexão ativa via Microserviço de Rede")
-                .build();
+        return NetworkProvisioner.buildOnlineStatus(
+                onuMac, "-18.80", "2.30", device.getName(), "Conexão ativa via Microserviço de Rede"
+        );
     }
 }

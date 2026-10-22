@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.entity;
 
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InvoiceCompositionItem {
+public class InvoiceCompositionItem implements CompositionItemView {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -48,14 +47,6 @@ public class InvoiceCompositionItem {
 
     @PrePersist
     protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-        if (this.category == null) {
-            this.category = PlanCompositionCategory.SCM;
-        }
+        initDefaults();
     }
 }

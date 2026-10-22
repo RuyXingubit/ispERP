@@ -71,14 +71,12 @@ public class BackupPolicy {
 
     @PrePersist
     public void prePersist() {
-        if (id == null) {
-            id = UuidCreatorUtils.generateUuidV7();
-        }
+        id = UuidCreatorUtils.orGenerate(id);
         if (createdAt == null) {
             createdAt = OffsetDateTime.now();
         }
         if (updatedAt == null) {
-            updatedAt = OffsetDateTime.now();
+            updatedAt = createdAt;
         }
     }
 

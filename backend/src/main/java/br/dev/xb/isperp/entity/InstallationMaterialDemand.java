@@ -8,7 +8,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -18,9 +17,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class InstallationMaterialDemand {
 
     @Id
+    @EqualsAndHashCode.Include
     @Column(nullable = false, updatable = false)
     private UUID id;
 
@@ -88,18 +89,5 @@ public class InstallationMaterialDemand {
         if (this.ptoRosetteCount == null) {
             this.ptoRosetteCount = 1;
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        InstallationMaterialDemand that = (InstallationMaterialDemand) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 }

@@ -48,7 +48,7 @@ public class ElectronicSignatureController implements SignaturesApi {
     @GetMapping({"/contracts/{contractId}/signatures", "/api/contracts/{contractId}/signatures"})
     public ResponseEntity<List<SignatureSessionResponse>> listSignaturesByContract(@PathVariable UUID contractId) {
         return ResponseEntity.ok(signatureService.listSignaturesByContract(contractId).stream()
-                .map(this::toApiResponse)
+                .map(ElectronicSignatureController::toApiResponse)
                 .collect(Collectors.toList()));
     }
 
@@ -101,7 +101,7 @@ public class ElectronicSignatureController implements SignaturesApi {
                 .body(new ByteArrayResource(pdfBytes));
     }
 
-    private SignatureSessionResponse toApiResponse(br.dev.xb.isperp.dto.SignatureSessionResponse internal) {
+    public static SignatureSessionResponse toApiResponse(br.dev.xb.isperp.dto.SignatureSessionResponse internal) {
         if (internal == null) return null;
         SignatureSessionResponse res = new SignatureSessionResponse();
         res.setId(internal.getId());

@@ -19,4 +19,8 @@ public final class UuidCreatorUtils {
     public static UUID generateUuidV7() {
         return Objects.requireNonNull(UuidCreator.getTimeOrderedEpoch());
     }
+
+    public static UUID orGenerate(UUID id) {
+        return id != null ? id : generateUuidV7();
+    }
 }

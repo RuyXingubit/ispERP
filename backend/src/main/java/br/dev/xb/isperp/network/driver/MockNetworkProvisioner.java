@@ -8,8 +8,6 @@ import br.dev.xb.isperp.network.dto.OnuStatusResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-
 @Component
 @Slf4j
 @SuppressWarnings("null")
@@ -46,13 +44,8 @@ public class MockNetworkProvisioner implements NetworkProvisioner {
 
     @Override
     public OnuStatusResponse checkOnuStatus(String onuMac, NetworkDevice device) {
-        return OnuStatusResponse.builder()
-                .onuMac(onuMac)
-                .status("ONLINE")
-                .rxPowerDbm(new BigDecimal("-20.00"))
-                .txPowerDbm(new BigDecimal("2.00"))
-                .oltName("Mock OLT")
-                .details("Simulação Mock de Sinal")
-                .build();
+        return NetworkProvisioner.buildOnlineStatus(
+                onuMac, "-20.00", "2.00", "Mock OLT", "Simulação Mock de Sinal"
+        );
     }
 }

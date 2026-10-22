@@ -13,10 +13,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Mapper(
@@ -24,7 +20,7 @@ import java.util.List;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 @SuppressWarnings("java:S2583")
-public interface PlanMapper {
+public interface PlanMapper extends CommonMapperConverters {
 
     PlanResponse toResponse(Plan plan);
 
@@ -69,26 +65,6 @@ public interface PlanMapper {
             defaultScm.setFiscalCode("5307");
             target.setCompositionItems(List.of(defaultScm));
         }
-    }
-
-    default Double bigDecimalToDouble(BigDecimal val) {
-        if (val == null) return null;
-        return val.doubleValue();
-    }
-
-    default BigDecimal doubleToBigDecimal(Double val) {
-        if (val == null) return null;
-        return BigDecimal.valueOf(val);
-    }
-
-    default OffsetDateTime localDateTimeToOffsetDateTime(LocalDateTime localDateTime) {
-        if (localDateTime == null) return null;
-        return localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime();
-    }
-
-    default LocalDateTime offsetDateTimeToLocalDateTime(OffsetDateTime offsetDateTime) {
-        if (offsetDateTime == null) return null;
-        return offsetDateTime.toLocalDateTime();
     }
 }
 

@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.service.consumer;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import br.dev.xb.isperp.event.DomainEvent;
 import br.dev.xb.isperp.service.EmailNotificationService;
@@ -195,15 +194,7 @@ public class NotificationEventConsumer {
         });
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> extractPayload(Object payload) {
-        if (payload instanceof Map) {
-            return (Map<String, Object>) payload;
-        }
-        try {
-            return objectMapper.readValue(payload.toString(), new TypeReference<Map<String, Object>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter payload", e);
-        }
+        return ConsumerPayloadUtils.extractPayload(objectMapper, payload);
     }
 }

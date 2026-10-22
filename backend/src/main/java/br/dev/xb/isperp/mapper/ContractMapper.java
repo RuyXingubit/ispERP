@@ -11,9 +11,6 @@ import br.dev.xb.isperp.entity.ContractLifecycleEvent;
 import org.mapstruct.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Mapper(
@@ -21,7 +18,7 @@ import java.util.List;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 @SuppressWarnings("java:S2583")
-public interface ContractMapper {
+public interface ContractMapper extends CommonMapperConverters {
 
     ContractResponse toResponse(Contract contract);
 
@@ -84,23 +81,5 @@ public interface ContractMapper {
         if (contract.getPendingProRataAdjustment() == null) {
             contract.setPendingProRataAdjustment(BigDecimal.ZERO);
         }
-    }
-
-    default BigDecimal doubleToBigDecimal(Double value) {
-        return value != null ? BigDecimal.valueOf(value) : null;
-    }
-
-    default Double bigDecimalToDouble(BigDecimal value) {
-        return value != null ? value.doubleValue() : null;
-    }
-
-    default OffsetDateTime localDateTimeToOffsetDateTime(LocalDateTime localDateTime) {
-        if (localDateTime == null) return null;
-        return localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime();
-    }
-
-    default LocalDateTime offsetDateTimeToLocalDateTime(OffsetDateTime offsetDateTime) {
-        if (offsetDateTime == null) return null;
-        return offsetDateTime.toLocalDateTime();
     }
 }

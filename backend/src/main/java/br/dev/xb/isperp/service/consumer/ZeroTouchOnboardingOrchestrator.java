@@ -7,7 +7,6 @@ import br.dev.xb.isperp.event.GenericDomainEvent;
 import br.dev.xb.isperp.repository.*;
 import br.dev.xb.isperp.service.*;
 import br.dev.xb.isperp.util.UuidCreatorUtils;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,21 +54,8 @@ public class ZeroTouchOnboardingOrchestrator {
 
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "-SaleSubmitted", () -> {
             try {
-                Map<String, Object> data = extractPayload(event.getPayload());
-
+                Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
                 UUID saleId = UUID.fromString(data.get("saleId").toString());
-                UUID planId = UUID.fromString(data.get("planId").toString());
-                String customerCpf = (String) data.get("customerCpf");
-                String customerName = (String) data.get("customerName");
-                String customerEmail = (String) data.get("customerEmail");
-                String customerPhone = (String) data.get("customerPhone");
-                String installationAddress = (String) data.get("installationAddress");
-                String city = (String) data.get("city");
-                String state = (String) data.get("state");
-                String zipCode = (String) data.get("zipCode");
-                BigDecimal monthlyFee = new BigDecimal(data.get("monthlyFee").toString());
-                Integer preferredDueDate = data.get("preferredDueDate") != null
-                        ? Integer.parseInt(data.get("preferredDueDate").toString()) : 10;
 
                 // 1. Atualiza status da venda para PENDING_PAYMENT_SIGNATURE
                 saleRepository.findById(saleId).ifPresent(sale -> {
@@ -77,53 +63,16 @@ public class ZeroTouchOnboardingOrchestrator {
                     saleRepository.save(sale);
                 });
 
-                // 2. Cadastra ou recupera cliente
-                Customer customer = customerRepository.findByCpf(customerCpf).orElseGet(() -> {
-                    return Customer.builder()
-                            .id(UuidCreatorUtils.generateUuidV7())
-                            .cpf(customerCpf)
-                            .active(true)
-                            .build();
-                });
-                customer.setName(customerName);
-                customer.setEmail(customerEmail);
-                customer.setPhone(customerPhone);
-                customer.setAddress(installationAddress);
-                customer.setCity(city);
-                customer.setState(state);
-                customer.setZipCode(zipCode);
-                if (data.get("latitude") != null) {
-                    customer.setLatitude(new BigDecimal(data.get("latitude").toString()));
-                }
-                if (data.get("longitude") != null) {
-                    customer.setLongitude(new BigDecimal(data.get("longitude").toString()));
-                }
-                Customer savedCustomer = customerRepository.save(customer);
-
-                UUID ctoId = data.get("ctoId") != null ? UUID.fromString(data.get("ctoId").toString()) : null;
-                Integer ctoPortNumber = data.get("ctoPortNumber") != null ? Integer.parseInt(data.get("ctoPortNumber").toString()) : null;
-
-                // 3. Cria contrato em status PENDING_SIGNATURE (ou PENDING_INSTALLATION se já assinado)
-                String contractNumber = "CTR-" + System.currentTimeMillis();
-                Contract contract = Contract.builder()
-                        .id(UuidCreatorUtils.generateUuidV7())
-                        .customerId(savedCustomer.getId())
-                        .planId(planId)
-                        .saleId(saleId)
-                        .contractNumber(contractNumber)
-                        .status(Contract.ContractStatus.DRAFT)
-                        .monthlyFee(monthlyFee)
-                        .dueDay(preferredDueDate)
-                        .installationAddress(installationAddress)
-                        .city(city)
-                        .state(state)
-                        .zipCode(zipCode)
-                        .ctoId(ctoId)
-                        .ctoPortNumber(ctoPortNumber)
-                        .build();
-
-                Contract savedContract = contractRepository.save(contract);
-                log.info("Contrato {} gerado em DRAFT para assinatura Pix do cliente {}", contractNumber, customerName);
+                // 2. Cadastra ou recupera cliente e 3. Cria contrato em status DRAFT
+                ConsumerPayloadUtils.CustomerAndContract result = ConsumerPayloadUtils.upsertCustomerAndCreateContract(
+                        customerRepository,
+                        contractRepository,
+                        data,
+                        Contract.ContractStatus.DRAFT
+                );
+                Contract savedContract = result.contract();
+                log.info("Contrato {} gerado em DRAFT para assinatura Pix do cliente {}",
+                        savedContract.getContractNumber(), result.customer().getName());
 
                 // 4. Cria sessão de assinatura Pix de R$ 1,00
                 CreateSignatureSessionRequest sigReq = CreateSignatureSessionRequest.builder()
@@ -145,7 +94,7 @@ public class ZeroTouchOnboardingOrchestrator {
 
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "-ContractSigned", () -> {
             try {
-                Map<String, Object> data = extractPayload(event.getPayload());
+                Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
                 UUID contractId = UUID.fromString(data.get("contractId").toString());
 
                 Contract contract = contractRepository.findById(contractId)
@@ -201,13 +150,12 @@ public class ZeroTouchOnboardingOrchestrator {
                 demandPayload.put("estimatedDropMeters", demand.getEstimatedDropMeters());
                 demandPayload.put("onuModelRequired", demand.getOnuModelRequired());
 
-                GenericDomainEvent demandEvent = GenericDomainEvent.builder()
-                        .eventId(UuidCreatorUtils.generateUuidV7())
-                        .eventType("INSTALLATION_DEMAND_GENERATED")
-                        .aggregateType("InstallationMaterialDemand")
-                        .aggregateId(demand.getId().toString())
-                        .payload(demandPayload)
-                        .build();
+                GenericDomainEvent demandEvent = ConsumerPayloadUtils.buildEvent(
+                        "INSTALLATION_DEMAND_GENERATED",
+                        "InstallationMaterialDemand",
+                        demand.getId().toString(),
+                        demandPayload
+                );
 
                 domainEventPublisher.publish(demandEvent);
                 log.info("Zero-Touch: O.S. {} e Demanda de Materiais {} geradas com sucesso para o contrato {}",
@@ -225,7 +173,7 @@ public class ZeroTouchOnboardingOrchestrator {
 
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "-WorkOrderCompleted", () -> {
             try {
-                Map<String, Object> data = extractPayload(event.getPayload());
+                Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
                 UUID contractId = UUID.fromString(data.get("contractId").toString());
 
                 contractRepository.findById(contractId).ifPresent(c -> {
@@ -238,17 +186,5 @@ public class ZeroTouchOnboardingOrchestrator {
                 log.error("Erro no Zero-Touch ao processar WORK_ORDER_COMPLETED: {}", e.getMessage(), e);
             }
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> extractPayload(Object payload) {
-        if (payload instanceof Map) {
-            return (Map<String, Object>) payload;
-        }
-        try {
-            return objectMapper.readValue(payload.toString(), new TypeReference<Map<String, Object>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter payload para Map", e);
-        }
     }
 }

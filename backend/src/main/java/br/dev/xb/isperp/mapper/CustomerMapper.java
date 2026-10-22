@@ -9,10 +9,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Mapper(
@@ -20,7 +16,7 @@ import java.util.List;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 @SuppressWarnings("java:S2583")
-public interface CustomerMapper {
+public interface CustomerMapper extends CommonMapperConverters {
 
     CustomerResponse toResponse(Customer customer);
 
@@ -46,22 +42,4 @@ public interface CustomerMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntityFromRequest(CustomerUpdateRequest request, @MappingTarget Customer customer);
-
-    default BigDecimal doubleToBigDecimal(Double value) {
-        return value != null ? BigDecimal.valueOf(value) : null;
-    }
-
-    default Double bigDecimalToDouble(BigDecimal value) {
-        return value != null ? value.doubleValue() : null;
-    }
-
-    default OffsetDateTime localDateTimeToOffsetDateTime(LocalDateTime localDateTime) {
-        if (localDateTime == null) return null;
-        return localDateTime.atZone(ZoneId.systemDefault()).toOffsetDateTime();
-    }
-
-    default LocalDateTime offsetDateTimeToLocalDateTime(OffsetDateTime offsetDateTime) {
-        if (offsetDateTime == null) return null;
-        return offsetDateTime.toLocalDateTime();
-    }
 }

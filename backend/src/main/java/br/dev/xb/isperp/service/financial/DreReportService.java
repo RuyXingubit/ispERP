@@ -3,6 +3,8 @@ package br.dev.xb.isperp.service.financial;
 import br.dev.xb.isperp.dto.financial.AccountingMethod;
 import br.dev.xb.isperp.dto.financial.DreReportDto;
 import br.dev.xb.isperp.entity.Invoice;
+import br.dev.xb.isperp.entity.financial.ChartOfAccount;
+import br.dev.xb.isperp.entity.financial.DreCategory;
 import br.dev.xb.isperp.entity.financial.ExpenseInstallment;
 import br.dev.xb.isperp.entity.financial.PayableInvoice;
 import br.dev.xb.isperp.entity.financial.PayableStatus;
@@ -19,7 +21,9 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.LocalTime;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -36,16 +40,7 @@ public class DreReportService {
         log.info("Gerando DRE Telecom: de {} até {}, Regime={}", start, end, method);
 
         BigDecimal grossRevenue = calculateGrossRevenue(start, end, method);
-
-        // Agrupamentos de despesas
-        BigDecimal taxDeductions = BigDecimal.ZERO;
-        BigDecimal directInterconnection = BigDecimal.ZERO;
-        BigDecimal opexHr = BigDecimal.ZERO;
-        BigDecimal opexPoles = BigDecimal.ZERO;
-        BigDecimal opexFleet = BigDecimal.ZERO;
-        BigDecimal opexMarketing = BigDecimal.ZERO;
-        BigDecimal opexAdmin = BigDecimal.ZERO;
-        BigDecimal capexAmortization = BigDecimal.ZERO;
+        Map<DreCategory, BigDecimal> categoryTotals = new EnumMap<>(DreCategory.class);
 
         if (method == AccountingMethod.ACCRUAL) {
             // Regime de Competência: baseia-se na data de emissão das faturas a pagar
@@ -57,20 +52,8 @@ public class DreReportService {
                     .toList();
 
             for (PayableInvoice p : payables) {
-                if (p.getChartOfAccount() == null || p.getChartOfAccount().getDreCategory() == null) continue;
                 BigDecimal amount = p.getTotalAmount() != null ? p.getTotalAmount() : BigDecimal.ZERO;
-
-                switch (p.getChartOfAccount().getDreCategory()) {
-                    case TAX_DEDUCTION -> taxDeductions = taxDeductions.add(amount);
-                    case DIRECT_COST_INTERCONNECTION -> directInterconnection = directInterconnection.add(amount);
-                    case OPEX_HR -> opexHr = opexHr.add(amount);
-                    case OPEX_POLES -> opexPoles = opexPoles.add(amount);
-                    case OPEX_FLEET -> opexFleet = opexFleet.add(amount);
-                    case OPEX_MARKETING -> opexMarketing = opexMarketing.add(amount);
-                    case OPEX_ADMIN -> opexAdmin = opexAdmin.add(amount);
-                    case CAPEX_NETWORK, CAPEX_EQUIPMENT, CAPEX_FLEET -> capexAmortization = capexAmortization.add(amount);
-                    case GROSS_REVENUE -> {}
-                }
+                accumulateCategory(categoryTotals, p.getChartOfAccount(), amount);
             }
         } else {
             // Regime de Caixa: baseia-se na data de liquidação das parcelas
@@ -86,22 +69,21 @@ public class DreReportService {
 
             for (ExpenseInstallment inst : paidInstallments) {
                 PayableInvoice p = inst.getPayableInvoice();
-                if (p == null || p.getChartOfAccount() == null || p.getChartOfAccount().getDreCategory() == null) continue;
                 BigDecimal amount = inst.getPaidAmount() != null ? inst.getPaidAmount() : inst.getAmount();
-
-                switch (p.getChartOfAccount().getDreCategory()) {
-                    case TAX_DEDUCTION -> taxDeductions = taxDeductions.add(amount);
-                    case DIRECT_COST_INTERCONNECTION -> directInterconnection = directInterconnection.add(amount);
-                    case OPEX_HR -> opexHr = opexHr.add(amount);
-                    case OPEX_POLES -> opexPoles = opexPoles.add(amount);
-                    case OPEX_FLEET -> opexFleet = opexFleet.add(amount);
-                    case OPEX_MARKETING -> opexMarketing = opexMarketing.add(amount);
-                    case OPEX_ADMIN -> opexAdmin = opexAdmin.add(amount);
-                    case CAPEX_NETWORK, CAPEX_EQUIPMENT, CAPEX_FLEET -> capexAmortization = capexAmortization.add(amount);
-                    case GROSS_REVENUE -> {}
-                }
+                accumulateCategory(categoryTotals, p != null ? p.getChartOfAccount() : null, amount);
             }
         }
+
+        BigDecimal taxDeductions = getCategoryTotal(categoryTotals, DreCategory.TAX_DEDUCTION);
+        BigDecimal directInterconnection = getCategoryTotal(categoryTotals, DreCategory.DIRECT_COST_INTERCONNECTION);
+        BigDecimal opexHr = getCategoryTotal(categoryTotals, DreCategory.OPEX_HR);
+        BigDecimal opexPoles = getCategoryTotal(categoryTotals, DreCategory.OPEX_POLES);
+        BigDecimal opexFleet = getCategoryTotal(categoryTotals, DreCategory.OPEX_FLEET);
+        BigDecimal opexMarketing = getCategoryTotal(categoryTotals, DreCategory.OPEX_MARKETING);
+        BigDecimal opexAdmin = getCategoryTotal(categoryTotals, DreCategory.OPEX_ADMIN);
+        BigDecimal capexAmortization = getCategoryTotal(categoryTotals, DreCategory.CAPEX_NETWORK)
+                .add(getCategoryTotal(categoryTotals, DreCategory.CAPEX_EQUIPMENT))
+                .add(getCategoryTotal(categoryTotals, DreCategory.CAPEX_FLEET));
 
         // Fórmulas da Demonstração do Resultado
         BigDecimal netRevenue = grossRevenue.subtract(taxDeductions);
@@ -137,6 +119,17 @@ public class DreReportService {
                 .capexAmortization(capexAmortization)
                 .freeCashFlow(freeCashFlow)
                 .build();
+    }
+
+    private void accumulateCategory(Map<DreCategory, BigDecimal> totals, ChartOfAccount account, BigDecimal amount) {
+        if (account == null || account.getDreCategory() == null || amount == null) {
+            return;
+        }
+        totals.merge(account.getDreCategory(), amount, BigDecimal::add);
+    }
+
+    private BigDecimal getCategoryTotal(Map<DreCategory, BigDecimal> totals, DreCategory category) {
+        return totals.getOrDefault(category, BigDecimal.ZERO);
     }
 
     private BigDecimal calculateGrossRevenue(LocalDate start, LocalDate end, AccountingMethod method) {

@@ -192,26 +192,10 @@ public class Invoice {
             }
             return;
         }
-        BigDecimal scm = BigDecimal.ZERO;
-        BigDecimal sva = BigDecimal.ZERO;
-        for (InvoiceCompositionItem item : this.compositionItems) {
-            item.setInvoice(this);
-            if (item.getId() == null) {
-                item.setId(UuidCreatorUtils.generateUuidV7());
-            }
-            if (item.getCreatedAt() == null) {
-                item.setCreatedAt(LocalDateTime.now());
-            }
-            BigDecimal itemAmt = item.getAmount() != null ? item.getAmount() : BigDecimal.ZERO;
-            if (item.getCategory() == null || item.getCategory() == PlanCompositionCategory.SCM) {
-                item.setCategory(PlanCompositionCategory.SCM);
-                scm = scm.add(itemAmt);
-            } else {
-                sva = sva.add(itemAmt);
-            }
-        }
-        this.scmAmount = scm;
-        this.svaAmount = sva;
+        this.compositionItems.forEach(item -> item.setInvoice(this));
+        BigDecimal[] totals = CompositionItemView.calculateScmAndSvaTotals(this.compositionItems);
+        this.scmAmount = totals[0];
+        this.svaAmount = totals[1];
     }
 
     @PrePersist

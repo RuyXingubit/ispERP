@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.service.consumer;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import br.dev.xb.isperp.entity.User;
 import br.dev.xb.isperp.entity.UserRole;
@@ -47,7 +46,7 @@ public class ClientCredentialsConsumer {
 
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME, () -> {
             try {
-                Map<String, Object> data = extractPayload(event.getPayload());
+                Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
 
                 String customerName = (String) data.get("customerName");
                 String customerEmail = (String) data.get("customerEmail");
@@ -85,13 +84,12 @@ public class ClientCredentialsConsumer {
                 accessPayload.put("userEmail", userEmail);
                 accessPayload.put("initialPassword", initialPassword);
 
-                GenericDomainEvent accessEvent = GenericDomainEvent.builder()
-                        .eventId(UuidCreatorUtils.generateUuidV7())
-                        .eventType("CLIENT_ACCESS_GENERATED")
-                        .aggregateType("Customer")
-                        .aggregateId(customerId.toString())
-                        .payload(accessPayload)
-                        .build();
+                GenericDomainEvent accessEvent = ConsumerPayloadUtils.buildEvent(
+                        "CLIENT_ACCESS_GENERATED",
+                        "Customer",
+                        customerId.toString(),
+                        accessPayload
+                );
 
                 domainEventPublisher.publish(accessEvent);
 
@@ -100,17 +98,5 @@ public class ClientCredentialsConsumer {
                 throw new RuntimeException("Falha ao gerar credenciais do cliente", e);
             }
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> extractPayload(Object payload) {
-        if (payload instanceof Map) {
-            return (Map<String, Object>) payload;
-        }
-        try {
-            return objectMapper.readValue(payload.toString(), new TypeReference<Map<String, Object>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter payload", e);
-        }
     }
 }

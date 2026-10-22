@@ -54,9 +54,7 @@ public class CashTransferLog {
 
     @PrePersist
     protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
+        this.id = UuidCreatorUtils.orGenerate(this.id);
         this.requestedAt = OffsetDateTime.now();
         if (this.status == null) {
             this.status = CashTransferStatus.PENDING_ACCEPTANCE;

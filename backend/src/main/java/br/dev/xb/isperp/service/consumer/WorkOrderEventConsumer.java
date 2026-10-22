@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.service.consumer;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.event.DomainEvent;
@@ -46,7 +45,7 @@ public class WorkOrderEventConsumer {
 
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME_CONTRACT, () -> {
             try {
-                Map<String, Object> data = extractPayload(event.getPayload());
+                Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
 
                 UUID contractId = UUID.fromString(data.get("contractId").toString());
                 UUID customerId = UUID.fromString(data.get("customerId").toString());
@@ -73,7 +72,7 @@ public class WorkOrderEventConsumer {
 
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME_COMPLETION, () -> {
             try {
-                Map<String, Object> data = extractPayload(event.getPayload());
+                Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
                 UUID contractId = UUID.fromString(data.get("contractId").toString());
 
                 contractService.updateStatus(contractId, Contract.ContractStatus.ACTIVE);
@@ -83,17 +82,5 @@ public class WorkOrderEventConsumer {
                 throw new RuntimeException("Falha ao ativar contrato após conclusão técnica", e);
             }
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> extractPayload(Object payload) {
-        if (payload instanceof Map) {
-            return (Map<String, Object>) payload;
-        }
-        try {
-            return objectMapper.readValue(payload.toString(), new TypeReference<Map<String, Object>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter payload", e);
-        }
     }
 }

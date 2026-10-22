@@ -89,26 +89,10 @@ public class Plan {
             this.svaAmount = BigDecimal.ZERO;
             return;
         }
-        BigDecimal scm = BigDecimal.ZERO;
-        BigDecimal sva = BigDecimal.ZERO;
-        for (PlanCompositionItem item : this.compositionItems) {
-            item.setPlan(this);
-            if (item.getId() == null) {
-                item.setId(UuidCreatorUtils.generateUuidV7());
-            }
-            if (item.getCreatedAt() == null) {
-                item.setCreatedAt(LocalDateTime.now());
-            }
-            BigDecimal itemAmt = item.getAmount() != null ? item.getAmount() : BigDecimal.ZERO;
-            if (item.getCategory() == null || item.getCategory() == PlanCompositionCategory.SCM) {
-                item.setCategory(PlanCompositionCategory.SCM);
-                scm = scm.add(itemAmt);
-            } else {
-                sva = sva.add(itemAmt);
-            }
-        }
-        this.scmAmount = scm;
-        this.svaAmount = sva;
+        this.compositionItems.forEach(item -> item.setPlan(this));
+        BigDecimal[] totals = CompositionItemView.calculateScmAndSvaTotals(this.compositionItems);
+        this.scmAmount = totals[0];
+        this.svaAmount = totals[1];
     }
 
     @PrePersist

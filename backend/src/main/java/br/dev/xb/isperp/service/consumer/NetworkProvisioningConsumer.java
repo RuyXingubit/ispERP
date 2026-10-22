@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.service.consumer;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.event.DomainEvent;
@@ -46,7 +45,7 @@ public class NetworkProvisioningConsumer {
 
     private void handlePlanUpgraded(DomainEvent event) {
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "_PlanUpgradeOLT", () -> {
-            Map<String, Object> data = extractPayload(event.getPayload());
+            Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
             String contractIdStr = (String) data.get("contractId");
             if (contractIdStr != null) {
                 UUID contractId = UUID.fromString(contractIdStr);
@@ -65,7 +64,7 @@ public class NetworkProvisioningConsumer {
 
     private void handleWorkOrderCompleted(DomainEvent event) {
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "_WOComplete", () -> {
-            Map<String, Object> data = extractPayload(event.getPayload());
+            Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
             String contractIdStr = (String) data.get("contractId");
             String onuMac = (String) data.get("onuMac");
             String onuSerial = (String) data.get("onuSerial");
@@ -84,7 +83,7 @@ public class NetworkProvisioningConsumer {
 
     private void handleInvoicePaid(DomainEvent event) {
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME + "_InvoicePaidUnblock", () -> {
-            Map<String, Object> data = extractPayload(event.getPayload());
+            Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
             String contractIdStr = (String) data.get("contractId");
 
             if (contractIdStr != null) {
@@ -96,17 +95,5 @@ public class NetworkProvisioningConsumer {
                 }
             }
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> extractPayload(Object payload) {
-        if (payload instanceof Map) {
-            return (Map<String, Object>) payload;
-        }
-        try {
-            return objectMapper.readValue(payload.toString(), new TypeReference<Map<String, Object>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter payload", e);
-        }
     }
 }

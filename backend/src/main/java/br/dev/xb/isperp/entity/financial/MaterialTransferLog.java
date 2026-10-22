@@ -56,15 +56,13 @@ public class MaterialTransferLog {
 
     @PrePersist
     protected void onCreate() {
-        if (this.id == null) {
-            this.id = UuidCreatorUtils.generateUuidV7();
-        }
-        this.requestedAt = OffsetDateTime.now();
-        if (this.status == null) {
-            this.status = CashTransferStatus.PENDING_ACCEPTANCE;
-        }
+        this.id = UuidCreatorUtils.orGenerate(this.id);
         if (this.quantity == null) {
             this.quantity = BigDecimal.ONE;
         }
+        if (this.status == null) {
+            this.status = CashTransferStatus.PENDING_ACCEPTANCE;
+        }
+        this.requestedAt = OffsetDateTime.now();
     }
 }

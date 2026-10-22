@@ -1,6 +1,5 @@
 package br.dev.xb.isperp.service.consumer;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import br.dev.xb.isperp.entity.Contract;
 import br.dev.xb.isperp.entity.Customer;
@@ -10,17 +9,14 @@ import br.dev.xb.isperp.repository.ContractRepository;
 import br.dev.xb.isperp.repository.CustomerRepository;
 import br.dev.xb.isperp.service.DomainEventPublisher;
 import br.dev.xb.isperp.service.IdempotencyService;
-import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -47,72 +43,16 @@ public class SaleEventConsumer {
 
         idempotencyService.executeIdempotent(event.getEventId(), CONSUMER_NAME, () -> {
             try {
-                Map<String, Object> data = extractPayload(event.getPayload());
+                Map<String, Object> data = ConsumerPayloadUtils.extractPayload(objectMapper, event.getPayload());
 
-                String customerCpf = (String) data.get("customerCpf");
-                String customerName = (String) data.get("customerName");
-                String customerEmail = (String) data.get("customerEmail");
-                String customerPhone = (String) data.get("customerPhone");
-                String installationAddress = (String) data.get("installationAddress");
-                String city = (String) data.get("city");
-                String state = (String) data.get("state");
-                String zipCode = (String) data.get("zipCode");
-                UUID planId = UUID.fromString(data.get("planId").toString());
-                UUID saleId = UUID.fromString(data.get("saleId").toString());
-                BigDecimal monthlyFee = new BigDecimal(data.get("monthlyFee").toString());
-                Integer preferredDueDate = data.get("preferredDueDate") != null 
-                        ? Integer.parseInt(data.get("preferredDueDate").toString()) : 10;
-
-                // 1. Cadastrar ou atualizar cliente
-                Customer customer = customerRepository.findByCpf(customerCpf).orElseGet(() -> {
-                    log.info("Cadastrando novo cliente a partir da venda: CPF={}", customerCpf);
-                    return Customer.builder()
-                            .id(UuidCreatorUtils.generateUuidV7())
-                            .cpf(customerCpf)
-                            .active(true)
-                            .build();
-                });
-
-                customer.setName(customerName);
-                customer.setEmail(customerEmail);
-                customer.setPhone(customerPhone);
-                customer.setAddress(installationAddress);
-                customer.setCity(city);
-                customer.setState(state);
-                customer.setZipCode(zipCode);
-                if (data.get("latitude") != null) {
-                    customer.setLatitude(new BigDecimal(data.get("latitude").toString()));
-                }
-                if (data.get("longitude") != null) {
-                    customer.setLongitude(new BigDecimal(data.get("longitude").toString()));
-                }
-                customer.setActive(true);
-
-                Customer savedCustomer = customerRepository.save(customer);
-
-                UUID ctoId = data.get("ctoId") != null ? UUID.fromString(data.get("ctoId").toString()) : null;
-                Integer ctoPortNumber = data.get("ctoPortNumber") != null ? Integer.parseInt(data.get("ctoPortNumber").toString()) : null;
-
-                // 2. Criar contrato em PENDING_INSTALLATION
-                String contractNumber = "CTR-" + System.currentTimeMillis();
-                Contract contract = Contract.builder()
-                        .id(UuidCreatorUtils.generateUuidV7())
-                        .customerId(savedCustomer.getId())
-                        .planId(planId)
-                        .saleId(saleId)
-                        .contractNumber(contractNumber)
-                        .status(Contract.ContractStatus.PENDING_INSTALLATION)
-                        .monthlyFee(monthlyFee)
-                        .dueDay(preferredDueDate)
-                        .installationAddress(installationAddress)
-                        .city(city)
-                        .state(state)
-                        .zipCode(zipCode)
-                        .ctoId(ctoId)
-                        .ctoPortNumber(ctoPortNumber)
-                        .build();
-
-                Contract savedContract = contractRepository.save(contract);
+                ConsumerPayloadUtils.CustomerAndContract result = ConsumerPayloadUtils.upsertCustomerAndCreateContract(
+                        customerRepository,
+                        contractRepository,
+                        data,
+                        Contract.ContractStatus.PENDING_INSTALLATION
+                );
+                Customer savedCustomer = result.customer();
+                Contract savedContract = result.contract();
                 log.info("Contrato {} gerado com sucesso para o cliente {}", savedContract.getContractNumber(), savedCustomer.getName());
 
                 // 3. Emitir ContractCreatedEvent para o próximo passo do fluxo (Ordem de Serviço na Milestone 4)
@@ -122,19 +62,18 @@ public class SaleEventConsumer {
                 contractEventData.put("customerId", savedCustomer.getId().toString());
                 contractEventData.put("customerName", savedCustomer.getName());
                 contractEventData.put("customerPhone", savedCustomer.getPhone());
-                contractEventData.put("planId", planId.toString());
-                contractEventData.put("installationAddress", installationAddress);
-                contractEventData.put("city", city);
-                contractEventData.put("state", state);
-                contractEventData.put("zipCode", zipCode);
+                contractEventData.put("planId", savedContract.getPlanId().toString());
+                contractEventData.put("installationAddress", savedContract.getInstallationAddress());
+                contractEventData.put("city", savedContract.getCity());
+                contractEventData.put("state", savedContract.getState());
+                contractEventData.put("zipCode", savedContract.getZipCode());
 
-                GenericDomainEvent contractCreatedEvent = GenericDomainEvent.builder()
-                        .eventId(UuidCreatorUtils.generateUuidV7())
-                        .eventType("CONTRACT_CREATED")
-                        .aggregateType("Contract")
-                        .aggregateId(savedContract.getId().toString())
-                        .payload(contractEventData)
-                        .build();
+                GenericDomainEvent contractCreatedEvent = ConsumerPayloadUtils.buildEvent(
+                        "CONTRACT_CREATED",
+                        "Contract",
+                        savedContract.getId().toString(),
+                        contractEventData
+                );
 
                 domainEventPublisher.publish(contractCreatedEvent);
 
@@ -143,17 +82,5 @@ public class SaleEventConsumer {
                 throw new RuntimeException("Falha ao processar venda para cliente e contrato", e);
             }
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> extractPayload(Object payload) {
-        if (payload instanceof Map) {
-            return (Map<String, Object>) payload;
-        }
-        try {
-            return objectMapper.readValue(payload.toString(), new TypeReference<Map<String, Object>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao converter payload para Map", e);
-        }
     }
 }

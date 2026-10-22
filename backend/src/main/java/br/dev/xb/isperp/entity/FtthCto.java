@@ -9,7 +9,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -19,9 +18,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class FtthCto {
 
     @Id
+    @EqualsAndHashCode.Include
     @Column(nullable = false, updatable = false)
     private UUID id;
 
@@ -74,18 +75,5 @@ public class FtthCto {
         if (this.id == null) {
             this.id = UuidCreator.getTimeOrderedEpoch();
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FtthCto that = (FtthCto) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 }
