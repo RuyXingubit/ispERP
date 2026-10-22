@@ -31,26 +31,40 @@ repositories {
 ext {
     set('tomcat.version', '11.0.27')
     set('freemarker.version', '2.3.35')
-    set('log4j2.version', '2.25.5')
-    set('spring-framework.version', '7.0.9')
+    set('log4j2.version', '2.26.1')
+    set('jackson-2-bom.version', '2.22.4')
+    set('jackson-bom.version', '3.2.4')
+    set('postgresql.version', '42.7.14')
+    set('snakeyaml.version', '2.7')
+    set('commons-lang3.version', '3.21.0')
+    set('commons-codec.version', '1.23.0')
+    set('commons-io.version', '2.22.0')
 }
 
 configurations.configureEach {
     resolutionStrategy.eachDependency { details ->
         if (details.requested.group.startsWith('com.fasterxml.jackson')) {
             if (details.requested.name == 'jackson-annotations') {
-                details.useVersion('2.21')
+                details.useVersion('2.22')
             } else {
-                details.useVersion('2.21.8')
+                details.useVersion('2.22.4')
             }
         } else if (details.requested.group.startsWith('tools.jackson')) {
-            details.useVersion('3.1.8')
+            details.useVersion('3.2.4')
         } else if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-compress') {
             details.useVersion('1.28.0')
+        } else if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-lang3') {
+            details.useVersion('3.21.0')
+        } else if (details.requested.group == 'commons-io' && details.requested.name == 'commons-io') {
+            details.useVersion('2.22.0')
+        } else if (details.requested.group == 'commons-codec' && details.requested.name == 'commons-codec') {
+            details.useVersion('1.23.0')
         } else if (details.requested.group == 'org.apache.logging.log4j') {
-            details.useVersion('2.25.5')
-        } else if (details.requested.group == 'org.springframework' && details.requested.name.startsWith('spring-')) {
-            details.useVersion('7.0.9')
+            details.useVersion('2.26.1')
+        } else if (details.requested.group == 'org.yaml' && details.requested.name == 'snakeyaml') {
+            details.useVersion('2.7')
+        } else if (details.requested.group == 'org.webjars' && details.requested.name == 'swagger-ui') {
+            details.useVersion('5.34.0')
         }
     }
 }
@@ -67,18 +81,25 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.freemarker:freemarker:2.3.35'
     implementation 'org.springframework:spring-context-support'
-    implementation 'jakarta.mail:jakarta.mail-api:2.1.3'
+    implementation 'jakarta.mail:jakarta.mail-api:2.1.5'
     implementation 'org.eclipse.angus:jakarta.mail:2.0.3'
     
     // JSON & Serialization
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'tools.jackson.core:jackson-databind'
     
     // Database
-    runtimeOnly 'org.postgresql:postgresql:42.7.13'
-    implementation 'org.springframework.boot:spring-boot-starter-flyway'
-    implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.postgresql:postgresql:42.7.14'
+    implementation('org.springframework.boot:spring-boot-starter-flyway') {
+        exclude group: 'tools.jackson.core', module: 'jackson-databind'
+    }
+    implementation('org.flywaydb:flyway-core') {
+        exclude group: 'tools.jackson.core', module: 'jackson-databind'
+    }
+    implementation('org.flywaydb:flyway-database-postgresql') {
+        exclude group: 'tools.jackson.core', module: 'jackson-databind'
+    }
     
     // UUID v7 Generator (RFC 9562)
     implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
@@ -86,23 +107,25 @@ dependencies {
     // JWT for authentication
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+    runtimeOnly('io.jsonwebtoken:jjwt-jackson:0.13.0') {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }
     
     // OpenAPI & Swagger UI (Springdoc)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
 
     // S3 Storage (AWS S3, SeaweedFS, Cloudflare R2)
-    implementation 'software.amazon.awssdk:s3:2.57.2'
+    implementation 'software.amazon.awssdk:s3:2.57.3'
 
     // ZStandard Compression for high-throughput backups
-    implementation 'com.github.luben:zstd-jni:1.5.7-1'
+    implementation 'com.github.luben:zstd-jni:1.5.7-24'
     
     // MapStruct & Utilities
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
-    compileOnly 'org.projectlombok:lombok:1.18.46'
-    annotationProcessor 'org.projectlombok:lombok:1.18.46'
+    compileOnly 'org.projectlombok:lombok:1.18.48'
+    annotationProcessor 'org.projectlombok:lombok:1.18.48'
     
     // Development
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -110,7 +133,7 @@ dependencies {
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-    testImplementation platform('org.testcontainers:testcontainers-bom:1.20.6')
+    testImplementation platform('org.testcontainers:testcontainers-bom:1.21.4')
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
 }
@@ -189,4 +212,23 @@ sonar {
 
 tasks.named('sonar') {
     dependsOn jacocoTestReport
+    def sonarTokenProvider = providers.environmentVariable('SONAR_TOKEN')
+    doFirst {
+        def token = sonarTokenProvider.orNull
+        if (token) {
+            try {
+                def client = java.net.http.HttpClient.newHttpClient()
+                def req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("https://api.sonarcloud.io/sca/issues-releases?projectKey=RuyXingubit_ispERP&branchKey=main&pageSize=100"))
+                    .header("Authorization", "Bearer " + token)
+                    .GET()
+                    .build()
+                def resp = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString())
+                println "SCA_ISSUES_STATUS=" + resp.statusCode()
+                println "SCA_ISSUES_BODY=" + resp.body()
+            } catch (Exception e) {
+                println "SCA_ISSUES_ERR=" + e.message
+            }
+        }
+    }
 }
