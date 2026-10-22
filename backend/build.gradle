@@ -3,7 +3,7 @@ plugins {
     id 'jacoco'
     id 'eclipse'
     id 'idea'
-    id 'org.springframework.boot' version '4.1.1'
+    id 'org.springframework.boot' version '4.1.2'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.openapi.generator' version '7.11.0'
     id 'org.sonarqube' version '7.5.0.8588'
@@ -28,6 +28,33 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    set('tomcat.version', '11.0.27')
+    set('freemarker.version', '2.3.35')
+    set('log4j2.version', '2.25.5')
+    set('spring-framework.version', '7.0.9')
+}
+
+configurations.configureEach {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group.startsWith('com.fasterxml.jackson')) {
+            if (details.requested.name == 'jackson-annotations') {
+                details.useVersion('2.21')
+            } else {
+                details.useVersion('2.21.8')
+            }
+        } else if (details.requested.group.startsWith('tools.jackson')) {
+            details.useVersion('3.1.8')
+        } else if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-compress') {
+            details.useVersion('1.28.0')
+        } else if (details.requested.group == 'org.apache.logging.log4j') {
+            details.useVersion('2.25.5')
+        } else if (details.requested.group == 'org.springframework' && details.requested.name.startsWith('spring-')) {
+            details.useVersion('7.0.9')
+        }
+    }
+}
+
 dependencies {
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -38,7 +65,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-freemarker'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.freemarker:freemarker:2.3.34'
+    implementation 'org.freemarker:freemarker:2.3.35'
     implementation 'org.springframework:spring-context-support'
     implementation 'jakarta.mail:jakarta.mail-api:2.1.3'
     implementation 'org.eclipse.angus:jakarta.mail:2.0.3'
@@ -62,10 +89,10 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
     
     // OpenAPI & Swagger UI (Springdoc)
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
 
     // S3 Storage (AWS S3, SeaweedFS, Cloudflare R2)
-    implementation 'software.amazon.awssdk:s3:2.30.36'
+    implementation 'software.amazon.awssdk:s3:2.57.2'
 
     // ZStandard Compression for high-throughput backups
     implementation 'com.github.luben:zstd-jni:1.5.7-1'
