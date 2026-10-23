@@ -1,7 +1,7 @@
 # ispERP - ERP para Provedores de Internet (Código Aberto)
 
 [![Java 25](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/projects/jdk/25/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.2-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17+-blue.svg)](https://www.postgresql.org/)
 [![Flutter 3](https://img.shields.io/badge/Flutter-3.x-02569B.svg)](https://flutter.dev/)
 [![Vite 6](https://img.shields.io/badge/Vite-6.x-purple.svg)](https://vite.dev/)
@@ -15,7 +15,7 @@ Sistema ERP moderno de alto desempenho, desenvolvido especialmente para **Proved
 
 ## ⚡ Stack Tecnológica
 
-* **Backend Core:** Java 25 (Virtual Threads) + Spring Boot 4.1.1
+* **Backend Core:** Java 25 (Virtual Threads) + Spring Boot 4.1.2
 * **Arquitetura:** Monólito Modular Orientado a Eventos (EDA) com *Transactional Outbox* e Idempotência
 * **Frontend ERP (Multiplataforma):** Flutter 3.x (Web, Desktop, Android, iOS) multiperfil com navegação adaptativa
 * **Frontend Institucional (WWW):** Vanilla TypeScript + Vite 6 + HTML5/CSS3 puro (zero dependências de runtime)
@@ -27,7 +27,7 @@ Sistema ERP moderno de alto desempenho, desenvolvido especialmente para **Proved
 * **Contratos & API-First:** OpenAPI 3.0.3 (Design-First) + Redocly CLI + OpenAPI Generator (Spring Boot)
 * **Testes Automatizados:** Testcontainers PostgreSQL 17 + JUnit 5 + Mockito + Flutter Test + Node Test Runner
 
-Consulte o documento mestre [**`docs/SDD.md`**](docs/SDD.md) e a pasta [`docs/`](docs/) para a especificação completa de Arquitetura, PRD, Contratos, Processos e Governança.
+Consulte o documento mestre [**`docs/SDD.md`**](docs/SDD.md), o manual [**`docs/QUALIDADE_SEGURANCA_E_ZERO_DUPLICIDADE.md`**](docs/QUALIDADE_SEGURANCA_E_ZERO_DUPLICIDADE.md) e a pasta [`docs/`](docs/) para a especificação completa de Arquitetura, PRD, Contratos, Qualidade de Código, Segurança e Governança.
 
 ---
 
@@ -175,7 +175,7 @@ Todos os usuários do ambiente de teste utilizam a senha padrão: **`password123
 
 ### 2. Desenvolvimento Local (Sem Docker)
 
-#### Backend (Spring Boot 4.1.1 / Java 25):
+#### Backend (Spring Boot 4.1.2 / Java 25):
 ```bash
 cd backend
 ./gradlew bootRun --args='--spring.profiles.active=dev'
@@ -241,7 +241,7 @@ npm run build
 
 ## 🤝 Como Contribuir
 
-Agradecemos contribuições da comunidade! Para manter a integridade, segurança e qualidade arquitetural do **ispERP**, siga as diretrizes abaixo (detalhadas em [`docs/SDD.md`](docs/SDD.md)):
+Agradecemos contribuições da comunidade! Para manter a integridade, segurança e qualidade arquitetural do **ispERP**, siga as diretrizes abaixo (detalhadas em [`docs/SDD.md`](docs/SDD.md), [`docs/QUALIDADE_SEGURANCA_E_ZERO_DUPLICIDADE.md`](docs/QUALIDADE_SEGURANCA_E_ZERO_DUPLICIDADE.md) e [`.agents/rules/code-quality-security-and-zero-duplication.md`](.agents/rules/code-quality-security-and-zero-duplication.md)):
 
 ### 📐 Regra de Ouro: Workflow API-First
 Se a sua contribuição envolver criação, alteração ou exclusão de rotas, endpoints, parâmetros ou payloads:
