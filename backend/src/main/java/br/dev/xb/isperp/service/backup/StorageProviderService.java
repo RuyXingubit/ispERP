@@ -1,6 +1,7 @@
 package br.dev.xb.isperp.service.backup;
 
 import br.dev.xb.isperp.entity.backup.BackupDestination;
+import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -39,37 +39,36 @@ public class StorageProviderService {
      */
     public StorageTestResult testConnection(BackupDestination destination) {
         long start = System.currentTimeMillis();
-        String testFileName = ".healthcheck_" + UUID.randomUUID() + ".tmp";
+        String testFileName = ".healthcheck_" + UuidCreatorUtils.generateUuidV7() + ".tmp";
         byte[] payload = ("ispERP Storage Test Connection at " + OffsetDateTime.now()).getBytes(StandardCharsets.UTF_8);
 
         try {
             switch (destination.getStorageType()) {
                 case S3_COMPATIBLE -> {
-                    S3Client s3 = buildS3Client(destination);
-                    String fullKey = resolvePath(destination.getPathPrefix(), testFileName);
+                    try (S3Client s3 = buildS3Client(destination)) {
+                        String fullKey = resolvePath(destination.getPathPrefix(), testFileName);
 
-                    // 1. Put
-                    s3.putObject(
-                            PutObjectRequest.builder()
-                                    .bucket(destination.getBucketName())
-                                    .key(fullKey)
-                                    .build(),
-                            RequestBody.fromBytes(payload)
-                    );
+                        // 1. Put
+                        s3.putObject(
+                                PutObjectRequest.builder()
+                                        .bucket(destination.getBucketName())
+                                        .key(fullKey)
+                                        .build(),
+                                RequestBody.fromBytes(payload)
+                        );
 
-                    // 2. Head (valida existência)
-                    s3.headObject(HeadObjectRequest.builder()
-                            .bucket(destination.getBucketName())
-                            .key(fullKey)
-                            .build());
+                        // 2. Head (valida existência)
+                        s3.headObject(HeadObjectRequest.builder()
+                                .bucket(destination.getBucketName())
+                                .key(fullKey)
+                                .build());
 
-                    // 3. Delete
-                    s3.deleteObject(DeleteObjectRequest.builder()
-                            .bucket(destination.getBucketName())
-                            .key(fullKey)
-                            .build());
-
-                    s3.close();
+                        // 3. Delete
+                        s3.deleteObject(DeleteObjectRequest.builder()
+                                .bucket(destination.getBucketName())
+                                .key(fullKey)
+                                .build());
+                    }
                 }
                 case LOCAL_VOLUME, SFTP, ISPERP_CLOUD -> {
                     Path root = Paths.get(destination.getPathPrefix() != null && !destination.getPathPrefix().isBlank()
@@ -111,17 +110,17 @@ public class StorageProviderService {
         try {
             switch (destination.getStorageType()) {
                 case S3_COMPATIBLE -> {
-                    S3Client s3 = buildS3Client(destination);
-                    String fullKey = resolvePath(destination.getPathPrefix(), fileName);
-                    s3.putObject(
-                            PutObjectRequest.builder()
-                                    .bucket(destination.getBucketName())
-                                    .key(fullKey)
-                                    .build(),
-                            RequestBody.fromFile(localFile)
-                    );
-                    s3.close();
-                    log.info("Backup {} enviado com sucesso para S3 (Bucket: {}, Key: {})", fileName, destination.getBucketName(), fullKey);
+                    try (S3Client s3 = buildS3Client(destination)) {
+                        String fullKey = resolvePath(destination.getPathPrefix(), fileName);
+                        s3.putObject(
+                                PutObjectRequest.builder()
+                                        .bucket(destination.getBucketName())
+                                        .key(fullKey)
+                                        .build(),
+                                RequestBody.fromFile(localFile)
+                        );
+                        log.info("Backup {} enviado com sucesso para S3 (Bucket: {}, Key: {})", fileName, destination.getBucketName(), fullKey);
+                    }
                 }
                 case LOCAL_VOLUME, SFTP, ISPERP_CLOUD -> {
                     Path root = Paths.get(destination.getPathPrefix() != null && !destination.getPathPrefix().isBlank()

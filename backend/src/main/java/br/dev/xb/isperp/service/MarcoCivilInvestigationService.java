@@ -4,6 +4,7 @@ import br.dev.xb.isperp.dto.*;
 import br.dev.xb.isperp.entity.*;
 import br.dev.xb.isperp.mapper.MarcoCivilMapper;
 import br.dev.xb.isperp.repository.*;
+import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,6 @@ import java.time.OffsetDateTime;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -150,7 +150,7 @@ public class MarcoCivilInvestigationService {
                 .build());
 
         // 2. Gera Token de Validação Seguro
-        String validationToken = UUID.randomUUID().toString().replace("-", "") + Long.toHexString(System.currentTimeMillis());
+        String validationToken = UuidCreatorUtils.generateUuidV7().toString().replace("-", "") + Long.toHexString(System.currentTimeMillis());
 
         // 3. Calcula Hash SHA-256 dos fatos periciais (Garante Imutabilidade Anti-Fraude)
         String canonicalData = String.format(

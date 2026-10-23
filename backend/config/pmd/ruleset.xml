@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="ispERP Quality and Security Ruleset"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        Regras de análise estática offline do ispERP (Segurança, Complexidade Cognitiva e Prevenção de Bugs).
+    </description>
+
+    <exclude-pattern>.*/br/dev/xb/isperp/api/.*</exclude-pattern>
+    <exclude-pattern>.*/br/dev/xb/isperp/seeder/.*</exclude-pattern>
+
+    <!-- Segurança (Criptografia e Hardcoded Crypto/IV) -->
+    <rule ref="category/java/security.xml"/>
+
+    <!-- Complexidade Cognitiva (mesmo limite do SonarQube: 15) -->
+    <rule ref="category/java/design.xml/CognitiveComplexity">
+        <properties>
+            <property name="reportLevel" value="16"/>
+        </properties>
+    </rule>
+
+    <!-- Limite de Parâmetros (mesmo limite do SonarQube: 7) -->
+    <rule ref="category/java/design.xml/ExcessiveParameterList">
+        <properties>
+            <property name="minimum" value="8"/>
+        </properties>
+    </rule>
+
+    <!-- Prevenção de Bugs e Boas Práticas Críticas -->
+    <rule ref="category/java/bestpractices.xml/SystemPrintln"/>
+    <rule ref="category/java/bestpractices.xml/AvoidPrintStackTrace"/>
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
+    <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
+    <rule ref="category/java/errorprone.xml/CloseResource"/>
+    <rule ref="category/java/errorprone.xml/EqualsNull"/>
+    <rule ref="category/java/errorprone.xml/BrokenNullCheck"/>
+</ruleset>

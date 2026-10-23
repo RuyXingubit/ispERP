@@ -5,6 +5,7 @@ import br.dev.xb.isperp.fiscal.FiscalGateway;
 import br.dev.xb.isperp.fiscal.FiscalGatewayResolver;
 import br.dev.xb.isperp.fiscal.dto.*;
 import br.dev.xb.isperp.repository.*;
+import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
@@ -217,7 +218,7 @@ public class FiscalService {
 
         // Salva Registro da NFCom (tributando estritamente a parcela SCM)
         NfcomRecord record = NfcomRecord.builder()
-                .companyId(company.getId() != null ? company.getId() : UUID.randomUUID())
+                .companyId(UuidCreatorUtils.orGenerate(company.getId()))
                 .invoiceId(invoice.getId())
                 .contractId(contract != null ? contract.getId() : null)
                 .customerId(customer.getId())

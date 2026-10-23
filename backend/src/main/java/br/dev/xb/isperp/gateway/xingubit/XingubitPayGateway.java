@@ -5,6 +5,7 @@ import br.dev.xb.isperp.gateway.PaymentGateway;
 import br.dev.xb.isperp.gateway.PaymentGatewayType;
 import br.dev.xb.isperp.gateway.dto.CreateChargeRequest;
 import br.dev.xb.isperp.gateway.dto.CreateChargeResponse;
+import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Map;
-import java.util.UUID;
 
 @Component
 @Slf4j
@@ -31,7 +31,7 @@ public class XingubitPayGateway implements PaymentGateway {
         log.info("XingubitPay: Gerando cobrança Pix COB/COBV para cliente {} no valor de R$ {}",
                 request.getCustomerName(), request.getAmount());
 
-        String txId = "XB-" + UUID.randomUUID().toString().replace("-", "").substring(0, 24).toUpperCase();
+        String txId = "XB-" + UuidCreatorUtils.generateUuidV7().toString().replace("-", "").substring(0, 24).toUpperCase();
         String pixKey = config.getPixKey() != null ? config.getPixKey() : "pix@xingubit.com.br";
 
         // Gera o payload Pix Copia e Cola EMV padrão BACEN

@@ -25,14 +25,17 @@ Esta diretriz consolida os padrões de engenharia atingidos na certificação no
    - Derivação de chaves com **PBKDF2WithHmacSHA256** (mínimo de `600.000` iterações em produção).
    - Validação de assinaturas de Webhooks (HMAC-SHA256) sempre em tempo constante via `MessageDigest.isEqual(...)` para prevenir ataques de timing.
 
-4. **Isolamento Multi-Tenant e Proteção contra Mass Assignment:**
+4. **Isolamento Multi-Tenant, Proteção contra Mass Assignment e UUIDv7 Estrito:**
    - Toda consulta e mutação de domínio deve filtrar estritamente pelo `companyId` do `TenantContext`.
    - **Proibido** expor ou receber entidades JPA (`@Entity`) em Controllers; utilize exclusivamente os DTOs do contrato OpenAPI.
-   - Todos os identificadores primários devem utilizar **UUIDv7** (`UuidCreatorUtils.v7()`).
+   - **Proibido** chamar `UUID.randomUUID()` no código de produção (`src/main/java`). Todos os identificadores devem utilizar **UUIDv7** via `UuidCreatorUtils.generateUuidV7()` (ou `UuidCreatorUtils.orGenerate(id)`). Esta regra é fiscalizada automaticamente pelo `ArchitectureAndQualityRulesTest`.
+
+5. **Zero Segredos Hardcoded (*Secret Scanning*):**
+   - **PROIBIDO** versionar chaves de API, segredos JWT, senhas de banco ou credenciais AWS S3 / Cloudflare R2 diretamente em código Java ou arquivos `.yml` / `.properties`. Utilize sempre variáveis de ambiente (`${ENV_VAR}`).
 
 ---
 
-## 2. Gestão de Dependências e SCA (Zero Dependency Risks)
+## 2. Gestão de Dependências, SCA e Licenças (Zero Dependency Risks)
 
 1. **Controle Explícito de Versões Seguras no `backend/build.gradle`:**
    - Sempre que atualizar o Spring Boot ou adicionar uma biblioteca, verifique a árvore de dependências com:
@@ -44,7 +47,9 @@ Esta diretriz consolida os padrões de engenharia atingidos na certificação no
 
 2. **Redução de Superfície de Ataque (Exclusão de Transitivas Não Utilizadas):**
    - Exclua bibliotecas transitivas opcionais que não são utilizadas em runtime pelo projeto (ex.: `org.hdrhistogram:HdrHistogram`, `org.glassfish.jaxb:jaxb-runtime`, `org.glassfish.jaxb:jaxb-core` ou transitivas legadas do Jackson trazidas por `flyway` e `jjwt-jackson`).
-   - Após qualquer exclusão ou upgrade, execute obrigatoriamente a suíte completa de testes unitários e de integração (`./gradlew test jacocoTestReport`).
+
+3. **Conformidade Jurídica de Licenças (*License Compliance*):**
+   - Os portais `frontend-customer/` e `frontend-site/` são licenciados sob **MIT**. É **PROIBIDO** instalar dependências com licenças copyleft (`GPL`, `AGPL`, `LGPL`) nesses dois projetos; utilize apenas pacotes com licenças permissivas (`MIT`, `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `ISC`).
 
 ---
 
@@ -62,7 +67,7 @@ Esta diretriz consolida os padrões de engenharia atingidos na certificação no
 
 ---
 
-## 4. Qualidade de Código e Manutenibilidade (`0 Bugs`, `0 Code Smells`)
+## 4. Qualidade de Código, Spring, Hibernate e Virtual Threads (`0 Bugs`, `0 Code Smells`)
 
 1. **Complexidade Cognitiva (`<= 15` por método — `java:S3776`):**
    - Métodos com múltiplos `if/else`, loops aninhados ou blocos `try/catch` devem ser decompostos em métodos privados pequenos e coesos com nomes descritivos.
@@ -71,26 +76,28 @@ Esta diretriz consolida os padrões de engenharia atingidos na certificação no
 2. **Limite de Parâmetros (`<= 7` parâmetros — `java:S107`):**
    - Nenhum método ou construtor deve receber mais de 7 parâmetros. Agrupe parâmetros coesos em um `record` de comando/contexto ou DTO.
 
-3. **Exceções Específicas (`java:S112`) e Tratamento Limpo:**
-   - **PROIBIDO** lançar `new RuntimeException(...)` ou `new Exception(...)` diretamente no código de produção.
-   - Utilize exceções de domínio semânticas (`BusinessRuleException`, `ResourceNotFoundException`, `StorageIntegrationException`, `IllegalArgumentException`, `IllegalStateException`).
+3. **Exceções Específicas (`java:S112`) e Recursos I/O (`java:S2095`):**
+   - **PROIBIDO** lançar `new RuntimeException(...)` ou `new Exception(...)` diretamente em código novo. Utilize exceções de domínio semânticas (`BusinessException`, `BusinessRuleException`, `ResourceNotFoundException`, `IllegalArgumentException`, `IllegalStateException`).
+   - Todo recurso `AutoCloseable` (`S3Client`, `Connection`, `PreparedStatement`, `ResultSet`, `InputStream`, `OutputStream`) deve ser aberto em bloco `try-with-resources`.
 
-4. **Constantes para Literais Repetidos (`java:S1192`):**
-   - Qualquer literal de String repetido **3 ou mais vezes** na mesma classe (nomes de campos, mensagens de erro, chaves JSON, cabeçalhos) deve ser extraído para uma constante `private static final String`.
+4. **Armadilhas de Spring, Hibernate e Virtual Threads (Java 25):**
+   - **Zero Self-Invocation em `@Transactional` / `@Async`:** Nunca invoque um método `@Transactional` ou `@Async` diretamente via `this.metodo()` dentro da mesma classe (o proxy AOP do Spring é ignorado).
+   - **Limpeza de `ThreadLocal` em `finally`:** Qualquer filtro ou serviço que popule `TenantContext` ou `MDC` deve obrigatoriamente limpá-lo em bloco `finally` para evitar vazamento de contexto entre Virtual Threads.
+   - **Prevenção de `N+1` e Paginação:** Proibido usar `findAll()` sem paginação (`Pageable`) em tabelas de alto volume (faturas, logs, eventos, `radacct`).
 
-5. **Idiomas Modernos do Java 25 LTS:**
-   - Utilize `stream().toList()` (imutável) em vez de `Collectors.toList()`.
-   - Utilize *Pattern Matching for `instanceof`* (`if (obj instanceof MeuTipo variavel)`) e *Switch Expressions* (`switch (...) { case X -> ... }`).
-   - Utilize sempre `try-with-resources` para qualquer `AutoCloseable` (`Connection`, `PreparedStatement`, `ResultSet`, `InputStream`, `OutputStream`).
-   - Respeite estritamente o `@NullMarked` (JSpecify) em todos os pacotes.
+5. **Constantes para Literais Repetidos (`java:S1192`) e Java 25:**
+   - Qualquer literal de String repetido **3 ou mais vezes** na mesma classe deve ser extraído para `private static final String`.
+   - Utilize `stream().toList()`, *Pattern Matching* (`instanceof Tipo var`), *Switch Expressions* (`->`) e `@NullMarked` (JSpecify).
 
 ---
 
-## 5. Cobertura de Testes Obrigatória (`>= 80%` em Código Novo)
+## 5. Guardiões Automatizados Offline (Substitutos Gratuitos do SonarQube)
 
-- Toda nova feature, correção de bug ou refatoração deve vir acompanhada de testes unitários e/ou de integração cobrindo os caminhos felizes e os desvios de erro/segurança.
-- Antes de concluir qualquer entrega no Backend, valide localmente o relatório do JaCoCo:
-  ```bash
-  cd backend && ./gradlew test jacocoTestReport
-  ```
-  *(O relatório visual gratuito fica disponível em `backend/build/reports/jacoco/test/html/index.html`).*
+Mesmo sem licença do SonarQube Cloud, o projeto possui **3 guardiões automatizados locais** configurados no Gradle:
+
+1. **ArchUnit (`ArchitectureAndQualityRulesTest`):**
+   Executado automaticamente em todo `./gradlew test`. Falha o build se qualquer classe de produção usar `UUID.randomUUID()`, `System.out`/`printStackTrace`, expuser `@Entity` em `@RestController`, acoplar `service`/`entity` a `controller` ou omitir `@NullMarked` nos pacotes principais.
+2. **Trava de Cobertura JaCoCo (`jacocoTestCoverageVerification`):**
+   Garante o piso mínimo de cobertura de código e gera o relatório visual em `backend/build/reports/jacoco/test/html/index.html` (meta de `>= 80%` em código novo).
+3. **Auditoria Completa Sob Demanda (`./gradlew qualityCheck`):**
+   Executa os testes, a verificação de cobertura do JaCoCo e a análise estática do **PMD 7** (`backend/config/pmd/ruleset.xml`), gerando o relatório em `backend/build/reports/pmd/main.html`.

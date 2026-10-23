@@ -4,6 +4,7 @@ import br.dev.xb.isperp.entity.FiscalCompany;
 import br.dev.xb.isperp.entity.FiscalGatewayConfig;
 import br.dev.xb.isperp.repository.FiscalCompanyRepository;
 import br.dev.xb.isperp.repository.FiscalGatewayConfigRepository;
+import br.dev.xb.isperp.util.UuidCreatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
@@ -50,7 +51,7 @@ public class FiscalGatewayResolver {
         }
 
         final FiscalCompany company = resolvedCompany;
-        final UUID finalCompanyId = company.getId() != null ? company.getId() : UUID.randomUUID();
+        final UUID finalCompanyId = UuidCreatorUtils.orGenerate(company.getId());
 
         Optional<FiscalGatewayConfig> configOpt = (company.getId() != null)
                 ? configRepository.findByCompanyIdAndIsActiveTrue(company.getId())

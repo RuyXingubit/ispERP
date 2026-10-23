@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'jacoco'
+    id 'pmd'
     id 'eclipse'
     id 'idea'
     id 'org.springframework.boot' version '4.1.2'
@@ -40,6 +41,7 @@ ext {
     set('commons-lang3.version', '3.21.0')
     set('commons-codec.version', '1.23.0')
     set('commons-io.version', '2.22.0')
+    set('gson.version', '2.14.0')
 }
 
 configurations.configureEach {
@@ -139,6 +141,7 @@ dependencies {
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.5.1'
     testImplementation platform('org.testcontainers:testcontainers-bom:1.21.4')
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
@@ -199,12 +202,69 @@ tasks.named('test') {
     finalizedBy jacocoTestReport
 }
 
+def jacocoExclusions = [
+    '**/api/contract/**',
+    '**/api/dto/**',
+    '**/seeder/**'
+]
+
 jacocoTestReport {
     dependsOn test
     reports {
         xml.required = true
         html.required = true
     }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExclusions)
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExclusions)
+        }))
+    }
+    violationRules {
+        rule {
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                minimum = 0.60
+            }
+        }
+    }
+}
+
+pmd {
+    toolVersion = '7.28.0'
+    consoleOutput = false
+    ignoreFailures = true
+    ruleSets = []
+    ruleSetFiles = files("${projectDir}/config/pmd/ruleset.xml")
+}
+
+def runPmdTasks = gradle.startParameter.taskNames.any { taskName ->
+    taskName.contains('qualityCheck') || taskName.contains('pmd')
+}
+
+tasks.withType(Pmd).configureEach {
+    enabled = runPmdTasks
+    exclude '**/api/contract/**'
+    exclude '**/api/dto/**'
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+tasks.register('qualityCheck') {
+    group = 'verification'
+    description = 'Executes offline code quality, static analysis (PMD), architecture rules (ArchUnit), and JaCoCo coverage verification.'
+    dependsOn test, jacocoTestCoverageVerification, 'pmdMain'
 }
 
 sonar {

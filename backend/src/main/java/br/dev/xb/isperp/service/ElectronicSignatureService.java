@@ -7,6 +7,7 @@ import br.dev.xb.isperp.mapper.ContractSignatureMapper;
 import br.dev.xb.isperp.repository.*;
 import br.dev.xb.isperp.signature.DocumentType;
 import br.dev.xb.isperp.signature.SignatureStatus;
+import br.dev.xb.isperp.util.UuidCreatorUtils;
 import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +84,7 @@ public class ElectronicSignatureService {
         String initialHash = templateEngine.calculateSha256(renderedContent);
 
         // Gera token público único e txid para o Pix
-        String token = UUID.randomUUID().toString().replace("-", "");
+        String token = UuidCreatorUtils.generateUuidV7().toString().replace("-", "");
         String pixTxid = "SIG" + System.currentTimeMillis() + SECURE_RANDOM.nextInt(1000);
         BigDecimal amount = request.getSymbolicAmount() != null ? request.getSymbolicAmount() : BigDecimal.valueOf(1.00);
 
