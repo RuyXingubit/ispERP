@@ -31,6 +31,7 @@ repositories {
 ext {
     set('tomcat.version', '11.0.27')
     set('freemarker.version', '2.3.35')
+    set('logback.version', '1.6.5')
     set('log4j2.version', '2.26.1')
     set('jackson-2-bom.version', '2.22.4')
     set('jackson-bom.version', '3.2.4')
@@ -42,8 +43,13 @@ ext {
 }
 
 configurations.configureEach {
+    exclude group: 'org.hdrhistogram', module: 'HdrHistogram'
+    exclude group: 'org.glassfish.jaxb', module: 'jaxb-runtime'
+    exclude group: 'org.glassfish.jaxb', module: 'jaxb-core'
     resolutionStrategy.eachDependency { details ->
-        if (details.requested.group.startsWith('com.fasterxml.jackson')) {
+        if (details.requested.group == 'ch.qos.logback') {
+            details.useVersion('1.6.5')
+        } else if (details.requested.group.startsWith('com.fasterxml.jackson')) {
             if (details.requested.name == 'jackson-annotations') {
                 details.useVersion('2.22')
             } else {
@@ -212,23 +218,4 @@ sonar {
 
 tasks.named('sonar') {
     dependsOn jacocoTestReport
-    def sonarTokenProvider = providers.environmentVariable('SONAR_TOKEN')
-    doFirst {
-        def token = sonarTokenProvider.orNull
-        if (token) {
-            try {
-                def client = java.net.http.HttpClient.newHttpClient()
-                def req = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("https://api.sonarcloud.io/sca/issues-releases?projectKey=RuyXingubit_ispERP&branchKey=main&pageSize=100"))
-                    .header("Authorization", "Bearer " + token)
-                    .GET()
-                    .build()
-                def resp = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString())
-                println "SCA_ISSUES_STATUS=" + resp.statusCode()
-                println "SCA_ISSUES_BODY=" + resp.body()
-            } catch (Exception e) {
-                println "SCA_ISSUES_ERR=" + e.message
-            }
-        }
-    }
 }
